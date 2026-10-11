@@ -405,7 +405,7 @@ const en = {
   'nearby.hiddenTitle': 'Hidden',
   'nearby.hiddenHint': 'You won\'t appear on other devices',
   'nearby.searching': 'Looking for nearby devices…',
-  'nearby.searchingHint': 'Keep ShareTexts open on your other device',
+  'nearby.searchingHint': 'Both devices need ShareTexts open',
   'nearby.waitingOther': "Waiting for another device…",
   'nearby.nothingFound': 'Can\'t see your device?',
   'nearby.useAnotherWay': 'Use another way',

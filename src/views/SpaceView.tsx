@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { SpinLoader } from '../components/SpinLoader';
 import { Bar } from '../components/SkeletonScreen';
-import { IsometricSpaceIllustration } from '../components/isometric/IsometricIllustrations';
+import { Inbox } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { TactileButton } from '../components/TactileButton';
 import type { MsgKey } from '../lib/messages/types';
@@ -995,16 +995,17 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             ))}
           </div>
         ) : items.length === 0 && uploads.length === 0 ? (
-          <div className="rounded-[20px] border border-dashed border-apple-divider dark:border-white/[0.12] py-10 sm:py-12 text-center" data-testid="space-empty">
-            {/* The empty shelf, drawn in the isometric system: a temporary
-                surface receiving whatever a device drops on it — with legs,
-                so it never reads as cloud storage. */}
-            <IsometricSpaceIllustration
-              className="mx-auto mb-4 w-full max-w-[280px]"
-              label="Isometric drawing: an empty shelf standing on legs, with a dashed drop zone on it."
-            />
-            <p className="text-[15px] font-medium text-apple-ink-muted dark:text-white/55">{t('space.empty')}</p>
-            <p className="mt-1 text-[13.5px] text-apple-ink-muted/70 dark:text-white/40">{t('space.emptyHint')}</p>
+          <div className="rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] shadow-card dark:shadow-none py-10 sm:py-12 px-6 text-center" data-testid="space-empty">
+            {/* The empty shelf speaks the SAME grammar as the items that will
+                land on it — the product's card surface, radius and hairline —
+                with one quiet brand glyph. No illustration, no dashed wire
+                box: the shelf is the card itself, so the first real item
+                arrives onto a surface that already looks like home. */}
+            <span className="mx-auto mb-3.5 flex h-11 w-11 items-center justify-center rounded-full bg-ember/10 dark:bg-azure-400/10 text-ember dark:text-azure-400" aria-hidden>
+              <Inbox className="w-5 h-5" strokeWidth={2} />
+            </span>
+            <p className="text-[15px] font-medium text-apple-ink dark:text-white/85">{t('space.empty')}</p>
+            <p className="mt-1 text-[13.5px] text-apple-ink-muted dark:text-white/45">{t('space.emptyHint')}</p>
           </div>
         ) : (
           <ul className="space-y-2.5" aria-label={t('space.contentLabel')}>

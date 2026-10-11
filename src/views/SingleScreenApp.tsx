@@ -1713,13 +1713,21 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                    arrives (anticipate the next need; empty states carry an
                    action, never dead space). */
                 <div className="w-full max-w-[340px] flex flex-col items-center">
-                  <div className="mb-5">
-                    <ConnectHandshake
-                      phase={panelMode === 'receiving' ? 'searching' : 'connecting'}
-                      localIcon={isMobileDevice ? 'phone' : 'monitor'}
-                      quiet
-                    />
-                  </div>
+                  {/* The pair glyphs live on the SENDING side's pairing panel
+                      (code + instructions) — repeating the same illustration
+                      here, 600px away, padded the pane and diluted both. The
+                      joiner has no pairing panel, so THEIR waiting state keeps
+                      the searching handshake. One illustration per state,
+                      never two. */}
+                  {panelMode === 'receiving' && (
+                    <div className="mb-5">
+                      <ConnectHandshake
+                        phase="searching"
+                        localIcon={isMobileDevice ? 'phone' : 'monitor'}
+                        quiet
+                      />
+                    </div>
+                  )}
                   <p className="text-[15px] font-semibold text-apple-ink dark:text-white mb-1.5">
                     {panelMode === 'sending' && (isCreating && !session.secret ? t('create.creating') : t('room.created'))}
                     {panelMode === 'receiving' && t('room.waiting')}
