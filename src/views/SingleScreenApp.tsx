@@ -741,9 +741,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {t('home.subtitle')}
               </p>
               {/* Live activity tracker — bare (NO pill): a breathing dot, the
-                  lifetime count, and the label. Honest, local, floored at the
-                  pre-telemetry era count. QUIET by rank: it is metadata, so
-                  it whispers — the Send/Receive pair owns this screen. */}
+                  lifetime count, and the label. Honest, local — no fabricated
+                  floor: until the service answers with a real total (and no
+                  nearby device is speaking over it) the line stays hidden
+                  rather than inventing longevity. QUIET by rank: it is
+                  metadata, so it whispers — the Send/Receive pair owns this
+                  screen. */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -758,12 +761,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <span className="st-halo-ring st-halo-lag absolute inset-0 rounded-full bg-status-success/25" />
                   <span className="relative w-1.5 h-1.5 rounded-full bg-status-success shadow-[0_0_6px_rgba(52,199,89,0.7)]" />
                 </span>
-                {nearbyStatus
-                  ? <span className="text-[13.5px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
-                  : <>
-                    <span className="text-[16px] font-bold text-apple-ink/90 dark:text-white/90 tnum leading-none">{Math.max(roomsCreated ?? 0, 113).toLocaleString()}</span>
+                {nearbyStatus ? (
+                  <span className="text-[13.5px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
+                ) : roomsCreated != null ? (
+                  <>
+                    <span className="text-[16px] font-bold text-apple-ink/90 dark:text-white/90 tnum leading-none">{roomsCreated.toLocaleString()}</span>
                     <span className="text-[13.5px] font-medium text-apple-ink-muted/85 dark:text-white/50 leading-none">{t('home.roomsMade')}</span>
-                  </>}
+                  </>
+                ) : null}
               </motion.div>
               {/* Equal-width grid: the two primary actions share ONE geometry
                   (audit #12 — Receive rendered wider than Send), and each

@@ -111,18 +111,16 @@ export function useLiveStats(pollMs = 10_000): { devices: number | null; roomsCr
     void load();
   }), [load]);
 
-  // Display = the best truth we have. The server's lifetime total wins as
-  // soon as it's known AND at least the historical floor — it already counts
-  // rooms made on every device, so a refresh can never lose rooms the user
-  // made moments ago. Below the floor (an old deploy or a counter that
-  // predates lifetime tracking) we fall back to floor + this device's own
-  // optimistic bumps, so the counter still moves instantly on this device.
-  const FLOOR = 113;
+  // Display = the best REAL truth we have. No fabricated floor: the number
+  // is the server's honest lifetime total (rooms made across every device
+  // since it came up) plus this device's own optimistic bump, which is a
+  // real connection that just opened. A fresh server showing a small count
+  // is honest; inventing longevity to look busier is not. Until the server
+  // answers we return null so the tracker stays hidden rather than showing
+  // a made-up figure.
   const displayRooms = roomsCreated == null
-    ? FLOOR + localBump
-    : roomsCreated >= FLOOR
-      ? Math.max(roomsCreated, FLOOR + localBump)
-      : Math.max(FLOOR + localBump, roomsCreated + localBump);
+    ? (localBump > 0 ? localBump : null)
+    : Math.max(roomsCreated, roomsCreated + localBump);
 
   return { devices, roomsCreated: displayRooms };
 }
