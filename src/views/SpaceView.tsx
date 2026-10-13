@@ -141,7 +141,7 @@ function ItemCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.18 }}
-      className="group relative rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] shadow-card dark:shadow-none overflow-hidden"
+      className="group relative st-card overflow-hidden"
       data-testid="space-item"
       data-kind={item.kind}
     >
@@ -186,10 +186,10 @@ function ItemCard({
         )}
         {item.kind === 'file' && (
           <div className="flex items-center gap-3">
-            <span className="shrink-0 w-10 h-10 rounded-[12px] bg-apple-parchment dark:bg-white/[0.06] flex items-center justify-center">
+            <span className="st-glyph shrink-0 w-10 h-10">
               {isImage && preview !== 'failed'
-                ? <ImageIcon className="w-5 h-5 text-apple-ink-muted dark:text-white/55" />
-                : <FileIcon className="w-5 h-5 text-apple-ink-muted dark:text-white/55" />}
+                ? <ImageIcon className="w-5 h-5" />
+                : <FileIcon className="w-5 h-5" />}
             </span>
             <span className="min-w-0">
               <span className="st-label block text-[14px] text-apple-ink dark:text-white/90 truncate">{item.name || 'file'}</span>
@@ -269,10 +269,10 @@ function UploadRow({
   const active = phase === 'uploading' || phase === 'preparing';
 
   return (
-    <div className="rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] shadow-card dark:shadow-none p-3.5" data-testid="space-upload" data-phase={phase}>
+    <div className="st-card p-3.5" data-testid="space-upload" data-phase={phase}>
       <div className="flex items-center gap-3">
-        <span className="shrink-0 w-10 h-10 rounded-[12px] bg-apple-parchment dark:bg-white/[0.06] flex items-center justify-center">
-          <UploadCloud className={`w-5 h-5 ${done ? 'text-emerald-600 dark:text-emerald-400' : failed || cancelled ? 'text-red-500' : 'text-apple-ink-muted dark:text-white/55'}`} />
+        <span className={`st-glyph shrink-0 w-10 h-10 ${done ? 'st-glyph-ok' : failed || cancelled ? 'st-glyph-danger' : ''}`}>
+          <UploadCloud className={`w-5 h-5 ${done ? '' : failed || cancelled ? 'opacity-70' : ''}`} />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[14px] font-medium text-apple-ink dark:text-white/90 truncate">{up.name}</span>
@@ -341,8 +341,8 @@ function UploadRow({
         )}
       </div>
       {!done && !failed && !cancelled && (
-        <div className="mt-2.5 h-1 rounded-full bg-apple-ink/[0.07] dark:bg-white/[0.08] overflow-hidden">
-          <div className={`h-full rounded-full transition-[width] duration-300 ${phase === 'verifying' ? 'animate-pulse' : ''}`}
+        <div className="mt-3 st-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={phase === 'verifying' ? 100 : phase === 'preparing' ? Math.round((up.progress.prepare ?? 0) * 100) : pct} aria-label={label}>
+          <i className={phase === 'verifying' ? 'animate-pulse' : ''}
             style={{ width: `${phase === 'verifying' ? 100 : phase === 'preparing' ? Math.round((up.progress.prepare ?? 0) * 100) : pct}%` }} />
         </div>
       )}
@@ -909,15 +909,16 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               }}
               title={t('space.copyCode')}
               aria-label={`${t('space.codeDisplayLabel')}: ${formatSpaceCode(spaceCode)}. ${t('space.copyCode')}`}
-              className="shrink-0 hidden sm:inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-full text-[12.5px] font-mono font-semibold tracking-[0.08em] text-apple-ink dark:text-white/80 bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] transition-colors"
+              className="st-chip st-chip-ember shrink-0 hidden sm:inline-flex font-mono tracking-[0.1em]"
               data-testid="space-code-chip"
             >
               {formatSpaceCode(spaceCode)}
-              <Copy className="w-3 h-3 opacity-60" />
+              <Copy className="w-3 h-3 opacity-70" />
             </button>
           )}
           {snapshot && (
-            <span className="shrink-0 text-[12.5px] font-medium text-apple-ink-muted dark:text-white/45 tabular-nums" data-testid="space-members">
+            <span className="st-chip shrink-0 tabular-nums" data-testid="space-members">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-success shrink-0" aria-hidden />
               {snapshot.memberCount === 1
                 ? t('space.memberCountOne')
                 : t('space.memberCount', { count: snapshot.memberCount })}
@@ -943,7 +944,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       </header>
 
       {/* ── content ── */}
-      <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-5">
+      <main className="flex-1 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6 py-5">
         {conn === 'offline' && (
           <p className="mb-3 text-[12.5px] font-medium text-amber-600 dark:text-amber-400" role="status">{t('space.reconnecting')}</p>
         )}
@@ -973,11 +974,11 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         {snapshot && roster.length > 1 && (
           <ul className="mb-3 flex flex-wrap gap-1.5" aria-label={t('space.devicesLabel')} data-testid="space-devices">
             {roster.map(m => (
-              <li key={m.participantId} className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] px-2.5 py-1 text-[12px] font-medium text-apple-ink dark:text-white/75">
-                <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-emerald-500 dark:bg-emerald-400" aria-hidden />
+              <li key={m.participantId} className="st-chip">
+                <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-status-success" aria-hidden />
                 {m.name}
                 {m.participantId === snapshot.participantId && (
-                  <span className="text-apple-ink-muted/70 dark:text-white/40">· {t('space.thisDevice')}</span>
+                  <span className="text-apple-ink-muted/70 dark:text-white/40 font-normal">· {t('space.thisDevice')}</span>
                 )}
               </li>
             ))}
@@ -988,24 +989,38 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
              use — shape first, words never. */
           <div className="space-y-2.5" aria-label={t('space.contentLabel')} data-testid="space-loading">
             {[64, 44, 52].map((h, i) => (
-              <div key={i} className="rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] p-3.5">
+              <div key={i} className="st-card p-3.5">
                 <Bar className="block rounded-[8px]" style={{ height: h / 2 + 8 }} />
                 <Bar className="mt-2 h-2.5 w-1/3" />
               </div>
             ))}
           </div>
         ) : items.length === 0 && uploads.length === 0 ? (
-          <div className="rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] shadow-card dark:shadow-none py-10 sm:py-12 px-6 text-center" data-testid="space-empty">
-            {/* The empty shelf speaks the SAME grammar as the items that will
-                land on it — the product's card surface, radius and hairline —
-                with one quiet brand glyph. No illustration, no dashed wire
-                box: the shelf is the card itself, so the first real item
-                arrives onto a surface that already looks like home. */}
-            <span className="mx-auto mb-3.5 flex h-11 w-11 items-center justify-center rounded-full bg-ember/10 dark:bg-azure-400/10 text-ember dark:text-azure-400" aria-hidden>
-              <Inbox className="w-5 h-5" strokeWidth={2} />
+          /* The empty shelf is a REAL surface, not a card floating in a
+             void: it fills the column, states the promise once, and hands
+             the user the two things they can do about it — write something,
+             or drop a file. Same tonal grammar as the items that will land
+             here, so the first arrival lands on something that already
+             looks like home. */
+          <div
+            className="st-card flex-1 overflow-hidden flex flex-col items-center justify-center text-center px-6 py-12 sm:py-16 gap-1"
+            data-testid="space-empty"
+            style={{ minHeight: 'min(52vh, 460px)' }}
+          >
+            <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-[20px] st-glyph st-glyph-ember" aria-hidden>
+              <Inbox className="w-6 h-6" strokeWidth={2} />
             </span>
-            <p className="text-[15px] font-medium text-apple-ink dark:text-white/85">{t('space.empty')}</p>
-            <p className="mt-1 text-[13.5px] text-apple-ink-muted dark:text-white/45">{t('space.emptyHint')}</p>
+            <p className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.015em]">{t('space.empty')}</p>
+            <p className="mt-1.5 text-[14px] text-apple-ink-muted dark:text-white/55 max-w-[34ch] leading-relaxed">{t('space.emptyHint')}</p>
+            {/* The drop affordance — the SAME surface the real shelf uses,
+                so “nothing here” and “something is here” never look like
+                two different products. */}
+            <div className="st-tile mt-6 w-full max-w-[420px] flex items-center justify-center gap-2.5 rounded-[14px] px-4 py-4 text-[13.5px] font-semibold text-apple-ink-muted dark:text-white/55">
+              <span className="st-glyph w-8 h-8 shrink-0" aria-hidden>
+                <Plus className="w-4 h-4" />
+              </span>
+              {t('space.composerPlaceholder')}
+            </div>
           </div>
         ) : (
           <ul className="space-y-2.5" aria-label={t('space.contentLabel')}>

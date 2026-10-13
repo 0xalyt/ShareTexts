@@ -305,6 +305,8 @@ const hi: Dict = {
   'code.digitsOf': '6 में से {n} अंक दर्ज हुए',
   'code.digitOf': 'अंक {n} / 6',
   'code.verifying': 'कोड सत्यापित हो रहा है…',
+
+  'code.accepted': 'कोड स्वीकार हो गया',
   'command.title': 'ShareTexts कमांड',
   'command.about': 'परिचय',
   'command.diagnostics': 'कनेक्शन जाँच',

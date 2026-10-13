@@ -69,11 +69,11 @@ if (needHub) {
   <meta property="og:title" content="Guides — ShareTexts" />
   <meta property="og:description" content="Every ShareTexts guide: file transfer how-tos, comparisons, security, and Temporary Spaces." />
   <meta property="og:url" content="${ORIGIN}/guides" />
-  <meta property="og:image" content="${ORIGIN}/og/sharetext-og.jpg" />
+  <meta property="og:image" content="${ORIGIN}/og/sharetext-og.jpg?v=18" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Guides — ShareTexts" />
   <meta name="twitter:description" content="Every ShareTexts guide: file transfer how-tos, comparisons, security, and Temporary Spaces." />
-  <meta name="twitter:image" content="${ORIGIN}/og/sharetext-og.jpg" />
+  <meta name="twitter:image" content="${ORIGIN}/og/sharetext-og.jpg?v=18" />
   <link rel="stylesheet" href="/guides/_template.css" />
   <script type="application/ld+json">
 ${crumbsLd}

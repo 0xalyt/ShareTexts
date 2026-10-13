@@ -305,6 +305,8 @@ const ar: Dict = {
   'code.digitsOf': 'أدخلت {n} من 6 أرقام',
   'code.digitOf': 'الرقم {n} من 6',
   'code.verifying': 'جارٍ التحقق من الرمز…',
+
+  'code.accepted': 'تم قبول الرمز',
   'command.title': 'أوامر ShareTexts',
   'command.about': 'حول',
   'command.diagnostics': 'تشخيص الاتصال',

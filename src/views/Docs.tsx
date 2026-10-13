@@ -95,7 +95,7 @@ function OverviewSection() {
           { icon: <Monitor className="w-5 h-5" />, title: 'Universal', desc: 'Any browser, any device. No install.' },
           { icon: <Lock className="w-5 h-5" />, title: 'Verified', desc: 'SHA-256 on every transfer. Bit-perfect.' },
         ].map((f, i) => (
-          <div key={i} className="flex gap-3.5 p-4 rounded-[14px] bg-white dark:bg-apple-tile-1 border border-apple-divider/50 dark:border-apple-tile-3">
+          <div key={i} className="flex gap-3.5 p-4 rounded-[14px] st-card">
             <div className="w-10 h-10 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center shrink-0 text-ember dark:text-azure-400">{f.icon}</div>
             <div>
               <p className="text-[14px] font-semibold text-apple-ink dark:text-white mb-0.5">{f.title}</p>
@@ -258,7 +258,7 @@ function TroubleshootingSection() {  return (
           { problem: 'Transfer failed', solution: 'The connection was interrupted. Tap Retry to send again. The file was not marked as complete.' },
           { problem: 'File won\'t download', solution: 'Check that your browser allows downloads. On mobile, try long-pressing the file and selecting Save.' },
         ].map((item, i) => (
-          <div key={i} className="p-5 rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/50 dark:border-apple-tile-3">
+          <div key={i} className="p-5 rounded-[16px] st-card">
             <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2">{item.problem}</h3>
             <p className="text-[14px] text-apple-ink-muted dark:text-white/60 leading-relaxed">{item.solution}</p>
           </div>
@@ -285,7 +285,7 @@ function PrivacySection() {
           { icon: <Clock className="w-4 h-4" />, title: 'Temporary rooms', desc: 'Rooms expire automatically. Your data is never stored long-term.' },
           { icon: <Check className="w-4 h-4" />, title: 'Verified transfers', desc: 'SHA-256 on every transfer. What you send is exactly what arrives.' },
         ].map((item, i) => (
-          <div key={i} className="flex gap-3.5 p-4 rounded-[14px] bg-white dark:bg-apple-tile-1 border border-apple-divider/50 dark:border-apple-tile-3">
+          <div key={i} className="flex gap-3.5 p-4 rounded-[14px] st-card">
             <div className="text-status-success shrink-0 mt-0.5">{item.icon}</div>
             <div>
               <p className="text-[14px] font-semibold text-apple-ink dark:text-white mb-0.5">{item.title}</p>
@@ -309,7 +309,7 @@ function DevicesSection() {
       </div>
 
       <div className="space-y-6">
-        <div className="p-5 rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/50 dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-3">Browsers</h3>
           <div className="grid grid-cols-2 gap-3">
             {['Chrome', 'Safari', 'Firefox', 'Edge', 'Brave', 'Arc', 'Samsung Internet', 'Opera / Vivaldi'].map((b) => (
@@ -322,7 +322,7 @@ function DevicesSection() {
             Tor Browser works when WebRTC is enabled. If a browser can't run ShareTexts, you'll see a clear explanation instead of a broken page.
           </p>
         </div>
-        <div className="p-5 rounded-[16px] bg-white dark:bg-surface-dark border border-apple-divider/50 dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-3">Operating Systems</h3>
           <div className="grid grid-cols-2 gap-3">
             {['iOS / iPadOS', 'Android', 'Windows', 'macOS', 'Linux', 'ChromeOS'].map((os) => (
@@ -332,7 +332,7 @@ function DevicesSection() {
             ))}
           </div>
         </div>
-        <div className="p-5 rounded-[16px] bg-apple-parchment dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-tile">
           <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2">Requirements</h3>
           <p className="text-[14px] text-apple-ink-muted dark:text-white/60 leading-relaxed">Both devices need an internet connection and a browser that supports WebRTC. No special permissions are required for text transfers. Camera permission is needed for QR scanning.</p>
         </div>
@@ -435,7 +435,7 @@ function APISection() {
       </div>
 
       <div className="space-y-6">
-        <div className="p-5 rounded-[16px] bg-white dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
             <span className="px-2 py-0.5 rounded-[4px] bg-green-100 dark:bg-green-900/30 text-[12px] font-semibold text-green-700 dark:text-green-400">POST</span>
             <code className="text-[14px] font-mono text-apple-ink dark:text-white">/api/push</code>
@@ -462,7 +462,7 @@ function APISection() {
           </div>
         </div>
 
-        <div className="p-5 rounded-[16px] bg-white dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
             <span className="px-2 py-0.5 rounded-[4px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
             <code className="text-[14px] font-mono text-apple-ink dark:text-white">/health</code>
@@ -472,7 +472,7 @@ function APISection() {
           </p>
         </div>
 
-        <div className="p-5 rounded-[16px] bg-white dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
             <span className="px-2 py-0.5 rounded-[4px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
             <code className="text-[14px] font-mono text-apple-ink dark:text-white">/stats</code>
@@ -517,7 +517,7 @@ function SecuritySection() {
       </div>
 
       <div className="space-y-4">
-        <div className="p-5 rounded-[16px] bg-white dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">            <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
+        <div className="p-5 rounded-[16px] st-card">            <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <Lock className="w-4 h-4 text-status-success" />
             Encrypted in the browser
           </h3>
@@ -526,7 +526,7 @@ function SecuritySection() {
           </p>
         </div>
 
-        <div className="p-5 rounded-[16px] bg-white dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <Clock className="w-4 h-4 text-status-success" />
             Nothing is kept
@@ -536,7 +536,7 @@ function SecuritySection() {
           </p>
         </div>
 
-        <div className="p-5 rounded-[16px] bg-white dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <Shield className="w-4 h-4 text-status-success" />
             Verified Transfers
@@ -546,7 +546,7 @@ function SecuritySection() {
           </p>
         </div>
 
-        <div className="p-5 rounded-[16px] bg-white dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+        <div className="p-5 rounded-[16px] st-card">
           <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-status-warning" />
             Agent Tokens
@@ -557,7 +557,7 @@ function SecuritySection() {
         </div>
       </div>
 
-      <div className="p-5 rounded-[16px] bg-apple-parchment dark:bg-apple-tile-1 border border-apple-divider dark:border-apple-tile-3">
+      <div className="p-5 rounded-[16px] st-tile">
         <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-3">What ShareTexts does NOT store</h3>
         <ul className="space-y-2 text-[14px] text-apple-ink-muted dark:text-white/60">
           <li className="flex items-start gap-2">

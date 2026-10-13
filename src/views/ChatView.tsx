@@ -1088,7 +1088,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.98 }}
               transition={{ type: "spring", bounce: 0, duration: 0.28 }}
-              className="absolute top-[calc(100%+10px)] right-2 sm:right-4 left-2 sm:left-auto sm:w-[360px] p-4 bg-white dark:bg-surface-dark border border-apple-divider dark:border-apple-tile-3 rounded-[16px] shadow-2xl z-40 overflow-y-auto overscroll-contain max-h-[calc(100dvh-120px)]"
+              className="absolute top-[calc(100%+10px)] right-2 sm:right-4 left-2 sm:left-auto sm:w-[360px] p-4 rounded-[16px] st-card st-elev-floating z-40 overflow-y-auto overscroll-contain max-h-[calc(100dvh-120px)]"
               role="dialog"
               aria-modal="true"
               aria-label={t('details.aria')}
@@ -1500,7 +1500,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       {/* Input Area — on phones the composer floats just above the bottom
           edge (breathing room + safe area) instead of gluing to it, where
           thumbs and browser chrome crowd it. */}
-      <div className="p-3 sm:p-5 bg-white/80 dark:bg-night-900/80 border-t border-black/[0.06] dark:border-white/[0.04] z-10 pb-[max(env(safe-area-inset-bottom),10px)] sm:pb-5 relative">
+      <div className="p-3 sm:p-5 bg-white/85 dark:bg-night-900/92 border-t border-black/[0.06] dark:border-white/[0.04] shadow-[0_-12px_28px_-20px_rgba(31,27,21,0.45)] dark:shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.75)] z-10 pb-[max(env(safe-area-inset-bottom),10px)] sm:pb-5 relative">
         <form onSubmit={handleSend} className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col gap-2">
           <div className="hidden sm:flex items-center justify-end gap-1.5 text-[11px] font-medium text-apple-ink-muted/70 dark:text-white/40 px-1">
             <kbd className="px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 font-sans">{t('composer.enter')}</kbd>

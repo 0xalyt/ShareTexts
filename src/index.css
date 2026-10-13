@@ -133,6 +133,15 @@
   --iso-accent-deep: #c25310;
 
   /* ── Radius ─────────────────────────────────────────────────────────── */
+  /* ── Tonal blocks — the F23 surface grammar ───────────────────────
+     Three tones, not five shadows: SUNK sits INTO the page (a block of
+     the canvas), RAISED sits ON it (a card you act on), FLAT is the page
+     itself. Tone does the separating; the border only reinforces. Every
+     surface in the app picks one of these three — never a one-off wash. */
+  --st-tone-sunk: #f0ede3;      /* light: recessed block on parchment */
+  --st-tone-raised: #fffefb;    /* light: card on parchment           */
+  --st-tone-chrome: #f7f4ee;    /* light: page-level band             */
+
   --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 16px;
@@ -255,9 +264,12 @@
     --color-border: #2b2b30;
     --color-border-subtle: #222226;
     --color-border-strong: #3a3a41;
-    --color-brand: #4da3ff;
-    --color-brand-strong: #7cc4ff;
-    --color-brand-light: #12202f;
+    /* Brand stays EMBER at night — the accent is the identity, not a
+       theme variable. (These three used to flip to a leftover blue:
+       hovering the ember Send key in dark mode turned it light blue.) */
+    --color-brand: #fb7a2e;
+    --color-brand-strong: #ff9a5e;
+    --color-brand-light: #2a170a;
     --color-success: #3dd68c;
     --color-success-light: #0d2a1a;
     --color-warning: #f0b84d;
@@ -299,6 +311,11 @@
     --iso-accent: #f06413;
     --iso-accent-soft: #d95a0f;
     --iso-accent-deep: #a84409;
+
+    /* Night relight of the tonal blocks: same three tones, graphite. */
+    --st-tone-sunk: #17171a;
+    --st-tone-raised: #212126;
+    --st-tone-chrome: #131315;
   }
 
   /* Display face carries headings; system stack carries everything else.
@@ -914,5 +931,201 @@ html.dark .st-spotlight {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SHARED PATTERN LAYER (F23)
+   One grammar every surface pulls from, so the product stops inventing a
+   new card per screen. Translated from the reference designs, not copied:
+   tonal blocks that read as MATERIAL, pills for status, one callout band,
+   one progress bar, one glyph tile.
+
+     .st-card      raised block — sits ON the page (tone + hairline + drop)
+     .st-tile      recessed block — sits IN the page (tone only)
+     .st-band      tinted callout — explains a consequence, never decorates
+     .st-chip*     pill for status / selection / metadata
+     .st-glyph     the one icon tile (device, file, section marker)
+     .st-bar       real, measured progress
+     .st-head-row  section label + trailing meta, one rhythm
+   Layered as COMPONENTS (not utilities) so a pattern class is a default a
+   per-element Tailwind utility can still override — `rounded-full` beats
+   `.st-card`'s radius, `tracking-*` beats `.st-chip`'s tracking. Patterns
+   provide the material; utilities provide the variation.
+   ═════════════════════════════════════════════════════════════════ */
+@layer components {
+  .st-card {
+    background: var(--st-tone-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--st-elev-raised);
+  }
+  html.dark .st-card {
+    background: var(--st-tone-raised);
+    border-color: var(--color-border);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  .st-tile {
+    background: var(--st-tone-sunk);
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+  html.dark .st-tile {
+    background: var(--st-tone-sunk);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .st-band {
+    border-radius: var(--radius-sm);
+    padding: 11px 13px;
+    background: rgba(240, 100, 19, 0.07);
+    border: 1px solid rgba(240, 100, 19, 0.20);
+    color: var(--color-text);
+  }
+  html.dark .st-band {
+    background: rgba(251, 146, 67, 0.10);
+    border-color: rgba(251, 146, 67, 0.26);
+    color: var(--color-text);
+  }
+
+  .st-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--st-tone-sunk);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  html.dark .st-chip {
+    background: var(--color-surface-elevated);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+  }
+  .st-chip-ember {
+    background: rgba(240, 100, 19, 0.10);
+    border-color: rgba(240, 100, 19, 0.30);
+    color: var(--color-azure-800);
+  }
+  html.dark .st-chip-ember {
+    background: rgba(251, 146, 67, 0.14);
+    border-color: rgba(251, 146, 67, 0.34);
+    color: var(--color-azure-400);
+  }
+  .st-chip-ok {
+    background: var(--color-status-success-soft);
+    border-color: rgba(52, 199, 89, 0.30);
+    color: var(--color-status-success-ink);
+  }
+  html.dark .st-chip-ok {
+    background: rgba(52, 199, 89, 0.12);
+    color: var(--color-status-success-ink-dark);
+  }
+  .st-chip-warn {
+    background: var(--color-status-warning-soft);
+    border-color: rgba(255, 149, 0, 0.32);
+    color: var(--color-status-warning-ink);
+  }
+  html.dark .st-chip-warn {
+    background: rgba(255, 149, 0, 0.12);
+    color: var(--color-status-warning-ink-dark);
+  }
+  .st-chip-danger {
+    background: var(--color-status-danger-soft);
+    border-color: rgba(255, 59, 48, 0.30);
+    color: var(--color-status-danger-ink);
+  }
+  html.dark .st-chip-danger {
+    background: rgba(255, 59, 48, 0.12);
+    color: var(--color-status-danger-ink-dark);
+  }
+
+  .st-glyph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: var(--st-tone-sunk);
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-text-secondary);
+  }
+  html.dark .st-glyph {
+    background: var(--color-surface-elevated);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+  }
+  .st-glyph-ember {
+    background: rgba(240, 100, 19, 0.11);
+    border-color: rgba(240, 100, 19, 0.22);
+    color: var(--color-azure-800);
+  }
+  html.dark .st-glyph-ember {
+    background: rgba(251, 146, 67, 0.14);
+    border-color: rgba(251, 146, 67, 0.26);
+    color: var(--color-azure-400);
+  }
+  .st-glyph-ok {
+    background: var(--color-status-success-soft);
+    border-color: rgba(52, 199, 89, 0.24);
+    color: var(--color-status-success-ink);
+  }
+  html.dark .st-glyph-ok {
+    background: rgba(52, 199, 89, 0.12);
+    color: var(--color-status-success-ink-dark);
+  }
+
+  .st-glyph-danger {
+    background: var(--color-status-danger-soft);
+    border-color: rgba(255, 59, 48, 0.26);
+    color: var(--color-status-danger-ink);
+  }
+  html.dark .st-glyph-danger {
+    background: rgba(255, 59, 48, 0.12);
+    color: var(--color-status-danger-ink-dark);
+  }
+
+  .st-bar {
+    display: block;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--st-tone-sunk);
+    overflow: hidden;
+  }
+  html.dark .st-bar { background: var(--color-surface-elevated); }
+  .st-bar > i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--gradient-ember);
+    transition: width var(--motion-normal) var(--ease-out);
+  }
+  .st-bar-ok > i { background: var(--color-success); }
+
+  .st-head-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .st-head-row > :first-child {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--color-text);
+  }
+  .st-head-row > :last-child {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted);
   }
 }

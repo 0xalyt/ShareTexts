@@ -60,9 +60,9 @@ import {
   Smartphone, Display as Monitor, Xmark as X, ArrowRightArrowLeft as ArrowRightLeft,
   ArrowLeft, CircleInfo as Info, Pencil, FileArrowUp as Upload,
   ArrowRotateRight as RotateCcw, Gear as SettingsIcon, Clock as Clock3,
-  Plus, ChevronRight,
+  Plus, ChevronRight, File as FileIcon,
 } from '@gravity-ui/icons';
-import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon } from 'lucide-react';
+import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon } from 'lucide-react';
 import { SpaceCreateSheet, SpaceJoinSheet } from './SpaceView';
 import { recentSpaces } from '../lib/space/api';
 import { Bar } from '../components/SkeletonScreen';
@@ -169,6 +169,21 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [showQRScan, setShowQRScan] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  // ACCEPTED BEAT: the server said yes — hold the code capsule green for a
+  // moment before the connecting panel takes over. The delay is the
+  // Metalforge reference's payoff ("a right one turns green"); under
+  // reduced motion the flip is instant. The capsule stays DISABLED through
+  // the beat (isJoining stays true), so no second join can start in it.
+  const [codeAccepted, setCodeAccepted] = useState(false);
+  const acceptBeatRef = useRef<number | null>(null);
+  const clearAcceptBeat = useCallback(() => {
+    if (acceptBeatRef.current !== null) {
+      window.clearTimeout(acceptBeatRef.current);
+      acceptBeatRef.current = null;
+    }
+    setCodeAccepted(false);
+  }, []);
+  useEffect(() => clearAcceptBeat, [clearAcceptBeat]);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   // Stay Connected re-entry: remembers failure so the button can honestly
@@ -453,7 +468,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     }
   }, [isCreating, createSession, t, friendlyConnectError]);
 
-  const handleReceive = useCallback(() => { productEvent('product.first_interaction'); setPanelMode('receiving'); setCreateError(null); setJoinError(null); }, []);
+  // Fresh attempt hygiene: tapping Receive always lands on an UNLOCKED,
+  // empty capsule — a previous attempt's in-flight or accepted state must
+  // never carry over into the new one.
+  const handleReceive = useCallback(() => {
+    productEvent('product.first_interaction');
+    clearAcceptBeat();
+    setIsJoining(false);
+    setPanelMode('receiving');
+    setCreateError(null);
+    setJoinError(null);
+  }, [clearAcceptBeat]);
 
   // Fallback-chip actions: "Show QR" / "Share link" create the room first
   // (if none exists), then surface the exact QR/link modal the normal send
@@ -595,13 +620,27 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     setJoinError(null);
     try {
       const res = await joinWithCode(code);
-      setIsJoining(false);
       if (!res.success) {
+        // REJECTED: the capsule takes over the telling — OtpInput shakes,
+        // wipes every digit and refocuses slot 0; these words say why.
+        setIsJoining(false);
         setJoinError(res.error || t('err.codeInactive'));
       } else {
-        // The code was accepted — leave the code-entry screen behind and
-        // show the connecting overlay until the channel actually opens.
-        setPanelMode('connecting');
+        // ACCEPTED: green beat, then the existing success transition — the
+        // connecting panel with the handshake — takes over. isJoining stays
+        // true through the beat so the capsule cannot fire a second join.
+        setCodeAccepted(true);
+        const beat = reduceMotion ? 0 : 480;
+        acceptBeatRef.current = window.setTimeout(() => {
+          acceptBeatRef.current = null;
+          setCodeAccepted(false);
+          // The beat is over: unlock the entry UI. The receiving panel is
+          // unmounting for the connecting panel, but if that transition is
+          // ever interrupted (Esc, route change) the capsule must not be
+          // left permanently disabled.
+          setIsJoining(false);
+          setPanelMode('connecting');
+        }, beat);
       }
     } catch (e: unknown) {
       setIsJoining(false);
@@ -611,21 +650,24 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     } finally {
       joiningRef.current = false;
     }
-  }, [isJoining, joinWithCode, t, friendlyConnectError]);
+  }, [isJoining, joinWithCode, t, friendlyConnectError, reduceMotion, clearAcceptBeat]);
 
-  const handleDisconnect = useCallback(() => { setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); }, [abandonSession]);
+  const handleDisconnect = useCallback(() => { setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
-    setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null);
-  }, [abandonSession]);
+    clearAcceptBeat();
+    setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); setIsJoining(false);
+  }, [abandonSession, clearAcceptBeat]);
   // Dismiss the connecting overlay. The creator goes back to their pairing
   // screen (the room stays open — the peer can still connect); the joiner
   // abandons and can enter a fresh code.
   const dismissConnecting = useCallback(() => {
     if (session.isCreator) { creatorLeftConnectingRef.current = true; setPanelMode('sending'); return; }
     createAbortRef.current++;
+    clearAcceptBeat();
+    setIsJoining(false);
     setPanelMode('idle'); abandonSession(); setJoinError(null);
-  }, [session.isCreator, abandonSession]);
+  }, [session.isCreator, abandonSession, clearAcceptBeat]);
 
   /* --- derived --- */
   const shareUrl = session.roomId ? `${window.location.origin}/s/${shortCodeOf(session.roomId)}` : '';
@@ -751,7 +793,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="order-2 mt-3 flex items-center justify-center lg:justify-start gap-2 whitespace-nowrap w-fit mx-auto lg:mx-0"
+                className="st-chip order-2 mt-4 gap-2 w-fit mx-auto lg:mx-0 px-3"
               >
                 {/* Halo dot: two slow radar rings drift outward from a solid
                     glowing core — layered, staggered, so it reads as breath,
@@ -780,7 +822,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <span className="text-[12.5px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
                 </div>
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
-                  <TactileButton onClick={handleReceive} variant="soft" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} />}>{t('home.receive')}</TactileButton>
+                  {/* ONE primary key. Receive is the equally-valid second
+                      verb, so it sits on the paper keycap — two identical
+                      ember keys gave neither of them primacy, and the eye
+                      had to read both labels before it could choose. */}
+                  <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
                   <span className="text-[12.5px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.receiveHint')}</span>
                 </div>
               </div>
@@ -822,7 +868,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                         data-testid="stay-rejoin"
                         onClick={handleStayRejoin}
                         disabled={isRejoining}
-                        className="group w-full flex items-center gap-3.5 pl-3.5 pr-3 py-3 rounded-[16px] bg-white dark:bg-apple-tile-2 border border-apple-divider dark:border-apple-tile-3 shadow-sm hover:shadow-card hover:border-ember/35 dark:hover:border-azure-400/40 active:scale-[0.985] transition-all duration-200 text-left disabled:opacity-60"
+                        className="group w-full flex items-center gap-3.5 pl-3.5 pr-3 py-3 rounded-[16px] st-card hover:border-ember/45 dark:hover:border-azure-400/50 active:scale-[0.985] transition-all duration-200 text-left disabled:opacity-60"
                       >
                         <span className="relative shrink-0 w-9 h-9 rounded-full bg-ember/10 dark:bg-azure-400/15 flex items-center justify-center text-ember dark:text-azure-400" aria-hidden>
                           {/* Live pulse: this room is still breathing upstream. */}
@@ -888,7 +934,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       key={r.spaceId}
                       type="button"
                       onClick={() => { window.location.href = `/space/${r.spaceId}`; }}
-                      className="group w-full flex items-center gap-3 pl-3 pr-3 py-2.5 min-h-[48px] rounded-[14px] bg-white/[0.55] dark:bg-white/[0.04] border border-apple-divider/70 dark:border-white/[0.08] hover:border-apple-ink/25 dark:hover:border-white/25 hover:bg-white dark:hover:bg-white/[0.07] active:scale-[0.99] transition-all text-left"
+                      className="group w-full flex items-center gap-3 pl-3 pr-3 py-2.5 min-h-[52px] rounded-[16px] st-card hover:border-ember/45 dark:hover:border-azure-400/50 active:scale-[0.99] transition-all text-left"
                     >
                       <span className={cn(
                         'shrink-0 w-8 h-8 rounded-[10px] flex items-center justify-center',
@@ -917,7 +963,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* One pill, two verbs — each half keeps a real 40px floor so
                     the segmented control honours the same touch contract as
                     every other control (it shipped at 36px; audit caught it). */}
-                <div className="flex w-full sm:w-fit items-stretch rounded-full border border-apple-divider/70 dark:border-white/[0.08] bg-white/[0.55] dark:bg-white/[0.04] p-1">
+                <div className="flex w-full sm:w-fit items-stretch rounded-full st-card p-1">
                   <button
                     type="button"
                     onClick={() => setSpaceSheet('create')}
@@ -936,8 +982,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   >
                     <Link2 className="w-4 h-4 text-apple-ink-muted dark:text-white/45" aria-hidden />
                     {t('space.joinTitle')}
-                  </button>
-                </div>
+                  </button>                </div>
               </div>
               {/* The rating, and only for people who have actually used the
                   app (a room that ended): a quiet one-line row where their
@@ -1106,28 +1151,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <h2 className="text-[22px] font-semibold text-apple-ink dark:text-white tracking-[-0.02em]">{t('receive.title')}</h2>
               </div>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/50 font-medium mb-5">{t('receive.hint')}</p>
-              {/* While the code verifies, the entry UI steps aside for the
-                  handshake — the same scene the creator sees, so both devices
-                  tell one story. */}
-              <AnimatePresence mode="wait" initial={false}>
-                {isJoining ? (
-                  <motion.div key="joining-handshake" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.25, ease: EASE }} className="py-3">
-                    <ConnectHandshake phase="connecting" localIcon={isMobileDevice ? 'phone' : 'monitor'} />
-                  </motion.div>
-                ) : (
-                  <motion.div key="code-entry" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-                    <div className="p-6 bg-white dark:bg-surface-dark border border-apple-divider dark:border-white/10 rounded-[20px] shadow-card">
-                      <LiveCodeInput onComplete={handleCodeComplete} isJoining={isJoining} error={joinError} />
-                    </div>
-                    <p className="mt-4 text-[12px] text-apple-ink-muted/60 dark:text-white/35 text-center">{t('receive.note')}</p>
-                    {/* Scan QR — the alternative path, parked at the BOTTOM
-                        of the code screen: type first, scan as fallback. */}
-                    <button onClick={() => setShowQRScan(true)} className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 hover:bg-apple-parchment dark:hover:bg-white/[0.08] rounded-full text-[14px] font-semibold text-apple-ink dark:text-white min-h-[48px] transition-colors active:scale-[0.97]">
-                      <QrCode className="w-4 h-4 text-apple-ink-muted dark:text-white/60" /> {t('receive.scan')}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* The capsule stays mounted through the whole attempt — that
+                  is what makes the interaction beats visible: verifying
+                  locks it, a rejection shakes+wipes+refocuses it IN PLACE,
+                  and an acceptance turns it green before the connecting
+                  panel (the handshake scene both devices share) takes over. */}
+              <motion.div key="code-entry" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+                <div className="p-6 bg-white dark:bg-surface-dark border border-apple-divider dark:border-white/10 rounded-[20px] shadow-card">
+                  <LiveCodeInput onComplete={handleCodeComplete} isJoining={isJoining} error={joinError} accepted={codeAccepted} />
+                </div>
+                <p className="mt-4 text-[12px] text-apple-ink-muted/60 dark:text-white/35 text-center">{t('receive.note')}</p>
+                {/* Scan QR — the alternative path, parked at the BOTTOM
+                    of the code screen: type first, scan as fallback. */}
+                <button onClick={() => setShowQRScan(true)} className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 hover:bg-apple-parchment dark:hover:bg-white/[0.08] rounded-full text-[14px] font-semibold text-apple-ink dark:text-white min-h-[48px] transition-colors active:scale-[0.97]">
+                  <QrCode className="w-4 h-4 text-apple-ink-muted dark:text-white/60" /> {t('receive.scan')}
+                </button>
+              </motion.div>
             </motion.div>
           )}
 
@@ -1221,7 +1260,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
 
               {/* One-time notice when the auto-disambiguation renamed us. */}
                 {session.nameAutoAdjusted && !dismissedNameNotice && (
-                  <div role="status" className="w-full sm:max-w-[340px] flex items-start gap-2 px-3 py-2 rounded-[12px] bg-ember/8 dark:bg-azure-400/10 border border-ember/15 dark:border-azure-400/15 text-[12px] text-apple-ink-muted dark:text-white/60 leading-snug">
+                  <div role="status" className="st-band w-full sm:max-w-[340px] flex items-start gap-2 text-[12.5px] leading-snug">
                     <Info className="w-3.5 h-3.5 text-ember dark:text-azure-400 shrink-0 mt-px" />
                     <span className="flex-1">
                       {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-semibold text-apple-ink dark:text-white">{session.deviceName}</span>{parts[1]}</>); })()}
@@ -1247,7 +1286,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </div>
                 );
                 return (
-                  <div className="mb-4 px-1 flex items-stretch">
+                  <div className="st-tile mb-4 px-2 py-2.5 flex items-stretch">
                     {stat(msgs.length === 1 ? t('conn.stats.message') : t('conn.stats.messages'), String(msgs.length))}
                     <span className="w-px bg-apple-divider/70 dark:bg-white/[0.09]" aria-hidden />
                     {stat(fileCount === 1 ? t('conn.stats.file') : t('conn.stats.files'), String(fileCount))}
@@ -1274,7 +1313,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   The connection-type pill died in this pass: the room header
                   already shows live link state, and the rail doesn't need a
                   second voice saying it. */}
-              <div className="rounded-[16px] border border-apple-divider/50 dark:border-white/[0.07] bg-white/60 dark:bg-white/[0.04] overflow-hidden">
+              <div className="st-card overflow-hidden">
                 <StayConnectedToggle className="rounded-none" />
                 <div className="h-px bg-apple-divider/50 dark:bg-white/[0.07]" aria-hidden />
                 <button
@@ -1717,7 +1756,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                    line, and a preview of what lands here the moment the peer
                    arrives (anticipate the next need; empty states carry an
                    action, never dead space). */
-                <div className="w-full max-w-[340px] flex flex-col items-center">
+                <div className="w-full max-w-[420px] flex flex-col items-center">
                   {/* The pair glyphs live on the SENDING side's pairing panel
                       (code + instructions) — repeating the same illustration
                       here, 600px away, padded the pane and diluted both. The
@@ -1737,35 +1776,47 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {panelMode === 'sending' && (isCreating && !session.secret ? t('create.creating') : t('room.created'))}
                     {panelMode === 'receiving' && t('room.waiting')}
                   </p>
-                  <p className="text-[13px] text-apple-ink-muted/70 dark:text-white/40 max-w-[260px] leading-relaxed mb-6">
+                  <p className="text-[13.5px] text-apple-ink-muted dark:text-white/50 max-w-[300px] leading-relaxed mb-7">
                     {panelMode === 'sending' && (isCreating && !session.secret ? t('room.setup') : t('room.sendHint'))}
                     {panelMode === 'receiving' && t('room.receiveHint')}
                   </p>
-                  <div
-                    aria-hidden
-                    className="w-full rounded-[16px] border border-dashed border-black/[0.12] dark:border-white/[0.12] bg-white/[0.55] dark:bg-white/[0.03] p-4 flex flex-col gap-2.5"
-                  >
-                    <span className="st-eyebrow">
-                      {t('room.previewTitle')}
-                    </span>
-                    <div className="flex items-center gap-2.5">
-                      <span className="w-7 h-7 rounded-[8px] bg-ember/[0.1] dark:bg-ember/[0.16] flex items-center justify-center text-ember shrink-0">
-                        <Upload className="w-3.5 h-3.5" />
+                  {/* The three steps, spelled out while the other device
+                      is still being found — the guidance a first-timer needs
+                      is exactly the thing the waiting screen has time to
+                      say. Numbered, quiet, one line each. */}
+                  <ol className="w-full max-w-[340px] mb-6 flex flex-col gap-3 text-left">
+                    {[t('room.step.1'), t('room.step.2'), t('room.step.3')].map((step, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-ember/[0.12] dark:bg-azure-400/[0.16] text-ember dark:text-azure-400 text-[12px] font-bold flex items-center justify-center mt-px">{i + 1}</span>
+                        <span className="text-[13.5px] font-medium text-apple-ink/85 dark:text-white/70 leading-snug">{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  {/* The waiting stage. The old version was a DASHED box
+                      full of grey bars — a wireframe left in the product,
+                      floating in an empty pane. This is a real surface of
+                      the app's own grammar: a recessed shelf that names the
+                      three things that land here, and says what this pane is
+                      for. */}
+                  <div className="st-tile w-full p-4 sm:p-5">
+                    <span className="st-eyebrow">{t('room.previewTitle')}</span>
+                    <div className="mt-3.5 grid grid-cols-3 gap-2.5" aria-hidden>
+                      <span className="st-glyph st-glyph-ember aspect-[4/3] flex-col gap-1.5">
+                        <ImageIcon className="w-4.5 h-4.5" />
+                        <span className="text-[11px] font-semibold leading-none">{t('attach.photos')}</span>
                       </span>
-                      <div className="flex-1 space-y-1.5">
-                        <Bar className="bg-black/[0.09] dark:bg-white/10 h-[9px] w-3/4" />
-                        <Bar className="bg-black/[0.09] dark:bg-white/10 h-[9px] w-1/3" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <span className="w-7 h-7 rounded-[8px] bg-ember/[0.1] dark:bg-ember/[0.16] flex items-center justify-center text-ember shrink-0">
-                        <Upload className="w-3.5 h-3.5" />
+                      <span className="st-glyph aspect-[4/3] flex-col gap-1.5">
+                        <FileIcon className="w-4.5 h-4.5" />
+                        <span className="text-[11px] font-semibold leading-none">{t('attach.files')}</span>
                       </span>
-                      <div className="flex-1 space-y-1.5">
-                        <Bar className="bg-black/[0.09] dark:bg-white/10 h-[9px] w-1/2" />
-                        <Bar className="bg-black/[0.09] dark:bg-white/10 h-[9px] w-1/4" />
-                      </div>
+                      <span className="st-glyph aspect-[4/3] flex-col gap-1.5">
+                        <Link2 className="w-4.5 h-4.5" />
+                        <span className="text-[11px] font-semibold leading-none">{t('composer.teach.paste')}</span>
+                      </span>
                     </div>
+                    <p className="mt-3.5 text-[12.5px] leading-relaxed text-apple-ink-muted dark:text-white/50">
+                      {t('composer.teach')}
+                    </p>
                   </div>
                 </div>
               )}

@@ -515,7 +515,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
             className="mt-4 w-full"
           >
-            <p className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-2">
+            <p className="st-eyebrow mb-2.5">
               {/* ALIVE: the title itself carries the state — one device found
                   reads differently from three, and the count moves as devices
                   come and go. No separate "device found" banner needed. */}
@@ -537,9 +537,12 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                     disabled={phase.kind !== 'idle'}
                     aria-label={t('nearby.connectAria', { name: d.name })}
                     className={cn(
-                      'group flex items-center gap-3 px-3.5 py-3 min-h-[56px] rounded-[14px] text-left',
-                      'bg-white dark:bg-apple-tile-1 border border-apple-divider/50 dark:border-apple-tile-3 shadow-xs',
-                      'hover:border-ember/40 dark:hover:border-azure-400/45 hover:shadow-card',
+                      'group flex items-center gap-3 px-3.5 py-3 min-h-[56px] rounded-[16px] text-left',
+                      /* AVAILABLE = raised: a card you can act on, sitting ON
+                         the page. The unavailable rows below sit IN it, so the
+                         two never read as the same thing at a glance. */
+                      'st-card',
+                      'hover:border-ember/45 dark:hover:border-azure-400/50',
                       'active:scale-[0.985] transition-all',
                       'disabled:opacity-50 disabled:pointer-events-none',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60'
@@ -571,16 +574,17 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                       <SpinLoader size={16} className="text-ember dark:text-azure-400" aria-hidden />
                     ) : trusted ? (
                       <span
-                        className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full bg-ember/10 dark:bg-azure-400/15 text-[12px] font-semibold text-ember dark:text-azure-400 group-hover:bg-ember group-hover:text-white dark:group-hover:bg-azure-400 dark:group-hover:text-apple-ink transition-colors"
+                        className="st-chip st-chip-ember shrink-0 gap-1 px-2.5"
                         aria-hidden
                       >
                         <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" />
                       </span>
                     ) : (
-                      <ArrowRight
-                        className="shrink-0 w-4 h-4 text-apple-ink-muted/40 dark:text-white/25 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-ember dark:group-hover:text-azure-400 motion-reduce:transition-none"
-                        aria-hidden
-                      />
+                      <span className="st-chip shrink-0" aria-hidden>
+                        <ArrowRight
+                          className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-ember dark:group-hover:text-azure-400 motion-reduce:transition-none"
+                        />
+                      </span>
                     )}
                   </motion.button>
                 );
@@ -603,11 +607,13 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
             className="mt-4 w-full"
           >
-            <p className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-2">
+            <p className="st-eyebrow mb-2.5">
               {t('nearby.recentTitle')}
             </p>
             <div className="flex flex-col gap-2">
               {recentRows.map((r) => (
+                /* UNAVAILABLE = sunk: the same block, dropped INTO the
+                   page. Tone alone says “not here right now”. */
                 <motion.div
                   key={r.token + r.name}
                   layout
@@ -615,7 +621,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
                   transition={{ type: 'spring', bounce: 0, duration: 0.32 }}
-                  className="group flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[14px] text-left border bg-apple-parchment/50 dark:bg-white/[0.02] border-apple-divider/30 dark:border-white/[0.04] transition-all"
+                  className="group flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[16px] text-left st-tile opacity-90 transition-all"
                 >
                   <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/40">
                     <DeviceArt kind={kindFromName(r.name)} size={36} className="opacity-80" />

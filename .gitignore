@@ -46,3 +46,7 @@ docs/audits/shots-*/
 # scratch temp test dirs from queue probes
 st-*/
 .tmpq/
+
+# Local dev-server scratch (pids + agent regression logs)
+*.pid
+.reglogs/

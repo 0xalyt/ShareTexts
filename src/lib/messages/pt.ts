@@ -306,6 +306,8 @@ const pt: Dict = {
   'code.digitsOf': '{n} de 6 dígitos digitados',
   'code.digitOf': 'Dígito {n} de 6',
   'code.verifying': 'Verificando código…',
+
+  'code.accepted': 'Código aceito',
   'command.title': 'Comandos do ShareTexts',
   'command.about': 'Sobre',
   'command.diagnostics': 'Diagnóstico de conexão',

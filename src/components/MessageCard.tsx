@@ -506,13 +506,18 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         {selectMode && <SelectionRing selected={selected} />}
         <div className={cn("flex flex-col min-w-0 max-w-[85%] sm:max-w-[65%]", isMe ? "items-end" : "items-start")}>
         <div className={cn(
-          "px-[14px] py-[10px] rounded-[16px] transition-shadow",
+          "px-[15px] py-[10px] rounded-[16px] transition-shadow",
           selected && "ring-2 ring-azure-500/60",
           isMe
-            // Sent items carry a whisper of the brand so the eye instantly
-            // separates what left this device from what arrived.
-            ? "bg-brand-light dark:bg-apple-tile-3 text-apple-ink dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-            : "bg-white dark:bg-apple-tile-2 border border-apple-divider/40 dark:border-white/[0.06] text-apple-ink dark:text-white",
+            /* Sent: a real ember wash — the old #fff4ea was within two
+               steps of the parchment, so “mine” and “theirs” separated only
+               by alignment. A 15% ember tint reads instantly in both themes
+               and keeps ink-on-tint at ~14:1 (white-on-tint at ~11:1). */
+            ? "bg-ember/15 dark:bg-ember/20 text-apple-ink dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+            /* Arrived: the product's raised card, so a received message
+               sits ON the canvas instead of being a white box with a line
+               drawn around it. */
+            : "st-card text-apple-ink dark:text-white",
           isMe && isGroupEnd && "rounded-br-[4px]",
           !isMe && isGroupEnd && "rounded-bl-[4px]",
           isMe && !isGroupEnd && "rounded-br-[14px]",
@@ -668,8 +673,8 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           // Sent bubbles carry the brand tint; received stay neutral — the
           // color tells you whose message it is before you read a word.
           isMe
-            ? "bg-brand-light dark:bg-apple-tile-3 border border-ember/20 dark:border-azure-400/20 shadow-[0_1px_3px_rgba(240,100,19,0.10)]"
-            : "bg-white dark:bg-surface-dark border border-apple-divider/40 dark:border-white/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
+            ? "bg-ember/15 dark:bg-ember/20 border border-ember/25 dark:border-ember/30 shadow-[0_1px_3px_rgba(240,100,19,0.12)]"
+            : "st-card shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
           isMe && isGroupEnd && "rounded-br-[4px]",
           !isMe && isGroupEnd && "rounded-bl-[4px]",
           isMe && !isGroupEnd && "rounded-br-[14px]",
@@ -881,8 +886,15 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           {/* Progress bar + live rolling-window speed readout */}
           {a.status !== 'complete' && a.status !== 'draft' && a.status !== 'failed' && a.status !== 'cancelled' && a.status !== 'paused' && a.status !== 'waiting' && (
             <>
-              <div className="w-full h-1 overflow-hidden bg-apple-divider dark:bg-apple-tile-3">
-                <div className="h-full origin-left transition-transform duration-300 ease-out bg-apple-blue" style={{ transform: `scaleX(${a.progress || 0})` }} />
+              <div
+                className="w-full st-bar"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round((a.progress || 0) * 100)}
+                aria-label={a.name}
+              >
+                <i style={{ width: `${(a.progress || 0) * 100}%` }} />
               </div>
               <LiveSpeed transferId={a.id} progressPct={a.progress || 0} />
             </>

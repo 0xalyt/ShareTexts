@@ -305,6 +305,8 @@ const zh: Dict = {
   'code.digitsOf': '已输入 6 位中的 {n} 位',
   'code.digitOf': '第 {n} 位，共 6 位',
   'code.verifying': '正在验证代码…',
+
+  'code.accepted': '代码已接受',
   'command.title': 'ShareTexts 命令',
   'command.about': '关于',
   'command.diagnostics': '连接诊断',

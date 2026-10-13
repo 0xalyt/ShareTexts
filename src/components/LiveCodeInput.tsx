@@ -1,41 +1,70 @@
-import React, { useState, useId } from 'react';
-import { cn } from '../lib/utils';
+import React, { useState, useEffect, useId } from 'react';
 import { ShareTextsLogo } from './ShareTextsLogo';
 import { OtpInput } from './spaceui/OtpInput';
 import { useI18n } from '../lib/i18n';
 
 /**
- * LiveCodeInput — the join-code screen, on Rare UI's OtpInput.
+ * LiveCodeInput — the join-code screen, on the Metalforge-style capsule.
  *
  * The real OtpInput (vendored at spaceui/OtpInput.tsx) owns the slot
- * mechanics: per-slot hidden inputs, the rolling digit settle, the sliding
- * caret, paste/SMS-autofill fill-forward, the contiguity guard, and the
- * error shake. This wrapper keeps the join flow around it: the six-tick
- * progress strip, the numeric-only validation note, the paste hint, the
- * retry row on a bad code, and the joining state.
+ * mechanics AND the interaction beats: the pill that expands into six
+ * adjoining cells on mount, the rolling digit settle, the per-cell blinking
+ * caret behind the active cell's dark outline, paste/SMS-autofill
+ * fill-forward, the contiguity guard, the error shake that also wipes and
+ * refocuses, and the green accepted state. This wrapper keeps the join flow
+ * around it: the verifying state, the numeric-only note, and the honest
+ * error message.
+ *
+ * State is COORDINATED, not duplicated: the parent (SingleScreenApp) owns
+ * the real verification — isJoining while the join promise is in flight,
+ * error when it is rejected, accepted when it resolves. This component only
+ * renders those states; it never submits on its own.
  */
-export function LiveCodeInput({ onComplete, isJoining, error }: { onComplete: (code: string) => void, isJoining: boolean, error?: string | null }) {
+export function LiveCodeInput({
+  onComplete,
+  isJoining,
+  error,
+  accepted = false,
+}: {
+  onComplete: (code: string) => void;
+  isJoining: boolean;
+  error?: string | null;
+  /** True once the server accepted the code — the capsule turns green. */
+  accepted?: boolean;
+}) {
   const { t } = useI18n();
   const [code, setCode] = useState('');
+  // REJECTION → RETRY: the error prop only clears when the next attempt
+  // starts, so the STATUS (which paints every cell danger-tinted) has to
+  // retire the moment the user edits — the shake+clear already told the
+  // story; a persistently red capsule while retyping would punish the retry.
+  // A NEW rejection resets this, so shake + message fire again if needed.
+  const [editingRetry, setEditingRetry] = useState(false);
+  useEffect(() => { setEditingRetry(false); }, [error]);
 
-  // The desktop and mobile layouts both render this component (CSS picks the
-  // visible one), so a hardcoded id would appear twice in the DOM — breaking
-  // label association and letting autoFocus land on the hidden copy. useId
-  // keeps every instance's id unique.
+  // The desktop and mobile layouts can both mount pairing surfaces (other
+  // views reuse this component), so a hardcoded id would appear twice in the
+  // DOM — breaking label association and letting autoFocus land on the hidden
+  // copy. useId keeps every instance's id unique.
   const inputId = useId();
 
+  // Exactly-once submission: OtpInput fires onComplete the moment the last
+  // slot fills; the parent's synchronous joiningRef closes the same-tick
+  // window a second event could slip through.
   const handleComplete = (val: string) => {
     if (val.length === 6) onComplete(val);
   };
 
+  const status: 'idle' | 'error' | 'success' = accepted
+    ? 'success'
+    : error && !editingRetry
+      ? 'error'
+      : 'idle';
+
   const handleChange = (val: string) => {
     setCode(val);
-    if (val.length === 6) handleComplete(val);
+    if (error) setEditingRetry(true);
   };
-
-  const status: 'idle' | 'error' = error ? 'error' : 'idle';
-
-  const digitCount = code.length;
 
   return (
     <div className="flex flex-col items-center relative w-full">
@@ -53,43 +82,35 @@ export function LiveCodeInput({ onComplete, isJoining, error }: { onComplete: (c
         slotLabel={(index) => t('code.digitOf', { n: index + 1 })}
       />
 
-      {/* Six ticks, filled as the code is typed — the same information the
-          sentence used to carry, without asking anyone to read a number.
-          The sentence survives for screen readers only. */}
-      {!error && (
-        <div role="status" className="mt-3 sm:mt-4 w-full flex items-center gap-1.5" aria-hidden={false}>
-          <div className="flex items-center gap-1.5 flex-1" aria-hidden>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'h-[3px] flex-1 rounded-full transition-colors duration-200',
-                  i < digitCount ? 'bg-ember dark:bg-azure-400' : 'bg-apple-divider dark:bg-white/[0.12]'
-                )}
-              />
-            ))}
-          </div>
-          <span className="sr-only">{t('code.digitsOf', { n: digitCount })}</span>
-        </div>
-      )}
+      {/* Screen-reader progress mirrors what the cells show visually — the
+          capsule itself is the sighted user's progress bar now. */}
+      <div role="status" className="sr-only">
+        {t('code.digitsOf', { n: code.length })}
+      </div>
 
+      {/* REJECTED — the message is the accessible half of OtpInput's
+          shake+clear: the row wipes itself and refocuses, the words say why.
+          No separate Retry button: the field is already empty and focused,
+          typing IS the retry. */}
       {error && (
-        <div role="alert" className="mt-4 sm:mt-6 flex flex-col items-center gap-3">
+        <div role="alert" className="mt-4 text-center">
           <p className="text-[13px] sm:text-[14px] text-status-danger font-medium">{error}</p>
-          <button
-            onClick={() => setCode('')}
-            className="px-4 py-1.5 rounded-full text-[12px] font-semibold bg-status-danger/10 text-status-danger hover:bg-status-danger/20 transition-colors active:scale-95"
-          >
-            {t('home.retry')}
-          </button>
         </div>
       )}
 
+      {/* PENDING — verification in flight. The capsule is locked (disabled);
+          this line names what is happening instead of a silent freeze. */}
       {isJoining && (
-        <div role="status" className="flex flex-col items-center justify-center mt-6 sm:mt-8">
+        <div role="status" className="flex flex-col items-center justify-center mt-5">
           <ShareTextsLogo size={20} motion="connecting" />
-          <p className="text-[14px] sm:text-[15px] font-medium text-apple-ink-muted">{t('code.verifying')}</p>
+          <p className="mt-2 text-[14px] sm:text-[15px] font-medium text-apple-ink-muted dark:text-white/60">{t('code.verifying')}</p>
         </div>
+      )}
+
+      {/* ACCEPTED — spoken, not just painted: the cells turn green (OtpInput)
+          and the live region says so before the room takes over. */}
+      {accepted && (
+        <p role="status" className="sr-only">{t('code.accepted')}</p>
       )}
     </div>
   );

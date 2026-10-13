@@ -14,7 +14,7 @@
  */
 
 /** The exact favicon + title index.html ships with — restored on exit. */
-const BASE_FAVICON = '/favicon-32.png?v=17';
+const BASE_FAVICON = '/favicon-32.png?v=18';
 let baseTitle: string | null = null;
 /** Only touch the tab once the room UI is actually mounted. */
 let active = false;

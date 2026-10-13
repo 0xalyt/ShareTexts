@@ -306,6 +306,8 @@ const es: Dict = {
   'code.digitsOf': '{n} de 6 dígitos introducidos',
   'code.digitOf': 'Dígito {n} de 6',
   'code.verifying': 'Verificando código…',
+
+  'code.accepted': 'Código aceptado',
   'command.title': 'Comandos de ShareTexts',
   'command.about': 'Acerca de',
   'command.diagnostics': 'Diagnóstico de conexión',

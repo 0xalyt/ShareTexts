@@ -331,6 +331,8 @@ const en = {
   'code.digitOf': 'Digit {n} of 6',
   'code.verifying': 'Verifying code…',
 
+  'code.accepted': 'Code accepted',
+
   // ── image viewer ───────────────────────────────────────────────────
 
   // ── command bar (⌘K) ─────────────────────────────────────────────

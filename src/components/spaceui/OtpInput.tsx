@@ -1,21 +1,32 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// OtpInput — Rare UI's otpinput, on join-code duty.
+// OtpInput — the join-code capsule, on Metalforge "code" duty.
 // ---------------------------------------------------------------------------
-// Port of rareui.com/components/otpinput (the real `OtpInput` source, MIT +
-// Commons Clause with attribution — credited in README). Shipped verbatim:
-// the per-slot hidden inputs behind rolling digits, the sliding blinking
-// caret, paste/SMS-autofill fill-forward, the contiguity guard (clicking
-// past the first gap lands ON the gap), Backspace-then-step-back, the error
-// shake, and the success ring that traces each box in turn.
+// Base: port of rareui.com/components/otpinput (the real `OtpInput` source,
+// MIT + Commons Clause with attribution — credited in README). The INTERACTION
+// layer is still Rare UI's, shipped faithfully: per-slot hidden inputs behind
+// rolling digits, paste/SMS-autofill fill-forward, the contiguity guard
+// (clicking past the first gap lands ON the gap), Backspace-then-step-back,
+// and the error shake.
+//
+// The PRESENTATION is the Metalforge "code" interaction (the reference:
+// "one key splits into cells, digits roll in; a wrong code shakes and
+// clears, a right one turns green"):
+//   · on mount the control EXPANDS from a compact pill into six adjoining
+//     rounded cells inside one capsule — the "key splits into cells" beat;
+//   · the active cell wears a clear dark outline with a blinking caret;
+//   · digits roll in vertically as they are typed;
+//   · status='error' shakes the row, tints the cells, and clears+refocuses
+//     (the clear lives here so the wipe and the caret reset land together);
+//   · status='success' turns every cell green.
 //
 // Adaptations: the join code is digits-only (numbers pattern), numeric
-// labels come from the app's i18n, and boxes scale up on md+ to match the
-// room's pairing tile (h-13 on phones, h-16 on small desktops).
+// labels come from the app's i18n, and the capsule scales up on md+ to match
+// the room's pairing tile (52px cells on phones, 56px on small desktops).
 // ---------------------------------------------------------------------------
 
-import React, { useRef, useState, type ComponentProps } from 'react';
+import React, { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { cn } from '../../lib/utils';
 
@@ -25,49 +36,52 @@ const PATTERNS = {
   both: /^[a-zA-Z0-9]$/,
 } as const;
 
-// success draws its own ring in svg, so no css ring here
-const RING = {
-  idle: 'focus-visible:ring-2 focus-visible:ring-ember/50',
-  success: '',
-  error: 'ring-2 ring-status-danger/70 delay-150',
-} as const;
-
-// var()-with-fallback: this const feeds style/attr props where a token
-// class cannot; mirrors --color-status-success in @theme.
-const SUCCESS = 'var(--color-status-success, #34C759)';
-
 const SIZES = {
   sm: {
-    box: 'size-10 rounded-lg',
+    box: 'h-10 rounded-[10px]',
     text: 'text-base',
     caret: 'h-5',
-    gap: 'gap-1.5',
-    px: 40,
-    radius: 8,
+    gap: 'gap-1',
+    pad: 'p-1',
+    width: 150,
   },
   md: {
-    box: 'h-[52px] w-full rounded-[12px] sm:h-14',
+    box: 'h-[52px] rounded-[14px] sm:h-14',
     text: 'text-2xl sm:text-3xl',
     caret: 'h-7 sm:h-9',
     gap: 'gap-1.5 sm:gap-2',
-    px: 52,
-    radius: 12,
+    pad: 'p-1.5 sm:p-2',
+    width: 196,
   },
   lg: {
-    box: 'size-14 rounded-2xl',
+    box: 'h-14 rounded-[16px]',
     text: 'text-xl',
     caret: 'h-7',
-    gap: 'gap-2.5',
-    px: 56,
-    radius: 16,
+    gap: 'gap-1.5',
+    pad: 'p-1.5',
+    width: 220,
   },
 } as const;
 
-const SLOT_CLASS =
-  'bg-apple-parchment dark:bg-black text-center font-medium text-transparent caret-transparent outline-none transition-shadow duration-200 selection:bg-transparent disabled:cursor-not-allowed disabled:opacity-50 border border-apple-divider/60 dark:border-apple-tile-3';
+// Three cell surfaces, mirroring the reference: filled cells read parchment,
+// the active cell goes white behind a dark inset outline, and status paints
+// the whole row (green = accepted, danger-soft = rejected). Dark-mode alphas
+// stay inside the frozen vocabulary (0.04/0.08/0.12 — verify-visual-system §7).
+const cellState = (
+  filled: boolean,
+  active: boolean,
+  status: 'idle' | 'success' | 'error',
+) => {
+  if (status === 'success') return 'bg-status-success';
+  if (status === 'error') return 'bg-status-danger-soft dark:bg-status-danger/[0.08]';
+  if (active)
+    return 'bg-white dark:bg-white/[0.12] shadow-[inset_0_0_0_2px_var(--color-apple-ink)] dark:shadow-[inset_0_0_0_2px_rgba(255,255,255,0.85)]';
+  return filled
+    ? 'bg-apple-parchment dark:bg-white/[0.08]'
+    : 'bg-apple-parchment/60 dark:bg-white/[0.04]';
+};
 
 const ROLL_SPRING = { type: 'spring', stiffness: 500, damping: 34 } as const;
-const CARET_SPRING = { type: 'spring', stiffness: 500, damping: 40 } as const;
 const BLINK = {
   duration: 1.1,
   times: [0, 0.5, 0.5, 1],
@@ -129,9 +143,7 @@ export function OtpInput({
   );
   const [cleared, setCleared] = useState(false);
   const [focused, setFocused] = useState<number | null>(null);
-  const [caretX, setCaretX] = useState(0);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
-  const cells = useRef<(HTMLDivElement | null)[]>([]);
   // the slot the user deliberately moved to, so a full code only changes on purpose
   const editingAt = useRef<number | null>(null);
   const reduceMotion = useReducedMotion();
@@ -143,7 +155,6 @@ export function OtpInput({
       : toSlots(value, length);
   const numeric = type === 'numbers';
   const scale = SIZES[size];
-  const caretVisible = focused !== null && !slots[focused];
 
   const commit = (next: string[]) => {
     if (value === undefined) setUncontrolled(next);
@@ -174,6 +185,22 @@ export function OtpInput({
     editingAt.current = null;
     focusAt(index + room);
   };
+
+  // REJECTION BEAT: the row was just told the code was refused. Wipe every
+  // slot and put the caret back on the first cell in the SAME commit —
+  // shake, clear, refocus, ready for the retry: one deterministic gesture.
+  const prevStatus = useRef<OtpStatus>(status);
+  useEffect(() => {
+    if (status === 'error' && prevStatus.current !== 'error') {
+      if (slots.some(Boolean)) {
+        setCleared(true);
+        commit(Array.from({ length }, () => ''));
+      }
+      focusAt(0);
+    }
+    prevStatus.current = status;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const handleChange = (index: number, raw: string) => {
     const chars = raw.split('').filter((char) => PATTERNS[type].test(char));
@@ -254,50 +281,75 @@ export function OtpInput({
     focusAt(target);
   };
 
+  // The active cell — the one wearing the dark outline — is the first empty
+  // slot, or the last slot while a full code is being edited in place.
+  const activeIndex = slots.findIndex((slot) => !slot);
+
   return (
     <div
       data-slot="otp-input"
       data-status={status}
       data-testid="join-code-input"
-      className={cn('relative w-full', className)}
+      className={cn('relative w-full flex justify-center', className)}
       {...props}
     >
       <motion.div
+        /* EXPANSION BEAT: the control enters as a compact pill and widens
+           into the six-cell capsule — the reference's "one key splits into
+           cells". Width animates px → 100% (motion measures the element);
+           reduced motion skips straight to the open capsule. */
+        initial={reduceMotion ? false : { width: scale.width, opacity: 0 }}
+        animate={{ width: '100%', opacity: 1 }}
+        transition={{
+          opacity: { duration: 0.18 },
+          width: reduceMotion
+            ? { duration: 0 }
+            : { type: 'spring', stiffness: 420, damping: 34 },
+        }}
+        data-slot="otp-input-row"
+        className={cn(
+          'relative flex w-full items-center rounded-full',
+          scale.gap,
+          scale.pad,
+          'bg-white dark:bg-surface-dark border border-apple-divider/60 dark:border-white/10 shadow-card',
+        )}
         onFocus={(event) => {
-          const index = inputs.current.indexOf(
-            event.target as HTMLInputElement,
-          );
-          const cell = cells.current[index];
-          setFocused(index);
-          if (cell) setCaretX(cell.offsetLeft + cell.offsetWidth / 2);
+          // React's autoFocus fires focus() during commit — BEFORE the ref
+          // array is populated (refs attach after the commit's focus call),
+          // so inputs.current.indexOf() returns -1 there and the caret would
+          // never light up until the first manual focus move. The slot index
+          // travels on the input itself, so the mount focus recovers it.
+          const target = event.target as HTMLInputElement;
+          const byRef = inputs.current.indexOf(target);
+          const byAttr = Number((target as HTMLInputElement).dataset.slotIndex);
+          setFocused(Number.isInteger(byAttr) ? byAttr : byRef);
         }}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node)) {
             setFocused(null);
           }
         }}
-        animate={{
-          x: status === 'error' && !reduceMotion ? SHAKE : 0,
-        }}
-        transition={{ duration: 0.32, ease: 'easeOut' }}
-        data-slot="otp-input-row"
-        className={cn('relative flex w-full items-center', scale.gap)}
       >
-        {slots.map((slot, index) => (
-          <React.Fragment key={index}>
+        {/* SHAKE LANE: the whole capsule answers a rejected code. */}
+        <motion.div
+          animate={{ x: status === 'error' && !reduceMotion ? SHAKE : 0 }}
+          transition={{ duration: 0.32, ease: 'easeOut' }}
+          data-slot="otp-input-shake"
+          className={cn('relative flex w-full items-center', scale.gap)}
+        >
+          {slots.map((slot, index) => (
             <div
-              ref={(el) => {
-                cells.current[index] = el;
-              }}
+              key={index}
               data-slot="otp-input-cell"
               data-filled={Boolean(slot)}
-              className={cn('relative min-w-0 flex-1', index === 2 && 'ml-2 sm:ml-3')}
+              className="relative min-w-0 flex-1"
             >
               <input
                 ref={(el) => {
                   inputs.current[index] = el;
                 }}
                 data-slot="otp-input-slot"
+                data-slot-index={index}
                 data-filled={Boolean(slot)}
                 value={slot}
                 onChange={(event) => handleChange(index, event.target.value)}
@@ -317,56 +369,24 @@ export function OtpInput({
                     : `${numeric ? 'Digit' : 'Character'} ${index + 1} of ${length}`
                 }
                 className={cn(
-                  SLOT_CLASS,
+                  'w-full text-center font-semibold tabular-nums caret-transparent outline-none',
+                  'text-apple-ink dark:text-white',
                   scale.box,
                   scale.text,
-                  RING[status],
+                  cellState(
+                    Boolean(slot),
+                    status === 'idle' && (focused === index || (focused === null && index === activeIndex)),
+                    status,
+                  ),
                   slotClassName,
                 )}
               />
-
-              <AnimatePresence>
-                {status === 'success' && (
-                  <motion.svg
-                    aria-hidden
-                    data-slot="otp-input-ring"
-                    viewBox={`0 0 52 52`}
-                    preserveAspectRatio="none"
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="pointer-events-none absolute inset-0 size-full"
-                  >
-                    <motion.rect
-                      x={1}
-                      y={1}
-                      width={50}
-                      height={50}
-                      rx={scale.radius - 1}
-                      fill="none"
-                      stroke={SUCCESS}
-                      strokeWidth={2}
-                      vectorEffect="non-scaling-stroke"
-                      initial={reduceMotion ? false : { pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={
-                        reduceMotion
-                          ? { duration: 0 }
-                          : {
-                              duration: 0.45,
-                              ease: 'easeOut',
-                              delay: 0.15 + index * 0.05,
-                            }
-                      }
-                    />
-                  </motion.svg>
-                )}
-              </AnimatePresence>
 
               <span className="pointer-events-none absolute inset-0 grid place-items-center overflow-hidden">
                 <AnimatePresence initial={false} custom={cleared}>
                   {slot && (
                     <motion.span
-                      key={slot}
+                      key={`${index}-${slot}`}
                       custom={cleared}
                       variants={ROLL}
                       initial={reduceMotion ? false : 'initial'}
@@ -375,7 +395,10 @@ export function OtpInput({
                       transition={reduceMotion ? { duration: 0 } : ROLL_SPRING}
                       data-slot="otp-input-char"
                       className={cn(
-                        'font-semibold text-apple-ink dark:text-white tracking-tighter font-mono leading-none select-none',
+                        'font-bold tracking-tight leading-none select-none',
+                        status === 'success'
+                          ? 'text-white'
+                          : 'text-apple-ink dark:text-white',
                         scale.text,
                       )}
                     >
@@ -383,27 +406,28 @@ export function OtpInput({
                     </motion.span>
                   )}
                 </AnimatePresence>
+                {/* PER-CELL CARET: a blinking bar in the active empty cell —
+                    the reference's caret. The dark outline already says which
+                    cell is live, so no bar slides between slots. */}
+                {status === 'idle' &&
+                  !slot &&
+                  !disabled &&
+                  focused === index && (
+                    <motion.span
+                      aria-hidden
+                      data-slot="otp-input-caret"
+                      animate={{ opacity: [1, 1, 0, 0] }}
+                      transition={BLINK}
+                      className={cn(
+                        'absolute w-[2px] rounded-full bg-apple-ink dark:bg-white',
+                        scale.caret,
+                      )}
+                    />
+                  )}
               </span>
             </div>
-          </React.Fragment>
-        ))}
-
-        {caretVisible && (
-          <motion.span
-            aria-hidden
-            data-slot="otp-input-caret"
-            initial={false}
-            animate={{ x: caretX - 1, y: '-50%', opacity: [1, 1, 0, 0] }}
-            transition={{
-              x: reduceMotion ? { duration: 0 } : CARET_SPRING,
-              opacity: BLINK,
-            }}
-            className={cn(
-              'pointer-events-none absolute left-0 top-1/2 w-[2px] rounded-full bg-ember dark:bg-azure-400',
-              scale.caret,
-            )}
-          />
-        )}
+          ))}
+        </motion.div>
       </motion.div>
     </div>
   );

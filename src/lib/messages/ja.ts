@@ -305,6 +305,8 @@ const ja: Dict = {
   'code.digitsOf': '6桁中{n}桁入力済み',
   'code.digitOf': '数字 {n} / 6',
   'code.verifying': 'コードを確認中…',
+
+  'code.accepted': 'コードが受理されました',
   'command.title': 'ShareTexts コマンド',
   'command.about': '概要',
   'command.diagnostics': '接続の診断',
