@@ -176,7 +176,13 @@ ok('pending → capsule locked (no duplicate submission possible)', disabled);
 const verifyingShown = await B.locator('[role="status"]').filter({ hasText: 'Verifying code…' })
   .waitFor({ timeout: 3000 }).then(() => true).catch(() => false);
 ok('pending → verifying message shown', verifyingShown);
-ok('pending → still exactly one submission per code', joins === 2, `joins=${joins}`);
+// Mid-flight invariant only. The accepted join's ack — and with it its
+// `room.join` diag line — can still be in flight when "Verifying" paints
+// (the ack lands whenever the worker answers), so an exact count here
+// races the network and flakes. What pending MUST not do is fire a SECOND
+// submission; the exact 2-joins/1-accepted count is asserted post-outcome
+// below, once the connecting panel proves the ack landed.
+ok('pending → no extra submission while the join is in flight', joins <= 2, `joins=${joins}`);
 
 await B.locator('[data-testid="connecting-panel"]').waitFor({ timeout: 15000 });
 const saw = await B.evaluate(() => ({ s: window.__sawSuccess, a: window.__sawAcceptedText }));

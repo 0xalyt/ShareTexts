@@ -16,6 +16,7 @@
  * Run: URL=http://localhost:3010 node scripts/verify-quality.mjs
  */
 import { chromium } from 'playwright';
+import { readLiveCode } from './lib.mjs';
 
 const URL = process.env.URL || 'http://localhost:3010';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -177,13 +178,15 @@ const HELPERS = () => {
   await A.goto(URL, { waitUntil: 'networkidle' });
   await B.goto(URL, { waitUntil: 'networkidle' }); // land B BEFORE A pairs, else B resumes A's device state
   await A.getByRole('button', { name: /send/i }).first().click();
-  const group = A.getByRole('group').first();
+  // Scope the pairing-code group BY NAME: the landing carries a role=group
+  // demo ("How ShareTexts works — the demo") that unmounts on this click,
+  // and an unscoped .first() could resolve to whichever group answers —
+  // reading a mid-rotation hybrid of the live digits and typing a dead code.
+  // readLiveCode then pins the group by testid and requires two identical
+  // reads before trusting the code (same helper verify-resume uses).
+  const group = A.getByRole('group', { name: /pairing code/i }).first();
   await group.waitFor({ timeout: 15000 });
-  let code = '';
-  for (let i = 0; i < 12 && !/^\d{6}$/.test(code); i++) {
-    code = (await group.locator('span').filter({ hasText: /^\d$/ }).allTextContents()).slice(-6).join('');
-    if (!/^\d{6}$/.test(code)) await sleep(300);
-  }
+  const code = await readLiveCode(A);
   await B.getByRole('button', { name: /receive/i }).first().click();
   const slots = B.locator('input[inputmode="numeric"]');
   await slots.first().waitFor({ timeout: 15000 });
