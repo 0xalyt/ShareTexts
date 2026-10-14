@@ -639,7 +639,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           // ever interrupted (Esc, route change) the capsule must not be
           // left permanently disabled.
           setIsJoining(false);
-          setPanelMode('connecting');
+          // The channel can open FASTER than the beat (same-machine links
+          // do). The panel-sync effect has already moved us to 'connected'
+          // by then, and stomping it back to 'connecting' would strand the
+          // joiner on the handshake screen forever — so only take over if
+          // the room hasn't already arrived.
+          setPanelMode(p => (p === 'connected' ? p : 'connecting'));
         }, beat);
       }
     } catch (e: unknown) {
