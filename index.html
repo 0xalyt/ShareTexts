@@ -13,6 +13,16 @@
     <meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#131315" media="(prefers-color-scheme: dark)" />
 
+    <!-- First-paint canvas: the app's CSS arrives via JS (Vite injects it),
+         so until main.tsx runs the browser paints with UA defaults — which
+         framed the cream boot shell in an 8px WHITE border (default body
+         margin on a white canvas). Pin the page field here, in head, so the
+         very first painted pixel is already the app's canvas, light or dark. -->
+    <style>
+      html, body { margin: 0; background: #f7f4ee; }
+      html.dark, html.dark body { background: #131315; }
+    </style>
+
     <!-- No hero image preload any more: the landing hero is the live device
          demo, which is DOM, not a file. Preloading the retired composition
          image spent the first bytes of the connection on something the first
@@ -54,11 +64,11 @@
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=18" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=18" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=18" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=18" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=18" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=18" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=19" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=19" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=19" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=19" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=19" />
 
     <!-- Structured data: Organization + WebApplication graph. One graph,
          stable @ids; HowTo/FAQPage JSON-LD lives only on pages whose visible
@@ -76,7 +86,7 @@
           "url": "https://sharetexts.online/",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://sharetexts.online/icon-512.png?v=18",
+            "url": "https://sharetexts.online/icon-512.png?v=19",
             "width": 512,
             "height": 512
           },
@@ -192,17 +202,6 @@
             background: linear-gradient(90deg, transparent, rgba(240,100,19,0.07) 50%, transparent);
             animation: st-sweep 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
           }
-          #loading-shell .st-card {
-            border-radius: 24px;
-            border: 1px solid rgba(30, 28, 24, 0.07);
-            background: rgba(255, 254, 251, 0.75);
-            position: relative;
-            overflow: hidden;
-          }
-          html.dark #loading-shell .st-card {
-            border-color: rgba(255, 255, 255, 0.07);
-            background: rgba(255, 255, 255, 0.035);
-          }
           @keyframes st-sweep { to { transform: translateX(101%); } }
           @media (prefers-reduced-motion: reduce) {
             #loading-shell .st-bar::after { animation: none; content: none; }
@@ -275,18 +274,11 @@
           html.dark #loading-shell .st-foot a { color: rgba(255,255,255,0.55); }
           #loading-shell .st-foot a:hover { color: #1e1c18; }
           html.dark #loading-shell .st-foot a:hover { color: #fff; }
+          /* Below 900px the hero stacks (same grid collapse as the live
+             landing). No scene geometry to collapse — the boot hero is copy
+             and actions only. */
           @media (max-width: 900px) {
             #loading-shell .st-hero { grid-template-columns: 1fr !important; }
-            /* The live demo collapses to the phone alone on phones, so the
-               placeholder does the same: same shape, same place, no jump. */
-            #loading-shell .st-scene { width: 168px !important; height: 360px !important; margin: 0 auto; }
-            #loading-shell .st-lap { display: none !important; }
-            #loading-shell .st-phone {
-              position: absolute !important;
-              inset: 0 !important;
-              width: 100% !important;
-              height: 100% !important;
-            }
           }
         </style>
         <!-- Header band: the real brand mark (inline, ember gradient) where
@@ -318,15 +310,6 @@
               <div class="st-bar" style="width:138px;height:52px;border-radius:999px"></div>
             </div>
             <p class="st-note">Send on one device, Receive on the other — free to use, no sign-up. How it works, below.</p>
-          </div>
-          <!-- The scene placeholder is the demo's own silhouette: a wide
-               laptop block with a phone standing in front of its right
-               corner. Same shapes, same places as the live component, so the
-               swap lands without the eye catching a rearrangement. -->
-          <div class="st-scene" aria-hidden="true" style="position:relative;height:min(46vh,330px)">
-            <div class="st-bar st-lap" style="position:absolute;left:0;top:1%;width:68%;height:75%;border-radius:13px;opacity:0.55"></div>
-            <div class="st-bar st-lap" style="position:absolute;left:1%;top:78%;width:67%;height:9px;border-radius:6px;opacity:0.4"></div>
-            <div class="st-bar st-phone" style="position:absolute;right:7%;bottom:0;width:19%;height:88%;border-radius:16px;opacity:0.75"></div>
           </div>
         </div>
         <!-- Crawlable product content, in source HTML: the same facts the

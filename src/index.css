@@ -592,17 +592,6 @@ html.dark .st-dotfield::after {
 @media (prefers-reduced-motion: reduce) {
   .st-skeleton::after { animation: none; content: none; }
 }
-/* The brand mark's one beat of life while the shell assembles. */
-.st-skeleton-brand {
-  animation: st-brand-breathe 1.6s cubic-bezier(0.23, 1, 0.32, 1) infinite;
-}
-@keyframes st-brand-breathe {
-  0%, 100% { transform: scale(1); opacity: 0.75; }
-  50% { transform: scale(1.06); opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .st-skeleton-brand { animation: none; opacity: 1; }
-}
 
 /* ── Platform marquee ────────────────────────────────────────────────────
    One transform-only loop on a duplicated track (half the distance, then
