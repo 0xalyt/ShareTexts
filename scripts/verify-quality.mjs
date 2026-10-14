@@ -270,7 +270,10 @@ const HELPERS = () => {
     };
   });
   out('PWA: manifest served + valid with icons/theme', facts.manifest && facts.icons.includes('512') && !!facts.theme, JSON.stringify(facts));
-  out('PWA: SW at v20 precaches the current og', facts.swCache === 'sharetexts-v20' && facts.swPrecachesOg, facts.swCache);
+  // The cache name is versioned per release (v20, v21, …); pinning the
+  // literal made every legitimate cache bump fail this gate. The contract
+  // is: a versioned sharetexts-vN cache that precaches the current og.
+  out('PWA: SW cache versioned + precaches the current og', /^sharetexts-v\d+$/.test(facts.swCache) && facts.swPrecachesOg, facts.swCache);
   console.log(`  note: SW controller active in page: ${facts.swRegistered} (registers on-demand for push reminders)`);
   await ctx.close();
 }
