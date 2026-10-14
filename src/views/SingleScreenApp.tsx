@@ -774,12 +774,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
-            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-md mx-auto flex flex-col">
+            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-[470px] mx-auto flex flex-col">
               {/* Flex + order: H1 → subtitle → live tracker → actions. The
                   tracker is passive status, so it lives ABOVE the action
                   cluster — status never interrupts the Send/Receive flow
                   (usability audit #6). */}
-              <h1 className="st-display order-1 text-[34px] sm:text-[42px] lg:text-[52px] text-apple-ink dark:text-white text-center sm:text-left">
+              <h1 className="st-display order-1 text-[34px] sm:text-[42px] lg:text-[54px] xl:text-[58px] text-apple-ink dark:text-white text-center sm:text-left text-balance">
                 {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
               </h1>
               {/* whitespace-pre-line honors the subtitle's deliberate line
@@ -821,7 +821,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   (audit #12 — Receive rendered wider than Send), and each
                   hint sits directly beneath its own button so the
                   label↔action mapping is unambiguous (audit #11). */}
-              <div className="order-3 mt-6 grid grid-cols-2 gap-x-3 gap-y-1 max-w-[360px] mx-auto sm:mx-0">
+              <div className="order-3 mt-6 grid grid-cols-2 gap-x-3 gap-y-1 max-w-[400px] mx-auto sm:mx-0">
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
                   <span className="text-[12.5px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
@@ -866,7 +866,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 4 }}
                       transition={{ type: 'spring', bounce: 0, duration: 0.32 }}
-                      className="order-4 mt-5 w-full"
+                      className="order-6 mt-5 w-full"
                     >
                       <button
                         type="button"
@@ -916,7 +916,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   on its own row. One heading level below the hero: quiet
                   caps + a hairline, so the eye can skip it entirely when it
                   only came here to send a file. */}
-              <div className="order-4 mt-6 w-full flex flex-col gap-2.5" data-testid="space-entry">
+              <div className="order-6 mt-6 w-full flex flex-col gap-2.5" data-testid="space-entry">
                 {/* One sentence, not a section divider. The old treatment —
                     an ALL-CAPS label, a hairline running to the right edge,
                     and a trailing hint — is the single most templated thing
@@ -994,65 +994,32 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   eye already is when they come back. Inline, one tap to
                   snooze, one tap to never ask again — no modal, no badge, no
                   interruption of anything else on this screen. */}
-              <RateCard autoShow className="order-[45] mt-5 w-full" />
-              {/* Three-glyph teaching strip — mobile only (desktop's right
-                  pane already carries the numbered steps). Duolingo's
-                  "you always know what's next" in three glyphs and the
-                  app's own step copy, which all 9 locales already ship.
-                  Pure typography + existing icons; no illustration, no
-                  card — it teaches, it doesn't decorate. */}
-              <div className="st-hide-landscape-sm order-4 lg:hidden mt-5 mb-1 w-full max-w-[360px] mx-auto" aria-hidden>
-                <div className="flex items-center justify-center gap-2">
-                  {[ThisDeviceIcon, ArrowRightLeft, PartnerDeviceIcon].map((Glyph, i) => (
-                    <React.Fragment key={i}>
-                      {i > 0 && <span className="w-4 h-px bg-apple-divider dark:bg-white/15" />}
-                      <span className="flex items-center justify-center w-8 h-8 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/50">
-                        <Glyph className="w-4 h-4" strokeWidth={2} />
-                      </span>
-                    </React.Fragment>
-                  ))}
-                  <span className="w-4 h-px bg-apple-divider dark:bg-white/15" />
-                  <span className="text-[12.5px] font-medium text-apple-ink-muted dark:text-white/45 whitespace-nowrap">
-                    {t('home.journey')}
-                  </span>
-                </div>
-              </div>
+              <RateCard autoShow className="order-7 mt-5 w-full" />
               {/* The product, as it actually looks — laptop + phone running
-                  the real connected UI. Scales itself; breaks out of the
-                  hero column to use the full half-pane width. Desktop shows
-                  the same scene in the room pane, so hide it here. */}
-              {/* Mobile runs the SAME full scene as desktop — laptop + phone +
-                  the channel between them (design owner: the transfer story
-                  needs both ends; a phone-only crop hid the other half).
-                  Everything in the full variant is proportional (%-based),
-                  so at phone widths both devices stay legible as devices.
-                  order-5 keeps it last inside this ordered flex column, and
-                  the bottom margin keeps clear air before the nearby row. */}
-              <div className="st-hide-landscape order-5 lg:hidden mt-4 sm:mt-8 mb-5 flex justify-center">
-                <div className="w-full max-w-[420px] px-1">
+                  the real connected UI. F24: the demo moves UP the stack on
+                  mobile (right under the actions) so the first screen carries
+                  the whole story — what it does, what you can do, what it
+                  looks like — with discovery and the quiet tail one scroll
+                  below. Mobile runs the SAME full scene as desktop — laptop +
+                  phone + the channel between them (design owner: the transfer
+                  story needs both ends; a phone-only crop hid the other half).
+                  order-4 lg:hidden keeps it out of the desktop DOM — display:
+                  none hides it from the eye, not from the tree. */}
+              <div className="st-hide-landscape order-4 lg:hidden mt-5 sm:mt-7 mb-6 flex justify-center">
+                <div className="w-full max-w-[420px] sm:max-w-[520px] px-1">
                   {/* Only mounted when the layout is actually the phone one.
                       `lg:hidden` alone would leave a second, invisible copy
-                      of the whole demo in the desktop DOM — display:none
-                      hides it from the eye, not from the tree. */}
+                      of the whole demo in the desktop DOM. */}
                   {!isDesktopLayout && <HeroDeviceDemo />}
                 </div>
               </div>
-              {/* Nearby device discovery — an OPTIONAL extra path. The old
-                  standalone hint line is gone: the nearby block's own
-                  searching row says "Looking for nearby devices…" in the
-                  same words, right where the action is. One instruction on
-                  screen, never two. */}
-              {/* On mobile the hero image already carries mb-5 before this
-                  row — a second mt-10 stacked on top read as a dead gap.
-                  mt-2 keeps one breath of air, nothing more. */}
-              {/* Nearby discovery is the PRIMARY path (§1): always
-                  rendered on desktop — the old max-height:999 hide made
-                  code/QR the only visible way to connect on every 13" laptop.
-                  On a short window (<768px inner height) it also moves UP
-                  ahead of the space rows (order-3 vs order-4): nearby is
-                  primary, the secondary connection methods may sit one
-                  scroll below, and main genuinely scrolls for them. */}
-              <div className="order-6 mt-6 w-full flex flex-col items-center lg:items-start lg:[@media(max-height:767px)]:order-3">
+              {/* Nearby device discovery — the PRIMARY path (§1), and now
+                  the first thing under the actions on BOTH layouts: it IS
+                  "how devices connect". The old standalone hint line is
+                  gone: the nearby block's own searching row says "Looking
+                  for nearby devices…" in the same words, right where the
+                  action is. One instruction on screen, never two. */}
+              <div className="order-5 mt-6 w-full flex flex-col items-center lg:items-start">
                 <div className="w-full max-w-md lg:max-w-none">
                   <NearbyDevices onStatus={setNearbyStatus} />
                 </div>
@@ -1866,16 +1833,24 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             ONTO the footer band — the footer then intercepts their clicks
             (caught by verify-autoconnect-trusted at 1100×800). */}
         <div className="mx-auto w-full max-w-[1200px] min-h-full shrink-0 px-8 2xl:px-12 flex flex-col">
-          <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,10fr)_minmax(0,9fr)] items-center gap-10 xl:gap-16 py-6">
+          {/* Short laptops (≤820px inner height) hang BOTH columns from a
+              shared top line instead of centering: centering a tall row on a
+              short window pushes the demo's bottom past the fold (caught by
+              verify-landing-onescreen at 1152×700). Top-aligned, the first
+              screen is exactly the composed pair — headline left, product
+              right — and the quiet tail waits one scroll below. */}
+          <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-center lg:[@media(max-height:820px)]:items-start gap-10 xl:gap-14 py-5">
             {/* Left: the words and the actions (headline → subline → live
-                tracker → Send/Receive → space + nearby). */}
+                tracker → Send/Receive → nearby discovery → the quiet tail). */}
             <div className="w-full min-w-0">{idleHeroNode}</div>
-            {/* Right: the product, running. Not a screenshot and not a
-                still: the demo below plays the whole story — open, pair,
-                send, arrive, close — on two live device screens, with a
-                caption on the same clock. On a very short window the
-                landing simply scrolls to it (main is scrollable). */}
-            <div className="w-full max-w-[560px] mx-auto">
+            {/* Right: the product, running — and the LARGER half of the
+                composition (F24). The demo carries the hero's visual weight:
+                a wider pane, a taller canvas, and screens that scale with
+                their frames. Not a screenshot and not a still: it plays the
+                whole story — open, pair, send, arrive, close — on two live
+                device screens, with a caption on the same clock. On a very
+                short window the landing simply scrolls to it. */}
+            <div className="w-full max-w-[620px] mx-auto">
               <HeroDeviceDemo />
             </div>
           </div>

@@ -62,6 +62,55 @@ const AUTO: Partial<Record<DemoPhase, { next: DemoPhase; ms: number }>> = {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const EASE_IN_OUT = [0.45, 0, 0.25, 1] as const;
+
+/**
+ * The mini screens are AUTHORED at these glass sizes — the exact pixel
+ * geometry the 1440 hero had when the scenes were written. A bigger glass
+ * scales the whole picture up proportionally (transform, so text stays
+ * sharp), so the content grows WITH the frame instead of drowning inside
+ * it; the floor of 1 keeps phone-width rendering pixel-identical to the
+ * fixed-px original.
+ */
+const LAPTOP_GLASS = { w: 331, h: 207 }; // 16:10 glass behind LaptopFrame
+const PHONE_GLASS = { w: 116, h: 251 };  // 9:19.5 glass behind PhoneFrame
+
+/** Fill the frame's glass, scaling the authored screen up on larger glasses. */
+function ScaledScreen({
+  design,
+  children,
+}: {
+  design: { w: number; h: number };
+  children: React.ReactNode;
+}) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [k, setK] = useState(1);
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(([entry]) => {
+      const width = entry.contentRect.width;
+      if (!width) return;
+      // Floor 1: below the authored size the scene renders as authored
+      // (the fixed px it was tuned at), never smaller.
+      setK((prev) => {
+        const next = Math.max(1, width / design.w);
+        return Math.abs(prev - next) < 0.004 ? prev : next;
+      });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [design.w]);
+  return (
+    <div ref={hostRef} className="absolute inset-0 overflow-hidden">
+      <div
+        className="origin-top-left"
+        style={{ width: design.w, height: design.h, transform: `scale(${k})` }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 /** The overlapping-window fallback if a browser has no IntersectionObserver. */
 const ASSUME_VISIBLE = true;
 
@@ -147,15 +196,18 @@ export function HeroDeviceDemo({
      out of the laptop's screen, over the gap, into the phone's screen. */
   const channel = useMemo(() => {
     if (!w || !h) return '';
-    const a = px(0.68, 0.44);
-    const b = px(0.75, 0.27);
+    // Anchored to the F24 composition: the laptop glass ends at ≈71.5% of
+    // the canvas and the phone's glass opens near (79%, 24%) — the line
+    // leaves the laptop's screen edge and lands inside the phone's screen.
+    const a = px(0.715, 0.37);
+    const b = px(0.79, 0.24);
     return `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
   }, [w, h]);
   const flight = useMemo(() => {
     if (!w || !h) return null;
-    const start = px(0.4, 0.48);
-    const over = px(0.715, 0.34);
-    const land = px(0.795, 0.5);
+    const start = px(0.42, 0.46);
+    const over = px(0.74, 0.32);
+    const land = px(0.85, 0.5);
     return { start, over, land };
   }, [w, h]);
 
@@ -184,13 +236,24 @@ export function HeroDeviceDemo({
         ref={canvasRef}
         className={cn(
           'relative w-full',
-          variant === 'full' ? 'aspect-[16/9.8]' : 'aspect-[1/2.16] max-w-[178px] mx-auto',
+          // Taller than the old 16/9.8: the phone now stands nearly full-
+          // height beside the laptop, so the pair reads as ONE scene with
+          // real presence instead of two objects parked on a strip.
+          variant === 'full' ? 'aspect-[16/10.4]' : 'aspect-[1/2.16] max-w-[178px] mx-auto',
         )}
       >
         {variant === 'full' && (
-          <div className="absolute left-0 top-0 w-[68%]">
+          <div className="absolute left-0 top-0 w-[74%]">
+            {/* Contact shadow: the deck meets the page. One restrained
+                pooled shadow under the chassis — grounding, not glow. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-[8%] -bottom-[7px] h-[15px] rounded-[50%] blur-[5px] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.22),transparent_72%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.55),transparent_72%)]"
+            />
             <LaptopFrame label={t('demo.laptopAlt')}>
-              <LaptopScreen linked={linked} sent={sent} arrived={arrived} closed={closed} />
+              <ScaledScreen design={LAPTOP_GLASS}>
+                <LaptopScreen linked={linked} sent={sent} arrived={arrived} closed={closed} />
+              </ScaledScreen>
             </LaptopFrame>
           </div>
         )}
@@ -268,27 +331,36 @@ export function HeroDeviceDemo({
         )}
 
         {variant === 'full' ? (
-          <div className="absolute bottom-0 right-0 w-[25%]">
+          <div className="absolute bottom-0 right-0 w-[27%]">
+            {/* Same restrained pooled shadow as the laptop, under the phone. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-[16%] -bottom-[5px] h-[12px] rounded-[50%] blur-[5px] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.20),transparent_72%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5),transparent_72%)]"
+            />
             <PhoneFrame label={t('demo.phoneAlt')}>
-              <PhoneScreen joined={phase !== 'open' && phase !== 'connecting'} typing={phase === 'connecting'} flying={flying} arrived={arrived} closed={closed} />
+              <ScaledScreen design={PHONE_GLASS}>
+                <PhoneScreen joined={phase !== 'open' && phase !== 'connecting'} typing={phase === 'connecting'} flying={flying} arrived={arrived} closed={closed} />
+              </ScaledScreen>
             </PhoneFrame>
           </div>
         ) : (
           <div className="absolute inset-0">
             <PhoneFrame label={t('demo.phoneAlt')}>
-              <PhoneScreen joined={phase !== 'open' && phase !== 'connecting'} typing={phase === 'connecting'} flying={flying} arrived={arrived} closed={closed} />
+              <ScaledScreen design={PHONE_GLASS}>
+                <PhoneScreen joined={phase !== 'open' && phase !== 'connecting'} typing={phase === 'connecting'} flying={flying} arrived={arrived} closed={closed} />
+              </ScaledScreen>
             </PhoneFrame>
           </div>
         )}
       </div>
 
       {/* ── Caption + controls, wired to the same phase ────────────────── */}
-      <div className="mt-4 sm:mt-5">
+      <div className="mt-5 sm:mt-6">
         {/* The caption IS state output: role=status (live, polite) so the
             transfer the visitor caused is announced as it happens. The
             min-height reserves its two lines so phase changes never move
             the controls below. */}
-        <div className="relative min-h-[4.2em]" role="status" data-testid="demo-caption">
+        <div className="relative min-h-[4em]" role="status" data-testid="demo-caption">
           <AnimatePresence initial={false} mode="wait">
             <motion.div
               key={phase}
@@ -298,10 +370,10 @@ export function HeroDeviceDemo({
               transition={{ duration: reduced ? 0 : 0.28, ease: EASE }}
               className="absolute inset-x-0 top-0"
             >
-              <p className="text-[15px] font-medium leading-snug text-apple-ink dark:text-white sm:text-[16px]">
+              <p className="text-[15px] font-medium leading-snug text-apple-ink dark:text-white sm:text-[16.5px]">
                 {caption}
               </p>
-              <p className="mt-0.5 text-[13px] leading-snug text-apple-ink-muted dark:text-white/50 sm:text-[13.5px]">
+              <p className="mt-0.5 text-[13px] leading-snug text-apple-ink-muted dark:text-white/50 sm:text-[14px]">
                 {captionSub}
               </p>
             </motion.div>
