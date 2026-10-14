@@ -94,6 +94,11 @@ let pageViewSent = false;
 
 /** Fire one anonymous event. Never throws, never blocks, never retries. */
 export function productEvent(name: ProductEvent): void {
+  // Vite dev serves the app with no collector behind it (the route exists on
+  // server.ts and the worker, not on `vite dev`), so the beacon would only
+  // produce a 404 console error and pollute the funnel. Built dev (`npm run
+  // dev` serves dist) and production keep sending.
+  if (import.meta.env.DEV) return;
   if (!ALLOWED.has(name)) return;
   if (!onceGuard(name)) return;
   // page_view once per load (SPA has no route changes that matter here)
