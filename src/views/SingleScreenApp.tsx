@@ -439,8 +439,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     return { text: t('err.generic'), icon: 'info' };
   }, [t]);
 
+  // Synchronous re-entry guard: isCreating is state and only lands a render
+  // later, so two taps in the same tick (double-click Send, or hero +
+  // fallback chip) could start TWO room creations. The loser still resolves
+  // server-side and resurrects a phantom pairing screen over whichever panel
+  // the user chose next — the F25 cancel→receive→join probe showed it eat a
+  // valid join outright. A ref closes the same-tick window.
+  const creatingRef = useRef(false);
   const handleSend = useCallback(async () => {
-    if (isCreating) return;
+    if (creatingRef.current || isCreating) return;
+    creatingRef.current = true;
     productEvent('product.first_interaction');
     productEvent('product.method_code'); // Send = create room → the code/QR/link path
     setPanelMode('sending');
@@ -458,15 +466,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         // The tracker no longer bumps at room creation — it counts real
         // two-device connections (the data channel opening), matching the
         // honest server-side increment.
+      } else {
+        // Cancelled/superseded while this room was still being created: the
+        // server now has a room nobody wants. Close it instead of letting the
+        // resurrected creator session stomp the panel the user chose (the
+        // phantom "Code active" screen that swallowed the next join).
+        abandonSession();
       }
     } catch (e: unknown) {
       if (thisAttempt !== createAbortRef.current) return;
       setCreateError(friendlyConnectError(e));
       setPanelMode('idle');
     } finally {
+      creatingRef.current = false;
       if (thisAttempt === createAbortRef.current) setIsCreating(false);
     }
-  }, [isCreating, createSession, t, friendlyConnectError]);
+  }, [isCreating, createSession, t, friendlyConnectError, abandonSession]);
 
   // Fresh attempt hygiene: tapping Receive always lands on an UNLOCKED,
   // empty capsule — a previous attempt's in-flight or accepted state must
@@ -612,14 +627,19 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // Two joins = the server sees a churn of leave/join events (the "connection
   // flickers" real-world symptom), so the ref closes that same-tick window.
   const joiningRef = useRef(false);
+  // Same resurrection guard for joins: a code accepted server-side AFTER the
+  // user backed out must not re-assert the room over the landing.
+  const joinAbortRef = useRef(0);
   const handleCodeComplete = useCallback(async (code: string) => {
     if (joiningRef.current) return;
     if (isJoining) return;
     joiningRef.current = true;
+    const thisJoin = ++joinAbortRef.current;
     setIsJoining(true);
     setJoinError(null);
     try {
       const res = await joinWithCode(code);
+      if (thisJoin !== joinAbortRef.current) return; // user backed out mid-join; the newer flow owns the UI
       if (!res.success) {
         // REJECTED: the capsule takes over the telling — OtpInput shakes,
         // wipes every digit and refocuses slot 0; these words say why.
@@ -648,6 +668,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         }, beat);
       }
     } catch (e: unknown) {
+      if (thisJoin !== joinAbortRef.current) return;
       setIsJoining(false);
       // Same honest classification as the Send path: no more generic
       // "check your internet" for what might be a dead service.
@@ -657,9 +678,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     }
   }, [isJoining, joinWithCode, t, friendlyConnectError, reduceMotion, clearAcceptBeat]);
 
-  const handleDisconnect = useCallback(() => { setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
+  const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
+    joinAbortRef.current++;
     clearAcceptBeat();
     setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); setIsJoining(false);
   }, [abandonSession, clearAcceptBeat]);
@@ -669,6 +691,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const dismissConnecting = useCallback(() => {
     if (session.isCreator) { creatorLeftConnectingRef.current = true; setPanelMode('sending'); return; }
     createAbortRef.current++;
+    joinAbortRef.current++;
     clearAcceptBeat();
     setIsJoining(false);
     setPanelMode('idle'); abandonSession(); setJoinError(null);

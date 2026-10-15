@@ -77,10 +77,13 @@ export function OverlaySheet({
             {/* Grabber — the mobile sheet grammar; hidden on desktop where
                 the dialog floats. */}
             <span className="sm:hidden absolute top-2.5 left-1/2 -translate-x-1/2 w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" aria-hidden />
+            {/* 40px hit box (the house tap contract, lib.mjs TAP_TARGET_MIN)
+                around the same 32px circle: -m-1 pulls the larger box back so
+                the visual center lands exactly where it always did. */}
             <button
               onClick={onClose}
               aria-label={t('common.close')}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-90 transition-all"
+              className="absolute top-4 right-4 w-10 h-10 -m-1 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-90 transition-all"
             >
               <X className="w-4 h-4" />
             </button>

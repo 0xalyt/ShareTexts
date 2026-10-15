@@ -102,8 +102,14 @@ function ScaledScreen({
   }, [design.w]);
   return (
     <div ref={hostRef} className="absolute inset-0 overflow-hidden">
+      {/* absolute left-0 (not block flow): the authored scene is a FIXED px
+          canvas wider than its host on small screens, and block flow obeys
+          the inherited writing direction — in RTL the canvas started at the
+          host's RIGHT edge and bled ~90px off its LEFT, cropping the
+          laptop's screen. Pinned to the physical top-left, the crop lands on
+          the same edge in every locale; text inside still mirrors. */}
       <div
-        className="origin-top-left"
+        className="absolute left-0 top-0 origin-top-left"
         style={{ width: design.w, height: design.h, transform: `scale(${k})` }}
       >
         {children}

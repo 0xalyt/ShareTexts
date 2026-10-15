@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { Xmark as X, ArrowUpFromSquare as Share2, ArrowDownToLine as Download } from '@gravity-ui/icons';
 import { cn } from '../lib/utils';
@@ -14,6 +14,11 @@ import {
   shouldOfferInstall,
   silenceInstall,
 } from '../lib/pwaInstall';
+
+/** True while the transfer room owns the screen (ChatView's root marker).
+ *  Used to keep this card out of a live session — see roomActive() below. */
+const roomActive = () =>
+  typeof document !== 'undefined' && !!document.querySelector('[data-app-state="connected"]');
 
 /**
  * InstallNudge — "keep it handy?", asked once, at a calm moment.
@@ -36,20 +41,49 @@ export function InstallNudge() {
   const reduced = useReducedMotion();
   const [visible, setVisible] = useState(false);
   const [manual, setManual] = useState(false);
+  // Re-arming handle: hiding for a room hands the offer to a LATER calm
+  // moment instead of dropping it for the visit.
+  const armRef = useRef<(delay: number) => void>(() => {});
 
   useEffect(() => {
     initInstallCapture();
     noteVisit();
     // The demo/QA escape hatch: ?install=1 shows the card on demand.
     const forced = typeof window !== 'undefined' && /[?&]install=1/.test(window.location.search);
-    const timer = window.setTimeout(() => {
-      if (forced || shouldOfferInstall(hasUsedApp())) {
-        setManual(isManualInstallPlatform() && !hasInstallPrompt());
-        setVisible(true);
-      }
-    }, forced ? 400 : 12000);
+    let timer = 0;
+    const arm = (delay: number) => {
+      timer = window.setTimeout(() => {
+        // A live room is NOT the calm moment. On phones this card's own
+        // bottom placement (left-4 right-4 bottom-16) lands exactly on the
+        // composer — + , the text field and send — so showing it mid-session
+        // eats the primary controls of the screen being used (caught by
+        // verify-mobile-ui: the nudge intercepted the + tap). Wait for an
+        // empty moment instead of stealing the current one.
+        if (roomActive()) { arm(6000); return; }
+        if (forced || shouldOfferInstall(hasUsedApp())) {
+          setManual(isManualInstallPlatform() && !hasInstallPrompt());
+          setVisible(true);
+        }
+      }, delay);
+    };
+    armRef.current = arm;
+    arm(forced ? 400 : 12000);
     return () => window.clearTimeout(timer);
   }, []);
+
+  // If a room opens while the card is already on screen, it steps aside the
+  // moment the composer mounts (2s poll — cheap, one selector) and re-arms
+  // for a later calm moment.
+  useEffect(() => {
+    if (!visible) return;
+    const iv = window.setInterval(() => {
+      if (roomActive()) {
+        setVisible(false);
+        armRef.current(12_000);
+      }
+    }, 2000);
+    return () => window.clearInterval(iv);
+  }, [visible]);
 
   const close = (forever: boolean) => {
     silenceInstall(forever);
