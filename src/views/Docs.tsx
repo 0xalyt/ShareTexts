@@ -83,7 +83,7 @@ function OverviewSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-1">ShareTexts</h1>
+        <h1 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-1">ShareTexts</h1>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
           Like AirDrop, but it works between any two devices, even an iPhone and a Windows PC. Send text, photos, or files from a browser. Nothing is kept once the room closes.
         </p>
@@ -129,7 +129,7 @@ function TransferSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-1">How it works</h2>
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-1">How it works</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60">Three steps. Ten seconds.</p>
       </div>
 
@@ -164,7 +164,7 @@ function PairingSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-4">Pairing & QR</h2>
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Pairing & QR</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           ShareTexts uses a 6-digit pairing code to connect two devices. The code refreshes automatically and expires after a short time for security.
         </p>
@@ -204,7 +204,7 @@ function NearbySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-4">Nearby Devices</h2>
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Nearby Devices</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           Open ShareTexts on another device. If both devices are on the same supported local network, the other device can appear automatically — tap it to start a transfer.
         </p>
@@ -242,7 +242,7 @@ function NearbySection() {
 function TroubleshootingSection() {  return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-4">Troubleshooting</h2>
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Troubleshooting</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           Most issues resolve by checking your internet connection and trying again.
         </p>
@@ -272,7 +272,7 @@ function PrivacySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-1">Privacy & Security</h2>
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-1">Privacy & Security</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
           Your data moves directly between devices. Nothing stored.
         </p>
@@ -302,7 +302,7 @@ function DevicesSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-4">Supported Devices</h2>
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Supported Devices</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           ShareTexts works in any modern browser. No app installation required.
         </p>
@@ -345,7 +345,7 @@ function AgentSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-4">
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">
           For AI Agents
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -426,7 +426,7 @@ function APISection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-4">
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">
           API Reference
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -508,7 +508,7 @@ function SecuritySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-[28px] sm:text-[32px] font-semibold text-apple-ink dark:text-white tracking-tight mb-4">
+        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">
           Security
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">

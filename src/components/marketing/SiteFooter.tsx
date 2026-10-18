@@ -52,9 +52,9 @@ export function SiteFooter({ className }: { className?: string }) {
   const year = new Date().getFullYear();
   return (
     <footer className={cn('border-t border-apple-divider/70 dark:border-white/[0.06]', className)}>
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
-          <div className="min-w-0">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 sm:gap-x-7 lg:grid-cols-[minmax(260px,1.6fr)_repeat(3,minmax(0,1fr))] lg:gap-x-10">
+          <div className="col-span-2 min-w-0 sm:col-span-3 lg:col-span-1">
             {/* The official monoline signature, linked home like the lockup
                 it replaces; height steps at sm to match the site footer. */}
             <a href="/" aria-label="ShareTexts — home" className="block w-fit">
@@ -93,7 +93,7 @@ export function SiteFooter({ className }: { className?: string }) {
 
         {/* The bottom row: the deal, stated once, plus the one action a
             reader might want at the very end of a page. */}
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-apple-divider/60 pt-5 dark:border-white/[0.06]">
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-x-6 border-t border-apple-divider/60 pt-4 sm:pt-5 dark:border-white/[0.06]">
           <p className="text-[12.5px] font-medium text-apple-ink-muted/80 dark:text-white/40">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>

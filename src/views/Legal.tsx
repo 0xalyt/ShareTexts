@@ -180,7 +180,7 @@ export function Legal({ page }: { page: LegalPage }) {
       />
 
       <div className="max-w-2xl mx-auto px-6 py-10 sm:py-14">
-        <h1 className="text-[30px] sm:text-[36px] font-semibold text-apple-ink dark:text-white tracking-[-0.035em] mb-2" style={{ fontFamily: 'var(--font-display)' }}>
+        <h1 className="st-display text-[30px] sm:text-[36px] text-apple-ink dark:text-white mb-2">
           {title}
         </h1>
         <p className="text-[14px] text-apple-ink-muted/80 dark:text-white/40 mb-9">

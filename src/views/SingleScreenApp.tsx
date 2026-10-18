@@ -763,7 +763,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // luxury.
   const ambientGlow = null;
   const headerNode = (
-    <header className="shrink-0 sticky top-0 z-30 flex items-center justify-between px-6 lg:px-10 py-3.5 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06] relative">
+    <header className="shrink-0 sticky top-0 z-30 h-14 flex items-center justify-between px-6 lg:px-10 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06] relative">
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
             equal-height object, display-face wordmark, minimal gap. */}
         <BrandLockup />
@@ -777,7 +777,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           {/* Docs sits BETWEEN the language and theme toggles (user request) —
               same 40px slot, same quiet icon style as its neighbors; the
               footer link stays too. */}
-          <IconButton3D label="Docs" href="/docs">
+          <IconButton3D label={t('nav.docs')} href="/docs">
             <BookOpen className="w-[18px] h-[18px]" aria-hidden />
           </IconButton3D>
           {/* In the ROOM the header carries no theme switch: the room already
@@ -802,7 +802,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   tracker is passive status, so it lives ABOVE the action
                   cluster — status never interrupts the Send/Receive flow
                   (usability audit #6). */}
-              <h1 className="st-display order-1 text-[34px] sm:text-[42px] lg:text-[54px] xl:text-[58px] text-apple-ink dark:text-white text-center sm:text-left text-balance">
+              <h1 className="st-display order-1 text-[34px] sm:text-[40px] lg:text-[48px] xl:text-[52px] text-apple-ink dark:text-white text-center sm:text-left text-balance">
                 {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
               </h1>
               {/* whitespace-pre-line honors the subtitle's deliberate line
@@ -850,10 +850,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <span className="text-[12.5px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
                 </div>
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
-                  {/* ONE primary key. Receive is the equally-valid second
-                      verb, so it sits on the paper keycap — two identical
-                      ember keys gave neither of them primacy, and the eye
-                      had to read both labels before it could choose. */}
+                  {/* One filled primary and one quiet surface keep the two
+                      equally valid actions distinct at a glance. */}
                   <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
                   <span className="text-[12.5px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.receiveHint')}</span>
                 </div>
@@ -1113,11 +1111,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {!session.partnerConnecting && (
                       <motion.div key="pairing-actions" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                       <div className="mt-5 space-y-2">
-                    {/* The tactile system, propagated: Show QR is the screen's
-                        primary (scanning is the fastest pairing path on any
-                        phone), so it carries the keycap depth; the two copy
-                        tools sit on the paper secondary tile. One anatomy
-                        across home and pairing — the app feels like one app. */}
+                    {/* One action hierarchy across home and pairing: QR is
+                        primary; copy actions stay on the quiet surface. */}
                     <TactileButton onClick={() => setShowQROverlay(true)} variant="primary" size="md" className="w-full" icon={<QrCode className="w-4 h-4" />} data-testid="show-qr">
                       {t('create.showQr')}
                     </TactileButton>
@@ -1381,8 +1376,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             the legal words — and the project link closes the row. Groups
             are INLINE on desktop and stack on mobile; every link keeps its
             40px tap floor via -my-2. */}
-        <div className="max-w-6xl mx-auto flex flex-wrap items-start justify-between gap-x-10 gap-y-7">
-          <div className="flex flex-col gap-2 min-w-[200px]">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(0,1fr))_auto] md:items-start md:gap-x-8">
+          <div className="col-span-2 flex min-w-0 flex-col gap-2 md:col-span-1">
             {/* The official monoline signature — the footer's sign-off.
                 Height steps at sm; width follows the artwork's aspect.
                 self-start: the column is a flex COLUMN, so without it the
@@ -1393,7 +1388,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
             </span>
             <span className="text-[11.5px] font-medium leading-none text-apple-ink-muted/55 dark:text-white/30">
-              © 2026 ShareTexts
+              © {new Date().getFullYear()} ShareTexts
             </span>
           </div>
           {/* Three tiny groups, one band tall: the label carries the
@@ -1424,11 +1419,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               ],
             },
           ].map((group) => (
-            <div key={group.title} className="flex flex-col gap-1">
+            <div key={group.title} className="min-w-0 flex flex-col gap-1">
               <h2 className="st-eyebrow">
                 {group.title}
               </h2>
-              <div className="flex items-center gap-x-4">
+              <div className="flex flex-wrap items-center gap-x-3">
                 {group.items.map((item) =>
                   item.onClick ? (
                     <button
@@ -1461,7 +1456,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             rel="noopener noreferrer"
             aria-label={t('footer.followAria')}
             title="x.com/0xalyt"
-            className="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] -my-2 px-2.5 self-center rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors"
+            className="col-span-2 inline-flex min-h-[40px] min-w-[40px] -my-2 w-fit items-center justify-center gap-1.5 px-2.5 justify-self-start rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors md:col-span-1 md:my-0 md:justify-self-end"
           >
             <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
             <span className="hidden sm:inline text-[12.5px] font-semibold">x.com/0xalyt</span>

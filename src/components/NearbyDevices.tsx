@@ -699,7 +699,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             </span>
             <span className="flex-1 flex flex-col min-w-0 leading-tight">
               {/* The standing instruction, promoted to the searching state's
-                  title: "Open ShareTexts in another device" IS what waiting
+                  title: "Open ShareTexts on the other device" IS what waiting
                   means here. Deliberately NOT a card — the surrounding rows
                   are buttons, and an identical container reads as clickable
                   when it isn't (usability audit #8/#9): status is typography,

@@ -881,7 +881,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       }}
     >
       {/* ── header ── */}
-      <header className="shrink-0 sticky top-0 z-40 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur border-b border-apple-divider/50 dark:border-white/[0.06]">
+      <header className="shrink-0 sticky top-0 z-40 h-14 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-b border-apple-divider/60 dark:border-white/[0.06]">
         {/* Lifetime hairline — time actually spent of the promised window.
             Renders only once the shelf is genuinely running out (≥60% spent
             or the last hour); calm metadata before that, no fake urgency. */}
@@ -897,7 +897,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             <ArrowLeft className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
           </a>
           <div className="min-w-0 flex-1">
-            <h1 className="text-[15.5px] font-semibold text-apple-ink dark:text-white truncate leading-tight">{snapshot?.name || '…'}</h1>
+            <h1 className="text-[16px] font-semibold tracking-[-0.02em] text-apple-ink dark:text-white truncate leading-tight">{snapshot?.name || '…'}</h1>
             {snapshot && (
               <Countdown expiresAt={snapshot.expiresAt} now={nowMs} createdAt={snapshot.createdAt} />
             )}
@@ -1059,8 +1059,8 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       </main>
 
       {/* ── composer ── */}
-      <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur border-t border-apple-divider/50 dark:border-white/[0.06]">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-end gap-2">
+      <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-t border-apple-divider/50 dark:border-white/[0.06]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
           <button
             onClick={() => fileInput.current?.click()}
             aria-label={t('space.addFile')}
@@ -1091,7 +1091,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             }}
             rows={1}
             placeholder={t('space.composerPlaceholder')}
-            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[20px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[14.5px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/50 dark:placeholder:text-white/30 outline-none focus:ring-2 focus:ring-azure-500/40"
+            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[20px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/50 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25"
             data-testid="space-composer"
           />
           {/* Composer share is a convenience duplicate of the header share —

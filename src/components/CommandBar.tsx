@@ -613,9 +613,7 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
 /** Quiet header chip advertising the shortcut (desktop pointers only). */
 export function CommandBarChip({ onClick }: { onClick: () => void }) {
   const { t } = useI18n();
-  // The chip wears the SAME geometry as every other header control —
-  // IconButton3D's 44×40 keycap circle. It used to be a flat bordered pill,
-  // which made the header read as two different design systems in one row.
+  // The chip uses the same quiet 40px icon slot as the other header actions.
   return (
     <IconButton3D label={t('command.openAria')} onClick={onClick} className="hidden lg:flex">
       <Search className="w-4 h-4" />

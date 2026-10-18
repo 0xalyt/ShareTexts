@@ -38,11 +38,11 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl border-b border-apple-divider dark:border-white/[0.06]',
+        'sticky top-0 z-40 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-b border-apple-divider dark:border-white/[0.06]',
         className,
       )}
     >
-      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center gap-3">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
         {/* Back arrow and lockup are siblings — BrandLockup is an anchor
             itself, and an anchor inside an anchor is invalid HTML. */}
         <div className="flex items-center gap-2 shrink-0">
@@ -61,7 +61,7 @@ export function PageHeader({
             <a
               key={l.href}
               href={l.href}
-              className="text-[13px] font-medium text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white transition-colors"
+              className="hidden sm:inline-flex text-[13px] font-medium text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white transition-colors"
             >
               {l.label}
             </a>

@@ -8,12 +8,10 @@ import { cn } from '../lib/utils';
  *
  * Geometry contract (measured, not eyeballed — 2026-10-03):
  *  - The mark's drawn content spans y=36..220 of its 256 viewBox, i.e.
- *    72% of the box: at size 34 its painted height is 24.5px with 4.8px
+ *    72% of the box: at size 30 its painted height is 21.6px with 4.2px
  *    of transparent margin top and bottom.
- *  - "ShareTexts" in Geist 700 at 31px paints ~24.1px tall (canvas
- *    actualBoundingBox), so the word and the mark are the same height
- *    within 0.6px — one object, not "icon next to caption". 26px (mobile)
- *    lands at ~20.2px of ink, so the mark is stepped down to 28 there.
+ *  - The wordmark uses the platform UI face at a size that stays optically
+ *    level with the mark across compact and full headers.
  *  - gap-0 + -ml-px: the mark's own internal padding IS the
  *    optical gap (~3px of air once the 1px overlap is applied). Anything
  *    that adds gap on top of that reads as a disconnect between the two
@@ -29,7 +27,7 @@ export function BrandLockup({
   href = '/',
   className,
   markClassName,
-  markSize = 34,
+  markSize = 30,
   mono = false,
   /** Sub-page header size: matches the h-14 Docs/Legal header band. */
   compact = false,
@@ -47,13 +45,11 @@ export function BrandLockup({
       aria-label="ShareTexts — home"
       className={cn('group flex items-center gap-0 shrink-0 min-h-[40px] -my-2 w-fit', className)}
     >
-      {/* The box steps with the type so the two INK heights stay equal at
-          every breakpoint: 25px box (18px of ink) against the 23px mobile
-          wordmark (17.9px of ink), 30px box (21.6px) against 27px (21px).
+      {/* The box steps with the wordmark so both halves read as one object.
           One mark in the DOM — CSS sizes it, not a second copy. */}
       <span className={cn(
         'transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-95 motion-reduce:transition-none flex shrink-0',
-        compact ? 'w-[18px] h-[18px]' : 'w-[28px] h-[28px] sm:w-[34px] sm:h-[34px]',
+        compact ? 'w-[18px] h-[18px]' : 'w-[24px] h-[24px] sm:w-[30px] sm:h-[30px]',
       )}>
         {/* 1px overlap: the mark's transparent margin is the real gap, so a
             negative margin tightens the pairing without touching the ink. */}
@@ -61,8 +57,8 @@ export function BrandLockup({
       </span>
       <span
         className={cn(
-          'font-display font-bold tracking-[-0.035em] leading-none text-apple-ink dark:text-white select-none',
-          compact ? 'text-[16px]' : 'text-[26px] sm:text-[31px]',
+          'font-display font-semibold tracking-[-0.035em] leading-none text-apple-ink dark:text-white select-none',
+          compact ? 'text-[16px]' : 'text-[22px] sm:text-[26px]',
         )}
       >
         ShareTexts

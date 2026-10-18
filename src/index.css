@@ -3,19 +3,6 @@
 /* Class-based dark mode */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Display font: Geist Variable, self-hosted (55KB) ─────────────────
-   One display face for hero + headings; body/UI stays on the native system
-   stack so the app still feels like the OS it runs on. font-display: swap
-   keeps first paint instant; the swap is imperceptible at heading sizes. */
-@font-face {
-  font-family: "Geist Var";
-  src: url("/fonts/Geist-Variable.woff2") format("woff2-variations");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-  size-adjust: 102%;
-}
-
 @theme {
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      SHARETEXT DESIGN SYSTEM
@@ -24,11 +11,12 @@
      Green = success/connected. Amber = waiting/warning. Red = error.
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-  /* System serif-free stack: the platform's own UI font. No webfont, no
-     fingerprint — the app should feel native on every OS it runs on. */
+  /* Use each platform's own UI face: SF on Apple devices, Segoe on Windows,
+     and the system UI face elsewhere. Display and interface copy share one
+     family so the brand, controls, and content feel like one product. */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  --font-display: "Geist Var", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   /* ── Brand: EMBER — the one accent across the entire app ──────
      Ember is the brand color, full stop: buttons, links, focus,
@@ -81,7 +69,7 @@
   --color-apple-parchment: #efece3;
   --color-apple-ink: #1e1c18;
   --color-apple-ink-muted: #635f57;
-  --color-eyebrow: rgba(99, 95, 87, 0.62);
+  --color-eyebrow: #635f57;
   --color-apple-blue: #f06413;
   --color-apple-blue-focus: #d9560e;
   --color-apple-divider: #e5e0d3;
@@ -234,7 +222,9 @@
     @apply font-sans antialiased;
     font-size: 16px;
     line-height: 1.5;
-    letter-spacing: -0.011em;
+    letter-spacing: -0.008em;
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
     color: var(--color-text);
     background: var(--color-bg);
     overflow-x: clip;
@@ -282,7 +272,7 @@
     --color-apple-hairline: #41414a;
     --color-apple-ink: #f2f0eb;
     --color-apple-ink-muted: #b0aba2;
-    --color-eyebrow: rgba(176, 171, 162, 0.55);
+    --color-eyebrow: #b0aba2;
     --color-azure-400: #ffc591;
     --color-azure-500: #fb9243;
     --color-azure-600: #fb7a2e;
@@ -318,20 +308,19 @@
     --st-tone-chrome: #131315;
   }
 
-  /* Display face carries headings; system stack carries everything else.
-     Tracking tightens as size grows (display −0.035em) per the ramp. */
+  /* Platform-native type carries the whole interface. Headings tighten with
+     size and balance their lines; body copy keeps a more relaxed rhythm. */
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.03em;
+    letter-spacing: -0.028em;
+    text-wrap: balance;
   }
-  h1 { letter-spacing: -0.035em; }
+  h1 { letter-spacing: -0.04em; }
   h4, h5, h6 {
     @apply font-semibold;
     letter-spacing: -0.02em;
   }
-  h1, h2, h3 {
-    @apply font-semibold;
-  }
+  h1, h2, h3 { @apply font-semibold; }
 
   :focus-visible {
     outline: 2px solid var(--color-ember);
@@ -359,19 +348,17 @@
   /* ── Typography roles — the app's ONE ramp. Every screen pulls from
      these instead of freestyle text-[13.5px] decimals; sizes outside the
      ramp need a written reason in a comment. ─────────────────────────── */
-  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.035em; line-height: 1.05; }
-  .st-title   { font-size: 15.5px; font-weight: 600; letter-spacing: -0.011em; line-height: 1.25; }
-  .st-section { font-size: 13px;   font-weight: 600; letter-spacing: 0.01em;  line-height: 1.3; }
+  .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.04em; line-height: 1.04; text-wrap: balance; }
+  .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.018em; line-height: 1.25; }
+  .st-section { font-size: 13.5px; font-weight: 600; letter-spacing: -0.006em; line-height: 1.3; }
   .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: -0.005em; line-height: 1.3; }
-  .st-body    { font-size: 14.5px; font-weight: 400; line-height: 1.5; }
-  .st-support { font-size: 13px;   font-weight: 500; line-height: 1.45; }
+  .st-body    { font-size: 15px;   font-weight: 400; line-height: 1.55; }
+  .st-support { font-size: 13.5px; font-weight: 500; line-height: 1.45; }
   .st-meta    { font-size: 12px;   font-weight: 500; line-height: 1.35; }
 
-  /* Group eyebrow — the ONE small-caps label style (settings groups, room
-     stats, footer columns, preview captions). One size, one tracking, one
-     color; a context that truly needs different ink overrides the color
-     only, never the type. Before this class there were four variants. */
-  .st-eyebrow  { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; line-height: 1; color: var(--color-eyebrow, rgba(31, 27, 21, 0.55)); }
+  /* Quiet section labels use sentence case and a small size step rather than
+     shouting in all caps. One weight, tracking, and color across the app. */
+  .st-eyebrow  { font-size: 11.5px; font-weight: 600; letter-spacing: 0.005em; line-height: 1.2; color: var(--color-eyebrow, #635f57); }
 
   /* Elevation utilities — the three levels above, as classes. Dark mode
      swaps the drop for a tone-and-hairline lift: shadows on near-black

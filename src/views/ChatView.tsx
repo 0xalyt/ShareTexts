@@ -942,7 +942,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           names, live status, and one tap to details (rename, encryption,
           rejoin code). The parent keeps `relative` so the details popover
           anchors just under the bar. */}
-      <div className="relative flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 shrink-0 border-b border-apple-divider/50 dark:border-white/[0.08] bg-apple-canvas/95 dark:bg-night-950/95 backdrop-blur-md z-30">
+      <div className="relative flex h-14 items-center justify-between gap-2 px-3 sm:px-5 shrink-0 border-b border-apple-divider/60 dark:border-white/[0.08] bg-apple-canvas/90 dark:bg-night-950/90 backdrop-blur-xl z-30">
         <button
           type="button"
           data-testid="connection-details"
