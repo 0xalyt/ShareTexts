@@ -10,7 +10,17 @@ try {
   page.on('pageerror', e => errors.push(e.message.slice(0, 120)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('[role="switch"]', { timeout: 15000 });
-  await page.waitForTimeout(1800);
+  // The tracker chip only renders once the ACTIVE signaling backend answers
+  // /stats — a cross-origin fetch measured at 1.1–2.0s (three runs). A fixed
+  // 1800ms sample raced it and went red three times while every assertion
+  // below stayed true. Wait for the chip itself (the element under test),
+  // bounded, then assert its geometry/count/color exactly as before — this
+  // de-races the wait, not the checks.
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('div')].some(d =>
+      d.children.length >= 2 && /connections made so far/i.test(d.textContent) && d.textContent.length < 60),
+    { timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(300);
 
   // 1. Toggle geometry on desktop
   const tg = await page.evaluate(() => {
@@ -62,12 +72,12 @@ try {
   // Header rhythm is an 8px gap grid since the single-rhythm header landed.
   out('desktop-header-gaps-tight', gap.length >= 2 && Math.max(...gap.slice(-3)) <= 8.5, JSON.stringify(gap));
 
-  // 4. Hero heading + the shipped <title> (verify-seo's contract: the
-  //    title says what the product IS; AirDrop comparisons live only in
-  //    og:title now).
+  // 4. Hero heading + the shipped <title> (product decision 2026-10-18: the
+  //    landing tab reads "AirDrop for everyone — ShareTexts"; other routes
+  //    keep their own task titles via seo-routes / Docs / Legal).
   const meta = await page.evaluate(() => ({ h1: document.querySelector('h1')?.innerText, title: document.title }));
   out('hero-heading-restored', /Move anything/i.test(meta.h1 || ''), meta.h1);
-  out('site-title-describes-product', /ShareTexts/i.test(meta.title) && /Between Devices/i.test(meta.title), meta.title);
+  out('site-title-airdrop-for-everyone', /^AirDrop for everyone — ShareTexts$/.test(meta.title), meta.title);
 
   out('no-page-errors', errors.length === 0, errors.join(' | ').slice(0, 200));
 } catch (e) {

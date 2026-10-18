@@ -22,6 +22,13 @@ const SHELL = [
   '/favicon-16.png',
   '/favicon-32.png',
   '/favicon-48.png',
+  // Official brand artwork (in-app glyph + footer monoline lockup) —
+  // unhashed like the favicons, so the network-first "unhashed" rule below
+  // must also cover a future rebrand, and the offline shell must ship the
+  // brand, not a broken image.
+  '/brand/logo-glyph-orange.png',
+  '/brand/logo-glyph-cream.png',
+  '/brand/logo-lockup-footer.png',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-192.png',

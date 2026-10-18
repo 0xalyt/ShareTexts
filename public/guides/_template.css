@@ -150,7 +150,7 @@ html.dark .header { background: rgba(19,19,21,.88); }
   color: var(--text);
   min-height: 40px;
 }
-.header-brand svg { width: 20px; height: 20px; color: var(--brand); flex-shrink: 0; }
+.header-brand svg, .header-brand img { width: 20px; height: 20px; color: var(--brand); flex-shrink: 0; }
 .header-brand span { font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
 .header-back {
   display: inline-flex;
@@ -446,7 +446,7 @@ li strong { color: var(--text); }
   min-height: 40px;
   font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none;
 }
-.footer-brand svg { width: 20px; height: 20px; }
+.footer-brand svg, .footer-brand img { width: 20px; height: 20px; flex-shrink: 0; }
 .footer-blurb {
   margin: 10px 0 0; font-size: 13px; line-height: 1.55;
   color: var(--text-secondary); max-width: 30ch;

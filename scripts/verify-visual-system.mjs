@@ -54,7 +54,6 @@ const HEX_ALLOWLIST = new Map([
   ['components/ConnectHandshake.tsx', 'accent consts get "66" alpha-concatenated — var() cannot survive it'],
   ['components/DeviceArt.tsx', 'vendor brand marks (NVIDIA/AMD/Intel/phone families) are actual logo colors'],
   ['components/FileTypeIcon.tsx', 'file-type association colors (PDF red, sheet green…) are external marks'],
-  ['components/ShareTextsLogo.tsx', 'the logo IS the brand — stops use var() where possible, hex remains as fallbacks/mid-stop'],
   ['components/spaceui/SegmentedToggleButton.tsx', 'sliding knob furniture: graphite thumb deliberately between the night tiles'],
   ['components/ThemeToggle.tsx', 'switch palette consts (GREEN_ON/GRAY_OFF styling) — SVG-const rule as in StandardSwitch'],
 ]);

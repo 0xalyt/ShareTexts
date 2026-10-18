@@ -179,6 +179,12 @@ export async function createSpace(opts: { name?: string; durationMs: number; cod
   });
   if (!res.ok) await readError(res);
   const out = (await res.json()) as CreateResult;
+  // A 200 with the wrong shape (e.g. a generic index/fallback response from
+  // a stale Worker) is a server failure, not a space: never navigate to
+  // "/space/undefined" or persist empty credentials.
+  if (typeof out?.spaceId !== 'string' || typeof out?.token !== 'string') {
+    throw new SpaceApiError(502, 'The server gave an unexpected response. Try again in a moment.');
+  }
   saveCreds(out.spaceId, { token: out.token, manageKey: out.manageKey, name: out.name, expiresAt: out.expiresAt });
   if (out.code) {
     try { localStorage.setItem(SPACE_CODE_KEY + out.spaceId, out.code); } catch { /* private mode */ }
@@ -196,7 +202,15 @@ export async function checkCode(code: string): Promise<{ available: boolean; sug
     if (res.status === 429) throw new SpaceApiError(429, 'Too many attempts. Wait a minute and try again.');
     throw new SpaceApiError(res.status, 'Request failed');
   }
-  return res.json() as Promise<{ available: boolean; suggestion?: string; reason?: string }>;
+  const out = (await res.json()) as { available?: unknown; suggestion?: string; reason?: string };
+  // The contract is { available: boolean, ... }. A 200 whose body lacks the
+  // field (a stale Worker answering with its generic index, a proxy error
+  // page) is a server failure — it must NOT be read as "taken", otherwise a
+  // deployment mismatch masquerades as a code collision while typing.
+  if (typeof out?.available !== 'boolean') {
+    throw new SpaceApiError(502, 'The server gave an unexpected response.');
+  }
+  return { available: out.available, suggestion: out.suggestion, reason: out.reason };
 }
 
 /** Join by human code (F21 primary path). Resolves the code server-side and
@@ -212,6 +226,10 @@ export async function joinByCode(rawCode: string): Promise<{ snapshot: SpaceSnap
   });
   if (!res.ok) await readError(res);
   const snapshot = (await res.json()) as SpaceSnapshot;
+  // Same wrong-shape guard as create: a fallback 200 is a server failure.
+  if (typeof snapshot?.spaceId !== 'string') {
+    throw new SpaceApiError(502, 'The server gave an unexpected response. Try again in a moment.');
+  }
   // The joining device proves itself with its OWN token — which the
   // join-code handoff just supplied via the Authorization header echo.
   // Recover it from the creds the join request just saved, or fall back to
@@ -231,6 +249,10 @@ export async function joinSpace(spaceId: string, token: string): Promise<SpaceSn
   });
   if (!res.ok) await readError(res);
   const out = (await res.json()) as SpaceSnapshot;
+  // Wrong-shape 200 (stale Worker fallback) is a server failure, not a space.
+  if (typeof out?.spaceId !== 'string') {
+    throw new SpaceApiError(502, 'The server gave an unexpected response. Try again in a moment.');
+  }
   saveCreds(spaceId, { token, name: out.name, expiresAt: out.expiresAt });
   return out;
 }

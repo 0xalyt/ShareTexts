@@ -59,7 +59,10 @@ await auditSendingPanel(A);
 const code = await readLiveCode(A);
 await B.goto(URL, { waitUntil: 'networkidle' });
 await B.getByRole('button', { name: 'Receive' }).first().click();
-await B.locator('input[inputmode="numeric"]').fill(code);
+// The join panel is the six-slot OtpInput capsule (cf94c74): filling the
+// FIRST slot distributes the code across all six, exactly like a paste —// the same contract verify-mobile-ui / verify-resume drive. The old
+// single-input locator is a strict-mode violation against six slots.
+await B.locator('input[inputmode="numeric"]').first().fill(code);
 await B.getByTestId('composer').first().waitFor({ timeout: 20000 }).catch(() => {});
 await A.getByTestId('composer').first().waitFor({ timeout: 20000 }).catch(() => {});  // Two messages (A → B twice) so Copy All — which needs ≥2 messages — is
   // part of the audited inventory on BOTH sides, not just a walk-layouts

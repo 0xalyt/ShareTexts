@@ -2,12 +2,17 @@
 // off the live server (Playwright + canvas getImageData). No image files are
 // touched — this is a read-only contract check.
 //
-// ICON CONTRACT: every PWA/favicon icon is the user's supplied artwork
-// (public/brand-logo-source.png) rendered edge-to-edge by
+// ICON CONTRACT: PWA/home-screen icons are the user's supplied artwork
+// (public/brand-logo-source.jpg) rendered edge-to-edge by
 // scripts/gen-icons-from-artwork.mjs — no recoloring, no regeneration. The
-// artwork carries its own warm cream field, so maskable corners are cream
-// (NOT the retired flat-ember field) and favicons are opaque cream (NOT
-// transparent); the glyph must still sit inside the maskable safe zone.
+// artwork is the app-icon tile: a white squircle carrying the orange mark
+// on PURE BLACK corners (the field is part of the image, sampled dark at
+// the corners — NOT the retired cream field, NOT the retired flat-ember
+// field), and the mark sits inside the maskable safe zone. FAVICONS are a
+// separate official-artwork pipeline: the extracted brand glyph on a
+// TRANSPARENT field (public/brand/logo-glyph-orange.png via
+// scripts/gen-favicons-from-glyph.mjs) — transparent so the tab icon reads
+// on light and dark tab bars alike.
 // Usage: node scripts/verify-brand-assets.mjs   (URL=http://localhost:3001 to override)
 import { launchBrowser } from './lib.mjs';
 
@@ -41,14 +46,14 @@ const count = (d, w, x0, y0, x1, y1, pred, step = 3) => {
   for (let y = y0; y < y1; y += step) for (let x = x0; x < x1; x += step) if (pred(at(d, w, x, y))) n++;
   return n;
 };
-// The artwork's own field: white at the top fading to warm cream at the
-// bottom (sampled: 255,255,255 → 247,244,237). Light, warm-tinted, opaque.
-const artField = (p) => p[0] >= 235 && p[1] >= 230 && p[2] >= 220 && p[0] >= p[2];
+// The supplied app-icon tile's OWN field: pure black corners (sampled
+// 0,0,0 opaque) around the white squircle — part of the artwork, so the
+// icons must show it edge to edge. Light/warm and ember fields were the
+// retired contracts.
+const iconField = (p) => p[0] < 30 && p[1] < 30 && p[2] < 30;
 const ink = (p) => p[0] < 130 && p[1] < 130 && p[2] < 130;
 // Ember field: warm orange — red dominant over blue, mid-high luminance.
 const ember = (p) => p[0] > 150 && p[0] > p[2] + 60 && p[1] > p[2] && p[1] < p[0];
-// Honey highlight from the glyph gradient.
-const honey = (p) => p[0] > 240 && p[1] > 140 && p[2] < 100;
 
 const checks = [];
 const check = (name, cond) => checks.push([name, cond]);
@@ -80,20 +85,21 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
 const mk = await sample('/icon-maskable-512.png');
 check('maskable is 512x512', mk.w === 512 && mk.h === 512);
 for (const [x, y] of [[8, 8], [504, 8], [8, 504], [504, 504]]) {
-  check(`maskable corner (${x},${y}) artwork field`, artField(at(mk.data, mk.w, x, y)));
+  check(`maskable corner (${x},${y}) black artwork field`, iconField(at(mk.data, mk.w, x, y)));
 }
-check('maskable gradient glyph inside safe zone', count(mk.data, mk.w, 96, 96, 416, 416, honey, 4) > 0);
+check('maskable orange mark inside safe zone', count(mk.data, mk.w, 96, 96, 416, 416, ember, 4) > 0);
 
 // ── Home-screen icon: the artwork itself, edge to edge ──
 const ic = await sample('/icon-512.png');
 check('icon-512 is 512x512', ic.w === 512 && ic.h === 512);
-check('icon-512 artwork field', artField(at(ic.data, ic.w, 8, 8)));
+check('icon-512 black artwork field', iconField(at(ic.data, ic.w, 8, 8)));
 check('icon-512 ember glyph present', count(ic.data, ic.w, 0, 0, ic.w, ic.h, ember, 4) > 100);
 
-// ── Favicon 16: artwork field + ember glyph (artwork is opaque by design) ──
+// ── Favicon 16: the official glyph on transparency (opaque cream field
+//    and the old ember redraw are both retired contracts) ──
 const f16 = await sample('/favicon-16.png');
 check('favicon-16 is 16x16', f16.w === 16 && f16.h === 16);
-check('favicon-16 artwork field', artField(at(f16.data, 16, 0, 0)));
+check('favicon-16 transparent field', at(f16.data, 16, 0, 0)[3] === 0);
 check('favicon-16 ember glyph', count(f16.data, 16, 0, 0, 16, 16, ember, 1) > 0);
 
 // ── OG cache-buster: every shipped og:image URL must carry ?v= so

@@ -45,6 +45,10 @@ interface DeviceArtProps {
   mark?: boolean;
   /** Breathing halo + status dot — for the "detected" moment in the overlay. */
   pulse?: boolean;
+  /** Whether the tile is currently pressed/active (for micro-interaction). */
+  isPressed?: boolean;
+  /** Whether the tile has focus (keyboard accessibility). */
+  hasFocus?: boolean;
   className?: string;
 }
 
@@ -60,7 +64,7 @@ function ScreenMark({ x, y, s, tone }: { x: number; y: number; s: number; tone: 
   );
 }
 
-export function DeviceArt({ kind, model, gpu, size = 56, mark = true, pulse = false, className }: DeviceArtProps) {
+export function DeviceArt({ kind, model, gpu, size = 56, mark = true, pulse = false, isPressed = false, hasFocus = false, className }: DeviceArtProps) {
   const accent = kind === 'desktop'
     ? (gpu ? ({ NVIDIA: '#76b900', AMD: '#ed1c24', Intel: '#0071c5', Apple: '#8e8e93' } as Record<string, string>)[gpu] ?? '' : '')
     : brandAccentForModel(model ?? '');
@@ -68,14 +72,19 @@ export function DeviceArt({ kind, model, gpu, size = 56, mark = true, pulse = fa
   const stroke = 'currentColor';
   const svg = Math.round(size * 0.56);
 
+  // Compute interactive styles
+  const baseScale = isPressed ? 0.96 : 1;
+  const focusClass = hasFocus ? ' focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-azure-500' : '';
+
   return (
     <span
-      className={`relative shrink-0 inline-flex items-center justify-center rounded-[26%] border ${className ?? ''}`}
+      className={`relative shrink-0 inline-flex items-center justify-center rounded-[26%] border ${className ?? ''}${focusClass}`}
       style={{
         width: size,
         height: size,
         background: accentSoft || 'rgba(240,100,19,0.08)',
         borderColor: accent ? `${accent}40` : 'rgba(240,100,19,0.18)',
+        transform: `scale(${baseScale})`,
       }}
       aria-hidden
     >

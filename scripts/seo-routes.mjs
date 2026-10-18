@@ -80,14 +80,7 @@ const SHELL_CSS = `
       html.dark .st-seo .muted { color: rgba(255,255,255,0.5); }
     </style>`;
 
-const LOGO_SVG = `<svg width="26" height="26" viewBox="0 0 256 256" fill="none" aria-hidden="true">
-        <defs><linearGradient id="st-seo-ember" x1="24" y1="20" x2="216" y2="236" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#feab30"/><stop offset="0.55" stop-color="#f97b3d"/><stop offset="1" stop-color="#f06413"/>
-        </linearGradient></defs>
-        <rect x="40" y="36" width="84" height="84" rx="24" fill="url(#st-seo-ember)"/>
-        <rect x="132" y="136" width="84" height="84" rx="24" fill="url(#st-seo-ember)"/>
-        <path d="M110 106 L146 142" stroke="url(#st-seo-ember)" stroke-width="28" stroke-linecap="round"/>
-      </svg>`;
+const LOGO_SVG = `<img src="/brand/logo-glyph-orange.png" alt="" width="26" height="26" style="display:block;flex-shrink:0" aria-hidden="true">`;
 
 function shellBody({ overline, h1, subtitle, main, footerNote }) {
   return `<div id="root">

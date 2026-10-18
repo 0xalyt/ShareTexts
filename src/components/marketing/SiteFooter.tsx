@@ -1,7 +1,7 @@
 import React from 'react';
 import { At as AtSign } from '@gravity-ui/icons';
 import { cn } from '../../lib/utils';
-import { BrandLockup } from '../BrandLockup';
+import { MonolineLockup } from '../BrandLockup';
 import { useI18n } from '../../lib/i18n';
 import type { MsgKey } from '../../lib/messages/types';
 
@@ -55,7 +55,11 @@ export function SiteFooter({ className }: { className?: string }) {
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
           <div className="min-w-0">
-            <BrandLockup compact mono />
+            {/* The official monoline signature, linked home like the lockup
+                it replaces; height steps at sm to match the site footer. */}
+            <a href="/" aria-label="ShareTexts — home" className="block w-fit">
+              <MonolineLockup className="h-8 sm:h-9" />
+            </a>
             <p className="mt-3.5 max-w-[320px] text-[13.5px] leading-relaxed text-apple-ink-muted dark:text-white/50">
               {t('home.subtitle')}
             </p>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- Primary -->
-    <title>ShareTexts — Share Text, Files & Photos Between Devices</title>
+    <title>AirDrop for everyone — ShareTexts</title>
     <meta name="description" content="Send text, links, photos, and files between any two devices — phone to PC, iPhone to Windows — right in your browser. No app, no account, nothing stored." />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
@@ -39,36 +39,36 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ShareTexts" />
-    <meta property="og:title" content="ShareTexts — AirDrop for Any Device" />
+    <meta property="og:title" content="AirDrop for everyone — ShareTexts" />
     <meta property="og:description" content="Send text, links, photos, and files between any two devices — phone to PC, iPhone to Windows — right in your browser. No app, no account, nothing stored." />
     <meta property="og:url" content="https://sharetexts.online/" />
-    <!-- ?v=18 busts X/WhatsApp/LinkedIn caches: the same artwork, freshly
+    <!-- ?v=19 busts X/WhatsApp/LinkedIn caches: the same artwork, freshly
          fetched. Bump the query whenever the artwork file changes. -->
-    <meta property="og:image" content="https://sharetexts.online/og/sharetext-og.jpg?v=18" />
+    <meta property="og:image" content="https://sharetexts.online/og/sharetext-og.jpg?v=19" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:alt" content="ShareTexts — AirDrop for any Device. The app running on a laptop and iPhone, connected." />
+    <meta property="og:image:alt" content="ShareTexts — AirDrop for everyone. The ShareTexts app icon among the phones, laptops, and browsers it works with." />
 
     <!-- Twitter/X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ShareTexts — AirDrop for Any Device" />
+    <meta name="twitter:title" content="AirDrop for everyone — ShareTexts" />
     <meta name="twitter:description" content="Send text, links, photos, and files between any two devices — phone to PC, iPhone to Windows — right in your browser. No app, no account, nothing stored." />
-    <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og.jpg?v=18" />
-    <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og.jpg?v=18" />
-    <meta name="twitter:image:alt" content="ShareTexts — AirDrop for any Device. The app running on a laptop and iPhone, connected." />
+    <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og.jpg?v=19" />
+    <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og.jpg?v=19" />
+    <meta name="twitter:image:alt" content="ShareTexts — AirDrop for everyone. The ShareTexts app icon among the phones, laptops, and browsers it works with." />
 
     <link rel="canonical" href="https://sharetexts.online/" />
     <link rel="alternate" hreflang="x-default" href="https://sharetexts.online/" />
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=18" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=19" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=19" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=19" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=19" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=19" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=19" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=20" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=20" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=20" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20" />
 
     <!-- Structured data: Organization + WebApplication graph. One graph,
          stable @ids; HowTo/FAQPage JSON-LD lives only on pages whose visible
@@ -86,7 +86,7 @@
           "url": "https://sharetexts.online/",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://sharetexts.online/icon-512.png?v=19",
+            "url": "https://sharetexts.online/icon-512.png?v=20",
             "width": 512,
             "height": 512
           },
@@ -107,8 +107,8 @@
           "browserRequirements": "Requires a supported browser and an internet connection",
           "isAccessibleForFree": true,
           "inLanguage": ["en", "de", "fr", "es", "pt", "hi", "ja", "zh", "ar"],
-          "image": "https://sharetexts.online/og/sharetext-og.jpg?v=18",
-          "screenshot": "https://sharetexts.online/og/sharetext-og.jpg?v=18",
+          "image": "https://sharetexts.online/og/sharetext-og.jpg?v=19",
+          "screenshot": "https://sharetexts.online/og/sharetext-og.jpg?v=19",
           "featureList": [
             "Nearby device discovery while ShareTexts is open on your other device",
             "Six-digit live pairing code",
@@ -285,14 +285,7 @@
              the live header will sit. -->
         <header style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px">
           <div style="display:flex;align-items:center;gap:8px">
-            <svg width="30" height="30" viewBox="0 0 256 256" fill="none" aria-hidden="true">
-              <defs><linearGradient id="st-boot-ember" x1="24" y1="20" x2="216" y2="236" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#feab30"/><stop offset="0.55" stop-color="#f97b3d"/><stop offset="1" stop-color="#f06413"/>
-              </linearGradient></defs>
-              <rect x="40" y="36" width="84" height="84" rx="24" fill="url(#st-boot-ember)"/>
-              <rect x="132" y="136" width="84" height="84" rx="24" fill="url(#st-boot-ember)"/>
-              <path d="M110 106 L146 142" stroke="url(#st-boot-ember)" stroke-width="28" stroke-linecap="round"/>
-            </svg>
+            <img src="/brand/logo-glyph-orange.png" alt="" width="30" height="30" style="display:block" aria-hidden="true">
             <span style="font-size:21px;font-weight:700;letter-spacing:-0.02em;color:#1e1c18">ShareTexts</span>
           </div>
           <div class="st-bar" aria-hidden="true" style="width:56px;height:26px;border-radius:13px"></div>

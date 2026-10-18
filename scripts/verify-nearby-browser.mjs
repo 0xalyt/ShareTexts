@@ -94,6 +94,50 @@ try {
     const aGot = (await A.locator('body').innerText()).includes('Reply from B via nearby');
     out('A received B\'s text', aGot);
   }
+
+  /* ---- 5. DECLINE PATH (fresh pair): D's Decline must reach C
+     IMMEDIATELY — not leave it waiting out a timeout (reference evidence:
+     LocalSend's sender sees "The recipient has rejected the request."
+     at once; this path previously had ZERO coverage). ---- */
+  const ctxC = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const ctxD = await browser.newContext({ viewport: { width: 900, height: 900 } });
+  const C = await ctxC.newPage();
+  const D = await ctxD.newPage();
+  for (const [tag, p] of [['C', C], ['D', D]]) {
+    p.on('pageerror', e => pageErrors.push(`[${tag}] ${e.message}`));
+    p.on('console', m => { if (m.type() === 'error') pageErrors.push(`[${tag}:console] ${m.text().slice(0, 160)}`); });
+  }
+  await C.goto(URL, { waitUntil: 'domcontentloaded' });
+  await D.goto(URL, { waitUntil: 'domcontentloaded' });
+  await C.waitForTimeout(1800);
+  let seenC = false;
+  try { await C.locator('button:has-text("Nearby")').first().waitFor({ timeout: 8000 }); seenC = true; } catch {}
+  out('C sees D\'s device row (fresh pair)', seenC);
+  if (seenC) {
+    await C.locator('button:has-text("Nearby")').first().click();
+    const sheetOnD = await D.getByTestId('nearby-detect-overlay').waitFor({ timeout: 10000 }).then(() => true).catch(() => false);
+    out('D receives the invite overlay', sheetOnD);
+    if (sheetOnD) {
+      await D.getByTestId('nearby-detect-decline').click();
+      // The inviter's declined failure card must appear at once (≤6s —
+      // a timeout-driven generic failure would take far longer).
+      const declinedCard = await C.getByTestId('nearby-failure-card').filter({ hasText: /declined/i })
+        .waitFor({ timeout: 6000 }).then(() => true).catch(() => false);
+      out('C (inviter) sees the declined card immediately after D declines', declinedCard);
+      // Wait (not instant-count) for the overlay to detach: the close is
+      // optimistic local state after the decline notification is emitted,
+      // so allow a short grace. Dump the dialog text if it lingers, so a
+      // re-open (rather than a slow close) is visible in the failure.
+      const dClosed = await D.getByTestId('nearby-detect-overlay').waitFor({ state: 'detached', timeout: 5000 })
+        .then(() => true).catch(() => false);
+      const dLinger = dClosed ? '' : await D.evaluate(() =>
+        (document.querySelector('[role="dialog"]')?.innerText || '').replace(/\n+/g, ' | ').slice(0, 160));
+      out('D\'s overlay closed after declining', dClosed, dLinger);
+    } else {
+      out('C (inviter) sees the declined card immediately after D declines', false, 'no overlay on D to decline');
+      out('D\'s overlay closed after declining', false);
+    }
+  }
 } catch (e) {
   results.push(false);
   console.error('E2E ERROR:', e);

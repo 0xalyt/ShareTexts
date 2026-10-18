@@ -103,7 +103,7 @@ function ToggleRow({ icon, active, title, hint, onClick, ariaLabel, testId, rowT
     >
       <span
         className={cn(
-          'shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors',
+          'shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark',
           active
             ? 'bg-ember/10 dark:bg-azure-400/15 text-ember dark:text-azure-400'
             : 'bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/40'
@@ -389,6 +389,22 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
     setOverlayBusy(false);
   }, [overlayTarget]);
 
+  /** Incoming Decline — REFERENCE EVIDENCE (LocalSend's sender sees "The
+   *  recipient has rejected the request." immediately; PairDrop's request
+   *  dialog treats decline as a first-class action): declining must reach
+   *  the other device NOW, not leave it waiting out a timeout. Answering
+   *  the pending invitation flips the inviter's existing declined path
+   *  (presence_invite_result → "The other device declined or is
+   *  unavailable" failure card). No pending invite → plain close. */
+  const declineOverlay = useCallback(() => {
+    const pending = pendingInviteRef.current;
+    if (pending && overlayTarget && pending.from === overlayTarget.id) {
+      pendingInviteRef.current = null;
+      nearbyPresence.answerInvite(pending.from, false);
+    }
+    closeOverlay();
+  }, [overlayTarget, closeOverlay]);
+
   /* --- outgoing invite (rows / recents) ----------------------------------- */
   const handleInvite = useCallback(async (device: NearbyDevice): Promise<boolean> => {
     productEvent('product.method_nearby');
@@ -545,7 +561,8 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                       'hover:border-ember/45 dark:hover:border-azure-400/50',
                       'active:scale-[0.985] transition-all',
                       'disabled:opacity-50 disabled:pointer-events-none',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60'
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark',
+                      'focus-visible:transition-colors' // smoother focus state
                     )}
                   >
                     <span className={cn(
@@ -560,14 +577,23 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                     <span className="flex-1 flex flex-col min-w-0 leading-tight">
                       <span className="text-[13.5px] font-semibold text-apple-ink dark:text-white truncate">{d.name}</span>
                       <span className={cn(
-                        'text-[12.5px] font-medium flex items-center gap-1',
+                        'text-[12.5px] font-medium flex items-center gap-1 truncate',
                         busy
                           ? 'text-ember dark:text-azure-400 font-semibold'
                         : 'text-apple-ink-muted dark:text-white/45'
                       )}>
                         {busy ? t('nearby.waiting') : trusted ? (
-                          <><Check className="w-3 h-3 text-status-success" strokeWidth={2.5} /> {t('nearby.trusted')}</>
+                          <><Check className="w-3 h-3 text-status-success shrink-0" strokeWidth={2.5} /> {t('nearby.trusted')}</>
                         ) : t('nearby.nearby')}
+                        {/* The honest sub-spec: model when the platform told
+                            us one (Android), else the browser label — the
+                            same truth ladder the overlay card uses, so a
+                            row and its popup never disagree. */}
+                        {!busy && (d.model || d.browser) && (
+                          <span className="text-apple-ink-muted/60 dark:text-white/30 truncate">
+                            · {d.model || d.browser}
+                          </span>
+                        )}
                       </span>
                     </span>
                     {busy ? (
@@ -659,9 +685,17 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             exit={{ opacity: 0 }}
             className="mt-2.5 flex items-center gap-2.5 px-1 py-1"
           >
-            <span className="relative shrink-0 w-7 h-7 flex items-center justify-center" aria-hidden>
-              <span className="absolute inset-0 rounded-full border border-ember/25 dark:border-azure-400/25 st-halo-ring" />
-              <Search className="relative w-3.5 h-3.5 text-ember/70 dark:text-azure-400/70" strokeWidth={2.4} />
+            {/* The overlay's radar language, miniature: two staggered
+                pings on the same 3s cycle + one hairline ring + the
+                search glyph at the core — both discovery surfaces now
+                read as ONE system. Decorative (the row's text carries
+                the state); frozen under reduced motion; the shared
+                `.st-radar-ping` primitive from index.css. */}
+            <span className="relative shrink-0 w-8 h-8 flex items-center justify-center" aria-hidden>
+              <span className="absolute inset-0 rounded-full border border-ember/15 dark:border-azure-400/15" />
+              <span className="absolute inset-0 rounded-full border border-ember/35 dark:border-azure-400/35 st-radar-ping" />
+              <span className="absolute inset-0 rounded-full border border-ember/35 dark:border-azure-400/35 st-radar-ping [animation-delay:1.5s]" />
+              <Search className="relative w-3.5 h-3.5 text-ember dark:text-azure-400" strokeWidth={2.4} />
             </span>
             <span className="flex-1 flex flex-col min-w-0 leading-tight">
               {/* The standing instruction, promoted to the searching state's
@@ -828,14 +862,23 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
       )}
 
       {/* THE mutual-confirm detection overlay — auto-connect ON pops it on
-          both devices; incoming invites flip it to their incoming form. */}
+          both devices; incoming invites flip it to their incoming form.
+          The OTHER nearby devices ride along as quiet bubbles on the radar
+          (AirDrop shows the whole room, not just the one asking). */}
       <NearbyDetectOverlay
         mode={overlayMode}
         device={overlayTarget ? { name: overlayTarget.name, kind: overlayTarget.kind, browser: overlayTarget.browser, model: overlayTarget.model, gpu: overlayTarget.gpu } : null}
+        others={overlayTarget
+          ? devices
+              .filter(d => d.id !== overlayTarget.id)
+              .slice(0, 3)
+              .map(d => ({ name: d.name, kind: d.kind, browser: d.browser, model: d.model, gpu: d.gpu }))
+          : []}
         busy={overlayBusy || phase.kind === 'inviting'}
         stayBadge={stayBadgeForOverlay}
         onConnect={() => { if (overlayTarget) void handleOverlayConnect(overlayTarget); }}
         onCancel={closeOverlay}
+        onDecline={declineOverlay}
         onFindMore={closeOverlay}
       />
     </div>

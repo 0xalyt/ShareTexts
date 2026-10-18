@@ -19,7 +19,7 @@ import { useSession } from '../lib/SessionContext';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
-import { BrandLockup } from '../components/BrandLockup';
+import { BrandLockup, MonolineLockup } from '../components/BrandLockup';
 import { IconButton3D } from '../components/IconButton3D';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { LiveCodeDisplay } from '../components/LiveCodeDisplay';
@@ -1383,12 +1383,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             40px tap floor via -my-2. */}
         <div className="max-w-6xl mx-auto flex flex-wrap items-start justify-between gap-x-10 gap-y-7">
           <div className="flex flex-col gap-2 min-w-[200px]">
-            <span className="flex items-center gap-1.5" aria-hidden>
-              <ShareTextsLogo size={18} />
-              <span className="font-display font-bold tracking-[-0.03em] leading-none text-[14.5px] text-apple-ink dark:text-white/90">
-                ShareTexts
-              </span>
-            </span>
+            {/* The official monoline signature — the footer's sign-off.
+                Height steps at sm; width follows the artwork's aspect.
+                self-start: the column is a flex COLUMN, so without it the
+                stretch rule widens the box to the column and the contained
+                mask indents the mark away from the tagline below. */}
+            <MonolineLockup className="h-8 sm:h-9 self-start" />
             <span className="text-[12px] font-medium leading-none text-apple-ink-muted/75 dark:text-white/40">
               {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
             </span>
@@ -1477,12 +1477,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const compactFooterNode = (
     <footer className="shrink-0 px-6 lg:px-10 pt-2.5 pb-[max(env(safe-area-inset-bottom),8px)] sm:pb-2.5 border-t border-apple-divider/60 dark:border-white/[0.06]">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-x-5 gap-y-2 flex-wrap">
-        <span className="flex items-center gap-1.5 select-none" aria-hidden>
-          <ShareTextsLogo size={16} className="opacity-90" />
-          <span className="font-display font-bold tracking-[-0.03em] leading-none text-[13px] text-apple-ink-muted/85 dark:text-white/50">
-            ShareTexts
-          </span>
-        </span>
+        <MonolineLockup className="h-7 sm:h-8 select-none" />
         <nav className="flex items-center gap-5 sm:gap-7 text-[13px] font-medium text-apple-ink-muted dark:text-white/50">
           <a href="/docs" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
           <a href="/about" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>

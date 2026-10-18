@@ -1,0 +1,60 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Radar design review</title>
+<style>
+  body { margin: 0; background: #111; color: #eee; font: 13px system-ui; padding: 16px; }
+  h2 { font-size: 14px; margin: 18px 0 8px; }
+  img { display: block; max-width: 100%; border: 1px solid #333; border-radius: 8px; background: #fff; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .row > div { flex: 1 1 380px; min-width: 340px; }
+  #status { position: sticky; top: 0; z-index: 5; background: #1b1b20; border: 1px solid #333;
+            border-radius: 8px; padding: 6px 10px; margin-bottom: 12px; color: #f9a; display: none; }
+</style>
+</head>
+<body>
+  <div id="status"></div>
+  <h2>Radar crop (full scale, light)</h2>
+  <img data-src="http://localhost:3010/_shots/radar-clip.png" width="440" height="440" alt="Radar overlay crop, light theme">
+  <div class="row">
+    <div><h2>Full page — light, detected</h2><img data-src="http://localhost:3010/_shots/radar-light.png" alt="Radar overlay, light theme, detected state"></div>
+    <div><h2>Full page — light, armed (Yes)</h2><img data-src="http://localhost:3010/_shots/radar-light-armed.png" alt="Radar overlay, armed confirm state"></div>
+  </div>
+  <div class="row">
+    <div><h2>Incoming side</h2><img data-src="http://localhost:3010/_shots/radar-incoming.png" alt="Radar overlay, incoming invite state"></div>
+    <div><h2>Dark</h2><img data-src="http://localhost:3010/_shots/radar-dark.png" alt="Radar overlay, dark theme"></div>
+  </div>
+  <div class="row">
+    <div><h2>Mobile (docked card)</h2><img data-src="http://localhost:3010/_shots/radar-mobile.png" alt="Radar overlay on mobile"></div>
+  </div>
+  <div class="row">
+    <div><h2>Landing rows — desktop</h2><img data-src="http://localhost:3010/_shots/rows-desktop.png" alt="Nearby device rows, desktop"></div>
+    <div><h2>Landing rows — dark</h2><img data-src="http://localhost:3010/_shots/rows-dark.png" alt="Nearby device rows, dark theme"></div>
+    <div><h2>Landing rows — mobile</h2><img data-src="http://localhost:3010/_shots/rows-mobile.png" alt="Nearby device rows, mobile"></div>
+  </div>
+<script>
+/* The preview static server serves ONLY this registered HTML file (sibling
+   PNGs 404), and the dev server sends Cross-Origin-Resource-Policy:
+   same-origin, so a plain <img> cross-origin from :61129 to :3010 is
+   blocked by the browser. fetch() is CORS-reflective there, so each image
+   is fetched and re-pointed at a same-origin blob URL. */
+(async () => {
+  const imgs = [...document.images];
+  const failed = [];
+  for (const img of imgs) {
+    try {
+      const r = await fetch(img.dataset.src, { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      img.src = URL.createObjectURL(await r.blob());
+      await img.decode();
+    } catch (e) {
+      failed.push(img.dataset.src.split('/').pop() + ': ' + e.message);
+    }
+  }
+  if (failed.length) {
+    const s = document.getElementById('status');
+    s.textContent = 'Failed: ' + failed.join(', ');
+    s.style.display = 'block';
+  }
+})();
+</script>
+</body>
+</html>

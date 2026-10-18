@@ -6,7 +6,11 @@
  *                 gap (one direction, then the other). The devices never
  *                 move — no glide, no slide, no "slope" feel.
  *   connected   — the dotted line becomes solid green and a check fades in
- *                 at its center; the scene then holds perfectly still
+ *                 at its center, breathing ONE pair of green rings outward
+ *                 (the completion beat — Duolingo celebrates the actual
+ *                 success moment; Apple's HIG caps it at "proportionate").
+ *                 One-shot, no repeat: the scene then holds perfectly
+ *                 still, as before.
  *
  * Everything eases on the app's Apple-like curve and settles. Reduced-motion
  * flattens it via MotionConfig.
@@ -165,7 +169,13 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
             )}
           </AnimatePresence>
 
-          {/* Check — fades up at the center of the drawn link. No scale pop. */}
+          {/* Check — fades up at the center of the drawn link. No scale pop
+              on the check itself; the CELEBRATION rides on top as two
+              one-shot green rings breathing outward (staggered — the same
+              radar-ping language the discovery scene uses, in success
+              green). Under reduced motion MotionConfig flattens the scale,
+              leaving one quiet opacity fade — the fact stays, the flourish
+              goes. */}
           <AnimatePresence>
             {connected && (
               <motion.span
@@ -175,6 +185,16 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3, ease: EASE, delay: 0.15 }}
               >
+                {[0.25, 0.5].map((delay) => (
+                  <motion.span
+                    key={delay}
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full border-2 border-status-success"
+                    initial={{ scale: 1, opacity: delay === 0.25 ? 0.55 : 0.4 }}
+                    animate={{ scale: 2.1, opacity: 0 }}
+                    transition={{ duration: 0.9, ease: 'easeOut', delay }}
+                  />
+                ))}
                 <Check className="w-4 h-4 text-white" strokeWidth={3} />
               </motion.span>
             )}

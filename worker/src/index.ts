@@ -175,7 +175,14 @@ export default {
       if (!found.spaceId || !UUID_RE.test(found.spaceId)) {
         return json({ error: 'No space with that code is open right now.' }, 404, cors);
       }
-      const internal = new Request('https://internal/space/' + found.spaceId + '/code-join', request);
+      // The outer body was already consumed by request.json() above — build
+      // the internal request from the parsed code instead of reusing the
+      // (spent) original stream, which throws "Can't read from request stream".
+      const internal = new Request('https://internal/space/' + found.spaceId + '/code-join', {
+        method: 'POST',
+        headers: request.headers,
+        body: JSON.stringify({ code: body.code }),
+      });
       const id = env.SPACES.idFromName(found.spaceId.toLowerCase());
       return env.SPACES.get(id).fetch(internal);
     }
@@ -184,10 +191,30 @@ export default {
       if (!(await rateLimited(env, 'space', clientIp(request)))) {
         return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);
       }
-      const m = path.match(/^\/space\/([0-9a-f-]{36})$/i);
+      // The per-space API lives on sub-paths ("/space/<id>/create",
+      // "/space/<id>/items/text", ...) — the id must be followed by an
+      // optional tail, not anchored at the end of the path. The old "$"-anchored
+      // form 404'd every sub-route, which no local suite caught because they
+      // drive the DO or the Node dev backend directly, never this router.
+      const m = path.match(/^\/space\/([0-9a-f-]{36})(\/.*)?$/i);
       if (!m) return json({ error: 'Not found' }, 404, cors);
-      // Rewrite the internal URL so the DO sees the per-space path tail.
-      const internal = new Request('https://internal' + path + url.search, request);
+      // /close and /heartbeat authenticate via the bearer header and never
+      // read the request body. Drain it here (clients send a tiny '{}') and
+      // rebuild the internal request — an end-to-end-unread body makes the
+      // wrangler dev loopback proxy error after the response is sent (real
+      // Cloudflare discards unread bodies; only the local proxy trips on it).
+      let internal: Request;
+      if (request.method === 'POST' && /\/(close|heartbeat)$/.test(path)) {
+        const drained = await request.text().catch(() => '');
+        internal = new Request('https://internal' + path + url.search, {
+          method: request.method,
+          headers: request.headers,
+          body: drained || undefined,
+        });
+      } else {
+        // Rewrite the internal URL so the DO sees the per-space path tail.
+        internal = new Request('https://internal' + path + url.search, request);
+      }
       const id = env.SPACES.idFromName(m[1].toLowerCase());
       return env.SPACES.get(id).fetch(internal);
     }
@@ -275,7 +302,7 @@ export default {
 
     return json({
       name: 'sharetext-signaling',
-      endpoints: ['/health', '/ws', '/lookup', '/resolve-short', '/api/push'],
+      endpoints: ['/health', '/ws', '/lookup', '/resolve-short', '/api/push', '/api/event', '/space-code/check', '/space/join-code', '/space/:id/*', '/space-ws'],
     }, 200, cors);
   },
 } satisfies ExportedHandler<Env>;

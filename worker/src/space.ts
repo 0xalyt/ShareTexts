@@ -226,7 +226,15 @@ export class Space extends DurableObject<Env> {
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
-    this.urlSpaceId = url.searchParams.get('space');
+    // The space id reaches the DO in the PATH ("/space/<id>/create" — that's
+    // how index.ts addresses it via idFromName); only /space-ws carries it as
+    // a ?space= query param. Reading just the query left urlSpaceId null on
+    // every REST call, so create registered codes with a null spaceId (the
+    // Registry 400'd and create misreported it as "code already in use") and
+    // minted a random spaceId that pointed at a different DO instance.
+    this.urlSpaceId = url.searchParams.get('space')
+      || url.pathname.match(/^\/space\/([0-9a-f-]{36})/i)?.[1]
+      || null;
 
     if (request.headers.get('Upgrade') === 'websocket') {
       return this.upgrade();

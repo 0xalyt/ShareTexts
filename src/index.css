@@ -531,6 +531,25 @@ html.dark .st-dotfield::after {
   .st-status-dot { animation: none; }
 }
 
+/* ── Radar ping (nearby-discovery scene) ──────────────────────────────
+   One slow wave per 3s cycle: the ring expands from ~60% to full size
+   while fading out, so exactly ONE wave is mid-flight at any moment with
+   its staggered twin (delay 1.5s) — the calm AirDrop radar read, never an
+   alarm. The ring sits inset-[9%] of the square radar box; scaling to
+   1.28 lets it travel just past the outermost hairline before dying. */
+.st-radar-ping {
+  animation: st-radar-ping 3s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  will-change: transform, opacity;
+}
+@keyframes st-radar-ping {
+  0%   { transform: scale(0.62); opacity: 0; }
+  14%  { opacity: 0.55; }
+  100% { transform: scale(1.3);  opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-radar-ping { animation: none; opacity: 0; }
+}
+
 /* Live-status halo — two radar rings drift outward from a solid, softly
    glowing core. Slow, staggered, opacity-faded: it should read as a calm
    breath (the service is alive), never an alarm. */
