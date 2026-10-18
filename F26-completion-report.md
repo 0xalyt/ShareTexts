@@ -10,8 +10,9 @@ production-verified; the R2 objective is blocked by an external Cloudflare accou
 ## A. Deployment — DONE
 
 - **Worker:** `sharetext-signaling` on `https://sharetext-signaling.alighttt.workers.dev`
-  (Cloudflare account `b46c1660…`, OAuth-authenticated Wrangler 4.120.1 — the repository's
-  configured target; confirmed from `worker/wrangler.toml` + the authenticated `wrangler` session).
+  (the OAuth-authenticated Wrangler session's account — the repository's configured target;
+  confirmed from `worker/wrangler.toml` + the authenticated `wrangler` session; account
+  identifiers deliberately omitted from this report).
 - **Previous deployed build:** version `5a401c3e`, created **2026-09-25T07:17:16Z** — predating
   every Temporary Spaces route (F14 landed 2026-10-01, F21 space codes 2026-10-07). Every
   `/space*` request fell through to the generic index JSON; the `/api/event` whitelist was the
@@ -60,7 +61,7 @@ stale deployment cannot pass silently.
 - **Intended bucket:** `sharetext-spaces`, binding `SPACE_BUCKET` (currently commented out in
   `worker/wrangler.toml` — correct: deploying a binding to a nonexistent bucket would make the
   entire Worker deploy fail).
-- **Blocker:** the Cloudflare account (`b46c1660…`) has **R2 disabled at the account level**.
+- **Blocker:** the Cloudflare account has **R2 disabled at the account level**.
   Both `wrangler r2 bucket list` and `wrangler r2 bucket create sharetext-spaces` fail with
   **API code 10042 — "Please enable R2 through the Cloudflare Dashboard."** Enabling R2 requires
   the account owner to accept R2's terms/pricing in the Cloudflare dashboard (an account/billing
