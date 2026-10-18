@@ -260,7 +260,7 @@ export function NearbyDetectOverlay({
               className="w-full sm:max-w-[400px]"
               data-testid="nearby-detect-overlay"
             >
-              <div className="relative sm:rounded-[24px] rounded-t-[26px] bg-white/85 dark:bg-[#1b1b20]/88 backdrop-blur-2xl border border-white/70 dark:border-white/[0.08] sm:shadow-[0_30px_80px_-16px_rgba(60,40,20,0.35)] shadow-[0_-10px_44px_-10px_rgba(60,40,20,0.30)] pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5">
+              <div className="relative sm:rounded-[24px] rounded-t-[26px] bg-white/85 dark:bg-surface-dark/88 backdrop-blur-2xl border border-white/70 dark:border-white/[0.08] sm:shadow-[0_30px_80px_-16px_rgba(60,40,20,0.35)] shadow-[0_-10px_44px_-10px_rgba(60,40,20,0.30)] pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5">
                 {/* Grabber (mobile) + top cancel ✕ — the sheet grammar. */}
                 <div className="sm:hidden flex justify-center pt-2.5 pb-1" aria-hidden>
                   <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
@@ -269,7 +269,7 @@ export function NearbyDetectOverlay({
                   type="button"
                   onClick={onCancel}
                   aria-label={t('nearby.overlay.cancel')}
-                  className="absolute top-3 right-3 z-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-[#1b1b20]"
+                  className="absolute top-3 right-3 z-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -370,7 +370,7 @@ export function NearbyDetectOverlay({
                       if (mode === 'incoming' && onDecline) { onDecline(); return; }
                       onCancel();
                     }}
-                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[15px] font-semibold text-apple-ink dark:text-white transition-all active:scale-[0.97] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-[#1b1b20]"
+                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[15px] font-semibold text-apple-ink dark:text-white transition-all active:scale-[0.97] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                   >
                     {mode === 'incoming' ? t('nearby.decline') : t('nearby.overlay.cancel')}
                   </button>
@@ -396,7 +396,7 @@ export function NearbyDetectOverlay({
                       'flex items-center justify-center gap-2 whitespace-nowrap',
                       'shadow-[0_2px_10px_rgba(240,100,19,0.35),inset_0_1px_1px_rgba(255,255,255,0.28)]',
                       armed && !busy && 'ring-4 ring-ember/25 dark:ring-azure-400/25',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-[#1b1b20]'
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark'
                     )}
                   >
                     {busy ? (
@@ -420,7 +420,7 @@ export function NearbyDetectOverlay({
                       data-testid="nearby-detect-more"
                       disabled={busy}
                       onClick={onFindMore}
-                      className="min-h-[40px] px-4 rounded-full text-[13.5px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.97] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-[#1b1b20]"
+                      className="min-h-[40px] px-4 rounded-full text-[13.5px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.97] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                     >
                       <Search className="w-3.5 h-3.5" aria-hidden />
                       {t('nearby.overlay.more')}
