@@ -7,19 +7,20 @@ import { cn } from '../lib/utils';
  * pixels. The four supplied logo tiles live in public/brand/logo-tile-*.jpg;
  * scripts/gen-logo-glyphs.mjs keys their flat field out to transparency
  * (glyph body pixels byte-exact, only the AA edge gets recomputed coverage)
- * into public/brand/logo-glyph-{orange,cream}.png at a square canvas whose
- * ink height is 0.72 of the box — the geometry BrandLockup was measured
+ * into public/brand/logo-glyph-orange.png at a square canvas whose ink
+ * height is 0.72 of the box — the geometry BrandLockup was measured
  * against, so every `size` prop keeps meaning exactly what it meant before.
  * The shape is never redrawn, traced, or recolored here: this component
- * only displays those files.
+ * only displays that file.
  *
  * Colorways:
- *   default — orange glyph on light (html), cream glyph inside .dark —
- *             the two painted colorways of the same official mark.
+ *   default — the ember glyph on BOTH themes. The mark never swaps to a
+ *             cream/white colorway at night (design-owner decision, 2026-10;
+ *             the cream tile asset stays archived but ships unused).
  *   mono    — the glyph silhouette as an alpha MASK painted with
- *             currentColor, preserving the legacy contract for contexts
- *             that tint the mark themselves (footer, compat screen, the
- *             connected toast's inverted pill) with zero call-site changes.
+ *             currentColor, for the few deliberate monochrome compositions
+ *             (the missing-room tile, the transfer-complete pill) that tint
+ *             the mark themselves.
  *
  * Motion states (optional):
  *   loading     — the mark breathes quietly (working)
@@ -43,7 +44,6 @@ const reducedMotion = typeof window !== 'undefined'
 
 // Exact glyph pixels (transparent field, 0.72 ink/box) from gen-logo-glyphs.
 const GLYPH_ORANGE = '/brand/logo-glyph-orange.png';
-const GLYPH_CREAM = '/brand/logo-glyph-cream.png';
 
 export function ShareTextsLogo({
   className,
@@ -75,30 +75,20 @@ export function ShareTextsLogo({
       }}
     />
   ) : (
-    <>
-      <img
-        src={GLYPH_ORANGE}
-        alt=""
-        draggable={false}
-        decoding="async"
-        className="w-full h-full dark:hidden"
-      />
-      <img
-        src={GLYPH_CREAM}
-        alt=""
-        draggable={false}
-        decoding="async"
-        className="w-full h-full hidden dark:block"
-      />
-    </>
+    <img
+      src={GLYPH_ORANGE}
+      alt=""
+      draggable={false}
+      decoding="async"
+      className="w-full h-full"
+    />
   );
 
   const rootStyle: React.CSSProperties = {
     width: size,
     height: size,
-    // The lockup's outer span owns the box (25px mobile vs size=30):
-    // inline size wins over the caller's w-full, and max-width clamps it
-    // back to the box — same rendered result as the old svg's
+    // The lockup's outer span owns the box (the caller's w-full can style
+    // it, maxWidth clamps it back) — same rendered result as the old svg's
     // presentation-attribute-vs-class precedence, without losing the
     // explicit pixel size for every other caller.
     maxWidth: '100%',

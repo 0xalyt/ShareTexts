@@ -19,7 +19,7 @@ import { useSession } from '../lib/SessionContext';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
-import { BrandLockup, MonolineLockup } from '../components/BrandLockup';
+import { BrandLockup } from '../components/BrandLockup';
 import { IconButton3D } from '../components/IconButton3D';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { LiveCodeDisplay } from '../components/LiveCodeDisplay';
@@ -1378,12 +1378,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             40px tap floor via -my-2. */}
         <div className="max-w-6xl mx-auto grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(0,1fr))_auto] md:items-start md:gap-x-8">
           <div className="col-span-2 flex min-w-0 flex-col gap-2 md:col-span-1">
-            {/* The official monoline signature — the footer's sign-off.
-                Height steps at sm; width follows the artwork's aspect.
-                self-start: the column is a flex COLUMN, so without it the
-                stretch rule widens the box to the column and the contained
-                mask indents the mark away from the tagline below. */}
-            <MonolineLockup className="h-8 sm:h-9 self-start" />
+            {/* The brand lockup — the footer's sign-off: ember mark +
+                themed wordmark, same voice as the header. self-start keeps
+                it off the column's stretch axis. */}
+            <BrandLockup className="self-start" />
             {/* Both fine-print lines floor at WCAG AA (4.5:1) in BOTH themes.
                 Light: muted/75 measured 3.38:1 and muted/55 2.32:1 — bumped
                 to opaque (5.79:1) and /90 (~4.6:1). Dark: white/40 was
@@ -1478,7 +1476,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const compactFooterNode = (
     <footer className="shrink-0 px-6 lg:px-10 pt-2.5 pb-[max(env(safe-area-inset-bottom),8px)] sm:pb-2.5 border-t border-apple-divider/60 dark:border-white/[0.06]">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-x-5 gap-y-2 flex-wrap">
-        <MonolineLockup className="h-7 sm:h-8 select-none" />
+        <BrandLockup compact className="select-none" />
         <nav className="flex items-center gap-5 sm:gap-7 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
           <a href="/docs" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
           <a href="/about" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
