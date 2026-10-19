@@ -1,9 +1,9 @@
 # ShareTexts
 
 AirDrop for any device — share text, links, photos and files between any two
-devices, right in the browser. No app, no account, no wires. Peer-to-peer
-(WebRTC) with end-to-end encryption; the signaling server only ever sees the
-six-character room code.
+devices, right in the browser. No app, no account, no wires. Transfers are
+encrypted in transit; the signaling server relays messages, keeps no room
+content after the room closes, and pairs devices with a six-digit code.
 
 ## Development
 

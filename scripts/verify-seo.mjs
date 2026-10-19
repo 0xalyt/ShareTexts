@@ -114,7 +114,7 @@ async function entityChecks() {
   ok('Organization exists', !!org);
   ok('WebApplication exists', !!app);
   ok('WebSite exists', !!site);
-  ok('sameAs = the two verified profiles only', JSON.stringify(org?.sameAs) === JSON.stringify(['https://x.com/0xalyt', 'https://github.com/Alightttt/ShareTexts']), JSON.stringify(org?.sameAs));
+  ok('sameAs = the two verified profiles only', JSON.stringify(org?.sameAs) === JSON.stringify(['https://x.com/0xalyt', 'https://github.com/0xalyt/ShareTexts']), JSON.stringify(org?.sameAs));
   ok('app publisher → Organization @id', app?.publisher?.['@id'] === 'https://sharetexts.online/#organization');
   ok('no AggregateRating anywhere', JSON.stringify(graph).includes('AggregateRating') === false);
   ok('no ContactPoint anywhere', JSON.stringify(graph).includes('ContactPoint') === false);

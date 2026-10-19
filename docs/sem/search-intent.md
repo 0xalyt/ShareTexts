@@ -57,7 +57,7 @@ identifiers.
 
 - Name is always **ShareTexts** (one word, capital S, capital T) in ads,
   landing pages, JSON-LD, llms.txt. Verified by `verify-seo.mjs`.
-- `sameAs` is exactly `https://x.com/0xalyt` + `https://github.com/Alightttt/ShareTexts`.
+- `sameAs` is exactly `https://x.com/0xalyt` + `https://github.com/0xalyt/ShareTexts`.
   If new profiles are created for SEM (e.g., a LinkedIn page), add them to the
   Organization `sameAs` in the same change, or don't create them.
 - No AggregateRating / ContactPoint / fake review stars — search ad

@@ -24,12 +24,12 @@ const STEPS: { icon: React.ElementType; title: string; body: string }[] = [
   {
     icon: ArrowRightLeft,
     title: 'They find each other',
-    body: 'One six-character code, a QR scan, or a link. Our server reads it once to introduce the two devices — that is the only thing it ever sees.',
+    body: 'One six-digit code, a QR scan, or a link. The server uses it to introduce the two devices.',
   },
   {
     icon: Lock,
     title: 'The bytes go device to device',
-    body: 'Files, photos and text travel straight between the two browsers, encrypted end to end. Nothing is uploaded, so there is nothing to leak.',
+    body: 'Files, photos and text travel between the two browsers, encrypted in transit. Direct connections never send your content through the server.',
   },
   {
     icon: Check,

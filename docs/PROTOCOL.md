@@ -1,9 +1,11 @@
 # ShareText Transfer Protocol v1
 
 The application-layer protocol two ShareTexts peers speak over WebRTC (with a
-signaling-relay fallback). Everything is end-to-end encrypted (AES-GCM, key
-derived from the room secret — see `src/lib/crypto.ts`); the relay only ever
-sees ciphertext.
+signaling-relay fallback). Payloads are AES-GCM encrypted with a key derived
+from the room secret (`src/lib/crypto.ts`). Direct WebRTC legs never expose
+bytes to the server. The server issues and holds the room secret, so it could
+derive keys for relayed traffic — "end-to-end" is therefore not claimed;
+see `docs/claims.md` for the ledger and the open issue draft.
 
 ## Channels
 
