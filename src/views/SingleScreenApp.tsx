@@ -1384,10 +1384,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 stretch rule widens the box to the column and the contained
                 mask indents the mark away from the tagline below. */}
             <MonolineLockup className="h-8 sm:h-9 self-start" />
-            <span className="text-[12px] font-medium leading-none text-apple-ink-muted/75 dark:text-white/40">
+            {/* Both fine-print lines floor at WCAG AA (4.5:1) in BOTH themes.
+                Light: muted/75 measured 3.38:1 and muted/55 2.32:1 — bumped
+                to opaque (5.79:1) and /90 (~4.6:1). Dark: white/40 was
+                3.83:1 and white/30 2.69:1 — now /55 (6.18:1) and /50
+                (5.31:1). Hierarchy survives: the copyright stays one step
+                quieter than the promise line, by alpha AND size. */}
+            <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/55">
               {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
             </span>
-            <span className="text-[11.5px] font-medium leading-none text-apple-ink-muted/55 dark:text-white/30">
+            <span className="text-[11.5px] font-medium leading-none text-apple-ink-muted/90 dark:text-white/50">
               © {new Date().getFullYear()} ShareTexts
             </span>
           </div>
@@ -1473,7 +1479,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     <footer className="shrink-0 px-6 lg:px-10 pt-2.5 pb-[max(env(safe-area-inset-bottom),8px)] sm:pb-2.5 border-t border-apple-divider/60 dark:border-white/[0.06]">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-x-5 gap-y-2 flex-wrap">
         <MonolineLockup className="h-7 sm:h-8 select-none" />
-        <nav className="flex items-center gap-5 sm:gap-7 text-[13px] font-medium text-apple-ink-muted dark:text-white/50">
+        <nav className="flex items-center gap-5 sm:gap-7 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
           <a href="/docs" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
           <a href="/about" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
           <a href="/privacy" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
@@ -1486,7 +1492,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           rel="noopener noreferrer"
           aria-label={t('footer.followAria')}
           title="x.com/0xalyt"
-          className="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] -my-2.5 px-2.5 rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] -my-2.5 px-2.5 rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors"
         >
           <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           <span className="hidden sm:inline text-[12.5px] font-semibold">x.com/0xalyt</span>

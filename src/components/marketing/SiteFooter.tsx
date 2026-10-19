@@ -60,10 +60,13 @@ export function SiteFooter({ className }: { className?: string }) {
             <a href="/" aria-label="ShareTexts — home" className="block w-fit">
               <MonolineLockup className="h-8 sm:h-9" />
             </a>
-            <p className="mt-3.5 max-w-[320px] text-[13.5px] leading-relaxed text-apple-ink-muted dark:text-white/50">
+            <p className="mt-3.5 max-w-[320px] text-[13.5px] leading-relaxed text-apple-ink-muted dark:text-white/55">
               {t('home.subtitle')}
             </p>
-            <p className="mt-3 flex items-center gap-2 text-[12.5px] font-medium text-apple-ink-muted/80 dark:text-white/40">
+            {/* AA floors in BOTH themes: muted/80 (3.75:1) and white/40
+                (3.83:1) both failed the 4.5:1 bar — raised to opaque muted
+                (5.79:1) and white/55 (6.18:1). */}
+            <p className="mt-3 flex items-center gap-2 text-[12.5px] font-medium text-apple-ink-muted dark:text-white/55">
               <span className="h-1.5 w-1.5 rounded-full bg-status-success" aria-hidden />
               iPhone · Android · Windows · macOS · Linux
             </p>
@@ -94,10 +97,10 @@ export function SiteFooter({ className }: { className?: string }) {
         {/* The bottom row: the deal, stated once, plus the one action a
             reader might want at the very end of a page. */}
         <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-x-6 border-t border-apple-divider/60 pt-4 sm:pt-5 dark:border-white/[0.06]">
-          <p className="text-[12.5px] font-medium text-apple-ink-muted/80 dark:text-white/40">
+          <p className="text-[12.5px] font-medium text-apple-ink-muted dark:text-white/55">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>
-          <div className="flex items-center gap-4 text-[12.5px] font-medium text-apple-ink-muted dark:text-white/45">
+          <div className="flex items-center gap-4 text-[12.5px] font-medium text-apple-ink-muted dark:text-white/55">
             <a
               href="https://x.com/0xalyt"
               target="_blank"

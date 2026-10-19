@@ -345,20 +345,35 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ── Typography roles — the app's ONE ramp. Every screen pulls from
-     these instead of freestyle text-[13.5px] decimals; sizes outside the
-     ramp need a written reason in a comment. ─────────────────────────── */
+  /* ── Typography roles — the app's ONE ramp, on an OPTICAL-TRACKING
+     ladder. Every screen pulls from these instead of freestyle
+     text-[13.5px] decimals; sizes outside the ramp need a written reason.
+
+     The ladder mirrors how SF Pro itself is cut: letter-spacing OPENS as
+     type gets smaller and CLOSES as it gets larger. Small text sits in a
+     tight line-box, so it needs looser tracking to keep counters from
+     clotting; display text is already airy, so it tightens to pull a
+     headline into one solid object. This is the single detail that makes a
+     type scale read as "designed" rather than "default" — a flat -0.01em
+     everywhere is the AI-slop signature we are explicitly avoiding.
+       display 52px → -0.040em   (one tight block)
+       title   16px → -0.018em   (UI headings close up)
+       body    15px → -0.010em   (the reading size)
+       label   13px → +0.002em   (turns the corner: looser than body)
+       meta    12px → +0.008em
+       eyebrow 11.5→ +0.060em   (small quiet label, opened right up) ── */
   .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.04em; line-height: 1.04; text-wrap: balance; }
   .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.018em; line-height: 1.25; }
-  .st-section { font-size: 13.5px; font-weight: 600; letter-spacing: -0.006em; line-height: 1.3; }
-  .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: -0.005em; line-height: 1.3; }
-  .st-body    { font-size: 15px;   font-weight: 400; line-height: 1.55; }
-  .st-support { font-size: 13.5px; font-weight: 500; line-height: 1.45; }
-  .st-meta    { font-size: 12px;   font-weight: 500; line-height: 1.35; }
+  .st-section { font-size: 13.5px; font-weight: 600; letter-spacing: -0.004em; line-height: 1.3; }
+  .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; }
+  .st-body    { font-size: 15px;   font-weight: 400; letter-spacing: -0.01em; line-height: 1.55; }
+  .st-support { font-size: 13.5px; font-weight: 500; letter-spacing: 0.001em; line-height: 1.45; }
+  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.35; }
 
   /* Quiet section labels use sentence case and a small size step rather than
-     shouting in all caps. One weight, tracking, and color across the app. */
-  .st-eyebrow  { font-size: 11.5px; font-weight: 600; letter-spacing: 0.005em; line-height: 1.2; color: var(--color-eyebrow, #635f57); }
+     shouting in all caps. One weight, tracking, and color across the app.
+     Tracking opens to +0.06em — the small-size end of the optical ladder. */
+  .st-eyebrow  { font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 1.2; color: var(--color-eyebrow, #635f57); }
 
   /* Elevation utilities — the three levels above, as classes. Dark mode
      swaps the drop for a tone-and-hairline lift: shadows on near-black

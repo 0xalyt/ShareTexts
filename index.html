@@ -27,10 +27,10 @@
          demo, which is DOM, not a file. Preloading the retired composition
          image spent the first bytes of the connection on something the first
          screen no longer asks for. -->
-    <!-- The display face paints the hero headline and the wordmark: preload it
-         so the first paint is the real type, not a fallback flash. Fonts are
-         CORS-fetched, hence crossorigin. -->
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/Geist-Variable.woff2" crossorigin />
+    <!-- No webfont preload: the type system is the platform's own UI face
+         (SF on Apple, Segoe on Windows — see --font-sans/--font-display in
+         index.css). There is no font file to fetch, so a preload would only
+         spend bytes on nothing and trip a "preloaded but not used" warning. -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
