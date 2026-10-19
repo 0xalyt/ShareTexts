@@ -65,7 +65,7 @@ export function LaptopFrame({
           'rounded-b-[8px] rounded-t-[2px]',
           'bg-[linear-gradient(180deg,#3c3c43_0%,#2a2a2f_45%,#1c1c20_100%)]',
           'shadow-[0_10px_18px_-12px_rgba(20,16,10,0.5)]',
-          'dark:bg-[linear-gradient(180deg,#2e2e34_0%,#1e1e22_45%,#131316_100%)]',
+          'dark:bg-[linear-gradient(180deg,#2e2e34_0%,#1e1e22_45%,#101012_100%)]',
         )}
       >
         <span className="absolute left-1/2 top-0 h-[4px] w-[14%] -translate-x-1/2 rounded-b-[4px] bg-black/45" />

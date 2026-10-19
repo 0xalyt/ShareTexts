@@ -47,9 +47,9 @@ const base = readFileSync(path.join(dist, 'index.html'), 'utf8');
 const SHELL_CSS = `
     <style>
       .st-seo { min-height: 100dvh; display: flex; flex-direction: column;
-        background: #f7f4ee; color: #1d1d1f;
+        background: #ffffff; color: #1d1d1f;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-      html.dark .st-seo { background: #131315; color: #f5f4f0; }
+      html.dark .st-seo { background: #101012; color: #ededf2; }
       .st-seo a { color: #d9560e; text-decoration: none; font-weight: 500; }
       html.dark .st-seo a { color: #ff8a3d; }
       .st-seo a:hover { text-decoration: underline; }

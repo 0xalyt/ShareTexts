@@ -92,7 +92,7 @@ ${crumbsLd}
     <nav class="st-crumb" aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;margin:0 0 4px">
       <a href="/" style="display:inline-flex;align-items:center;min-height:40px;color:var(--brand,#d9560e);text-decoration:none;font-weight:500">ShareTexts</a>
       <span aria-hidden="true" style="opacity:.5">›</span>
-      <span aria-current="page" style="display:inline-flex;align-items:center;min-height:40px;color:var(--text-secondary,#635f57)">Guides</span>
+      <span aria-current="page" style="display:inline-flex;align-items:center;min-height:40px;color:var(--text-secondary,#6e6e73)">Guides</span>
     </nav>
     <p class="overline">Learn</p>
     <h1>ShareTexts Guides</h1>
@@ -115,9 +115,9 @@ const CRUMB_STYLE = `<style>
     .st-crumb { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; margin: 0 0 4px; }
     .st-crumb a { display: inline-flex; align-items: center; min-height: 40px; color: var(--brand, #d9560e); text-decoration: none; font-weight: 500; }
     .st-crumb a:hover { text-decoration: underline; }
-    .st-crumb [aria-current] { display: inline-flex; align-items: center; min-height: 40px; color: var(--text-secondary, #635f57); }
-    html.dark .st-crumb [aria-current] { color: #b0aba2; }
-    @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #b0aba2; } }
+    .st-crumb [aria-current] { display: inline-flex; align-items: center; min-height: 40px; color: var(--text-secondary, #6e6e73); }
+    html.dark .st-crumb [aria-current] { color: #9c9ca3; }
+    @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #9c9ca3; } }
   </style>`;
 
 for (const file of files) {

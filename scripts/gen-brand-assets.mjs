@@ -13,12 +13,12 @@ import { fileURLToPath } from 'url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pub = path.join(root, 'public');
 
-const CANVAS = '#f7f4ee';   // --color-apple-canvas
-const INK = '#1e1c18';      // --color-apple-ink
-const MUTED = '#635f57';    // --color-apple-ink-muted
+const CANVAS = '#ffffff';   // --color-apple-canvas
+const INK = '#1d1d1f';      // --color-apple-ink
+const MUTED = '#6e6e73';    // --color-apple-ink-muted
 const EMBER = '#f06413';    // --color-ember
 const HONEY = '#feab30';    // --color-honey
-const NIGHT = '#131315';    // dark canvas
+const NIGHT = '#101012';    // dark canvas
 const EMBER_DK = '#fb9243'; // dark-mode ember
 
 // The ShareText glyph: two rounded tiles joined by a diagonal beam, filled

@@ -7,7 +7,7 @@
 // rendered by scripts/gen-icons-from-artwork.mjs — no recoloring, no
 // redraw. purpose "any" icons keep the transparent field exactly as the
 // user asked; maskable + apple-touch carry the SAME glyph on an opaque
-// cream (#f7f4ee) plate because those surfaces composite transparency
+// near-white (#ffffff) plate because those surfaces composite transparency
 // onto black. The glyph's ink sits at ~0.41 of the canvas, inside the
 // maskable safe zone. FAVICONS are the same glyph cropped to its ink bbox
 // on a TRANSPARENT field (scripts/gen-favicons-from-glyph.mjs) —
@@ -80,8 +80,9 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   check(`og ember brand glyph present (${anyEmber} px)`, anyEmber > 20);
 }
 
-// ── Maskable icon: the glyph on an opaque cream plate, inside the central
-//    safe zone (the plate is a platform requirement, not a design change).
+// ── Maskable icon: the glyph on an opaque near-white plate, inside the
+//    central safe zone (the plate is a platform requirement, not a design
+//    change; it matches the manifest background_color).
 const mk = await sample('/icon-maskable-512.png');
 check('maskable is 512x512', mk.w === 512 && mk.h === 512);
 for (const [x, y] of [[8, 8], [504, 8], [8, 504], [504, 504]]) {
@@ -93,7 +94,7 @@ check('maskable glyph inside safe zone', (() => {
   let minX = 512, minY = 512, maxX = -1, maxY = -1;
   for (let y = 0; y < 512; y += 2) for (let x = 0; x < 512; x += 2) {
     const p = at(mk.data, 512, x, y);
-    if (p[3] >= 64 && !(Math.abs(p[0] - 247) < 10 && Math.abs(p[1] - 244) < 10 && Math.abs(p[2] - 238) < 10)) {
+    if (p[3] >= 64 && !creamPlate(p)) {
       if (x < minX) minX = x; if (x > maxX) maxX = x;
       if (y < minY) minY = y; if (y > maxY) maxY = y;
     }
@@ -108,14 +109,14 @@ check('icon-512 is 512x512', ic.w === 512 && ic.h === 512);
 check('icon-512 transparent field', transparentField(at(ic.data, ic.w, 8, 8)));
 check('icon-512 ember glyph present', count(ic.data, ic.w, 0, 0, ic.w, ic.h, ember, 4) > 100);
 
-// ── Apple touch icon: same glyph on the opaque cream plate (iOS renders
-//    transparency as black on the home screen).
+// ── Apple touch icon: same glyph on the opaque near-white plate (iOS
+//    renders transparency as black on the home screen).
 const ap = await sample('/apple-touch-icon.png');
 check('apple-touch-icon is 180x180', ap.w === 180 && ap.h === 180);
-check('apple-touch-icon opaque cream plate', creamPlate(at(ap.data, ap.w, 4, 4)));
+check('apple-touch-icon opaque plate', creamPlate(at(ap.data, ap.w, 4, 4)));
 check('apple-touch-icon ember glyph', count(ap.data, ap.w, 0, 0, ap.w, ap.h, ember, 3) > 50);
 
-// ── Favicon 16: the official glyph on transparency (opaque cream field
+// ── Favicon 16: the official glyph on transparency (opaque field
 //    and the old ember redraw are both retired contracts) ──
 const f16 = await sample('/favicon-16.png');
 check('favicon-16 is 16x16', f16.w === 16 && f16.h === 16);

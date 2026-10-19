@@ -18,14 +18,20 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      // The hash whitelists ONLY the index.html pre-paint script (sha256 of
-      // its exact body — theme bootstrap + slow-boot escalation). It must run
-      // before first paint or dark users get a white flash on every reload.
-      // Hash-pinning keeps the CSP strict; 'unsafe-inline' would defeat the
-      // whole policy. If index.html's inline script changes, re-pin this hash
-      // (scripts/verify-seo.mjs catches a mismatch as a console error).
+      // The hash whitelists ONLY hashable inline scripts (sha256 of each
+      // exact body): (1) the index.html pre-paint script — theme bootstrap +
+      // slow-boot escalation; it must run before first paint or dark users
+      // get a white flash on every reload; (2) the guides/about year stamp.
+      // JSON-LD blocks never execute, so they need no hash. Hash-pinning
+      // keeps the CSP strict; 'unsafe-inline' would defeat the whole policy.
+      // If either inline script changes, re-pin its hash (scripts/verify-seo.mjs
+      // catches a mismatch as a console error).
       scriptSrc: isProd
-        ? ["'self'", "'sha256-dlnEh4mZw5JxaCkg9Kk//YTm0YKXquqYsUswRzAfToM='"]
+        ? [
+            "'self'",
+            "'sha256-VdYuVYQjNuxDot6Ed9TC6jFOyQhG8YhQevtV+eqxaJU='",
+            "'sha256-eLR/EGDHTdMyYyISNU9CsJ/GyIbpnfdXsDluEA+9YdQ='",
+          ]
         : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],

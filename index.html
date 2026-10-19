@@ -10,8 +10,8 @@
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
     <meta name="application-name" content="ShareTexts" />
-    <meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#131315" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101012" media="(prefers-color-scheme: dark)" />
 
     <!-- First-paint canvas: the app's CSS arrives via JS (Vite injects it),
          so until main.tsx runs the browser paints with UA defaults — which
@@ -19,8 +19,8 @@
          margin on a white canvas). Pin the page field here, in head, so the
          very first painted pixel is already the app's canvas, light or dark. -->
     <style>
-      html, body { margin: 0; background: #f7f4ee; }
-      html.dark, html.dark body { background: #131315; }
+      html, body { margin: 0; background: #ffffff; }
+      html.dark, html.dark body { background: #101012; }
     </style>
 
     <!-- No hero image preload any more: the landing hero is the live device
@@ -148,7 +148,7 @@
           var dark = v === 'dark' || (v !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.classList.toggle('dark', dark);
           var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.content = dark ? '#131315' : '#f7f4ee';
+          if (meta) meta.content = dark ? '#101012' : '#ffffff';
         } catch (e) { /* storage unavailable — system default applies */ }
         // Slow-boot honesty (mirrors the in-app connecting screen): an 8s boot
         // is NOT normal — say so instead of shimmering forever. Folded into
@@ -179,12 +179,12 @@
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
-            background: #f7f4ee;
+            background: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             transition: opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
           }
           #loading-shell.fade-out { opacity: 0; }
-          html.dark #loading-shell { background: #131315; }
+          html.dark #loading-shell { background: #101012; }
           #loading-shell .st-bar {
             border-radius: 999px;
             background: rgba(30, 28, 24, 0.075);
@@ -216,7 +216,7 @@
             line-height: 1.04;
             font-weight: 700;
             letter-spacing: -0.03em;
-            color: #1e1c18;
+            color: #1d1d1f;
           }
           html.dark #loading-shell .st-h1 { color: #f5f4f0; }
           #loading-shell .st-sub {
@@ -253,9 +253,9 @@
             color: #3d3a34;
           }
           html.dark #loading-shell .st-section ol { color: rgba(245,244,240,0.75); }
-          #loading-shell .st-section ol strong { color: #1e1c18; font-weight: 600; }
+          #loading-shell .st-section ol strong { color: #1d1d1f; font-weight: 600; }
           html.dark #loading-shell .st-section ol strong { color: #f5f4f0; }
-          #loading-shell .st-faq h3 { margin: 18px 0 4px; font-size: 14.5px; font-weight: 600; color: #1e1c18; }
+          #loading-shell .st-faq h3 { margin: 18px 0 4px; font-size: 14.5px; font-weight: 600; color: #1d1d1f; }
           html.dark #loading-shell .st-faq h3 { color: #f5f4f0; }
           #loading-shell .st-faq p { margin: 0; font-size: 14px; line-height: 1.65; color: #6e6e73; }
           html.dark #loading-shell .st-faq p { color: rgba(255,255,255,0.6); }
@@ -272,7 +272,7 @@
           html.dark #loading-shell .st-foot { border-top-color: rgba(255,255,255,0.08); }
           #loading-shell .st-foot a { color: #6e6e73; text-decoration: none; font-weight: 500; }
           html.dark #loading-shell .st-foot a { color: rgba(255,255,255,0.55); }
-          #loading-shell .st-foot a:hover { color: #1e1c18; }
+          #loading-shell .st-foot a:hover { color: #1d1d1f; }
           html.dark #loading-shell .st-foot a:hover { color: #fff; }
           /* Below 900px the hero stacks (same grid collapse as the live
              landing). No scene geometry to collapse — the boot hero is copy
@@ -286,7 +286,7 @@
         <header style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px">
           <div style="display:flex;align-items:center;gap:8px">
             <img src="/brand/logo-glyph-orange.png" alt="" width="30" height="30" style="display:block" aria-hidden="true">
-            <span style="font-size:21px;font-weight:700;letter-spacing:-0.02em;color:#1e1c18">ShareTexts</span>
+            <span style="font-size:21px;font-weight:700;letter-spacing:-0.02em;color:#1d1d1f">ShareTexts</span>
           </div>
           <div class="st-bar" aria-hidden="true" style="width:56px;height:26px;border-radius:13px"></div>
         </header>

@@ -33,21 +33,21 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=21" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif; color: #1e1c18; background: #f7f4ee; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    @media (prefers-color-scheme: dark) { body { color: #f2f0eb; background: #131315; } .card { background: #1c1c21 !important; border-color: rgba(242,240,235,.1) !important; } .muted { color: rgba(242,240,235,.55) !important; } .accent { color: #fb9243 !important; } .callout { background: rgba(240,100,19,.08) !important; border-color: rgba(251,146,67,.2) !important; } header { background: rgba(19,19,21,.92) !important; border-color: rgba(242,240,235,.08) !important; } .related-links a { background: #1c1c21; color: #f2f0eb; border-color: rgba(242,240,235,.08); } footer { border-color: rgba(242,240,235,.08) !important; } .green-card { background: rgba(22,131,75,.06) !important; border-color: rgba(22,131,75,.15) !important; } }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif; color: #1d1d1f; background: #ffffff; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @media (prefers-color-scheme: dark) { body { color: #ededf2; background: #101012; } .card { background: #18181a !important; border-color: rgba(237,237,242,.1) !important; } .muted { color: rgba(237,237,242,.55) !important; } .accent { color: #fb9243 !important; } .callout { background: rgba(240,100,19,.08) !important; border-color: rgba(251,146,67,.2) !important; } header { background: rgba(16,16,18,.92) !important; border-color: rgba(237,237,242,.08) !important; } .related-links a { background: #18181a; color: #ededf2; border-color: rgba(237,237,242,.08); } footer { border-color: rgba(237,237,242,.08) !important; } .green-card { background: rgba(22,131,75,.06) !important; border-color: rgba(22,131,75,.15) !important; } }
     .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
     header { border-bottom: 1px solid rgba(29,29,31,.08); padding: 16px 24px; position: sticky; top: 0; background: rgba(247,244,238,.92); backdrop-filter: blur(12px); z-index: 40; }
     .hdr-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
     .hdr-inner svg { width: 20px; height: 20px; }
     .hdr-inner span { font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
-    .back { font-size: 13px; font-weight: 500; color: #635f57; text-decoration: none; margin-left: auto; }
-    .back:hover { color: #1e1c18; }
+    .back { font-size: 13px; font-weight: 500; color: #6e6e73; text-decoration: none; margin-left: auto; }
+    .back:hover { color: #1d1d1f; }
     article { padding: 48px 0 80px; }
     h1 { font-size: 32px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 12px; }
-    .subtitle { font-size: 17px; color: #635f57; max-width: 560px; margin-bottom: 32px; }
+    .subtitle { font-size: 17px; color: #6e6e73; max-width: 560px; margin-bottom: 32px; }
     h2 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin: 40px 0 16px; }
     p { margin-bottom: 16px; font-size: 16px; }
-    .muted { color: #635f57; } .accent { color: #f06413; }
+    .muted { color: #6e6e73; } .accent { color: #f06413; }
     .callout { background: rgba(240,100,19,.04); border: 1px solid rgba(240,100,19,.12); border-radius: 12px; padding: 16px 20px; margin: 24px 0; }
     .callout p { margin: 0; font-size: 15px; }
     .green-card { background: rgba(22,131,75,.04); border: 1px solid rgba(22,131,75,.12); border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; }
@@ -57,12 +57,12 @@
     ul { padding-left: 20px; margin-bottom: 16px; } li { margin-bottom: 8px; font-size: 15px; }
     table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
     th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(29,29,31,.06); }
-    th { font-weight: 600; font-size: 13px; color: #635f57; }
-    @media (prefers-color-scheme: dark) { th, td { border-color: rgba(242,240,235,.06); } }
+    th { font-weight: 600; font-size: 13px; color: #6e6e73; }
+    @media (prefers-color-scheme: dark) { th, td { border-color: rgba(237,237,242,.06); } }
     .related { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(29,29,31,.08); }
     .related h2 { margin-top: 0; }
     .related-links { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .related-links a { display: block; padding: 14px 18px; background: #ffffff; border: 1px solid rgba(29,29,31,.06); border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 500; color: #1e1c18; transition: all .15s; }
+    .related-links a { display: block; padding: 14px 18px; background: #ffffff; border: 1px solid rgba(29,29,31,.06); border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 500; color: #1d1d1f; transition: all .15s; }
     .related-links a:hover { border-color: #f06413; transform: translateY(-1px); }
     footer { border-top: 1px solid rgba(29,29,31,.08); padding: 24px; text-align: center; font-size: 13px; color: #85817a; }
     @media (max-width: 600px) { h1 { font-size: 26px; } h2 { font-size: 20px; } .related-links { grid-template-columns: 1fr; } }
@@ -95,9 +95,9 @@
     .st-crumb { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; margin: 0 0 4px; }
     .st-crumb a { display: inline-flex; align-items: center; min-height: 40px; color: var(--brand, #d9560e); text-decoration: none; font-weight: 500; }
     .st-crumb a:hover { text-decoration: underline; }
-    .st-crumb [aria-current] { display: inline-flex; align-items: center; min-height: 40px; color: var(--text-secondary, #635f57); }
-    html.dark .st-crumb [aria-current] { color: #b0aba2; }
-    @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #b0aba2; } }
+    .st-crumb [aria-current] { display: inline-flex; align-items: center; min-height: 40px; color: var(--text-secondary, #6e6e73); }
+    html.dark .st-crumb [aria-current] { color: #9c9ca3; }
+    @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #9c9ca3; } }
   </style>
   <script type="application/ld+json">
 {

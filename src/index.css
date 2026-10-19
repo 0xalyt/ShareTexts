@@ -34,22 +34,22 @@
   --gradient-ember-dark: linear-gradient(165deg, #ffc25c 0%, #fb9243 55%, #fb7a2e 100%);
 
   /* ── Text ───────────────────────────────────────────────────────────── */
-  --color-text: #1e1c18;
-  --color-text-secondary: #635f57;
-  --color-text-muted: #a09b90;
+  --color-text: #1d1d1f;
+  --color-text-secondary: #6e6e73;
+  --color-text-muted: #8e8e93;
 
   /* ── Surface ────────────────────────────────────────────────────────── */
-  --color-bg: #f7f4ee;
-  --color-bg-secondary: #f0ede3;
-  --color-bg-elevated: #fffefb;
-  --color-surface: #fbf9f3;
-  --color-surface-secondary: #f3efe5;
-  --color-surface-elevated: #fffefb;
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f5f5f7;
+  --color-bg-elevated: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f5f5f7;
+  --color-surface-elevated: #ffffff;
 
   /* ── Border ─────────────────────────────────────────────────────────── */
-  --color-border: #e6e0d2;
-  --color-border-subtle: #efe9dc;
-  --color-border-strong: #d2c9b4;
+  --color-border: #e8e8ed;
+  --color-border-subtle: #f0f0f2;
+  --color-border-strong: #d2d2d7;
 
   /* ── Status ─────────────────────────────────────────────────────────── */
   --color-success: #34c759;
@@ -65,15 +65,15 @@
   /* ── Semantic aliases — the "apple-*" names now resolve to ember.
      (Historic token names kept so every existing component re-skins
      instantly; new code should prefer --color-ember / --color-brand.) */
-  --color-apple-canvas: #f7f4ee;
-  --color-apple-parchment: #efece3;
-  --color-apple-ink: #1e1c18;
-  --color-apple-ink-muted: #635f57;
-  --color-eyebrow: #635f57;
+  --color-apple-canvas: #ffffff;
+  --color-apple-parchment: #f5f5f7;
+  --color-apple-ink: #1d1d1f;
+  --color-apple-ink-muted: #6e6e73;
+  --color-eyebrow: #6e6e73;
   --color-apple-blue: #f06413;
   --color-apple-blue-focus: #d9560e;
-  --color-apple-divider: #e5e0d3;
-  --color-apple-hairline: #d7d1c2;
+  --color-apple-divider: #e8e8ed;
+  --color-apple-hairline: #dedee3;
   --color-azure-50: #fff4ea;
   --color-azure-100: #ffe6d1;
   --color-azure-200: #ffcda3;
@@ -108,14 +108,14 @@
   /* Isometric illustration palette — one artwork, re-lit per theme. Tops
      are the lightest face, right faces the darkest; the ember accent is
      the single saturated object any drawing may carry. */
-  --iso-top: #fffdf8;
-  --iso-left: #efe9dd;
-  --iso-right: #ddd5c5;
-  --iso-line: #8f8a80;
-  --iso-dim: #b3ada1;
-  --iso-screen: #e5efec;
-  --iso-photo: #f7e9d4;
-  --iso-shadow: rgba(60, 52, 38, 0.10);
+  --iso-top: #ffffff;
+  --iso-left: #f1f1f4;
+  --iso-right: #e2e2e7;
+  --iso-line: #8a8a8f;
+  --iso-dim: #aeaeb4;
+  --iso-screen: #e9eff2;
+  --iso-photo: #ededf1;
+  --iso-shadow: rgba(0, 0, 0, 0.10);
   --iso-accent: #f06413;
   --iso-accent-soft: #f97b3d;
   --iso-accent-deep: #c25310;
@@ -126,9 +126,9 @@
      the canvas), RAISED sits ON it (a card you act on), FLAT is the page
      itself. Tone does the separating; the border only reinforces. Every
      surface in the app picks one of these three — never a one-off wash. */
-  --st-tone-sunk: #f0ede3;      /* light: recessed block on parchment */
-  --st-tone-raised: #fffefb;    /* light: card on parchment           */
-  --st-tone-chrome: #f7f4ee;    /* light: page-level band             */
+  --st-tone-sunk: #f5f5f7;      /* light: recessed block on white     */
+  --st-tone-raised: #ffffff;    /* light: card on grouped grey        */
+  --st-tone-chrome: #f5f5f7;    /* light: page-level band             */
 
   --radius-xs: 8px;
   --radius-sm: 12px;
@@ -177,8 +177,8 @@
      floating = a surface above the page (overlay/sheet/popover). Nothing
      on this app is allowed a fourth level, and nothing rests at floating. */
   --st-elev-flat: 0 0 0 rgba(0,0,0,0); /* explicit "no shadow", var()-safe */
-  --st-elev-raised: 0 1px 2px rgba(31, 27, 21, 0.06), 0 2px 8px rgba(31, 27, 21, 0.05);
-  --st-elev-floating: 0 2px 6px rgba(31, 27, 21, 0.08), 0 12px 32px rgba(31, 27, 21, 0.14);
+  --st-elev-raised: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.05);
+  --st-elev-floating: 0 2px 6px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.14);
 
   /* (Night palette note: the deliberate dark ladder lives in --color-night-*
      and --color-apple-tile-* above — one source of truth, no duplicate set.) */
@@ -206,7 +206,7 @@
      exception in scripts/verify-quality.mjs, not a silent skip. */
   --st-btn-primary-grad: linear-gradient(180deg, #f9743a 0%, #f06413 60%, #e05c0f 100%);
   --st-btn-soft-grad: linear-gradient(180deg, #fb9a56 0%, #f98b41 58%, #ef7c30 100%);
-  --st-btn-secondary-grad: linear-gradient(180deg, #ffffff 0%, #f4f1ea 55%, #ebe6dc 100%);
+  --st-btn-secondary-grad: linear-gradient(180deg, #ffffff 0%, #f5f5f7 55%, #ebebee 100%);
   /* Keycap edge — the solid bottom lip the primary key sits on. Pressing
      compresses the lip (shadow Y 4px → 1px) while the body sinks into it:
      the "real key" press, in brand colors. */
@@ -231,7 +231,7 @@
   }
 
   html.dark body {
-    background: #131315;
+    background: #101012;
     color: white;
   }
 
@@ -242,18 +242,18 @@
 
   /* ── Dark mode ────────────────────────────────────────────────────── */
   html.dark {
-    --color-bg: #131315;
-    --color-bg-secondary: #17171a;
-    --color-bg-elevated: #1d1d21;
-    --color-surface: #1a1a1e;
-    --color-surface-secondary: #212126;
-    --color-surface-elevated: #26262b;
-    --color-text: #f2f0eb;
-    --color-text-secondary: #a5a19a;
-    --color-text-muted: #75726c;
-    --color-border: #2b2b30;
-    --color-border-subtle: #222226;
-    --color-border-strong: #3a3a41;
+    --color-bg: #101012;
+    --color-bg-secondary: #141416;
+    --color-bg-elevated: #18181a;
+    --color-surface: #18181a;
+    --color-surface-secondary: #1c1c1f;
+    --color-surface-elevated: #24242a;
+    --color-text: #ededf2;
+    --color-text-secondary: #9c9ca3;
+    --color-text-muted: #7a7a83;
+    --color-border: #242429;
+    --color-border-subtle: #1b1b1f;
+    --color-border-strong: #33333a;
     /* Brand stays EMBER at night — the accent is the identity, not a
        theme variable. (These three used to flip to a leftover blue:
        hovering the ember Send key in dark mode turned it light blue.) */
@@ -266,13 +266,13 @@
     --color-warning-light: #2a1c08;
     --color-error: #ff6b6b;
     --color-error-light: #2a0d0d;
-    --color-apple-canvas: #131315;
-    --color-apple-parchment: #202025;
-    --color-apple-divider: #323239;
-    --color-apple-hairline: #41414a;
-    --color-apple-ink: #f2f0eb;
-    --color-apple-ink-muted: #b0aba2;
-    --color-eyebrow: #b0aba2;
+    --color-apple-canvas: #101012;
+    --color-apple-parchment: #141416;
+    --color-apple-divider: #2a2a30;
+    --color-apple-hairline: #3a3a42;
+    --color-apple-ink: #ededf2;
+    --color-apple-ink-muted: #9c9ca3;
+    --color-eyebrow: #9c9ca3;
     --color-azure-400: #ffc591;
     --color-azure-500: #fb9243;
     --color-azure-600: #fb7a2e;
@@ -282,7 +282,7 @@
     --gradient-ember: var(--gradient-ember-dark);
     --st-btn-primary-grad: linear-gradient(180deg, #fb8447 0%, #f06413 60%, #d9560e 100%);
     --st-btn-soft-grad: linear-gradient(180deg, #ffb778 0%, #fb9243 58%, #f58235 100%);
-    --st-btn-secondary-grad: linear-gradient(180deg, #2b2b31 0%, #26262c 55%, #212127 100%);
+    --st-btn-secondary-grad: linear-gradient(180deg, #222227 0%, #1c1c1f 55%, #18181a 100%);
     --st-btn-primary-edge: #a83f06;
     /* Night radius relight: 26px reads bulbous on graphite; the hero stage
        drops one tier — the only radius the dark theme is allowed to retune. */
@@ -303,9 +303,9 @@
     --iso-accent-deep: #a84409;
 
     /* Night relight of the tonal blocks: same three tones, graphite. */
-    --st-tone-sunk: #17171a;
-    --st-tone-raised: #212126;
-    --st-tone-chrome: #131315;
+    --st-tone-sunk: #141416;
+    --st-tone-raised: #18181a;
+    --st-tone-chrome: #101012;
   }
 
   /* Platform-native type carries the whole interface. Headings tighten with
@@ -373,7 +373,7 @@
   /* Quiet section labels use sentence case and a small size step rather than
      shouting in all caps. One weight, tracking, and color across the app.
      Tracking opens to +0.06em — the small-size end of the optical ladder. */
-  .st-eyebrow  { font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 1.2; color: var(--color-eyebrow, #635f57); }
+  .st-eyebrow  { font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 1.2; color: var(--color-eyebrow, #6e6e73); }
 
   /* Elevation utilities — the three levels above, as classes. Dark mode
      swaps the drop for a tone-and-hairline lift: shadows on near-black
@@ -835,11 +835,11 @@ html[st-theme-vt] {
    always carry the active theme's canvas color, and the UA is told which
    form controls/chrome to render (color-scheme) in both themes. */
 html {
-  background-color: #f7f4ee;
+  background-color: #ffffff;
   color-scheme: light;
 }
 html.dark {
-  background-color: #131315;
+  background-color: #101012;
   color-scheme: dark;
 }
 
@@ -862,7 +862,7 @@ html.dark {
      .st-spotlight a hairline bar of brand light under a sticky header
    All are tuned to whisper: nothing here is allowed to compete with type. */
 .st-dotgrid {
-  background-image: radial-gradient(circle, rgba(33, 31, 26, 0.045) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 18px 18px;
 }
 html.dark .st-dotgrid {

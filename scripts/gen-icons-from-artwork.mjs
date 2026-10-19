@@ -7,13 +7,13 @@
 //   - purpose "any" (icon-192/512): the glyph PNG resampled straight down
 //     through progressive halving, transparency preserved. The artwork's
 //     own padding (ink ~43% of the canvas) is part of the art and stays.
-//   - maskable + apple-touch-icon: SAME glyph geometry on an OPAQUE cream
-//     field (#f7f4ee — the manifest's own background_color). These two
+//   - maskable + apple-touch-icon: SAME glyph geometry on an OPAQUE near-white
+//     field (#ffffff — the manifest's own background_color). These two
 //     surfaces composite transparency onto BLACK (iOS home screen; several
-//     Android launchers), which would ship a visibly broken icon; the cream
-//     plate is the platform requirement, not a design change. The glyph's
-//     max ink radius is ~43% of the half-canvas, inside the maskable safe
-//     zone (80% diameter circle).
+//     Android launchers), which would ship a visibly broken icon; the
+//     near-white plate is the platform requirement, not a design change.
+//     The glyph's max ink radius is ~43% of the half-canvas, inside the
+//     maskable safe zone (80% diameter circle).
 // Favicons are a SEPARATE pipeline (scripts/gen-favicons-from-glyph.mjs).
 // Run: node scripts/gen-icons-from-artwork.mjs
 import { chromium } from 'playwright';
@@ -72,9 +72,14 @@ async function render(size, plate) {
     const at = (x, y) => (y * size + x) * 4;
     // With a plate, the plate itself is opaque and visible — ink is the
     // glyph: pixels that differ from the plate color. Without a plate the
-    // transparent field handles it (alpha ≥ 64).
+    // transparent field handles it (alpha ≥ 64). The plate RGB is derived
+    // from the actual fill (it changes with the manifest background_color).
+    const plateRGB = plate
+      ? [parseInt(plate.slice(1, 3), 16), parseInt(plate.slice(3, 5), 16), parseInt(plate.slice(5, 7), 16)]
+      : null;
     const isPlate = (i) =>
-      Math.abs(d[i] - 247) < 10 && Math.abs(d[i + 1] - 244) < 10 && Math.abs(d[i + 2] - 238) < 10;
+      plateRGB !== null &&
+      Math.abs(d[i] - plateRGB[0]) < 10 && Math.abs(d[i + 1] - plateRGB[1]) < 10 && Math.abs(d[i + 2] - plateRGB[2]) < 10;
     let ember = 0, minX = size, maxX = -1, minY = size, maxY = -1;
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
@@ -96,7 +101,7 @@ async function render(size, plate) {
     if (Math.abs(ratio - 0.43) > 0.05) errs.push(`ink ratio ${ratio.toFixed(2)} (want ~0.43 as-is)`);
     if (plate) {
       if (!(d[corner + 3] === 255 && d[corner] > 240 && d[corner + 1] > 235 && d[corner + 2] > 225)) {
-        errs.push(`corner not opaque cream (${d[corner]},${d[corner + 1]},${d[corner + 2]},a${d[corner + 3]})`);
+        errs.push(`corner not opaque plate (${d[corner]},${d[corner + 1]},${d[corner + 2]},a${d[corner + 3]})`);
       }
       // Maskable safe zone: central circle at 80% diameter.
       const safe = size * 0.1;
@@ -111,7 +116,7 @@ async function render(size, plate) {
   }, { src: dataUri, size, plate });
 }
 
-const CREAM = '#f7f4ee'; // manifest background_color
+const CREAM = '#ffffff'; // manifest background_color
 const targets = [
   ['icon-512.png', 512, ''],
   ['icon-192.png', 192, ''],
@@ -128,7 +133,7 @@ for (const [out, size, plate] of targets) {
     process.exit(1);
   }
   fs.writeFileSync(path.join(pub, out), Buffer.from(r.dataUrl.split(',')[1], 'base64'));
-  console.log(`${out}: ${size}x${size} ${plate ? 'cream plate' : 'transparent'}, ember px ${r.ember}, ink ratio ${r.ratio}`);
+  console.log(`${out}: ${size}x${size} ${plate ? 'plate' : 'transparent'}, ember px ${r.ember}, ink ratio ${r.ratio}`);
 }
 
 await browser.close();
