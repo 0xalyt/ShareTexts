@@ -32,7 +32,7 @@ import { ShareMenu } from '../components/ShareMenu';
 import { SystemAlert } from '../components/SystemAlert';
 import { PresenceDock, type PresenceEntry } from '../components/PresenceDock';
 import { InlineConfirm } from '../components/InlineConfirm';
-import { BookOpen } from '@gravity-ui/icons';
+import { BookOpen } from 'lucide-react';
 import { ConnectHandshake } from '../components/ConnectHandshake';
 import { CommandBar, CommandBarChip } from '../components/CommandBar';
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
@@ -778,7 +778,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               same 40px slot, same quiet icon style as its neighbors; the
               footer link stays too. */}
           <IconButton3D label={t('nav.docs')} href="/docs">
-            <BookOpen className="w-[18px] h-[18px]" aria-hidden />
+            <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
           </IconButton3D>
           {/* In the ROOM the header carries no theme switch: the room already
               has a settings sheet whose first row IS the theme control, and a

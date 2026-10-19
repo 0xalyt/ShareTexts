@@ -1,5 +1,5 @@
 import React from 'react';
-import { At as AtSign } from '@gravity-ui/icons';
+import { AtSign } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { BrandLockup } from '../BrandLockup';
 import { useI18n } from '../../lib/i18n';
@@ -105,7 +105,7 @@ export function SiteFooter({ className }: { className?: string }) {
               rel="noopener noreferrer"
               className="inline-flex min-h-[40px] items-center gap-1.5 hover:text-apple-ink dark:hover:text-white transition-colors"
             >
-              <AtSign className="h-3.5 w-3.5" aria-hidden />
+              <AtSign className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
               0xalyt
             </a>
           </div>

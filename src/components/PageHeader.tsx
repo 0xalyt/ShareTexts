@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from '@gravity-ui/icons';
+import { ArrowLeft } from 'lucide-react';
 import { BrandLockup } from './BrandLockup';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '../lib/utils';
@@ -51,7 +51,7 @@ export function PageHeader({
             className="flex items-center justify-center min-w-[40px] min-h-[40px] -ml-2 rounded-full text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
             aria-label="ShareTexts, back to home"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
           </a>
           <BrandLockup compact />
         </div>
