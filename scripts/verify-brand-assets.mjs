@@ -2,17 +2,16 @@
 // off the live server (Playwright + canvas getImageData). No image files are
 // touched — this is a read-only contract check.
 //
-// ICON CONTRACT: PWA/home-screen icons are the user's supplied artwork
-// (public/brand-logo-source.jpg) rendered edge-to-edge by
-// scripts/gen-icons-from-artwork.mjs — no recoloring, no regeneration. The
-// artwork is the app-icon tile: a white squircle carrying the orange mark
-// on PURE BLACK corners (the field is part of the image, sampled dark at
-// the corners — NOT the retired cream field, NOT the retired flat-ember
-// field), and the mark sits inside the maskable safe zone. FAVICONS are a
-// separate official-artwork pipeline: the extracted brand glyph on a
-// TRANSPARENT field (public/brand/logo-glyph-orange.png via
-// scripts/gen-favicons-from-glyph.mjs) — transparent so the tab icon reads
-// on light and dark tab bars alike.
+// ICON CONTRACT: PWA/home-screen icons are the user's supplied glyph
+// (public/brand/app-icon-glyph.png — orange mark, TRANSPARENT field)
+// rendered by scripts/gen-icons-from-artwork.mjs — no recoloring, no
+// redraw. purpose "any" icons keep the transparent field exactly as the
+// user asked; maskable + apple-touch carry the SAME glyph on an opaque
+// cream (#f7f4ee) plate because those surfaces composite transparency
+// onto black. The glyph's ink sits at ~0.41 of the canvas, inside the
+// maskable safe zone. FAVICONS are the same glyph cropped to its ink bbox
+// on a TRANSPARENT field (scripts/gen-favicons-from-glyph.mjs) —
+// transparent so the tab icon reads on light and dark tab bars alike.
 // Usage: node scripts/verify-brand-assets.mjs   (URL=http://localhost:3001 to override)
 import { launchBrowser } from './lib.mjs';
 
@@ -46,11 +45,11 @@ const count = (d, w, x0, y0, x1, y1, pred, step = 3) => {
   for (let y = y0; y < y1; y += step) for (let x = x0; x < x1; x += step) if (pred(at(d, w, x, y))) n++;
   return n;
 };
-// The supplied app-icon tile's OWN field: pure black corners (sampled
-// 0,0,0 opaque) around the white squircle — part of the artwork, so the
-// icons must show it edge to edge. Light/warm and ember fields were the
-// retired contracts.
-const iconField = (p) => p[0] < 30 && p[1] < 30 && p[2] < 30;
+// The app-icon glyph's field: TRANSPARENT on the purpose "any" icons (the
+// user asked for the PNG as-is); OPAQUE cream on maskable/apple-touch (the
+// platform requirement — both composite transparency onto black).
+const transparentField = (p) => p[3] === 0;
+const creamPlate = (p) => p[3] === 255 && p[0] > 240 && p[1] > 235 && p[2] > 225;
 const ink = (p) => p[0] < 130 && p[1] < 130 && p[2] < 130;
 // Ember field: warm orange — red dominant over blue, mid-high luminance.
 const ember = (p) => p[0] > 150 && p[0] > p[2] + 60 && p[1] > p[2] && p[1] < p[0];
@@ -81,19 +80,40 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   check(`og ember brand glyph present (${anyEmber} px)`, anyEmber > 20);
 }
 
-// ── Maskable icon: artwork edge-to-edge, glyph inside the central safe zone ──
+// ── Maskable icon: the glyph on an opaque cream plate, inside the central
+//    safe zone (the plate is a platform requirement, not a design change).
 const mk = await sample('/icon-maskable-512.png');
 check('maskable is 512x512', mk.w === 512 && mk.h === 512);
 for (const [x, y] of [[8, 8], [504, 8], [8, 504], [504, 504]]) {
-  check(`maskable corner (${x},${y}) black artwork field`, iconField(at(mk.data, mk.w, x, y)));
+  check(`maskable corner (${x},${y}) opaque cream plate`, creamPlate(at(mk.data, mk.w, x, y)));
 }
-check('maskable orange mark inside safe zone', count(mk.data, mk.w, 96, 96, 416, 416, ember, 4) > 0);
+check('maskable ember glyph present', count(mk.data, mk.w, 0, 0, mk.w, mk.h, ember, 4) > 100);
+check('maskable glyph inside safe zone', (() => {
+  // Ink bbox must stay within the central 80% circle's bounding square.
+  let minX = 512, minY = 512, maxX = -1, maxY = -1;
+  for (let y = 0; y < 512; y += 2) for (let x = 0; x < 512; x += 2) {
+    const p = at(mk.data, 512, x, y);
+    if (p[3] >= 64 && !(Math.abs(p[0] - 247) < 10 && Math.abs(p[1] - 244) < 10 && Math.abs(p[2] - 238) < 10)) {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+    }
+  }
+  return minX >= 51 && minY >= 51 && maxX <= 461 && maxY <= 461;
+})());
 
-// ── Home-screen icon: the artwork itself, edge to edge ──
+// ── Home-screen icon (purpose any): the user's glyph as-is — transparent
+//    field, ember mark.
 const ic = await sample('/icon-512.png');
 check('icon-512 is 512x512', ic.w === 512 && ic.h === 512);
-check('icon-512 black artwork field', iconField(at(ic.data, ic.w, 8, 8)));
+check('icon-512 transparent field', transparentField(at(ic.data, ic.w, 8, 8)));
 check('icon-512 ember glyph present', count(ic.data, ic.w, 0, 0, ic.w, ic.h, ember, 4) > 100);
+
+// ── Apple touch icon: same glyph on the opaque cream plate (iOS renders
+//    transparency as black on the home screen).
+const ap = await sample('/apple-touch-icon.png');
+check('apple-touch-icon is 180x180', ap.w === 180 && ap.h === 180);
+check('apple-touch-icon opaque cream plate', creamPlate(at(ap.data, ap.w, 4, 4)));
+check('apple-touch-icon ember glyph', count(ap.data, ap.w, 0, 0, ap.w, ap.h, ember, 3) > 50);
 
 // ── Favicon 16: the official glyph on transparency (opaque cream field
 //    and the old ember redraw are both retired contracts) ──
