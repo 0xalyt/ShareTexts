@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Moon, Sun, RefreshCw, WifiOff, Languages } from 'lucide-react';
 import { SegmentedToggleButton } from './spaceui/SegmentedToggleButton';
+import { RateCard } from './spaceui/rating';
 import { LanguageMenu } from './LanguageMenu';
 import { StayConnectedToggle } from './StayConnectedToggle';
 import { useI18n } from '../lib/i18n';
@@ -199,6 +200,17 @@ export function SettingsOverlay({
                     </div>
                   </>
                 )}
+
+                {/* ── Feedback ────────────────────────────── */}
+                {/* Moved here from the landing (slop inventory #12): feedback
+                    stays reachable but never sits mid-marketing-page. Plain
+                    (no autoShow): opening settings IS the intent. */}
+                <p className="st-eyebrow px-2 pt-3 pb-1">
+                  {t('settings.feedback')}
+                </p>
+                <div className="px-2">
+                  <RateCard />
+                </div>
               </div>
             </div>
           </motion.div>

@@ -601,7 +601,7 @@ function LaptopScreen({
                   transition={{ duration: 0.3, ease: EASE }}
                   className="flex flex-1 flex-col items-center justify-center gap-[5px]"
                 >
-                  <div className="flex flex-wrap items-center justify-center gap-[4px]">
+                  <div className="flex max-w-[74%] flex-wrap items-center justify-center gap-[4px]">
                     {(['chat.suggest.hi', 'chat.suggest.photo', 'chat.suggest.link'] as MsgKey[]).map((k) => (
                       <span
                         key={k}

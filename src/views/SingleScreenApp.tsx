@@ -40,7 +40,7 @@ import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroTransferScene } from '../components/HeroTransferScene';
 import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
-import { RateCard } from '../components/spaceui/rating';
+import { HowItWorks, FeatureGrid, LandingFaq, LandingCta } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
 import { ConfirmSheet } from '../components/ConfirmSheet';
 import { SettingsOverlay } from '../components/SettingsOverlay';
@@ -1012,12 +1012,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {t('space.joinTitle')}
                   </button>                </div>
               </div>
-              {/* The rating, and only for people who have actually used the
-                  app (a room that ended): a quiet one-line row where their
-                  eye already is when they come back. Inline, one tap to
-                  snooze, one tap to never ask again — no modal, no badge, no
-                  interruption of anything else on this screen. */}
-              <RateCard autoShow className="order-7 mt-5 w-full" />
+              {/* The rating moved OFF the landing (slop inventory #12):
+                  feedback now lives in Settings, reachable but never
+                  mid-marketing-page. */}
               {/* The product, as it actually looks — laptop + phone running
                   the real connected UI. F24: the demo moves UP the stack on
                   mobile (right under the actions) so the first screen carries
@@ -1873,6 +1870,19 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <HeroDeviceDemo />
             </div>
           </div>
+          {/* Phase 5 scroll tail — the demo is the illustration, so these
+              sections carry numbers and copy only: how it works, the six
+              feature cards, the five FAQ questions, and a final CTA that
+              returns to the two real actions. */}
+          <HowItWorks />
+          <FeatureGrid />
+          <LandingFaq />
+          <LandingCta
+            onSend={handleSend}
+            onReceive={handleReceive}
+            sendLabel={t('home.send')}
+            receiveLabel={t('home.receive')}
+          />
         </div>
         {footerNode}
       </main>
