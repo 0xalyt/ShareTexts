@@ -525,6 +525,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
         {devices.length > 0 && (
           <motion.div
             key="nearby-devices"
+            data-testid="nearby-devices"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
@@ -545,6 +546,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                   <motion.button
                     key={d.id}
                     type="button"
+                    data-testid="nearby-device-row"
                     initial={{ opacity: 0, y: 10, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}

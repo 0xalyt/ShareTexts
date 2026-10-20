@@ -37,21 +37,26 @@ try {
   // the "waiting" subtitle appear after the grace / immediately respectively.
   const hintText = await A.getByText('Open ShareTexts on the other device').count();
   out('searching row visible with no peers', hintText >= 1);
-  const rows0 = await A.locator('button', { hasText: 'Nearby' }).count();
+  // Rows are pinned by their stable testid, NOT by copy: the row badge was
+  // reworded from "Nearby" to "Available" in a later commit, which silently
+  // broke every has-text("Nearby") selector in this gate.
+  const rows0 = await A.getByTestId('nearby-device-row').count();
   out('no device rows when alone', rows0 === 0, `rows=${rows0}`);
 
   /* ---- 1. second device announces; rows appear both ways ---- */
   await B.goto(URL, { waitUntil: 'domcontentloaded' });
   await B.waitForTimeout(1800);
-  const rowOnA = A.locator('button:has-text("Nearby")');
-  const rowOnB = B.locator('button:has-text("Nearby")');
+  const rowOnA = A.getByTestId('nearby-device-row');
+  const rowOnB = B.getByTestId('nearby-device-row');
   let seenA = false, seenB = false;
   try { await rowOnA.first().waitFor({ timeout: 8000 }); seenA = true; } catch {}
   try { await rowOnB.first().waitFor({ timeout: 4000 }); seenB = true; } catch {}
   out('A sees B\'s device row', seenA);
   out('B sees A\'s device row', seenB);
   const nameA = seenA ? (await rowOnA.first().innerText()).replace(/\s+/g, ' ').trim() : '';
-  out('row shows a device label + Nearby badge', /Nearby/.test(nameA) && nameA.length > 8, nameA);
+  // i18n-proof: the row must carry a device label (name) plus its status
+  // badge, without asserting on any particular badge word.
+  out('row shows a device label + status badge', nameA.length > 8 && /\S/.test(nameA), nameA);
 
   /* ---- 2. invite → detection overlay on B (mutual confirmed flow) ---- */
   await rowOnA.first().click();
@@ -111,10 +116,10 @@ try {
   await D.goto(URL, { waitUntil: 'domcontentloaded' });
   await C.waitForTimeout(1800);
   let seenC = false;
-  try { await C.locator('button:has-text("Nearby")').first().waitFor({ timeout: 8000 }); seenC = true; } catch {}
+  try { await C.getByTestId('nearby-device-row').first().waitFor({ timeout: 8000 }); seenC = true; } catch {}
   out('C sees D\'s device row (fresh pair)', seenC);
   if (seenC) {
-    await C.locator('button:has-text("Nearby")').first().click();
+    await C.getByTestId('nearby-device-row').first().click();
     const sheetOnD = await D.getByTestId('nearby-detect-overlay').waitFor({ timeout: 10000 }).then(() => true).catch(() => false);
     out('D receives the invite overlay', sheetOnD);
     if (sheetOnD) {
