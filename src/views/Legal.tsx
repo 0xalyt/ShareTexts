@@ -4,7 +4,7 @@ import { PageHeader } from '../components/PageHeader';
 import { ThemeToggle } from '../components/ThemeToggle';
 // Gravity UI icons aliased onto the names this file already uses (Cookie has
 // no Gravity equivalent — it stays on lucide).
-import { ArrowLeft, ShieldCheck, FileText, EyeSlash as EyeOff, Server, Database } from '@gravity-ui/icons';
+import { ArrowLeft, ShieldCheck, FileText, EyeOff, Server, Database } from 'lucide-react';
 import { Cookie } from 'lucide-react';
 
 /**

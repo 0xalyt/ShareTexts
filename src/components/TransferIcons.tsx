@@ -25,11 +25,12 @@ export function ReceiveCircleIcon({ className = '', size = 20 }: { className?: s
 }
 
 /**
- * DisconnectGlyph — "leave through the door": Gravity UI's
- * ArrowRightFromSquare (square with an arrow exiting it). Re-exported so
- * call sites keep one import path; sized 16–20px at usage sites.
+ * DisconnectGlyph — "leave through the door": lucide's LogOut (arrow
+ * leaving through a doorway). Re-exported so call sites keep one import
+ * path; sized 16–20px at usage sites. stroke-width 1.5 to match the app's
+ * monoline icon system.
  */
-import { ArrowRightFromSquare as _glyph } from '@gravity-ui/icons';
+import { LogOut as _glyph } from 'lucide-react';
 export function DisconnectGlyph({ className = '', size = 16 }: { className?: string; size?: number }) {
   return <_glyph width={size} height={size} className={className} aria-hidden />;
 }

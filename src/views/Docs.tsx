@@ -8,14 +8,15 @@ import { IsometricShareIllustration } from '../components/isometric/IsometricIll
 import { PlatformStrip } from '../components/marketing/PlatformStrip';
 import { SiteFooter } from '../components/marketing/SiteFooter';
 import { useI18n } from '../lib/i18n';
-// Gravity UI icons aliased onto the names this file already uses.
+// lucide icons under the local names this file already uses (all icons are
+// lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
-  PaperPlane as Send, ArrowDownToLine as Inbox, Copy, ArrowDownToLine as Download,
-  ArrowUpFromSquare as Share2, QrCode, Link as Link2, Shield, Thunderbolt as Zap,
-  Display as Monitor, Smartphone, Terminal, Key, Clock,
-  ArrowRotateRight as RefreshCw, CircleExclamation as AlertCircle, Check, Lock,
-  ArrowLeft, Signal as Radio,
-} from '@gravity-ui/icons';
+  Send as Send, Inbox as Inbox, Copy, Download,
+  Share2, QrCode, Link as Link2, Shield, Zap,
+  Monitor as Monitor, Smartphone, Terminal, Key, Clock,
+  RefreshCw, CircleAlert as AlertCircle, Check, Lock,
+  ArrowLeft, Radio,
+} from 'lucide-react';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 

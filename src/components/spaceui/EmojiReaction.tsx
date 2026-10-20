@@ -5,47 +5,46 @@
 // ---------------------------------------------------------------------------
 // Port of rareui.com/components/emojireaction (the real `EmojiReaction`
 // source, MIT + Commons Clause with attribution — credited in README).
-// What shipped verbatim: the Apple emoji data map + provider, the particle
-// burst model (BURST_COUNT 5, HOLD_INTERVAL 550ms hold-to-repeat, 60-particle
-// cap, drift/tilt/blur curve and the shared EASE), the placement engine
-// (top/bottom flip with edge clamping and the two-dot tail), the
-// press-and-drag gesture (press the trigger, slide onto an emoji, release to
-// pick), hold-to-stream, Escape/outside-close, arrow-key roving focus, and
-// the trigger's X / last-emoji / smile states.
+// What shipped verbatim: the particle burst model (BURST_COUNT 5,
+// HOLD_INTERVAL 550ms hold-to-repeat, 60-particle cap, drift/tilt/blur curve
+// and the shared EASE), the placement engine (top/bottom flip with edge
+// clamping and the two-dot tail), the press-and-drag gesture (press the
+// trigger, slide onto an emoji, release to pick), hold-to-stream,
+// Escape/outside-close, arrow-key roving focus, and the trigger's
+// X / last-emoji / smile states.
 //
-// Adaptations for this app: the emoji images are bundled (imported data.json
-// copied into public/emoji-apple — no runtime fetch to a third-party CDN),
-// the closed trigger uses the app's gravity-ui SmilePlus glyph, picking
-// ticks the app's haptic engine, and the surface tints follow the app's
-// dark palette tokens.
+// Adaptations for this app: emoji render as plain Unicode glyphs through the
+// platform's own color-emoji font (Apple Color Emoji / Segoe UI Emoji / Noto
+// Color Emoji) — the Apple-artwork PNG pipeline (react-apple-emojis + the
+// public/emoji-apple copies) was removed in Phase 3: shipping another OS
+// vendor's artwork as bundled images is the same slop in a different coat,
+// and the text glyphs cost zero bytes. The closed trigger uses an inline
+// monoline glyph, picking ticks the app's haptic engine, and the surface
+// tints follow the app's dark palette tokens.
 // ---------------------------------------------------------------------------
 
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { ComponentProps, KeyboardEvent } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Xmark } from '@gravity-ui/icons';
-import { Emoji, EmojiProvider } from 'react-apple-emojis';
+import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { hapticTick } from '../../lib/haptics';
 
 // Only the room's palette — six reactions, names hyphenated as on Emojipedia.
-// The full emoji map ships 380kb of json; the room needs these six.
-const EMOJI_FILES: Record<string, string> = {
-  'red-heart': 'red-heart_2764-fe0f.png',
-  'thumbs-up': 'thumbs-up_1f44d.png',
-  'face-with-tears-of-joy': 'face-with-tears-of-joy_1f602.png',
-  'face-with-open-mouth': 'face-with-open-mouth_1f62e.png',
-  fire: 'fire_1f525.png',
-  'folded-hands': 'folded-hands_1f64f.png',
+// The glyphs are plain Unicode text; the platform's color-emoji font paints
+// them (a presentation-selector FE0F where the bare text default isn't a
+// picture, e.g. 2764 FE0F = ❤️ rather than a red ❤ letter).
+const EMOJI_GLYPHS: Record<string, string> = {
+  'red-heart': '\u{2764}\u{FE0F}',
+  'thumbs-up': '\u{1F44D}',
+  'face-with-tears-of-joy': '\u{1F602}',
+  'face-with-open-mouth': '\u{1F62E}',
+  fire: '\u{1F525}',
+  'folded-hands': '\u{1F64F}',
 };
 
-const REACTION_NAMES = Object.keys(EMOJI_FILES);
-
-const EMOJI_DATA = {
-  baseUrl: '/emoji-apple/',
-  emojis: EMOJI_FILES,
-};
+const REACTION_NAMES = Object.keys(EMOJI_GLYPHS);
 
 const SURFACE = 'bg-apple-parchment dark:bg-apple-tile-2';
 
@@ -228,13 +227,13 @@ const BurstEmoji = memo(function BurstEmoji({
       }}
       onAnimationComplete={() => onDone(particle.id)}
     >
-      <Emoji
-        name={particle.name}
-        width={size}
-        height={size}
-        draggable={false}
-        className="max-w-none"
-      />
+      <span
+        aria-hidden
+        className="max-w-none leading-none"
+        style={{ fontSize: size }}
+      >
+        {EMOJI_GLYPHS[particle.name]}
+      </span>
     </motion.span>
   );
 });
@@ -462,7 +461,6 @@ export function EmojiReaction({
       : { marginLeft: placement.shift };
 
   return (
-    <EmojiProvider data={EMOJI_DATA}>
       <div
         ref={rootRef}
         data-slot="emoji-reaction"
@@ -545,13 +543,13 @@ export function EmojiReaction({
                     whileHover={reduced ? undefined : { scale: 1.22 }}
                     whileTap={{ scale: 0.92 }}
                   >
-                    <Emoji
-                      name={name}
-                      width={s.emoji}
-                      height={s.emoji}
-                      draggable={false}
-                      className="max-w-none"
-                    />
+                    <span
+                      aria-hidden
+                      className="max-w-none leading-none"
+                      style={{ fontSize: s.emoji }}
+                    >
+                      {EMOJI_GLYPHS[name]}
+                    </span>
                   </motion.button>
                 ))}
               </div>
@@ -611,7 +609,7 @@ export function EmojiReaction({
           {asChild ? (
             children
           ) : open ? (
-            <Xmark className={s.icon} strokeWidth={2} aria-hidden />
+            <X className={s.icon} strokeWidth={2} aria-hidden />
           ) : (
             <svg
               viewBox="0 0 24 24"
@@ -643,7 +641,6 @@ export function EmojiReaction({
           )}
         </Trigger>
       </div>
-    </EmojiProvider>
   );
 }
 

@@ -36,8 +36,11 @@ app.use(helmet({
             "'sha256-eLR/EGDHTdMyYyISNU9CsJ/GyIbpnfdXsDluEA+9YdQ='",
           ]
         : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      // Fonts are self-hosted (public/fonts/inter-*.woff2, @font-face in
+      // src/index.css), so the Google Fonts origins are gone from both
+      // directives — no third-party request on the text-critical path.
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      fontSrc: ["'self'", "data:"],
       // Received images/videos render from blob: object URLs.
       imgSrc: ["'self'", "data:", "blob:"],
       mediaSrc: ["'self'", "blob:"],

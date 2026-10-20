@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react';
 // Gravity UI icons aliased onto the names this file already uses (the
 // slashed wifi glyph is the one Gravity has no equivalent for).
-import { ArrowRight, Thunderbolt as Zap, Eye, EyeSlash as EyeOff, ArrowRotateRight as RefreshCw, Magnifier as Search, Check, Xmark as X, QrCode, Link as Link2 } from '@gravity-ui/icons';
+import { ArrowRight, Zap, Eye, EyeOff, RefreshCw, Search, Check, X, QrCode, Link as Link2 } from 'lucide-react';
 import { Wifi } from 'lucide-react';
 import { SpinLoader } from './SpinLoader';
 import { getSocket } from '../lib/socket';

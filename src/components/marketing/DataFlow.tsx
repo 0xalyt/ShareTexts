@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  ShieldCheck, Server, ArrowRightArrowLeft as ArrowRightLeft, Lock, Check,
-} from '@gravity-ui/icons';
+  ShieldCheck, Server, ArrowLeftRight as ArrowRightLeft, Lock, Check,
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 /**

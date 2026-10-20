@@ -5,14 +5,14 @@ import { useTheme } from '../lib/theme';
 import { LANGS, useI18n } from '../lib/i18n';
 import { cn, shortCodeOf } from '../lib/utils';
 import { DUR, SPRING } from '../lib/motion/tokens';
-// Gravity UI icons aliased onto the names this file already uses; the few
-// Gravity has no equivalent for (slashed-logo disconnect, gauge) stay lucide.
+// lucide icons under the local names this file already uses (all icons are
+// lucide since Phase 3; strokeWidth comes from the app's shared default).
 import {
-  PaperPlane as Send, ArrowDownToLine as Download, QrCode, Link as Link2, Copy,
-  ArrowRotateRight as RefreshCw, ArrowRightFromSquare as LogOut, Smartphone,
-  Sun, Moon, FileText, ChevronLeft, Check, Magnifier as Search,
-  CircleInfo as Info, Clock,
-} from '@gravity-ui/icons';
+  Send, Download, QrCode, Link as Link2, Copy,
+  RefreshCw, LogOut, Smartphone,
+  Sun, Moon, FileText, ChevronLeft, Check, Search,
+  Info, Clock,
+} from 'lucide-react';
 import { Gauge, Activity, Languages } from 'lucide-react';
 import { IconButton3D } from './IconButton3D';
 import { generateTOTP } from '../lib/totp';

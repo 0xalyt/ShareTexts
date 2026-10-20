@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight } from '@gravity-ui/icons';
+import { ChevronRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 /**

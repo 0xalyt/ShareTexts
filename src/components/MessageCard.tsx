@@ -11,14 +11,15 @@ import { motion } from 'motion/react';
 import { useSession } from '../lib/SessionContext';
 import { formatSpeed, formatEta } from '../lib/speedEngine';
 import { renderRichText } from '../lib/richText';
-// Gravity UI icons aliased onto the names this file already uses.
+// lucide icons under the local names this file already uses (all icons are
+// lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
-  Xmark as X, Copy, Check, CheckDouble as CheckCheck, ArrowDownToLine as Download,
-  Picture as ImageIcon, Play, Pause, ArrowRotateRight as RefreshCw,
-  CircleExclamation as AlertCircle, ChevronDown, ChevronUp,
-  ArrowUpFromSquare as Share2, ShieldCheck, Terminal, MagnifierPlus as ZoomIn,
+  X as X, Copy, Check, CheckCheck, Download,
+  Image as ImageIcon, Play, Pause, RefreshCw,
+  CircleAlert as AlertCircle, ChevronDown, ChevronUp,
+  Share2, ShieldCheck, Terminal, ZoomIn,
   Link as Link2,
-} from '@gravity-ui/icons';
+} from 'lucide-react';
 import { hapticTick } from '../lib/haptics';
 import { EmojiReaction } from './spaceui/EmojiReaction';
 import { AnnotatedHint } from './AnnotatedHint';

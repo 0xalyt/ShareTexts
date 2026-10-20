@@ -3,14 +3,14 @@ import { useSession } from '../lib/SessionContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { AttachmentPanel } from '../components/AttachmentPanel';
 import { TransferFlight } from '../components/TransferFlight';
-// Gravity UI icons aliased onto the names this file already uses (see the
-// note in SingleScreenApp): only what Gravity genuinely lacks stays on lucide.
+// lucide icons under the local names this file already uses (all icons are
+// lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
-  Xmark as X, Plus, Copy, Check, Play, CircleExclamation as AlertCircle,
-  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Display as Monitor, Pencil,
-  ArrowRightArrowLeft as ArrowRightLeft, CircleInfo as Info,
-  ArrowRotateRight as RefreshCw, Link as Link2, FileText, ArrowDownToLine as Download,
-} from '@gravity-ui/icons';
+  X as X, Plus, Copy, Check, Play, CircleAlert as AlertCircle,
+  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Monitor as Monitor, Pencil,
+  ArrowLeftRight as ArrowRightLeft, Info,
+  RefreshCw, Link as Link2, FileText, Download,
+} from 'lucide-react';
 import { ClipboardPaste } from 'lucide-react';
 import { FileTypeIcon } from '../components/FileTypeIcon';
 import { DraggableImage } from '../components/DraggableImage';

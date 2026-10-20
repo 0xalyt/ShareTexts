@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smartphone, Display, Globe } from '@gravity-ui/icons';
+import { Smartphone, Monitor, Globe } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 /**
@@ -33,7 +33,7 @@ const PLATFORMS: { name: string; kind: 'phone' | 'screen' | 'web' }[] = [
 
 const Glyph = ({ kind, className }: { kind: 'phone' | 'screen' | 'web'; className?: string }) => {
   if (kind === 'phone') return <Smartphone className={className} aria-hidden />;
-  if (kind === 'screen') return <Display className={className} aria-hidden />;
+  if (kind === 'screen') return <Monitor className={className} aria-hidden />;
   return <Globe className={className} aria-hidden />;
 };
 

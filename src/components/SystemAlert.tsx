@@ -1,9 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
-// Gravity UI icons where they exist; the slashed wifi / slashed server marks
-// (Gravity has no equivalent) stay on lucide.
-import { CircleInfo as Info, TriangleExclamation as AlertTriangle, ShieldExclamation as ShieldAlert } from '@gravity-ui/icons';
-import { WifiOff, ServerOff } from 'lucide-react';
+// All glyphs are lucide (Phase 3): one icon system, strokeWidth 1.5.
+import { Info, TriangleAlert as AlertTriangle, ShieldAlert, WifiOff, ServerOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 // ---------------------------------------------------------------------------

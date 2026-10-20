@@ -9,8 +9,8 @@ import { ShareTextsLogo } from './ShareTextsLogo';
 import { SpinLoader } from './SpinLoader';
 import { TactileButton } from './TactileButton';
 import {
-  CheckDouble, Lock, Paperclip, PaperPlane, ArrowLeft, Gear,
-} from '@gravity-ui/icons';
+  CheckCheck as CheckDouble, Lock, Paperclip, Send as PaperPlane, ArrowLeft, Settings as Gear,
+} from 'lucide-react';
 
 /**
  * HeroDeviceDemo — the visitor causes the transfer; the picture reports it.

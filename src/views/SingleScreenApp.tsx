@@ -56,12 +56,12 @@ import { cn, shortCodeOf, sanitizeDeviceName, formatBytes } from '../lib/utils';
 // equivalent for (a slashed wifi, a slashed server, an infinity glyph) stay
 // on lucide, which is exactly the rule the house style asks for.
 import {
-  ArrowRightFromSquare as LogOut, QrCode, Link as Link2, Copy, Check,
-  Smartphone, Display as Monitor, Xmark as X, ArrowRightArrowLeft as ArrowRightLeft,
-  ArrowLeft, CircleInfo as Info, Pencil, FileArrowUp as Upload,
-  ArrowRotateRight as RotateCcw, Gear as SettingsIcon, Clock as Clock3,
+  LogOut, QrCode, Link as Link2, Copy, Check,
+  Smartphone, Monitor as Monitor, X as X, ArrowLeftRight as ArrowRightLeft,
+  ArrowLeft, Info, Pencil, FileUp as Upload,
+  RefreshCw as RotateCcw, Settings as SettingsIcon, Clock as Clock3,
   Plus, ChevronRight, File as FileIcon,
-} from '@gravity-ui/icons';
+} from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon } from 'lucide-react';
 import { SpaceCreateSheet, SpaceJoinSheet } from './SpaceView';
 import { recentSpaces } from '../lib/space/api';

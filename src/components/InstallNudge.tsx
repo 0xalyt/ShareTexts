@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { Xmark as X, ArrowUpFromSquare as Share2, ArrowDownToLine as Download } from '@gravity-ui/icons';
+import { X, Share2, Download } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 import { hasUsedApp } from '../lib/rating';
