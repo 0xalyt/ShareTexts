@@ -29,9 +29,9 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
         <span className="w-7 h-7 rounded-[8px] bg-azure-600/10 dark:bg-azure-600/20 flex items-center justify-center shrink-0">
           {icon}
         </span>
-        <h2 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.02em]">{title}</h2>
+        <h2 className="st-h3 text-apple-ink dark:text-white">{title}</h2>
       </div>
-      <div className="text-[14.5px] leading-relaxed text-apple-ink-muted dark:text-white/60 space-y-3 [&_strong]:text-apple-ink dark:[&_strong]:text-white [&_a]:text-apple-blue dark:[&_a]:text-azure-400 [&_a:hover]:underline">
+      <div className="text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/60 space-y-3 [&_strong]:text-apple-ink dark:[&_strong]:text-white [&_a]:text-apple-blue dark:[&_a]:text-azure-400 [&_a:hover]:underline">
         {children}
       </div>
     </section>
@@ -180,10 +180,10 @@ export function Legal({ page }: { page: LegalPage }) {
       />
 
       <div className="max-w-2xl mx-auto px-6 py-10 sm:py-14">
-        <h1 className="st-display text-[30px] sm:text-[36px] text-apple-ink dark:text-white mb-2">
+        <h1 className="st-display text-[32px] text-apple-ink dark:text-white mb-2">
           {title}
         </h1>
-        <p className="text-[14px] text-apple-ink-muted/80 dark:text-white/40 mb-9">
+        <p className="text-[16px] text-apple-ink-muted/80 dark:text-white/40 mb-9">
           Last updated: September 2026
         </p>
         {isPrivacy ? <PrivacyContent /> : <TermsContent />}

@@ -131,7 +131,7 @@ export function SettingsOverlay({
                   <span className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/50" aria-hidden>
                     <Languages className="w-4 h-4" strokeWidth={2} />
                   </span>
-                  <span className="flex-1 text-[13.5px] font-semibold text-apple-ink dark:text-white">
+                  <span className="flex-1 text-[13px] font-semibold text-apple-ink dark:text-white">
                     {t('settings.language')}
                   </span>
                   {/* The existing menu, opening leftward inside the card. */}
@@ -167,14 +167,14 @@ export function SettingsOverlay({
                         {unhealthy ? <WifiOff className="w-4 h-4" strokeWidth={2} /> : <span className="w-2 h-2 rounded-full bg-status-success shadow-[0_0_6px_rgba(52,199,89,0.7)]" />}
                       </span>
                       <span className="flex-1 flex flex-col min-w-0 leading-tight">
-                        <span className="text-[13.5px] font-semibold text-apple-ink dark:text-white">
+                        <span className="text-[13px] font-semibold text-apple-ink dark:text-white">
                           {linkState === 'disconnected'
                             ? t('chat.disconnected')
                             : linkState === 'connecting'
                               ? t('chat.reconnecting')
                               : t('common.connected')}
                         </span>
-                        <span className="text-[12.5px] font-medium text-apple-ink-muted dark:text-white/45">
+                        <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
                           {t('settings.reconnectHint')}
                         </span>
                       </span>

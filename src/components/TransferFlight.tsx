@@ -160,7 +160,7 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
             <FileText className="w-3.5 h-3.5 text-brand-strong dark:text-azure-400" />
           </span>
           <span className="max-w-[96px] truncate text-[12px] font-semibold text-apple-ink dark:text-white" title={name}>{name}</span>
-          <span className="text-[10px] font-medium text-apple-ink-muted/70 dark:text-white/40 whitespace-nowrap tnum">{formatBytes(size)}</span>
+          <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/40 whitespace-nowrap tnum">{formatBytes(size)}</span>
         </motion.div>
       </motion.div>
     </>

@@ -96,7 +96,7 @@ export function RecipientStrip({
                 </span>
               )}
               {r.state === 'sending' && typeof r.progress === 'number' && (
-                <span className="text-[11px] tabular-nums text-neutral-400">
+                <span className="text-[12px] tabular-nums text-neutral-400">
                   {Math.round(r.progress * 100)}%
                 </span>
               )}
@@ -104,7 +104,7 @@ export function RecipientStrip({
                 <button
                   type="button"
                   onClick={() => onRetry(message.id, r.recipientId)}
-                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-[--ember] hover:bg-[--ember]/10"
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium text-[--ember] hover:bg-[--ember]/10"
                 >
                   <RotateCw className="h-3 w-3" aria-hidden="true" />
                   {t('xfer.retryFor', { name: nameOf(r.recipientId) })}
@@ -114,7 +114,7 @@ export function RecipientStrip({
                 <button
                   type="button"
                   onClick={() => onCancel(message.id, r.recipientId)}
-                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-neutral-500 hover:bg-black/6 dark:text-neutral-400 dark:hover:bg-white/10"
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium text-neutral-500 hover:bg-black/6 dark:text-neutral-400 dark:hover:bg-white/10"
                 >
                   {t('xfer.cancelFor', { name: nameOf(r.recipientId) })}
                 </button>

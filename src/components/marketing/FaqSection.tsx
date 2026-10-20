@@ -40,7 +40,7 @@ export function FaqSection({
       {heading ? (
         <h2
           id="faq-title"
-          className="mb-4 text-[28px] font-semibold tracking-tight text-apple-ink dark:text-white sm:text-[32px]"
+          className="st-h2 mb-4 text-apple-ink dark:text-white"
         >
           {heading}
         </h2>
@@ -48,7 +48,7 @@ export function FaqSection({
         <div className="mb-5 flex items-baseline gap-3">
           <h2
             id="faq-title"
-            className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
+            className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
           >
             Questions
           </h2>
@@ -80,7 +80,7 @@ export function FaqSection({
                   />
                   <span
                     className={cn(
-                      'flex-1 text-[15px] font-semibold transition-colors',
+                      'flex-1 text-[16px] font-semibold transition-colors',
                       isOpen
                         ? 'text-apple-ink dark:text-white'
                         : 'text-apple-ink/80 group-hover:text-apple-ink dark:text-white/75 dark:group-hover:text-white',
@@ -101,7 +101,7 @@ export function FaqSection({
                     transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
                     className="overflow-hidden"
                   >
-                    <p className="pb-5 pl-7 pr-2 text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/55">
+                    <p className="pb-5 pl-7 pr-2 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/55">
                       {item.a}
                     </p>
                   </motion.div>

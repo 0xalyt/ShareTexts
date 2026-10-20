@@ -186,7 +186,7 @@ export function SlideToConfirm({
         <span
           aria-hidden
           className={cn(
-            'absolute inset-0 flex items-center justify-center px-14 text-[13.5px] font-semibold transition-colors duration-200',
+            'absolute inset-0 flex items-center justify-center px-14 text-[13px] font-semibold transition-colors duration-200',
             confirmed
               ? 'text-white [text-shadow:0_1px_1px_rgba(0,0,0,0.25)]'
               : armed

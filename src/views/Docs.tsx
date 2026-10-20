@@ -66,14 +66,14 @@ function StepCard({ number, title, description, icon }: { number: number; title:
   return (
     <div className="flex gap-4 items-start">
       <div className="shrink-0 w-10 h-10 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center">
-        <span className="text-[14px] font-semibold text-ember dark:text-azure-400">{number}</span>
+        <span className="text-[16px] font-semibold text-ember dark:text-azure-400">{number}</span>
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
           {icon}
-          <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white">{title}</h3>
+          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white">{title}</h3>
         </div>
-        <p className="text-[14px] text-apple-ink-muted dark:text-white/60 leading-relaxed">{description}</p>
+        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">{description}</p>
       </div>
     </div>
   );
@@ -83,7 +83,7 @@ function OverviewSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-1">ShareTexts</h1>
+        <h1 className="st-display text-[32px] text-apple-ink dark:text-white mb-1">ShareTexts</h1>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
           Like AirDrop, but it works between any two devices, even an iPhone and a Windows PC. Send text, photos, or files from a browser. Nothing is kept once the room closes.
         </p>
@@ -98,7 +98,7 @@ function OverviewSection() {
           <div key={i} className="flex gap-3.5 p-4 rounded-[14px] st-card">
             <div className="w-10 h-10 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center shrink-0 text-ember dark:text-azure-400">{f.icon}</div>
             <div>
-              <p className="text-[14px] font-semibold text-apple-ink dark:text-white mb-0.5">{f.title}</p>
+              <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{f.title}</p>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/55 leading-snug">{f.desc}</p>
             </div>
           </div>
@@ -129,7 +129,7 @@ function TransferSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-1">How it works</h2>
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-1">How it works</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60">Three steps. Ten seconds.</p>
       </div>
 
@@ -141,11 +141,11 @@ function TransferSection() {
         ].map((s, i) => (
           <div key={i} className="flex gap-4 items-start">
             <div className="shrink-0 w-9 h-9 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center">
-              <span className="text-[14px] font-bold text-ember dark:text-azure-400">{s.n}</span>
+              <span className="text-[16px] font-bold text-ember dark:text-azure-400">{s.n}</span>
             </div>
             <div>
-              <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-0.5">{s.title}</h3>
-              <p className="text-[14px] text-apple-ink-muted dark:text-white/60">{s.desc}</p>
+              <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{s.title}</h3>
+              <p className="text-[16px] text-apple-ink-muted dark:text-white/60">{s.desc}</p>
             </div>
           </div>
         ))}
@@ -164,15 +164,15 @@ function PairingSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Pairing & QR</h2>
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Pairing & QR</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           ShareTexts uses a 6-digit pairing code to connect two devices. The code refreshes automatically and expires after a short time for security.
         </p>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white">How pairing works</h3>
-        <div className="space-y-3 text-[15px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
+        <h3 className="st-h3 text-apple-ink dark:text-white">How pairing works</h3>
+        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
           <p><strong className="text-apple-ink dark:text-white">Sender:</strong> Click <strong>Send</strong> to create a room. You'll see a 6-digit code and a QR code.</p>
           <p><strong className="text-apple-ink dark:text-white">Receiver:</strong> Click <strong>Receive</strong> and enter the 6-digit code, or scan the QR code with your camera.</p>
           <p>Once both devices are connected, the pairing screen is replaced by the transfer workspace.</p>
@@ -180,16 +180,16 @@ function PairingSection() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white">QR code</h3>
-        <div className="space-y-3 text-[15px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
+        <h3 className="st-h3 text-apple-ink dark:text-white">QR code</h3>
+        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
           <p>The QR code contains the pairing link. Scan it with the other device's camera to connect automatically.</p>
           <p>If the QR code doesn't scan, you can always type the 6-digit code manually.</p>
         </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white">Code expiry</h3>
-        <div className="space-y-3 text-[15px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
+        <h3 className="st-h3 text-apple-ink dark:text-white">Code expiry</h3>
+        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
           <p>The pairing code refreshes automatically. If it expires before the other device connects, a new code is generated.</p>
           <p>Share link: You can also share the room link directly. The receiver opens the link and connects automatically.</p>
         </div>
@@ -204,15 +204,15 @@ function NearbySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Nearby Devices</h2>
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Nearby Devices</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           Open ShareTexts on another device. If both devices are on the same supported local network, the other device can appear automatically — tap it to start a transfer.
         </p>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white">How it works</h3>
-        <div className="space-y-3 text-[15px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
+        <h3 className="st-h3 text-apple-ink dark:text-white">How it works</h3>
+        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
           <p><strong className="text-apple-ink dark:text-white">Open ShareTexts on both devices.</strong> When another ShareTexts device is nearby and idle, it appears under the Send and Receive buttons on your home screen.</p>
           <p><strong className="text-apple-ink dark:text-white">Tap the device.</strong> The other device gets an invitation and must accept. Once accepted, the connection is established exactly like any other ShareTexts connection.</p>
           <p>Prefer a code? The 6-digit code, QR code, and share link always remain available as alternative methods.</p>
@@ -220,8 +220,8 @@ function NearbySection() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white">Privacy</h3>
-        <div className="space-y-3 text-[15px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
+        <h3 className="st-h3 text-apple-ink dark:text-white">Privacy</h3>
+        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
           <p>Nearby discovery is <strong className="text-apple-ink dark:text-white">not a global device list</strong>. A device is only visible while ShareTexts is open on it, and presence expires automatically within about a minute of the tab closing. Devices are not Bluetooth scans, and nothing is broadcast over your local network.</p>
           <p>Other devices only ever see a temporary label such as "Windows PC" or "iPhone". No IP addresses, account information, or permanent identifiers are shared. A device that is already connected to a room is not listed.</p>
           <p>Discovery only identifies a candidate device. Selecting one sends an invitation, and the actual connection always uses the same secure end-to-end encrypted channel as code, QR, and link connections.</p>
@@ -229,8 +229,8 @@ function NearbySection() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white">Limits</h3>
-        <div className="space-y-3 text-[15px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
+        <h3 className="st-h3 text-apple-ink dark:text-white">Limits</h3>
+        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
           <p>Nearby discovery works between devices that reach the same ShareTexts signaling service. Two devices on completely different networks (for example, separate mobile carriers) will not see each other — use the code, QR, or share link instead.</p>
           <p>This feature requires the standard signaling deployment. It is not available on every hosting configuration; when unavailable, the home screen simply shows the hint line without a device list, and every other method works unchanged.</p>
         </div>
@@ -242,7 +242,7 @@ function NearbySection() {
 function TroubleshootingSection() {  return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Troubleshooting</h2>
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Troubleshooting</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           Most issues resolve by checking your internet connection and trying again.
         </p>
@@ -259,8 +259,8 @@ function TroubleshootingSection() {  return (
           { problem: 'File won\'t download', solution: 'Check that your browser allows downloads. On mobile, try long-pressing the file and selecting Save.' },
         ].map((item, i) => (
           <div key={i} className="p-5 rounded-[16px] st-card">
-            <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2">{item.problem}</h3>
-            <p className="text-[14px] text-apple-ink-muted dark:text-white/60 leading-relaxed">{item.solution}</p>
+            <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{item.problem}</h3>
+            <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">{item.solution}</p>
           </div>
         ))}
       </div>
@@ -272,7 +272,7 @@ function PrivacySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-1">Privacy & Security</h2>
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-1">Privacy & Security</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
           Your data moves directly between devices. Nothing stored.
         </p>
@@ -288,7 +288,7 @@ function PrivacySection() {
           <div key={i} className="flex gap-3.5 p-4 rounded-[14px] st-card">
             <div className="text-status-success shrink-0 mt-0.5">{item.icon}</div>
             <div>
-              <p className="text-[14px] font-semibold text-apple-ink dark:text-white mb-0.5">{item.title}</p>
+              <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{item.title}</p>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/55 leading-snug">{item.desc}</p>
             </div>
           </div>
@@ -302,7 +302,7 @@ function DevicesSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">Supported Devices</h2>
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Supported Devices</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           ShareTexts works in any modern browser. No app installation required.
         </p>
@@ -310,10 +310,10 @@ function DevicesSection() {
 
       <div className="space-y-6">
         <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-3">Browsers</h3>
+          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">Browsers</h3>
           <div className="grid grid-cols-2 gap-3">
             {['Chrome', 'Safari', 'Firefox', 'Edge', 'Brave', 'Arc', 'Samsung Internet', 'Opera / Vivaldi'].map((b) => (
-              <div key={b} className="flex items-center gap-2 text-[14px] text-apple-ink-muted dark:text-white/60">
+              <div key={b} className="flex items-center gap-2 text-[16px] text-apple-ink-muted dark:text-white/60">
                 <Check className="w-4 h-4 text-status-success" />{b}
               </div>
             ))}
@@ -323,18 +323,18 @@ function DevicesSection() {
           </p>
         </div>
         <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-3">Operating Systems</h3>
+          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">Operating Systems</h3>
           <div className="grid grid-cols-2 gap-3">
             {['iOS / iPadOS', 'Android', 'Windows', 'macOS', 'Linux', 'ChromeOS'].map((os) => (
-              <div key={os} className="flex items-center gap-2 text-[14px] text-apple-ink-muted dark:text-white/60">
+              <div key={os} className="flex items-center gap-2 text-[16px] text-apple-ink-muted dark:text-white/60">
                 <Check className="w-4 h-4 text-status-success" />{os}
               </div>
             ))}
           </div>
         </div>
         <div className="p-5 rounded-[16px] st-tile">
-          <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2">Requirements</h3>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60 leading-relaxed">Both devices need an internet connection and a browser that supports WebRTC. No special permissions are required for text transfers. Camera permission is needed for QR scanning.</p>
+          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">Requirements</h3>
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">Both devices need an internet connection and a browser that supports WebRTC. No special permissions are required for text transfers. Camera permission is needed for QR scanning.</p>
         </div>
       </div>
     </div>
@@ -345,7 +345,7 @@ function AgentSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">
           For AI Agents
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -358,8 +358,8 @@ function AgentSection() {
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-[15px] font-semibold text-amber-800 dark:text-amber-200 mb-1">Security Notice</h3>
-            <p className="text-[14px] text-amber-700 dark:text-amber-300">
+            <h3 className="text-[16px] font-semibold text-amber-800 dark:text-amber-200 mb-1">Security Notice</h3>
+            <p className="text-[16px] text-amber-700 dark:text-amber-300">
               The agent send permission is a temporary, room-scoped token. It expires automatically and can be revoked.
               Never share this token publicly or store it in logs.
             </p>
@@ -368,8 +368,8 @@ function AgentSection() {
       </div>
 
       <div>
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white mb-4">Getting the Agent Token</h3>
-        <ol className="space-y-3 text-[14px] text-apple-ink-muted dark:text-white/60">
+        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Getting the Agent Token</h3>
+        <ol className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60">
           <li className="flex gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-azure-600/10 flex items-center justify-center text-[12px] font-semibold text-ember">1</span>
             <span>Open ShareTexts and create a room (click "Send")</span>
@@ -386,7 +386,7 @@ function AgentSection() {
       </div>
 
       <div>
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white mb-4">Send Text</h3>
+        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Send Text</h3>
         <CodeBlock
           language="bash"
           code={`curl -X POST https://sharetexts.online/api/push \\
@@ -397,7 +397,7 @@ function AgentSection() {
       </div>
 
       <div>
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white mb-4">Send File</h3>
+        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Send File</h3>
         <CodeBlock
           language="bash"
           code={`curl -X POST https://sharetexts.online/api/push?roomId=ROOM_ID \\
@@ -409,7 +409,7 @@ function AgentSection() {
       </div>
 
       <div>
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white mb-4">Response Format</h3>
+        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Response Format</h3>
         <CodeBlock
           language="json"
           code={`{
@@ -426,7 +426,7 @@ function APISection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">
           API Reference
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -438,9 +438,9 @@ function APISection() {
         <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
             <span className="px-2 py-0.5 rounded-[4px] bg-green-100 dark:bg-green-900/30 text-[12px] font-semibold text-green-700 dark:text-green-400">POST</span>
-            <code className="text-[14px] font-mono text-apple-ink dark:text-white">/api/push</code>
+            <code className="text-[16px] font-mono text-apple-ink dark:text-white">/api/push</code>
           </div>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60 mb-4">
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60 mb-4">
             Send text or a file to an active room.
           </p>
           <div className="space-y-3">
@@ -465,9 +465,9 @@ function APISection() {
         <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
             <span className="px-2 py-0.5 rounded-[4px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
-            <code className="text-[14px] font-mono text-apple-ink dark:text-white">/health</code>
+            <code className="text-[16px] font-mono text-apple-ink dark:text-white">/health</code>
           </div>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60">
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
             Health check endpoint. Returns server status.
           </p>
         </div>
@@ -475,16 +475,16 @@ function APISection() {
         <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
             <span className="px-2 py-0.5 rounded-[4px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
-            <code className="text-[14px] font-mono text-apple-ink dark:text-white">/stats</code>
+            <code className="text-[16px] font-mono text-apple-ink dark:text-white">/stats</code>
           </div>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60">
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
             Returns approximate live user count. No room-level information.
           </p>
         </div>
       </div>
 
       <div>
-        <h3 className="text-[18px] font-semibold text-apple-ink dark:text-white mb-4">Error Responses</h3>
+        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Error Responses</h3>
         <div className="space-y-2">
           {[
             { code: '401', message: 'Invalid or expired token' },
@@ -493,7 +493,7 @@ function APISection() {
             { code: '429', message: 'Rate limited' },
             { code: '500', message: 'Server error' },
           ].map((err) => (
-            <div key={err.code} className="flex items-center gap-3 text-[14px]">
+            <div key={err.code} className="flex items-center gap-3 text-[16px]">
               <code className="px-2 py-0.5 rounded-[4px] bg-red-100 dark:bg-red-900/30 text-[12px] font-mono text-red-700 dark:text-red-400">{err.code}</code>
               <span className="text-apple-ink-muted dark:text-white/60">{err.message}</span>
             </div>
@@ -508,7 +508,7 @@ function SecuritySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[28px] sm:text-[32px] text-apple-ink dark:text-white mb-4">
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">
           Security
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -517,49 +517,49 @@ function SecuritySection() {
       </div>
 
       <div className="space-y-4">
-        <div className="p-5 rounded-[16px] st-card">            <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
+        <div className="p-5 rounded-[16px] st-card">            <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <Lock className="w-4 h-4 text-status-success" />
             Encrypted in the browser
           </h3>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60">
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
             Transfer content is encrypted between devices. ShareTexts is designed for temporary handoffs, not permanent storage.
           </p>
         </div>
 
         <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
+          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <Clock className="w-4 h-4 text-status-success" />
             Nothing is kept
           </h3>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60">
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
             Rooms expire automatically. No accounts, no permanent history, no cloud storage.
           </p>
         </div>
 
         <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
+          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <Shield className="w-4 h-4 text-status-success" />
             Verified Transfers
           </h3>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60">
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
             Every file transfer is verified with SHA-256. What you send is exactly what arrives.
           </p>
         </div>
 
         <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
+          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-status-warning" />
             Agent Tokens
           </h3>
-          <p className="text-[14px] text-apple-ink-muted dark:text-white/60">
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
             Agent send permissions are temporary, room-scoped, and can be revoked. They expire automatically.
           </p>
         </div>
       </div>
 
       <div className="p-5 rounded-[16px] st-tile">
-        <h3 className="text-[15px] font-semibold text-apple-ink dark:text-white mb-3">What ShareTexts does NOT store</h3>
-        <ul className="space-y-2 text-[14px] text-apple-ink-muted dark:text-white/60">
+        <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">What ShareTexts does NOT store</h3>
+        <ul className="space-y-2 text-[16px] text-apple-ink-muted dark:text-white/60">
           <li className="flex items-start gap-2">
             <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
             Your files or text content
@@ -733,13 +733,13 @@ export function Docs() {
           <div className="sticky top-24 space-y-4">
             {/* User Documentation */}
             <div>
-              <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-apple-ink-muted/50 dark:text-white/30">User Guide</p>
+              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/50 dark:text-white/30">User Guide</p>
               <div className="space-y-0.5">
                 {NAV_ITEMS.filter(i => i.group === 'user').map((item) => (
                   <button
                     key={item.id}
                     onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[14px] font-medium transition-colors ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[16px] font-medium transition-colors ${
                       activeSection === item.id
                         ? 'bg-azure-600/10 text-ember dark:text-azure-400'
                         : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'
@@ -753,13 +753,13 @@ export function Docs() {
             </div>
             {/* Developer Documentation */}
             <div>
-              <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-apple-ink-muted/50 dark:text-white/30">Developer</p>
+              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/50 dark:text-white/30">Developer</p>
               <div className="space-y-0.5">
                 {NAV_ITEMS.filter(i => i.group === 'developer').map((item) => (
                   <button
                     key={item.id}
                     onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[14px] font-medium transition-colors ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[16px] font-medium transition-colors ${
                       activeSection === item.id
                         ? 'bg-azure-600/10 text-ember dark:text-azure-400'
                         : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'

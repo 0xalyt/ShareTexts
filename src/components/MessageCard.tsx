@@ -530,7 +530,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             dir={isRtl ? 'rtl' : undefined}
             style={{ unicodeBidi: 'plaintext' }}
             className={cn(
-              "text-[15.5px] whitespace-pre-wrap leading-relaxed",
+              "text-[16px] whitespace-pre-wrap leading-relaxed",
               isStructured
                 ? // Code / table shape: monospace + pre + horizontal scroll.
                   // overflow-x keeps columns aligned instead of wrapping and
@@ -546,7 +546,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             {isLargeText && !expanded && (
               <button
                 onClick={() => setExpanded(true)}
-                className="mt-1.5 flex items-center gap-1 text-[14px] font-semibold active:opacity-70 text-apple-blue"
+                className="mt-1.5 flex items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
               >
                 <ChevronDown className="w-4 h-4" /> {t('msg.showFull')}
               </button>
@@ -554,7 +554,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             {isLargeText && expanded && (
               <button
                 onClick={() => setExpanded(false)}
-                className="mt-1.5 flex items-center gap-1 text-[14px] font-semibold active:opacity-70 text-apple-blue"
+                className="mt-1.5 flex items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
               >
                 <ChevronUp className="w-4 h-4" /> {t('msg.collapse')}
               </button>
@@ -569,7 +569,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           <div className="mt-1 flex items-center justify-end gap-1.5">
             {msg.delivery === 'failed' ? (
               <>
-                <span className="text-[12.5px] font-semibold flex items-center gap-1 text-status-danger">
+                <span className="text-[12px] font-semibold flex items-center gap-1 text-status-danger">
                   <AlertCircle className="w-3.5 h-3.5" /> {t('msg.couldNotSend')}
                 </span>
                 <button
@@ -581,7 +581,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               </>
             ) : (
               <>
-                <span className="text-[11.5px] font-medium flex items-center gap-1 text-apple-ink-muted">
+                <span className="text-[12px] font-medium flex items-center gap-1 text-apple-ink-muted">
                   {isMe ? (
                     <DeliveryTick delivered={msg.delivered} seen={msg.seen} onBlue />
                   ) : msg.source === 'push' ? (
@@ -686,7 +686,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             <div
               dir={hasStrongRtl(msg.text) ? 'rtl' : undefined}
               style={{ unicodeBidi: 'plaintext' }}
-              className="px-4 py-3 text-[15.5px] whitespace-pre-wrap leading-relaxed break-words text-apple-ink dark:text-white"
+              className="px-4 py-3 text-[16px] whitespace-pre-wrap leading-relaxed break-words text-apple-ink dark:text-white"
             >
               {/* A caption that is exactly one URL renders as the same link
                   card ("paste URL → LINK") — on a text-less attachment that
@@ -765,8 +765,8 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             <div className="p-4 flex items-center gap-3.5 bg-apple-parchment/50 dark:bg-black/20">
               <FileTypeIcon name={a.name} mimeType={a.mimeType} size={20} />
               <div className="flex flex-col flex-1 truncate min-w-0">
-                <span className="text-[14.5px] font-semibold truncate text-apple-ink dark:text-white">{a.name}</span>
-                <span className="text-[12.5px] font-medium text-apple-ink-muted">
+                <span className="text-[16px] font-semibold truncate text-apple-ink dark:text-white">{a.name}</span>
+                <span className="text-[12px] font-medium text-apple-ink-muted">
                   {formatBytes(a.size)}
                   {a.type === 'image' && decodeFailed && (
                     <span className="hidden sm:inline"> · File kept — no preview available</span>
@@ -793,7 +793,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             {/* Row 1: status / time — full width, no competing for space */}
             <div className="min-w-0">
               {a.status === 'complete' ? (
-                <span className="text-[11px] font-medium flex items-center gap-1 flex-wrap break-words text-apple-ink-muted">
+                <span className="text-[12px] font-medium flex items-center gap-1 flex-wrap break-words text-apple-ink-muted">
                   {/* Honest completion story: "Sent · 2.0 GB in 18 s" — only
                       when we hold both timestamps; otherwise the classic
                       tick line. */}
@@ -838,7 +838,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   </span>
                 </span>
               ) : (
-                <span className={cn("text-[12.5px] font-semibold flex flex-wrap items-center gap-x-1.5", a.status === 'failed' ? "text-status-danger" : a.status === 'cancelled' || a.status === 'interrupted' ? "text-apple-ink-muted" : "text-apple-blue")}>
+                <span className={cn("text-[12px] font-semibold flex flex-wrap items-center gap-x-1.5", a.status === 'failed' ? "text-status-danger" : a.status === 'cancelled' || a.status === 'interrupted' ? "text-apple-ink-muted" : "text-apple-blue")}>
                   {/* Who it's talking to, while bytes are moving. */}
                   {(a.status === 'sending' || a.status === 'receiving') && (session.partnerName || session.deviceName) && (
                     <span className="text-apple-ink-muted dark:text-white/50 font-medium">
@@ -934,7 +934,7 @@ function LiveSpeed({ transferId, progressPct }: { transferId: string; progressPc
   const txt = formatSpeed(speed.bytesPerSec);
   const eta = formatEta(speed.etaSec);
   return (
-    <div className="flex items-center gap-2 pt-1.5 text-[11px] text-apple-ink-muted dark:text-white/40 tnum" aria-live="polite">
+    <div className="flex items-center gap-2 pt-1.5 text-[12px] text-apple-ink-muted dark:text-white/40 tnum" aria-live="polite">
       <span className="font-semibold text-apple-blue">{txt}</span>
       {eta && <span>· {eta}</span>}
       <span className="hidden sm:inline">· {Math.round(progressPct * 100)}%</span>
@@ -953,7 +953,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId }:
       onPointerDown={(e) => { e.preventDefault(); onClick(); }}
       data-testid={testId}
       className={cn(
-        "flex items-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-[40px] select-none",
+        "flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-[40px] select-none",
         active
           ? "bg-status-success/15 text-status-success shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
           : primary
@@ -1145,11 +1145,11 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
           <Link2 className="w-4 h-4" />
         </span>
         <span className="flex-1 min-w-0 flex flex-col leading-tight">
-          <span className="text-[13.5px] font-semibold text-apple-blue truncate" dir="auto">{title}</span>
+          <span className="text-[13px] font-semibold text-apple-blue truncate" dir="auto">{title}</span>
           {showPreview && preview?.description && (
-            <span className="mt-0.5 text-[11.5px] font-medium text-apple-ink-muted dark:text-white/45 line-clamp-2" dir="auto">{preview.description}</span>
+            <span className="mt-0.5 text-[12px] font-medium text-apple-ink-muted dark:text-white/45 line-clamp-2" dir="auto">{preview.description}</span>
           )}
-          <span className="text-[11px] font-medium text-apple-ink-muted/70 dark:text-white/35 truncate">{siteName} · {host}</span>
+          <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/35 truncate">{siteName} · {host}</span>
         </span>
       </span>
     </a>

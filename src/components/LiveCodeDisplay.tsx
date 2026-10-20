@@ -90,7 +90,7 @@ export function LiveCodeDisplay({ secret, createdAt, onRefresh }: LiveCodeDispla
               }}
             />
           </svg>
-          <span className={cn("absolute text-[10px] font-bold tabular-nums transition-colors duration-300", isCritical || isUrgent ? "text-status-danger" : "text-apple-ink dark:text-white/85")}>
+          <span className={cn("absolute text-[12px] font-bold tabular-nums transition-colors duration-300", isCritical || isUrgent ? "text-status-danger" : "text-apple-ink dark:text-white/85")}>
             {Math.ceil(remaining)}
           </span>
         </div>

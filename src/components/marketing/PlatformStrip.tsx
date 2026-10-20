@@ -66,7 +66,7 @@ export function PlatformStrip({ className }: { className?: string }) {
       <div className="flex items-baseline gap-3 mb-3.5">
         <h2
           id="platforms-title"
-          className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
+          className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
         >
           Works everywhere
         </h2>

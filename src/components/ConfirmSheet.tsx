@@ -79,16 +79,16 @@ export function ConfirmSheet({
                 <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
               </div>
               <div className="px-6 pt-4 sm:pt-5 pb-2 text-center">
-                <h3 className="text-[16.5px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">{title}</h3>
+                <h3 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">{title}</h3>
                 {body && (
-                  <p className="mt-1.5 text-[13.5px] leading-relaxed text-apple-ink-muted dark:text-white/55">{body}</p>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{body}</p>
                 )}
               </div>
               <div className="px-4 sm:px-4 pb-4 sm:pb-4 pt-2 flex flex-col-reverse sm:flex-col gap-2">
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="w-full min-h-[44px] rounded-[14px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[15px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.98]"
+                  className="w-full min-h-[44px] rounded-[14px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[16px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.98]"
                 >
                   {cancelLabel}
                 </button>
@@ -98,8 +98,8 @@ export function ConfirmSheet({
                   onClick={onConfirm}
                   className={
                     destructive
-                      ? 'w-full min-h-[44px] rounded-[14px] bg-status-danger hover:bg-status-danger-strong text-[15px] font-semibold text-white transition-colors active:scale-[0.98]'
-                      : 'w-full min-h-[44px] rounded-[14px] bg-ember hover:bg-brand-strong text-[15px] font-semibold text-white transition-colors active:scale-[0.98]'
+                      ? 'w-full min-h-[44px] rounded-[14px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.98]'
+                      : 'w-full min-h-[44px] rounded-[14px] bg-ember hover:bg-brand-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.98]'
                   }
                 >
                   {confirmLabel}

@@ -962,7 +962,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-[160px]">
               {session.deviceName}
             </span>
-            <span className="flex items-center gap-1 text-[10.5px] font-medium text-apple-ink-muted dark:text-white/45">
+            <span className="flex items-center gap-1 text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
               <span className={cn(
                 "w-1.5 h-1.5 rounded-full",
                 disconnected ? "bg-status-warning" : "bg-status-success"
@@ -1012,7 +1012,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 : (session.partnerName || t('chat.pairedDevice'))}
             </motion.span>
             {others.length > 1 && (
-              <span data-testid="room-device-count" className="text-[10.5px] font-medium text-apple-ink-muted dark:text-white/45">
+              <span data-testid="room-device-count" className="text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
                 {(() => {
                   const ready = others.filter(p => p.link === 'connected').length;
                   const connecting = others.filter(p => p.link === 'connecting' || p.link === 'reconnecting').length;
@@ -1026,7 +1026,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               </span>
             )}
             <span className={cn(
-              "flex items-center gap-1 text-[10.5px] font-medium",
+              "flex items-center gap-1 text-[12px] font-medium",
               disconnected || session.connectionType === 'connecting'
                 ? "text-status-warning"
                 : "text-apple-ink-muted dark:text-white/45"
@@ -1074,7 +1074,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             data-testid="end-session"
             onClick={() => setConfirmDisconnect(true)}
             aria-label={t('common.disconnectAria')}
-            className="flex items-center gap-1.5 rounded-full font-semibold min-h-[40px] px-3 text-[12.5px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
+            className="flex items-center gap-1.5 rounded-full font-semibold min-h-[40px] px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
           >
             <DisconnectGlyph size={16} />
             <span className="hidden sm:inline">{t('common.disconnect')}</span>
@@ -1100,7 +1100,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   {t('details.secure')}
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <kbd aria-hidden="true" className="hidden sm:inline px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 text-[10px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
+                  <kbd aria-hidden="true" className="hidden sm:inline px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
                   <button
                     onPointerDown={() => setShowConnectionDetails(false)}
                     aria-label={t('details.close')}
@@ -1140,7 +1140,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       <Pencil className="w-2.5 h-2.5 opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
                     </button>
                   )}
-                  <span className="text-[10px] font-medium text-apple-ink-muted/80 dark:text-white/40">{t('chat.you')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">{t('chat.you')}</span>
                 </div>
                 <ArrowRightLeft className="w-4 h-4 shrink-0 text-apple-ink-muted/40 dark:text-white/25" />
                 <div className="flex-1 flex flex-col items-center gap-1 rounded-[14px] bg-status-success/5 dark:bg-status-success/5 border border-apple-divider/60 dark:border-apple-tile-3 p-2.5 min-w-0">
@@ -1148,7 +1148,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-full">
                     {session.partnerName || t('chat.pairedDevice')}
                   </span>
-                  <span className="text-[10px] font-medium text-apple-ink-muted/80 dark:text-white/40">{t('chat.otherDevice')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">{t('chat.otherDevice')}</span>
                 </div>
               </div>
               <div className="mt-3 text-[13px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
@@ -1203,7 +1203,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             exit={{ opacity: 0, y: -8, scale: 0.97 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
             role="status"
-            className="absolute top-[76px] sm:top-[80px] left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float flex items-center gap-2 text-[13.5px] font-semibold whitespace-nowrap"
+            className="absolute top-[76px] sm:top-[80px] left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float flex items-center gap-2 text-[13px] font-semibold whitespace-nowrap"
           >
             <ShareTextsLogo size={16} motion="complete" mono />
             {/* The moment names the DEVICE: "Connected to iPhone" — a real
@@ -1222,7 +1222,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             role="status"
             className="overflow-hidden bg-status-warning/10 border-b border-status-warning/20"
           >
-            <div data-testid="disconnect-banner" className="max-w-3xl 2xl:max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2 text-[14px] font-medium text-status-warning-ink dark:text-status-warning-ink-dark">
+            <div data-testid="disconnect-banner" className="max-w-3xl 2xl:max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2 text-[16px] font-medium text-status-warning-ink dark:text-status-warning-ink-dark">
               <span className="flex items-center gap-2 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-status-warning animate-pulse shrink-0" />
                 {/* min-w-0 lets the sentence wrap on narrow screens instead
@@ -1294,7 +1294,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           >
             <div data-testid="active-transfer-strip" className="mx-3 sm:mx-6 mt-2 px-3.5 py-2 rounded-[12px] bg-apple-parchment/80 dark:bg-white/[0.05] border border-apple-divider/50 dark:border-white/[0.07] flex items-center gap-2.5 min-w-0">
               <span className="w-1.5 h-1.5 rounded-full bg-apple-blue animate-pulse shrink-0" aria-hidden />
-              <span className="text-[12.5px] font-semibold text-apple-ink dark:text-white truncate min-w-0">{stripTransfer.name}</span>
+              <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate min-w-0">{stripTransfer.name}</span>
               <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/50 truncate min-w-0 flex-1">
                 {t(stripTransfer.isMe ? 'xfer.to' : 'xfer.from', { name: stripTransfer.isMe ? (session.partnerName || t('chat.pairedDevice')) : session.deviceName })}
                 {typeof stripTransfer.progress === 'number' && stripTransfer.progress > 0 && (
@@ -1302,7 +1302,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 )}
               </span>
               {activeCount > 1 && (
-                <span data-testid="transfer-count" className="shrink-0 px-2 py-0.5 rounded-full bg-apple-blue/10 text-apple-blue text-[11px] font-semibold tnum whitespace-nowrap">
+                <span data-testid="transfer-count" className="shrink-0 px-2 py-0.5 rounded-full bg-apple-blue/10 text-apple-blue text-[12px] font-semibold tnum whitespace-nowrap">
                   {t('xfer.multi', { n: activeCount })}
                 </span>
               )}
@@ -1352,7 +1352,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     </div>
                   </div>
                   {session.partnerName && (
-                    <p className="text-[14px] font-semibold text-apple-ink dark:text-white mt-5 text-center max-w-[300px] leading-relaxed">
+                    <p className="text-[16px] font-semibold text-apple-ink dark:text-white mt-5 text-center max-w-[300px] leading-relaxed">
                       {t('chat.empty.dest', { name: session.partnerName })}
                     </p>
                   )}
@@ -1377,7 +1377,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                         type="button"
                         data-testid={s.key}
                         onClick={s.run}
-                        className="inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-apple-divider dark:border-white/[0.12] bg-white/70 dark:bg-white/[0.05] text-[12.5px] font-semibold text-apple-ink/80 dark:text-white/70 hover:border-ember/40 hover:text-ember dark:hover:text-azure-400 active:scale-[0.97] transition-all"
+                        className="inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-apple-divider dark:border-white/[0.12] bg-white/70 dark:bg-white/[0.05] text-[12px] font-semibold text-apple-ink/80 dark:text-white/70 hover:border-ember/40 hover:text-ember dark:hover:text-azure-400 active:scale-[0.97] transition-all"
                       >
                         {t(s.key)}
                       </button>
@@ -1400,7 +1400,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     <React.Fragment key={msg.id}>
                       {showSep && (
                         <div aria-hidden="true" className="flex justify-center mt-4 mb-1">
-                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-semibold tracking-wide text-apple-ink-muted/80 dark:text-white/45">
+                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-semibold tracking-wide text-apple-ink-muted/80 dark:text-white/45">
                             {sepLabel}
                           </span>
                         </div>
@@ -1470,7 +1470,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 type="button"
                 onClick={copySelected}
                 disabled={selection.size === 0}
-                className="flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-full bg-white/15 dark:bg-black/10 text-[12.5px] font-semibold disabled:opacity-40 active:scale-95 transition-motion"
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-full bg-white/15 dark:bg-black/10 text-[12px] font-semibold disabled:opacity-40 active:scale-95 transition-motion"
               >
                 <Copy className="w-3.5 h-3.5" /> {t('select.copySelected')}
               </button>
@@ -1491,7 +1491,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               <div className="w-12 h-12 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center">
                 <ArrowUp className="w-5 h-5 text-ember dark:text-azure-400" />
               </div>
-              <span className="text-[15px] font-semibold text-apple-ink dark:text-white">{t('chat.drop.title')}</span>
+              <span className="text-[16px] font-semibold text-apple-ink dark:text-white">{t('chat.drop.title')}</span>
               <span className="text-[13px] text-apple-ink-muted dark:text-white/50">{t('chat.drop.subtitle')}</span>
             </div>
           </div>
@@ -1502,7 +1502,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           thumbs and browser chrome crowd it. */}
       <div className="p-3 sm:p-5 bg-white/85 dark:bg-night-900/92 border-t border-black/[0.06] dark:border-white/[0.04] shadow-[0_-12px_28px_-20px_rgba(31,27,21,0.45)] dark:shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.75)] z-10 pb-[max(env(safe-area-inset-bottom),10px)] sm:pb-5 relative">
         <form onSubmit={handleSend} className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col gap-2">
-          <div className="hidden sm:flex items-center justify-end gap-1.5 text-[11px] font-medium text-apple-ink-muted/70 dark:text-white/40 px-1">
+          <div className="hidden sm:flex items-center justify-end gap-1.5 text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/40 px-1">
             <kbd className="px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 font-sans">{t('composer.enter')}</kbd>
             <span>{t('composer.toSend')}</span>
             <span className="opacity-50">·</span>
@@ -1545,7 +1545,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           <AnimatePresence>
             {errorMsg && (
               <motion.div role="alert" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div data-testid="error-message" className="px-4 py-3 bg-status-danger/10 text-status-danger text-[14px] font-medium rounded-xl flex items-center gap-2">
+                <div data-testid="error-message" className="px-4 py-3 bg-status-danger/10 text-status-danger text-[16px] font-medium rounded-xl flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" /> {errorMsg}
                 </div>
               </motion.div>
@@ -1555,7 +1555,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               multi-KB pastes get honest feedback; ≥50 KB marks a large
               payload (it will travel chunked over the wire). */}
           {inputText.length >= 1024 && (
-            <div className="hidden sm:flex items-center justify-end gap-1.5 text-[11px] font-medium text-apple-ink-muted/70 dark:text-white/40 px-1" aria-live="polite">
+            <div className="hidden sm:flex items-center justify-end gap-1.5 text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/40 px-1" aria-live="polite">
               {isLargeInput && (
                 <span className="text-ember dark:text-azure-400 font-semibold">{t('composer.largePayload')}</span>
               )}
@@ -1609,7 +1609,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     [ClipboardPaste, 'composer.teach.paste'],
                     [Download, 'composer.teach.drop'],
                   ] as const).map(([Icon, key]) => (
-                    <span key={key} className="flex items-center gap-1 text-[11px] font-medium text-apple-ink-muted/60 dark:text-white/30 whitespace-nowrap">
+                    <span key={key} className="flex items-center gap-1 text-[12px] font-medium text-apple-ink-muted/60 dark:text-white/30 whitespace-nowrap">
                       <Icon className="w-3 h-3" /> {t(key)}
                     </span>
                   ))}
@@ -1658,7 +1658,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                           ) : (
                             <div className="w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[14px] bg-apple-parchment dark:bg-surface-dark-2 border border-apple-divider dark:border-apple-tile-3 flex flex-col items-center justify-center gap-0.5 p-1.5">
                               <FileTypeIcon name={a.name} mimeType={a.mimeType} size={15} />
-                              <span className="text-[9.5px] font-medium text-apple-ink dark:text-white truncate max-w-full">{a.name}</span>
+                              <span className="text-[12px] font-medium text-apple-ink dark:text-white truncate max-w-full">{a.name}</span>
                               <span className="text-[9px] text-apple-ink-muted">{formatBytes(a.size)}</span>
                             </div>
                           )}
@@ -1667,7 +1667,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       ))}
                     </AnimatePresence>
                   </div>
-                  <p className="text-[11px] font-medium text-apple-ink-muted mt-1">
+                  <p className="text-[12px] font-medium text-apple-ink-muted mt-1">
                     {t('attach.count', { count: attachments.length, max: MAX_ATTACHMENTS })}
                   </p>
                 </motion.div>
@@ -1696,7 +1696,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   <div aria-hidden="true" className="flex items-center gap-2 mx-3 mt-2.5 mb-1 rounded-[12px] px-2.5 py-1.5 bg-apple-blue/[0.07] dark:bg-apple-blue/[0.12] border border-apple-blue/15">
                     <Link2 className="w-3.5 h-3.5 text-apple-blue shrink-0" />
                     <span className="text-[12px] font-semibold text-apple-blue truncate">{(() => { try { return new URL(composerLinkUrl).host; } catch { return composerLinkUrl; } })()}</span>
-                    <span className="text-[11px] font-medium text-apple-ink-muted dark:text-white/40 truncate flex-1 min-w-0" dir="ltr">{composerLinkUrl}</span>
+                    <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/40 truncate flex-1 min-w-0" dir="ltr">{composerLinkUrl}</span>
                   </div>
                 </motion.div>
               )}
@@ -1722,10 +1722,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     className="flex items-center gap-0.5 px-1.5 pt-1.5"
                   >
                     {([
-                      ['bold', t('edit.bold'), <span key="b" className="text-[14px] font-bold leading-none">B</span>, [modKey, 'B']],
-                      ['italic', t('edit.italic'), <span key="i" className="text-[14px] font-semibold italic leading-none">I</span>, [modKey, 'I']],
+                      ['bold', t('edit.bold'), <span key="b" className="text-[16px] font-bold leading-none">B</span>, [modKey, 'B']],
+                      ['italic', t('edit.italic'), <span key="i" className="text-[16px] font-semibold italic leading-none">I</span>, [modKey, 'I']],
                       ['code', t('edit.code'), <span key="c" className="font-mono text-[12px] leading-none">{'</>'}</span>, [modKey, 'E']],
-                      ['list', t('edit.list'), <span key="l" className="text-[15px] leading-none">≡</span>, [modKey, '⇧', 'L']],
+                      ['list', t('edit.list'), <span key="l" className="text-[16px] leading-none">≡</span>, [modKey, '⇧', 'L']],
                     ] as const).map(([kind, label, glyph, keys]) => (
                       <Tooltip key={kind} label={label} keys={[...keys]}>
                         <button
@@ -1892,8 +1892,8 @@ function PairingMini({ secret, createdAt, className }: { secret: string, created
   return (
     <div className={cn("rounded-[14px] bg-apple-parchment/60 dark:bg-apple-tile-1 border border-apple-divider/60 dark:border-apple-tile-3 p-3", className)}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10.5px] font-semibold tracking-widest uppercase text-apple-ink-muted">{t('details.rejoinLabel')}</span>
-        <span className={cn("text-[11px] font-medium tnum", remaining <= 3 ? "text-status-danger" : "text-apple-ink-muted")}>
+        <span className="text-[12px] font-semibold tracking-widest uppercase text-apple-ink-muted">{t('details.rejoinLabel')}</span>
+        <span className={cn("text-[12px] font-medium tnum", remaining <= 3 ? "text-status-danger" : "text-apple-ink-muted")}>
           {Math.ceil(remaining)}s
         </span>
       </div>
@@ -1907,7 +1907,7 @@ function PairingMini({ secret, createdAt, className }: { secret: string, created
           </React.Fragment>
         ))}
       </div>
-      <p className="text-[11px] text-apple-ink-muted mt-2 leading-snug">
+      <p className="text-[12px] text-apple-ink-muted mt-2 leading-snug">
         {t('details.rejoinNote')}
       </p>
     </div>

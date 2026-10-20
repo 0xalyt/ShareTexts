@@ -376,10 +376,10 @@ export function HeroDeviceDemo({
               transition={{ duration: reduced ? 0 : 0.28, ease: EASE }}
               className="absolute inset-x-0 top-0"
             >
-              <p className="text-[15px] font-medium leading-snug text-apple-ink dark:text-white sm:text-[16.5px]">
+              <p className="text-[16px] font-medium leading-snug text-apple-ink dark:text-white sm:text-[17px]">
                 {caption}
               </p>
-              <p className="mt-0.5 text-[13px] leading-snug text-apple-ink-muted dark:text-white/50 sm:text-[14px]">
+              <p className="mt-0.5 text-[13px] leading-snug text-apple-ink-muted dark:text-white/50 sm:text-[16px]">
                 {captionSub}
               </p>
             </motion.div>
@@ -466,7 +466,7 @@ function CodeTiles({
             className={cn(
               'flex items-center justify-center rounded-[8px] transition-colors duration-300',
               size === 'md'
-                ? 'h-[22px] text-[11px]'
+                ? 'h-[22px] text-[12px]'
                 : 'h-[16px] text-[8px]',
               on
                 ? cn(
@@ -516,7 +516,7 @@ function LaptopScreen({
         <div className="hidden w-[32%] shrink-0 flex-col gap-[8px] border-r border-apple-divider/70 bg-apple-parchment/60 p-[9px] dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex">
           <div className="flex items-center gap-[4px]">
             <ShareTextsLogo size={11} />
-            <span className="font-display text-[9.5px] font-bold tracking-[-0.02em]">ShareTexts</span>
+            <span className="font-display text-[12px] font-bold tracking-[-0.02em]">ShareTexts</span>
           </div>
 
           <div className={cn(
@@ -564,7 +564,7 @@ function LaptopScreen({
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex shrink-0 items-center justify-between gap-2 border-b border-apple-divider/70 px-[10px] py-[7px] dark:border-white/[0.06]">
             <span className="min-w-0">
-              <span className="block truncate text-[10px] font-semibold leading-tight">{t('demo.room')}</span>
+              <span className="block truncate text-[12px] font-semibold leading-tight">{t('demo.room')}</span>
               <span className="block truncate text-[8px] leading-tight text-apple-ink-muted dark:text-white/40">
                 {linked ? t('demo.twoDevices') : t('demo.oneDevice')}
               </span>
@@ -621,7 +621,7 @@ function LaptopScreen({
                   transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                   className="flex flex-col items-end gap-[4px]"
                 >
-                  <span className="max-w-[80%] rounded-[10px] rounded-br-[4px] bg-ember px-[9px] py-[6px] text-[10px] leading-snug text-white shadow-[0_2px_6px_-2px_rgba(240,100,19,0.5)]">
+                  <span className="max-w-[80%] rounded-[10px] rounded-br-[4px] bg-ember px-[9px] py-[6px] text-[12px] leading-snug text-white shadow-[0_2px_6px_-2px_rgba(240,100,19,0.5)]">
                     {note}
                   </span>
                   <FileChip arrived={arrived} />
@@ -633,7 +633,7 @@ function LaptopScreen({
           {/* Composer — the payload, composed and waiting for the visitor. */}
           <div className="shrink-0 border-t border-apple-divider/70 px-[9px] py-[7px] dark:border-white/[0.06]">
             <div className="flex items-center gap-[7px]">
-              <span className="flex min-w-0 flex-1 items-center gap-[6px] rounded-full bg-black/[0.045] px-[8px] py-[5px] text-[9.5px] dark:bg-white/[0.06]">
+              <span className="flex min-w-0 flex-1 items-center gap-[6px] rounded-full bg-black/[0.045] px-[8px] py-[5px] text-[12px] dark:bg-white/[0.06]">
                 <Paperclip className="h-[9px] w-[9px] shrink-0 text-apple-ink-muted dark:text-white/40" />
                 <span className="min-w-0 flex-1 truncate text-apple-ink dark:text-white">
                   {sent ? (
@@ -694,7 +694,7 @@ function PhoneScreen({
               <ArrowLeft className="h-[9px] w-[9px] text-apple-ink-muted dark:text-white/45" />
               <span className="font-display text-[8.5px] font-bold tracking-[-0.02em] text-apple-ink dark:text-white">ShareTexts</span>
             </div>
-            <span className="text-[10px] font-semibold leading-tight text-apple-ink dark:text-white">{t('demo.joinTitle')}</span>
+            <span className="text-[12px] font-semibold leading-tight text-apple-ink dark:text-white">{t('demo.joinTitle')}</span>
             <span className="mt-[3px] text-[7.5px] leading-tight text-apple-ink-muted dark:text-white/45">{t('demo.joinHint')}</span>
             <div className="mt-[9%]">
               {/* The tiles light one by one — the code being typed in while

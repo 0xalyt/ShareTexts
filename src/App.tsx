@@ -59,8 +59,8 @@ function DisconnectToast({ reason, onDone }: { reason: string, onDone: () => voi
         <DoorOpen className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[13.5px] font-semibold text-apple-ink dark:text-white leading-snug">{heading}</span>
-        <span className="block text-[12.5px] text-apple-ink-muted dark:text-white/55 leading-snug mt-0.5">{copy}</span>
+        <span className="block text-[13px] font-semibold text-apple-ink dark:text-white leading-snug">{heading}</span>
+        <span className="block text-[12px] text-apple-ink-muted dark:text-white/55 leading-snug mt-0.5">{copy}</span>
       </span>
       <button
         onClick={onDone}
@@ -140,8 +140,8 @@ function CapabilityGate({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center text-center px-6 bg-apple-canvas dark:bg-night-900">
       <ShareTextsLogo size={44} mono />
-      <h1 className="mt-5 text-[19px] font-semibold text-apple-ink dark:text-white max-w-[420px]">{t('compat.title')}</h1>
-      <p className="mt-3 text-[14px] text-apple-ink-muted dark:text-white/55 leading-relaxed max-w-[440px]">{t('compat.body')}</p>
+      <h1 className="st-h3 mt-5 text-apple-ink dark:text-white max-w-[420px]">{t('compat.title')}</h1>
+      <p className="mt-3 text-[16px] text-apple-ink-muted dark:text-white/55 leading-relaxed max-w-[440px]">{t('compat.body')}</p>
     </div>
   );
 }
@@ -181,8 +181,8 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
         <div className="w-[76px] h-[76px] rounded-[24px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] flex items-center justify-center mb-7">
           <ShareTextsLogo size={36} motion="connecting" className="opacity-90" />
         </div>
-        <h2 className="st-display text-[30px] sm:text-[34px] text-apple-ink dark:text-white mb-2.5">Something went wrong</h2>
-        <p className="text-[15px] text-apple-ink-muted dark:text-white/60 max-w-sm mb-8 leading-relaxed">
+        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-2.5">Something went wrong</h2>
+        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 max-w-sm mb-8 leading-relaxed">
           ShareTexts couldn't load properly. Your data is safe — nothing was lost.
         </p>
         <TactileButton onClick={onReset} variant="primary" size="lg">Return to ShareTexts</TactileButton>
@@ -306,10 +306,10 @@ function AppContent() {
               <span aria-hidden className="st-horizon absolute inset-x-0 bottom-0 h-[56%] opacity-90" />
               <ShareTextsLogo size={36} className="relative" />
             </div>
-            <span className="absolute -top-1.5 -right-2.5 px-2 py-0.5 rounded-full bg-ember text-white text-[11px] font-bold shadow-sm">404</span>
+            <span className="absolute -top-1.5 -right-2.5 px-2 py-0.5 rounded-full bg-ember text-white text-[12px] font-bold shadow-sm">404</span>
           </div>
-          <h2 className="st-display text-[30px] sm:text-[34px] text-apple-ink dark:text-white mb-2.5">{t('app.404.title')}</h2>
-          <p className="text-[15px] text-apple-ink-muted dark:text-white/60 max-w-sm mb-8 leading-relaxed">{t('app.404.body')}</p>
+          <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-2.5">{t('app.404.title')}</h2>
+          <p className="text-[16px] text-apple-ink-muted dark:text-white/60 max-w-sm mb-8 leading-relaxed">{t('app.404.body')}</p>
           <div className="flex items-center gap-3 flex-wrap justify-center">
             <TactileButton onClick={() => { window.location.href = '/'; }} variant="primary" size="lg">{t('app.404.cta')}</TactileButton>
             <TactileButton href="/docs" variant="secondary" size="lg">{t('nav.docs')}</TactileButton>
@@ -335,7 +335,7 @@ function SkipLink() {
   const { t } = useI18n();
   return (
     // Keyboard users jump past the hero to main content
-    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-azure-600 focus:text-white focus:rounded-lg focus:text-[14px] focus:font-semibold">
+    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-azure-600 focus:text-white focus:rounded-lg focus:text-[16px] focus:font-semibold">
       {t('app.skip')}
     </a>
   );

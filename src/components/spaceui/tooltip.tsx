@@ -64,7 +64,7 @@ export function Tooltip({ label, keys, children, className }: TooltipProps) {
               {keys.map((k) => (
                 <kbd
                   key={k}
-                  className="rounded-[4px] bg-white/15 px-1.5 py-0.5 font-sans text-[10.5px] font-semibold text-white/80"
+                  className="rounded-[4px] bg-white/15 px-1.5 py-0.5 font-sans text-[12px] font-semibold text-white/80"
                 >
                   {k}
                 </kbd>

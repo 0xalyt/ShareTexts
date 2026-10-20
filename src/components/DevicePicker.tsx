@@ -31,7 +31,7 @@ function LinkBadge({ link }: { link: PeerDevice['link'] }) {
   switch (link) {
     case 'connected':
       return (
-        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+        <span className="inline-flex items-center gap-1 text-[12px] text-emerald-600 dark:text-emerald-400">
           <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
           {t('picker.ready')}
         </span>
@@ -39,28 +39,28 @@ function LinkBadge({ link }: { link: PeerDevice['link'] }) {
     case 'connecting':
     case 'reconnecting':
       return (
-        <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
+        <span className="inline-flex items-center gap-1 text-[12px] text-amber-600 dark:text-amber-400">
           <SpinLoader size={12} className="text-current" aria-hidden="true" />
           {t('picker.connecting')}
         </span>
       );
     case 'offline':
       return (
-        <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
+        <span className="inline-flex items-center gap-1 text-[12px] text-neutral-400">
           <CircleSlash className="h-3 w-3" aria-hidden="true" />
           {t('picker.offline')}
         </span>
       );
     case 'failed':
       return (
-        <span className="inline-flex items-center gap-1 text-[11px] text-red-600 dark:text-red-400">
+        <span className="inline-flex items-center gap-1 text-[12px] text-red-600 dark:text-red-400">
           <RefreshCw className="h-3 w-3" aria-hidden="true" />
           {t('picker.failed')}
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
+        <span className="inline-flex items-center gap-1 text-[12px] text-neutral-400">
           <CircleDashed className="h-3 w-3" aria-hidden="true" />
           {t('picker.idle')}
         </span>
@@ -218,7 +218,7 @@ export function DevicePicker({
                       {p.name}
                     </span>
                     {p.isSelf && (
-                      <span className="rounded-full bg-black/6 px-1.5 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10 dark:text-neutral-400">
+                      <span className="rounded-full bg-black/6 px-1.5 py-0.5 text-[12px] text-neutral-500 dark:bg-white/10 dark:text-neutral-400">
                         {t('picker.thisDevice')}
                       </span>
                     )}

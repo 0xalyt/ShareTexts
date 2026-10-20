@@ -245,7 +245,7 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
-              className="mt-2 text-[13.5px] font-semibold text-apple-ink dark:text-white/85"
+              className="mt-2 text-[13px] font-semibold text-apple-ink dark:text-white/85"
               aria-live="polite"
             >
               {status}

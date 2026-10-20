@@ -575,9 +575,9 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                       <DeviceArt kind={d.kind} model={d.model} gpu={d.gpu} size={36} />
                     </span>
                     <span className="flex-1 flex flex-col min-w-0 leading-tight">
-                      <span className="text-[13.5px] font-semibold text-apple-ink dark:text-white truncate">{d.name}</span>
+                      <span className="text-[13px] font-semibold text-apple-ink dark:text-white truncate">{d.name}</span>
                       <span className={cn(
-                        'text-[12.5px] font-medium flex items-center gap-1 truncate',
+                        'text-[12px] font-medium flex items-center gap-1 truncate',
                         busy
                           ? 'text-ember dark:text-azure-400 font-semibold'
                         : 'text-apple-ink-muted dark:text-white/45'
@@ -844,7 +844,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                 <div className="mt-1.5 px-3.5 py-3 rounded-[14px] bg-apple-parchment/60 dark:bg-white/[0.03] border border-apple-divider/40 dark:border-white/[0.06]">
                   {(['why1', 'why2', 'why3', 'why4', 'why5'] as const).map((k, i) => (
                     <li key={k} className="flex items-start gap-2.5 py-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 leading-snug">
-                      <span className="shrink-0 w-4 h-4 mt-px rounded-full bg-apple-divider/50 dark:bg-white/[0.08] flex items-center justify-center text-[10px] font-bold text-apple-ink-muted dark:text-white/50 tnum" aria-hidden>{i + 1}</span>
+                      <span className="shrink-0 w-4 h-4 mt-px rounded-full bg-apple-divider/50 dark:bg-white/[0.08] flex items-center justify-center text-[12px] font-bold text-apple-ink-muted dark:text-white/50 tnum" aria-hidden>{i + 1}</span>
                       {t(`nearby.${k}`)}
                     </li>
                   ))}

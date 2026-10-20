@@ -162,7 +162,7 @@ function MenuItem({ icon, label, onClick, delay = 0 }: MenuItemProps) {
       <span className="w-8 h-8 rounded-full bg-black/[0.05] dark:bg-white/[0.08] flex items-center justify-center text-apple-ink dark:text-white/85 shrink-0">
         {icon}
       </span>
-      <span className="text-[14px] font-semibold text-apple-ink dark:text-white">{label}</span>
+      <span className="text-[16px] font-semibold text-apple-ink dark:text-white">{label}</span>
     </motion.button>
   );
 }

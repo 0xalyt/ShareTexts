@@ -156,7 +156,7 @@ export function ShareMenu({
           'flex items-center justify-center transition-colors active:scale-[0.97]',
           variant === 'pill'
             ? cn(
-                'gap-2 h-11 w-full px-5 rounded-full text-[13.5px] font-semibold',
+                'gap-2 h-11 w-full px-5 rounded-full text-[13px] font-semibold',
                 pillTone === 'brand'
                   ? 'bg-ember text-white shadow-[0_3px_0_0_var(--st-btn-primary-edge)] hover:brightness-[1.03] active:translate-y-[2px] active:shadow-[0_1px_0_0_var(--st-btn-primary-edge)]'
                   : 'bg-apple-parchment dark:bg-white/[0.08] text-apple-ink dark:text-white hover:bg-apple-divider/60 dark:hover:bg-white/[0.12]'
@@ -187,7 +187,7 @@ export function ShareMenu({
             {/* micro-caption — the original's tracked-out label above the rail */}
             <p
               aria-hidden
-              className="mb-2 px-0.5 text-[10px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
+              className="mb-2 px-0.5 text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
             >
               {t('action.share')}
             </p>
@@ -210,7 +210,7 @@ export function ShareMenu({
                     )}
                   >
                     <span className="[&>svg]:w-4 [&>svg]:h-4">{cell.icon}</span>
-                    <span className="w-full text-center text-[9.5px] font-semibold leading-tight truncate">
+                    <span className="w-full text-center text-[12px] font-semibold leading-tight truncate">
                       {cell.label}
                     </span>
                   </button>

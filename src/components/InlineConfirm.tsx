@@ -107,7 +107,7 @@ export function InlineConfirm({
         'relative overflow-hidden select-none rounded-full font-semibold transition-colors',
         'flex items-center justify-center gap-1.5 active:scale-[0.96] transition-transform',
         size === 'sm'
-          ? 'min-h-[40px] px-3 text-[12.5px]'
+          ? 'min-h-[40px] px-3 text-[12px]'
           : 'min-h-[44px] px-3.5 text-[13px]',
         armed
           ? 'text-white'

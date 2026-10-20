@@ -802,12 +802,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   tracker is passive status, so it lives ABOVE the action
                   cluster — status never interrupts the Send/Receive flow
                   (usability audit #6). */}
-              <h1 className="st-display order-1 text-[34px] sm:text-[40px] lg:text-[48px] xl:text-[52px] text-apple-ink dark:text-white text-center sm:text-left text-balance">
+              <h1 className="st-display order-1 text-[clamp(56px,6vw,64px)] text-apple-ink dark:text-white text-center sm:text-left text-balance">
                 {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
               </h1>
               {/* whitespace-pre-line honors the subtitle's deliberate line
-                  break ("No app. No account. No cable." / "Just open …"). */}
-              <p className="st-h-sub order-2 mt-3.5 text-[16.5px] sm:text-[18px] lg:text-[19px] text-apple-ink-muted dark:text-white/60 font-medium leading-relaxed max-w-[40ch] text-center sm:text-left whitespace-pre-line">
+                  break ("No app. No account. No cable." / "Just open …").
+                  17px is the body ladder's top step (the hero subhead — the
+                  one written-reason size above 16). */}
+              <p className="st-h-sub order-2 mt-3.5 text-[17px] text-apple-ink-muted dark:text-white/60 font-medium leading-relaxed max-w-[40ch] text-center sm:text-left whitespace-pre-line">
                 {t('home.subtitle')}
               </p>
               {/* Live activity tracker — bare (NO pill): a breathing dot, the
@@ -832,11 +834,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <span className="relative w-1.5 h-1.5 rounded-full bg-status-success shadow-[0_0_6px_rgba(52,199,89,0.7)]" />
                 </span>
                 {nearbyStatus ? (
-                  <span className="text-[13.5px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
+                  <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
                 ) : roomsCreated != null ? (
                   <>
                     <span className="text-[16px] font-bold text-apple-ink/90 dark:text-white/90 tnum leading-none">{roomsCreated.toLocaleString()}</span>
-                    <span className="text-[13.5px] font-medium text-apple-ink-muted/85 dark:text-white/50 leading-none">{t('home.roomsMade')}</span>
+                    <span className="text-[13px] font-medium text-apple-ink-muted/85 dark:text-white/50 leading-none">{t('home.roomsMade')}</span>
                   </>
                 ) : null}
               </motion.div>
@@ -847,13 +849,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <div className="order-3 mt-6 grid grid-cols-2 gap-x-3 gap-y-1 max-w-[400px] mx-auto sm:mx-0">
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
-                  <span className="text-[12.5px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
                 </div>
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   {/* One filled primary and one quiet surface keep the two
                       equally valid actions distinct at a glance. */}
                   <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
-                  <span className="text-[12.5px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.receiveHint')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.receiveHint')}</span>
                 </div>
               </div>
               {/* Stay Connected re-entry: the room this device promised to
@@ -944,7 +946,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     on this page: it announces a section instead of saying
                     something. Same words, same order, no rule, sentence case,
                     so the line reads as a thought rather than a heading. */}
-                <p className="flex items-center gap-1.5 text-[12.5px] text-apple-ink-muted/70 dark:text-white/40">
+                <p className="flex items-center gap-1.5 text-[12px] text-apple-ink-muted/70 dark:text-white/40">
                   <Clock3 className="w-3.5 h-3.5 shrink-0" aria-hidden />
                   <span className="font-medium text-apple-ink-muted dark:text-white/55">{t('space.entryTitle')}</span>
                   <span aria-hidden className="opacity-40">·</span>
@@ -971,15 +973,15 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                         <Clock3 className="w-4 h-4" />
                       </span>
                       <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-                        <span className="text-[13.5px] font-semibold text-apple-ink dark:text-white/85 truncate">{r.name}</span>
+                        <span className="text-[13px] font-semibold text-apple-ink dark:text-white/85 truncate">{r.name}</span>
                         <span className={cn(
-                          'text-[11.5px] font-medium tabular-nums',
+                          'text-[12px] font-medium tabular-nums',
                           urgent ? 'text-ember dark:text-azure-400 font-semibold' : 'text-apple-ink-muted/80 dark:text-white/40'
                         )}>
                           {t('space.closesIn', { time: remainingShortOf(msLeft) })}
                         </span>
                       </span>
-                      <span className="shrink-0 inline-flex items-center gap-0.5 text-[12.5px] font-semibold text-azure-600 dark:text-azure-400">
+                      <span className="shrink-0 inline-flex items-center gap-0.5 text-[12px] font-semibold text-azure-600 dark:text-azure-400">
                         {t('space.reopen')}
                         <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
                       </span>
@@ -1076,7 +1078,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {isCreating && !session.secret ? (
                 <div className="flex flex-col items-center py-8">
                   <ShareTextsLogo size={20} motion="connecting" />
-                  <p className="text-[14px] font-medium text-apple-ink-muted dark:text-white/50">{t('create.creating')}</p>
+                  <p className="text-[16px] font-medium text-apple-ink-muted dark:text-white/50">{t('create.creating')}</p>
                 </div>
               ) : (
                 <>
@@ -1153,7 +1155,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <p className="mt-4 text-[12px] text-apple-ink-muted/60 dark:text-white/35 text-center">{t('receive.note')}</p>
                 {/* Scan QR — the alternative path, parked at the BOTTOM
                     of the code screen: type first, scan as fallback. */}
-                <button onClick={() => setShowQRScan(true)} className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 hover:bg-apple-parchment dark:hover:bg-white/[0.08] rounded-full text-[14px] font-semibold text-apple-ink dark:text-white min-h-[48px] transition-colors active:scale-[0.97]">
+                <button onClick={() => setShowQRScan(true)} className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 hover:bg-apple-parchment dark:hover:bg-white/[0.08] rounded-full text-[16px] font-semibold text-apple-ink dark:text-white min-h-[48px] transition-colors active:scale-[0.97]">
                   <QrCode className="w-4 h-4 text-apple-ink-muted dark:text-white/60" /> {t('receive.scan')}
                 </button>
               </motion.div>
@@ -1180,7 +1182,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     cause with an action beats a spinner that outlives hope. */}
                 {stuckConnecting ? (
                   <div className="mt-5 flex flex-col items-center gap-3">
-                    <p className="text-[13.5px] font-medium text-apple-ink-muted dark:text-white/55 max-w-[280px] leading-relaxed">
+                    <p className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 max-w-[280px] leading-relaxed">
                       {longStuckConnecting ? t('connect.stuckLong') : t('connect.stuck')}
                     </p>
                     {!longStuckConnecting && session.isCreator && (
@@ -1233,14 +1235,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     }}
                     aria-label={t('pair.renameField')}
                     maxLength={32}
-                    className="min-w-0 flex-1 text-[14px] font-semibold text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none px-0.5 py-1"
+                    className="min-w-0 flex-1 text-[16px] font-semibold text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none px-0.5 py-1"
                   />
                 ) : (
                   <button
                     onClick={startEditName}
                     title={t('pair.renameTitle')}
                     aria-label={t('pair.renameAria', { name: session.deviceName })}
-                    className="group min-w-0 flex-1 min-h-[44px] flex items-center gap-1.5 text-left text-[14px] font-semibold text-apple-ink dark:text-white hover:text-apple-ink dark:hover:text-white transition-colors"
+                    className="group min-w-0 flex-1 min-h-[44px] flex items-center gap-1.5 text-left text-[16px] font-semibold text-apple-ink dark:text-white hover:text-apple-ink dark:hover:text-white transition-colors"
                   >
                     <span className="truncate">{session.deviceName}</span>
                     <Pencil className="w-3 h-3 shrink-0 text-apple-ink-muted/50 dark:text-white/35 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity" />
@@ -1250,7 +1252,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
 
               {/* One-time notice when the auto-disambiguation renamed us. */}
                 {session.nameAutoAdjusted && !dismissedNameNotice && (
-                  <div role="status" className="st-band w-full sm:max-w-[340px] flex items-start gap-2 text-[12.5px] leading-snug">
+                  <div role="status" className="st-band w-full sm:max-w-[340px] flex items-start gap-2 text-[12px] leading-snug">
                     <Info className="w-3.5 h-3.5 text-ember dark:text-azure-400 shrink-0 mt-px" />
                     <span className="flex-1">
                       {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-semibold text-apple-ink dark:text-white">{session.deviceName}</span>{parts[1]}</>); })()}
@@ -1313,7 +1315,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 >
                   <span className="flex flex-col min-w-0">
                     <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{copiedLink ? t('conn.inviteCopied') : t('conn.invite')}</span>
-                    <span className="text-[11.5px] text-apple-ink-muted dark:text-white/45 truncate">{t('conn.inviteHint')}</span>
+                    <span className="text-[12px] text-apple-ink-muted dark:text-white/45 truncate">{t('conn.inviteHint')}</span>
                   </span>
                   <Link2 className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/50" />
                 </button>
@@ -1391,7 +1393,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/55">
               {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
             </span>
-            <span className="text-[11.5px] font-medium leading-none text-apple-ink-muted/90 dark:text-white/50">
+            <span className="text-[12px] font-medium leading-none text-apple-ink-muted/90 dark:text-white/50">
               © {new Date().getFullYear()} ShareTexts
             </span>
           </div>
@@ -1463,7 +1465,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             className="col-span-2 inline-flex min-h-[40px] min-w-[40px] -my-2 w-fit items-center justify-center gap-1.5 px-2.5 justify-self-start rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors md:col-span-1 md:my-0 md:justify-self-end"
           >
             <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-            <span className="hidden sm:inline text-[12.5px] font-semibold">x.com/0xalyt</span>
+            <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
           </a>
         </div>
     </footer>
@@ -1493,7 +1495,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           className="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] -my-2.5 px-2.5 rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors"
         >
           <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-          <span className="hidden sm:inline text-[12.5px] font-semibold">x.com/0xalyt</span>
+          <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
         </a>
       </div>
     </footer>
@@ -1603,13 +1605,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* Room-aware header (F13): a 3+ device room leads with the
                     device COUNT — never "Connected to Windows PC" for a whole
                     room. The two-device room keeps the partner's name. */}
-                <span className="text-[12.5px] font-semibold text-apple-ink dark:text-white truncate max-w-[130px]">
+                <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-[130px]">
                   {(session.peers?.filter(p => !p.isSelf).length ?? 0) > 1
                     ? t('room.deviceCount', { count: String((session.peers?.length ?? 0)) })
                     : (session.partnerName || t('chat.pairedDevice'))}
                 </span>
                 {(session.peers?.filter(p => !p.isSelf).length ?? 0) > 1 ? (
-                  <span data-testid="room-device-count" className="text-[10.5px] font-medium text-apple-ink-muted dark:text-white/45">
+                  <span data-testid="room-device-count" className="text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
                     {(() => {
                       const list = session.peers?.filter(p => !p.isSelf) ?? [];
                       const parts: string[] = [];
@@ -1627,7 +1629,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     })()}
                   </span>
                 ) : (
-                <span className={cn("text-[10.5px] font-medium", session.connectionType === 'disconnected' ? "text-status-warning" : session.connectionType === 'connecting' ? "text-status-warning" : "text-status-success")}>
+                <span className={cn("text-[12px] font-medium", session.connectionType === 'disconnected' ? "text-status-warning" : session.connectionType === 'connecting' ? "text-status-warning" : "text-status-success")}>
                   {session.connectionType === 'disconnected'
                     ? t('chat.offline')
                     : session.connectionType === 'connecting'
@@ -1727,7 +1729,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {[t('room.step.1'), t('room.step.2'), t('room.step.3')].map((step, i) => (
                       <div key={i} className="flex items-center gap-3">
                         <span className="shrink-0 w-7 h-7 rounded-full bg-ember/[0.1] dark:bg-ember/[0.16] text-ember dark:text-azure-400 text-[13px] font-bold flex items-center justify-center">{i + 1}</span>
-                        <span className="text-[14px] font-medium text-apple-ink/85 dark:text-white/65 leading-snug">{step}</span>
+                        <span className="text-[16px] font-medium text-apple-ink/85 dark:text-white/65 leading-snug">{step}</span>
                       </div>
                     ))}
                   </div>
@@ -1761,11 +1763,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       />
                     </div>
                   )}
-                  <p className="text-[15px] font-semibold text-apple-ink dark:text-white mb-1.5">
+                  <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-1.5">
                     {panelMode === 'sending' && (isCreating && !session.secret ? t('create.creating') : t('room.created'))}
                     {panelMode === 'receiving' && t('room.waiting')}
                   </p>
-                  <p className="text-[13.5px] text-apple-ink-muted dark:text-white/50 max-w-[300px] leading-relaxed mb-7">
+                  <p className="text-[13px] text-apple-ink-muted dark:text-white/50 max-w-[300px] leading-relaxed mb-7">
                     {panelMode === 'sending' && (isCreating && !session.secret ? t('room.setup') : t('room.sendHint'))}
                     {panelMode === 'receiving' && t('room.receiveHint')}
                   </p>
@@ -1777,7 +1779,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {[t('room.step.1'), t('room.step.2'), t('room.step.3')].map((step, i) => (
                       <li key={i} className="flex items-start gap-3">
                         <span className="shrink-0 w-6 h-6 rounded-full bg-ember/[0.12] dark:bg-azure-400/[0.16] text-ember dark:text-azure-400 text-[12px] font-bold flex items-center justify-center mt-px">{i + 1}</span>
-                        <span className="text-[13.5px] font-medium text-apple-ink/85 dark:text-white/70 leading-snug">{step}</span>
+                        <span className="text-[13px] font-medium text-apple-ink/85 dark:text-white/70 leading-snug">{step}</span>
                       </li>
                     ))}
                   </ol>
@@ -1792,18 +1794,18 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <div className="mt-3.5 grid grid-cols-3 gap-2.5" aria-hidden>
                       <span className="st-glyph st-glyph-ember aspect-[4/3] flex-col gap-1.5">
                         <ImageIcon className="w-4.5 h-4.5" />
-                        <span className="text-[11px] font-semibold leading-none">{t('attach.photos')}</span>
+                        <span className="text-[12px] font-semibold leading-none">{t('attach.photos')}</span>
                       </span>
                       <span className="st-glyph aspect-[4/3] flex-col gap-1.5">
                         <FileIcon className="w-4.5 h-4.5" />
-                        <span className="text-[11px] font-semibold leading-none">{t('attach.files')}</span>
+                        <span className="text-[12px] font-semibold leading-none">{t('attach.files')}</span>
                       </span>
                       <span className="st-glyph aspect-[4/3] flex-col gap-1.5">
                         <Link2 className="w-4.5 h-4.5" />
-                        <span className="text-[11px] font-semibold leading-none">{t('composer.teach.paste')}</span>
+                        <span className="text-[12px] font-semibold leading-none">{t('composer.teach.paste')}</span>
                       </span>
                     </div>
-                    <p className="mt-3.5 text-[12.5px] leading-relaxed text-apple-ink-muted dark:text-white/50">
+                    <p className="mt-3.5 text-[12px] leading-relaxed text-apple-ink-muted dark:text-white/50">
                       {t('composer.teach')}
                     </p>
                   </div>
@@ -1943,7 +1945,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/50 dark:bg-black/70 flex items-center justify-center p-4" onClick={() => setShowQRScan(false)}>
             <motion.div ref={qrScanTrapRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ type: 'spring', bounce: 0, duration: 0.35 }} onClick={e => e.stopPropagation()} className="w-full max-w-[360px] bg-white dark:bg-surface-dark rounded-[24px] p-6 shadow-2xl relative" role="dialog" aria-modal="true" aria-label={t('receive.scan')}>
               <button onClick={() => setShowQRScan(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors z-10" aria-label={t('common.close')}><X className="w-4 h-4" /></button>
-              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[10px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
+              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
               <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.scan.title')}</h3>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/50 mb-4">{t('qr.scan.body')}</p>
               {/* Skeleton, not a text spinner: the lazy camera chunk loads in
@@ -1979,8 +1981,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   close/Esc controls — instruction text can never run under
                   them again. */}
               <button onClick={() => setShowQROverlay(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors" aria-label={t('common.close')}><X className="w-4 h-4" /></button>
-              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[10px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
-              <p className="text-[15px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.display.title')}</p>
+              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
+              <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.display.title')}</p>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/60 mb-4 leading-relaxed">
                 {(() => { const parts = t('qr.display.body', { receive: '\u0000' }).split('\u0000'); return (<>{parts[0]}<strong className="text-apple-ink dark:text-white">{t('qr.display.receive')}</strong>{parts[1]}</>); })()}
               </p>
@@ -2002,7 +2004,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <button
                   onClick={() => { void copyLink(); }}
                   data-testid="qr-copy"
-                  className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-apple-parchment dark:bg-white/[0.07] text-[13.5px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.98]"
+                  className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-apple-parchment dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.98]"
                 >
                   {copiedLink ? <Check className="w-4 h-4 text-status-success" /> : <Copy className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />}
                   {copiedLink ? t('action.copied') : t('action.copy')}

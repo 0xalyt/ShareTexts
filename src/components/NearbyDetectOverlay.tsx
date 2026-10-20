@@ -123,7 +123,7 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
         'bg-white/70 dark:bg-black/40 border border-black/[0.05] dark:border-white/10',
         target
           ? 'text-[12px] font-bold text-apple-ink dark:text-white'
-          : 'text-[11px] font-semibold text-apple-ink/80 dark:text-white/70'
+          : 'text-[12px] font-semibold text-apple-ink/80 dark:text-white/70'
       )}>
         {device.name}
         {target && stayBadge && (
@@ -296,7 +296,7 @@ export function NearbyDetectOverlay({
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.06, duration: 0.25 }}
-                        className="text-[11px] font-bold uppercase tracking-[0.08em] text-ember dark:text-azure-400"
+                        className="text-[12px] font-bold uppercase tracking-[0.08em] text-ember dark:text-azure-400"
                       >
                         ShareTexts
                       </motion.p>
@@ -370,7 +370,7 @@ export function NearbyDetectOverlay({
                       if (mode === 'incoming' && onDecline) { onDecline(); return; }
                       onCancel();
                     }}
-                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[15px] font-semibold text-apple-ink dark:text-white transition-all active:scale-[0.97] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[16px] font-semibold text-apple-ink dark:text-white transition-all active:scale-[0.97] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                   >
                     {mode === 'incoming' ? t('nearby.decline') : t('nearby.overlay.cancel')}
                   </button>
@@ -390,7 +390,7 @@ export function NearbyDetectOverlay({
                     animate={armed && !busy ? { scale: [1, 1.045, 1] } : { scale: 1 }}
                     transition={{ duration: 0.32, ease: 'easeOut' }}
                     className={cn(
-                      'flex-[1.5] min-h-[50px] rounded-full text-[15px] font-bold text-white',
+                      'flex-[1.5] min-h-[50px] rounded-full text-[16px] font-bold text-white',
                       'bg-ember hover:bg-brand-strong disabled:opacity-80 disabled:pointer-events-none',
                       'transition-colors active:scale-[0.97]',
                       'flex items-center justify-center gap-2 whitespace-nowrap',
@@ -420,7 +420,7 @@ export function NearbyDetectOverlay({
                       data-testid="nearby-detect-more"
                       disabled={busy}
                       onClick={onFindMore}
-                      className="min-h-[40px] px-4 rounded-full text-[13.5px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.97] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                      className="min-h-[40px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.97] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                     >
                       <Search className="w-3.5 h-3.5" aria-hidden />
                       {t('nearby.overlay.more')}

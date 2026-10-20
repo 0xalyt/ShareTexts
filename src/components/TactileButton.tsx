@@ -36,8 +36,8 @@ interface TactileButtonProps {
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
   sm: 'px-4 py-2 text-[13px] gap-2 rounded-full min-h-[var(--st-control-sm)]',
-  md: 'px-5 py-2.5 text-[14px] gap-2.5 rounded-full min-h-[var(--st-control-md)]',
-  lg: 'px-7 py-3.5 text-[15px] gap-3 rounded-full min-h-[var(--st-control-lg)]',
+  md: 'px-5 py-2.5 text-[16px] gap-2.5 rounded-full min-h-[var(--st-control-md)]',
+  lg: 'px-7 py-3.5 text-[16px] gap-3 rounded-full min-h-[var(--st-control-lg)]',
 };
 
 // One quiet elevation step per variant. Color and surface remain the existing

@@ -56,7 +56,7 @@ export function OfflineBanner({ className }: { className?: string }) {
           )}
         >
           <WifiOff className="h-3.5 w-3.5 shrink-0 text-white/70 dark:text-white/60" aria-hidden />
-          <span className="truncate text-[12.5px] font-medium text-white dark:text-white/90">
+          <span className="truncate text-[12px] font-medium text-white dark:text-white/90">
             {t('net.offline')}
           </span>
         </motion.div>

@@ -94,7 +94,7 @@ export function LiveCodeInput({
           typing IS the retry. */}
       {error && (
         <div role="alert" className="mt-4 text-center">
-          <p className="text-[13px] sm:text-[14px] text-status-danger font-medium">{error}</p>
+          <p className="text-[13px] sm:text-[16px] text-status-danger font-medium">{error}</p>
         </div>
       )}
 
@@ -103,7 +103,7 @@ export function LiveCodeInput({
       {isJoining && (
         <div role="status" className="flex flex-col items-center justify-center mt-5">
           <ShareTextsLogo size={20} motion="connecting" />
-          <p className="mt-2 text-[14px] sm:text-[15px] font-medium text-apple-ink-muted dark:text-white/60">{t('code.verifying')}</p>
+          <p className="mt-2 text-[16px] font-medium text-apple-ink-muted dark:text-white/60">{t('code.verifying')}</p>
         </div>
       )}
 

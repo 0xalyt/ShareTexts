@@ -190,7 +190,7 @@ export function RateCard({
       className={cn('flex flex-wrap items-center gap-x-4 gap-y-2', className)}
     >
       <div>
-        <h2 id="rate-title" className="text-[13.5px] font-semibold text-apple-ink dark:text-white">
+        <h2 id="rate-title" className="text-[13px] font-semibold text-apple-ink dark:text-white">
           {t('rate.title')}
         </h2>
         <p className="text-[12px] text-apple-ink-muted dark:text-white/50">
@@ -212,7 +212,7 @@ export function RateCard({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.24 }}
-            className="text-[12.5px] font-medium text-ember dark:text-azure-400"
+            className="text-[12px] font-medium text-ember dark:text-azure-400"
             data-testid="rate-thanks"
           >
             {t('rate.thanks')}

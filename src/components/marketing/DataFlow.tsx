@@ -44,7 +44,7 @@ export function DataFlow({ className }: { className?: string }) {
       <div className="flex items-baseline gap-3 mb-5">
         <h2
           id="flow-title"
-          className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
+          className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
         >
           How a transfer works
         </h2>
@@ -87,10 +87,10 @@ export function DataFlow({ className }: { className?: string }) {
         <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
           <DeviceTile icon="laptop" label="Your device" sub="the browser you already have" />
           <span className="flex flex-col items-center gap-1 px-1">
-            <span className="rounded-full bg-ember/10 px-3 py-1.5 text-[11px] font-semibold text-ember dark:bg-ember/[0.16] dark:text-azure-400">
+            <span className="rounded-full bg-ember/10 px-3 py-1.5 text-[12px] font-semibold text-ember dark:bg-ember/[0.16] dark:text-azure-400">
               encrypted
             </span>
-            <span className="hidden text-[10.5px] font-medium uppercase tracking-[0.08em] text-apple-ink-muted/70 dark:text-white/35 sm:block">
+            <span className="hidden text-[12px] font-medium uppercase tracking-[0.08em] text-apple-ink-muted/70 dark:text-white/35 sm:block">
               device to device
             </span>
           </span>
@@ -103,7 +103,7 @@ export function DataFlow({ className }: { className?: string }) {
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-black/[0.045] text-apple-ink-muted dark:bg-white/[0.06] dark:text-white/40">
           <Server className="h-4 w-4" aria-hidden />
         </span>
-        <p className="max-w-[420px] text-left text-[12.5px] leading-snug text-apple-ink-muted dark:text-white/50">
+        <p className="max-w-[420px] text-left text-[12px] leading-snug text-apple-ink-muted dark:text-white/50">
           Our signaling server sits beside the wire, not in it: it hands over the room code and steps
           out. It never sees a file, a photo, or a word you type.
         </p>
@@ -118,7 +118,7 @@ export function DataFlow({ className }: { className?: string }) {
               </span>
               <step.icon className="h-4 w-4 text-apple-ink-muted dark:text-white/45" aria-hidden />
             </span>
-            <h3 className="mt-2.5 text-[14.5px] font-semibold text-apple-ink dark:text-white">{step.title}</h3>
+            <h3 className="mt-2.5 text-[16px] font-semibold text-apple-ink dark:text-white">{step.title}</h3>
             <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{step.body}</p>
           </li>
         ))}
@@ -156,9 +156,9 @@ function DeviceTile({
           <span className="h-[3px] w-5 rounded-full bg-current opacity-40" />
         )}
       </span>
-      <span className="text-[13.5px] font-semibold text-apple-ink dark:text-white">{label}</span>
+      <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{label}</span>
       <span className="text-[12px] leading-snug text-apple-ink-muted dark:text-white/50">{sub}</span>
-      <span className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-status-success-ink dark:text-status-success-ink-dark">
+      <span className="mt-0.5 flex items-center gap-1 text-[12px] font-medium text-status-success-ink dark:text-status-success-ink-dark">
         <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
         no account
       </span>
