@@ -38,10 +38,10 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif; color: #1d1d1f; background: #ffffff; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    @media (prefers-color-scheme: dark) { body { color: #ededf2; background: #101012; } .card { background: #18181a !important; border-color: rgba(237,237,242,.1) !important; } .muted { color: rgba(237,237,242,.55) !important; } .accent { color: #fb9243 !important; } .callout { background: rgba(240,100,19,.08) !important; border-color: rgba(251,146,67,.2) !important; } nav, header, .related-links a { border-color: rgba(237,237,242,.08) !important; } .related-links a { background: #18181a; color: #ededf2; } }
+    @media (prefers-color-scheme: dark) { body { color: #e4e4e4; background: #181818; } .card { background: #262626 !important; border-color: rgba(228,228,228,.1) !important; } .muted { color: rgba(228,228,228,.55) !important; } .accent { color: #fb9243 !important; } .callout { background: rgba(240,100,19,.08) !important; border-color: rgba(251,146,67,.2) !important; } nav, header, .related-links a { border-color: rgba(228,228,228,.08) !important; } .related-links a { background: #262626; color: #e4e4e4; } }
     .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
-    header { border-bottom: 1px solid rgba(29,29,31,.08); padding: 16px 24px; position: sticky; top: 0; background: rgba(247,244,238,.92); backdrop-filter: blur(12px); z-index: 40; }
-    @media (prefers-color-scheme: dark) { header { background: rgba(16,16,18,.92); } }
+    header { border-bottom: 1px solid rgba(29,29,31,.08); padding: 16px 24px; position: sticky; top: 0; background: rgba(251,251,253,.92); backdrop-filter: blur(12px); z-index: 40; }
+    @media (prefers-color-scheme: dark) { header { background: rgba(24,24,24,.92); } }
     .hdr-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
     .hdr-inner svg { width: 20px; height: 20px; }
     .hdr-inner span { font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
@@ -70,7 +70,7 @@
     .related-links { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .related-links a { display: block; padding: 14px 18px; background: #ffffff; border: 1px solid rgba(29,29,31,.06); border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 500; color: #1d1d1f; transition: all .15s; }
     .related-links a:hover { border-color: #f06413; transform: translateY(-1px); }
-    footer { border-top: 1px solid rgba(29,29,31,.08); padding: 24px; text-align: center; font-size: 13px; color: #85817a; }
+    footer { border-top: 1px solid rgba(29,29,31,.08); padding: 24px; text-align: center; font-size: 13px; color: #6e6e73; }
     @media (max-width: 600px) { h1 { font-size: 26px; } h2 { font-size: 20px; } .related-links { grid-template-columns: 1fr; } }
       /* ── Tap targets (40px, both axes) ────────────────────────────────────────────────────────
        Every link clears 40px in BOTH dimensions, and no line moves:
@@ -91,8 +91,8 @@
     .st-crumb a { display: inline-flex; align-items: center; min-height: 40px; color: var(--brand, #d9560e); text-decoration: none; font-weight: 500; }
     .st-crumb a:hover { text-decoration: underline; }
     .st-crumb [aria-current] { display: inline-flex; align-items: center; min-height: 40px; color: var(--text-secondary, #6e6e73); }
-    html.dark .st-crumb [aria-current] { color: #9c9ca3; }
-    @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #9c9ca3; } }
+    html.dark .st-crumb [aria-current] { color: #888888; }
+    @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #888888; } }
   </style>
   <script type="application/ld+json">
 {

@@ -38,7 +38,7 @@ try {
   //    Send/Receive), left-aligned with the subline, count ≥ 113, white
   //    label token in dark.
   const tk = await page.evaluate(() => {
-    const el = [...document.querySelectorAll('div')].filter(d => d.children.length >= 2 && /connections made so far/i.test(d.textContent) && d.textContent.length < 60).pop();
+    const el = [...document.querySelectorAll('div')].filter(d => d.children.length >= 2 && /rooms made so far/i.test(d.textContent) && d.textContent.length < 60).pop();
     if (!el) return null;
     const r = el.getBoundingClientRect();
     const btns = [...document.querySelectorAll('button')].filter(b => /send|receive/i.test(b.textContent) && b.querySelector('svg'));

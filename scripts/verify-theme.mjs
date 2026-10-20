@@ -45,7 +45,7 @@ ok(`theme flip perceptible < 100ms (${flipMs}ms)`, flipMs >= 0 && flipMs < 100);
 
 // html background must already be dark (no white frame).
 const bgDark = await D.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
-ok(`html bg dark after flip (${bgDark})`, bgDark === 'rgb(16, 16, 18)');
+ok(`html bg dark after flip (${bgDark})`, bgDark === 'rgb(24, 24, 24)');
 
 // 2. Dark-mode search chip hover must NOT go white.
 const chipHover = await D.evaluate(() => {
@@ -91,9 +91,12 @@ const docsFlash = await D.evaluate(async () => {
   window.dispatchEvent(new PopStateEvent('popstate'));
   await new Promise(r => setTimeout(r, 1200));
   mo.disconnect();
-  return { before, after: bg(), sawWhite: obs.includes('rgb(255, 255, 255)') };
+  // A dark route switch must never paint EITHER pure white or the light
+  // canvas (#fbfbfd → rgb(251, 251, 253)) for a frame.
+  const sawLight = obs.some(c => c === 'rgb(255, 255, 255)' || c === 'rgb(251, 251, 253)');
+  return { before, after: bg(), sawWhite: sawLight };
 });
-ok(`dark route switch keeps dark bg`, docsFlash.after === 'rgb(16, 16, 18)' && !docsFlash.sawWhite);
+ok(`dark route switch keeps dark bg`, docsFlash.after === 'rgb(24, 24, 24)' && !docsFlash.sawWhite);
 
 // 6. Loading shell follows saved dark theme (index.html path).
 await D.evaluate(() => localStorage.setItem('sharetext.theme', 'dark'));

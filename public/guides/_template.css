@@ -17,21 +17,21 @@
   --brand-light: rgba(240,100,19,.06);
   --brand-border: rgba(240,100,19,.15);
   
-  /* Surface */
-  --bg: #ffffff;
+  /* Surface — pinned brief neutrals (docs/design-tokens.md): no warm casts */
+  --bg: #fbfbfd;
   --bg-secondary: #f5f5f7;
-  --bg-elevated: #fbfaf7;
+  --bg-elevated: #ffffff;
   --surface: #ffffff;
   --surface-raised: #ffffff;
   
   /* Text */
   --text: #1d1d1f;
   --text-secondary: #6e6e73;
-  --text-muted: #a49f96;
+  --text-muted: #8e8e93;
   
   /* Border */
-  --border: #e5e0d3;
-  --border-subtle: #ece7dc;
+  --border: #e8e8ea;
+  --border-subtle: #f0f0f2;
   
   /* Status */
   --success: #34c759;
@@ -55,17 +55,17 @@ html.dark {
   --brand-light: rgba(251,122,46,.10);
   --brand-border: rgba(251,122,46,.25);
 
-  --bg: #101012;
-  --bg-secondary: #141416;
-  --bg-elevated: #212126;
-  --surface: #1a1a1e;
-  --surface-raised: #1a1a1e;
+  --bg: #181818;
+  --bg-secondary: #141414;
+  --bg-elevated: #303030;
+  --surface: #262626;
+  --surface-raised: #262626;
 
-  --text: #ededf2;
-  --text-secondary: #9c9ca3;
-  --text-muted: #7c7a76;
+  --text: #e4e4e4;
+  --text-secondary: #888888;
+  --text-muted: #828282;
 
-  --border: #323239;
+  --border: #333333;
   --border-subtle: rgba(255,255,255,.06);
 
   --success: #55d18c;
@@ -84,17 +84,17 @@ html.dark {
     --brand-light: rgba(251,122,46,.10);
     --brand-border: rgba(251,122,46,.25);
 
-    --bg: #101012;
-    --bg-secondary: #141416;
-    --bg-elevated: #212126;
-    --surface: #1a1a1e;
-    --surface-raised: #1a1a1e;
+    --bg: #181818;
+    --bg-secondary: #141414;
+    --bg-elevated: #303030;
+    --surface: #262626;
+    --surface-raised: #262626;
 
-    --text: #ededf2;
-    --text-secondary: #9c9ca3;
-    --text-muted: #7c7a76;
+    --text: #e4e4e4;
+    --text-secondary: #888888;
+    --text-muted: #828282;
 
-    --border: #323239;
+    --border: #333333;
     --border-subtle: rgba(255,255,255,.06);
 
     --success: #55d18c;
@@ -120,7 +120,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(247,244,238,.88);
+  background: rgba(251,251,253,.88);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--border);

@@ -49,7 +49,7 @@ const SHELL_CSS = `
       .st-seo { min-height: 100dvh; display: flex; flex-direction: column;
         background: #ffffff; color: #1d1d1f;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-      html.dark .st-seo { background: #101012; color: #ededf2; }
+      html.dark .st-seo { background: #181818; color: #e4e4e4; }
       .st-seo a { color: #d9560e; text-decoration: none; font-weight: 500; }
       html.dark .st-seo a { color: #ff8a3d; }
       .st-seo a:hover { text-decoration: underline; }

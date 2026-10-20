@@ -10,8 +10,8 @@
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
     <meta name="application-name" content="ShareTexts" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#101012" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#181818" media="(prefers-color-scheme: dark)" />
 
     <!-- First-paint canvas: the app's CSS arrives via JS (Vite injects it),
          so until main.tsx runs the browser paints with UA defaults — which
@@ -19,8 +19,8 @@
          margin on a white canvas). Pin the page field here, in head, so the
          very first painted pixel is already the app's canvas, light or dark. -->
     <style>
-      html, body { margin: 0; background: #ffffff; }
-      html.dark, html.dark body { background: #101012; }
+      html, body { margin: 0; background: #fbfbfd; }
+      html.dark, html.dark body { background: #181818; }
     </style>
 
     <!-- No hero image preload any more: the landing hero is the live device
@@ -148,7 +148,7 @@
           var dark = v === 'dark' || (v !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.classList.toggle('dark', dark);
           var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.content = dark ? '#101012' : '#ffffff';
+          if (meta) meta.content = dark ? '#181818' : '#fbfbfd';
         } catch (e) { /* storage unavailable — system default applies */ }
         // Slow-boot honesty (mirrors the in-app connecting screen): an 8s boot
         // is NOT normal — say so instead of shimmering forever. Folded into
@@ -168,7 +168,7 @@
       <!-- Boot skeleton: the app holding the user's place, not an animation.
            Mirrors the REAL landing composition — brand lockup top-left, hero
            (headline → subline → action pair) on the left, the product scene
-           card on the right, warm paper canvas — so the swap to live content
+           card on the right, the app canvas — so the swap to live content
            moves nothing. NO bright white sweep: the old 55%-white shimmer
            band read as a bold white outline crawling the page. Bars carry a
            barely-there ember-tinted breath instead; reduced-motion holds
@@ -179,15 +179,15 @@
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
-            background: #ffffff;
+            background: #fbfbfd;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             transition: opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
           }
           #loading-shell.fade-out { opacity: 0; }
-          html.dark #loading-shell { background: #101012; }
+          html.dark #loading-shell { background: #181818; }
           #loading-shell .st-bar {
             border-radius: 999px;
-            background: rgba(30, 28, 24, 0.075);
+            background: rgba(0, 0, 0, 0.075);
             position: relative;
             overflow: hidden;
           }
@@ -218,7 +218,7 @@
             letter-spacing: -0.03em;
             color: #1d1d1f;
           }
-          html.dark #loading-shell .st-h1 { color: #f5f4f0; }
+          html.dark #loading-shell .st-h1 { color: #e4e4e4; }
           #loading-shell .st-sub {
             margin: 0 0 22px;
             font-size: 17px;
@@ -242,25 +242,25 @@
             font-weight: 600;
             letter-spacing: 0.09em;
             text-transform: uppercase;
-            color: rgba(99,95,87,0.9);
+            color: rgba(110,110,115,0.9);
           }
-          html.dark #loading-shell .st-section h2 { color: rgba(176,171,162,0.85); }
+          html.dark #loading-shell .st-section h2 { color: rgba(136,136,136,0.9); }
           #loading-shell .st-section ol {
             margin: 0;
             padding-left: 20px;
             font-size: 14.5px;
             line-height: 1.75;
-            color: #3d3a34;
+            color: #3d3d3d;
           }
-          html.dark #loading-shell .st-section ol { color: rgba(245,244,240,0.75); }
+          html.dark #loading-shell .st-section ol { color: rgba(228,228,228,0.85); }
           #loading-shell .st-section ol strong { color: #1d1d1f; font-weight: 600; }
-          html.dark #loading-shell .st-section ol strong { color: #f5f4f0; }
+          html.dark #loading-shell .st-section ol strong { color: #e4e4e4; }
           #loading-shell .st-faq h3 { margin: 18px 0 4px; font-size: 14.5px; font-weight: 600; color: #1d1d1f; }
-          html.dark #loading-shell .st-faq h3 { color: #f5f4f0; }
+          html.dark #loading-shell .st-faq h3 { color: #e4e4e4; }
           #loading-shell .st-faq p { margin: 0; font-size: 14px; line-height: 1.65; color: #6e6e73; }
           html.dark #loading-shell .st-faq p { color: rgba(255,255,255,0.6); }
           #loading-shell .st-foot {
-            border-top: 1px solid rgba(30,28,24,0.08);
+            border-top: 1px solid rgba(0,0,0,0.08);
             margin-top: 36px;
             padding: 18px 28px 26px;
             display: flex;

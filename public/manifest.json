@@ -4,8 +4,8 @@
   "description": "Send text, photos, and files between any two devices, phone to laptop, iPhone to Windows. No app, no account, nothing to install.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#fbfbfd",
+  "theme_color": "#fbfbfd",
   "icons": [
     {
       "src": "/icon-192.png?v=21",

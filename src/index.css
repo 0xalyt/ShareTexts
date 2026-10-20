@@ -29,6 +29,10 @@
 
   /* ── Ember: the brand material AND the interactive accent ────── */
   --color-ember: #f06413;
+  /* Light-only deep ember: the ONLY tone allowed for ember TEXT and
+     ember BUTTON backing on light — measured 4.78:1 as text on #fbfbfd
+     and 4.94:1 behind white labels (docs/design-tokens.md §4). */
+  --color-ember-ink: #c04b09;
   --color-honey: #feab30;
   --gradient-ember: linear-gradient(165deg, #feab30 0%, #f97b3d 55%, #f06413 100%);
   --gradient-ember-dark: linear-gradient(165deg, #ffc25c 0%, #fb9243 55%, #fb7a2e 100%);
@@ -39,7 +43,7 @@
   --color-text-muted: #8e8e93;
 
   /* ── Surface ────────────────────────────────────────────────────────── */
-  --color-bg: #ffffff;
+  --color-bg: #fbfbfd;
   --color-bg-secondary: #f5f5f7;
   --color-bg-elevated: #ffffff;
   --color-surface: #ffffff;
@@ -47,9 +51,9 @@
   --color-surface-elevated: #ffffff;
 
   /* ── Border ─────────────────────────────────────────────────────────── */
-  --color-border: #e8e8ed;
-  --color-border-subtle: #f0f0f2;
-  --color-border-strong: #d2d2d7;
+  --color-border: rgb(0 0 0 / 0.08);
+  --color-border-subtle: rgb(0 0 0 / 0.05);
+  --color-border-strong: rgb(0 0 0 / 0.16);
 
   /* ── Status ─────────────────────────────────────────────────────────── */
   --color-success: #34c759;
@@ -65,15 +69,15 @@
   /* ── Semantic aliases — the "apple-*" names now resolve to ember.
      (Historic token names kept so every existing component re-skins
      instantly; new code should prefer --color-ember / --color-brand.) */
-  --color-apple-canvas: #ffffff;
+  --color-apple-canvas: #fbfbfd;
   --color-apple-parchment: #f5f5f7;
   --color-apple-ink: #1d1d1f;
   --color-apple-ink-muted: #6e6e73;
   --color-eyebrow: #6e6e73;
   --color-apple-blue: #f06413;
   --color-apple-blue-focus: #d9560e;
-  --color-apple-divider: #e8e8ed;
-  --color-apple-hairline: #dedee3;
+  --color-apple-divider: rgb(0 0 0 / 0.08);
+  --color-apple-hairline: rgb(0 0 0 / 0.13);
   --color-azure-50: #fff4ea;
   --color-azure-100: #ffe6d1;
   --color-azure-200: #ffcda3;
@@ -95,15 +99,16 @@
   --color-status-warning-ink: #c77a00;
   --color-status-warning-ink-dark: #ffb340;
   --color-status-danger: #ff3b30;
-  /* Dark surfaces: true neutral graphite — no hue cast. */
-  --color-surface-dark: #1a1a1e;
-  --color-surface-dark-2: #212126;
-  --color-apple-tile-1: #1a1a1e;
-  --color-apple-tile-2: #212126;
-  --color-apple-tile-3: #2c2c33;
-  --color-night-800: #1b1b1f;
-  --color-night-900: #131316;
-  --color-night-950: #0e0e11;
+  /* Dark surfaces: true neutral graphite — no hue cast (brief ladder:
+     #1c1c1c well · #262626 raised · #343434 top tile). */
+  --color-surface-dark: #1c1c1c;
+  --color-surface-dark-2: #262626;
+  --color-apple-tile-1: #1c1c1c;
+  --color-apple-tile-2: #262626;
+  --color-apple-tile-3: #343434;
+  --color-night-800: #262626;
+  --color-night-900: #141414;
+  --color-night-950: #0e0e0e;
 
   /* Isometric illustration palette — one artwork, re-lit per theme. Tops
      are the lightest face, right faces the darkest; the ember accent is
@@ -200,17 +205,21 @@
      verify-visual-system gate enforces these exact values. */
 
   /* ── Tactile surfaces (theme-aware button gradients) ────────────────── */
-  /* Bright brand ember — the approved CTA look (restored by design owner;
-     the brief AA deepening of 539b97c read muddy and was rejected). The
-     white-on-ember/white-on-soft label ratios are a RECORDED, NAMED
-     exception in scripts/verify-quality.mjs, not a silent skip. */
-  --st-btn-primary-grad: linear-gradient(180deg, #f9743a 0%, #f06413 60%, #e05c0f 100%);
-  --st-btn-soft-grad: linear-gradient(180deg, #fb9a56 0%, #f98b41 58%, #ef7c30 100%);
+  /* LIGHT: deep ember — the approved brief (design-tokens.md §4) requires
+     white labels ≥4.5:1 on light, so the light CTA ramp uses palette-native
+     deep stops (top #c25310 = 4.63:1 white-on, bottom darker). The design
+     owner rejected an earlier deepening (539b97c, "muddy"); this one keeps
+     hue and keycap structure — revert is this one token if rejected again.
+     DARK keeps the bright ember look (exempt: ember on #181818 is 5.5:1,
+     white-on-bright-ember at night stays a RECORDED, NAMED exception in
+     scripts/verify-quality.mjs). */
+  --st-btn-primary-grad: linear-gradient(180deg, #c25310 0%, #b84a0b 60%, #a94008 100%);
+  --st-btn-soft-grad: linear-gradient(180deg, #c25310 0%, #b64d0a 100%);
   --st-btn-secondary-grad: linear-gradient(180deg, #ffffff 0%, #f5f5f7 55%, #ebebee 100%);
   /* Keycap edge — the solid bottom lip the primary key sits on. Pressing
      compresses the lip (shadow Y 4px → 1px) while the body sinks into it:
      the "real key" press, in brand colors. */
-  --st-btn-primary-edge: #c04b09;
+  --st-btn-primary-edge: #8a3608;
 }
 
 @layer base {
@@ -231,7 +240,7 @@
   }
 
   html.dark body {
-    background: #101012;
+    background: #181818;
     color: white;
   }
 
@@ -242,18 +251,20 @@
 
   /* ── Dark mode ────────────────────────────────────────────────────── */
   html.dark {
-    --color-bg: #101012;
-    --color-bg-secondary: #141416;
-    --color-bg-elevated: #18181a;
-    --color-surface: #18181a;
-    --color-surface-secondary: #1c1c1f;
-    --color-surface-elevated: #24242a;
-    --color-text: #ededf2;
-    --color-text-secondary: #9c9ca3;
-    --color-text-muted: #7a7a83;
-    --color-border: #242429;
-    --color-border-subtle: #1b1b1f;
-    --color-border-strong: #33333a;
+    /* Pinned brief neutrals (docs/design-tokens.md §3): page #181818,
+       sunken #141414, raised #262626, line #333333, ink #e4e4e4/#888888. */
+    --color-bg: #181818;
+    --color-bg-secondary: #141414;
+    --color-bg-elevated: #262626;
+    --color-surface: #262626;
+    --color-surface-secondary: #2e2e2e;
+    --color-surface-elevated: #303030;
+    --color-text: #e4e4e4;
+    --color-text-secondary: #888888;
+    --color-text-muted: #828282;
+    --color-border: #333333;
+    --color-border-subtle: #2a2a2a;
+    --color-border-strong: #3d3d3d;
     /* Brand stays EMBER at night — the accent is the identity, not a
        theme variable. (These three used to flip to a leftover blue:
        hovering the ember Send key in dark mode turned it light blue.) */
@@ -266,13 +277,13 @@
     --color-warning-light: #2a1c08;
     --color-error: #ff6b6b;
     --color-error-light: #2a0d0d;
-    --color-apple-canvas: #101012;
-    --color-apple-parchment: #141416;
-    --color-apple-divider: #2a2a30;
-    --color-apple-hairline: #3a3a42;
-    --color-apple-ink: #ededf2;
-    --color-apple-ink-muted: #9c9ca3;
-    --color-eyebrow: #9c9ca3;
+    --color-apple-canvas: #181818;
+    --color-apple-parchment: #141414;
+    --color-apple-divider: #333333;
+    --color-apple-hairline: #454545;
+    --color-apple-ink: #e4e4e4;
+    --color-apple-ink-muted: #888888;
+    --color-eyebrow: #888888;
     --color-azure-400: #ffc591;
     --color-azure-500: #fb9243;
     --color-azure-600: #fb7a2e;
@@ -282,7 +293,7 @@
     --gradient-ember: var(--gradient-ember-dark);
     --st-btn-primary-grad: linear-gradient(180deg, #fb8447 0%, #f06413 60%, #d9560e 100%);
     --st-btn-soft-grad: linear-gradient(180deg, #ffb778 0%, #fb9243 58%, #f58235 100%);
-    --st-btn-secondary-grad: linear-gradient(180deg, #222227 0%, #1c1c1f 55%, #18181a 100%);
+    --st-btn-secondary-grad: linear-gradient(180deg, #2e2e2e 0%, #262626 55%, #1f1f1f 100%);
     --st-btn-primary-edge: #a83f06;
     /* Night radius relight: 26px reads bulbous on graphite; the hero stage
        drops one tier — the only radius the dark theme is allowed to retune. */
@@ -296,16 +307,18 @@
     --iso-line: #55555e;
     --iso-dim: #6a6a74;
     --iso-screen: #1a2321;
-    --iso-photo: #2e2820;
+    --iso-photo: #2e2e2e;
     --iso-shadow: rgba(0, 0, 0, 0.42);
     --iso-accent: #f06413;
     --iso-accent-soft: #d95a0f;
     --iso-accent-deep: #a84409;
+    /* (iso-photo night face was #2e2820 — a brown cast; neutralized to
+       true graphite for the Phase 2 no-warm-cast rule.) */
 
     /* Night relight of the tonal blocks: same three tones, graphite. */
-    --st-tone-sunk: #141416;
-    --st-tone-raised: #18181a;
-    --st-tone-chrome: #101012;
+    --st-tone-sunk: #141414;
+    --st-tone-raised: #262626;
+    --st-tone-chrome: #141414;
   }
 
   /* Platform-native type carries the whole interface. Headings tighten with
@@ -395,6 +408,17 @@
     background: var(--gradient-ember);
   }
 
+  /* Light-mode foreground ember: every ember-colored TEXT string and icon
+     on light surfaces renders through the deep ≥4.5:1 tone
+     (--color-ember-ink, docs/design-tokens.md §4). Fills, chips, focus
+     rings, gradients and artwork keep bright ember — the brand material
+     stays bright; only FOREGROUNDS on light deepen. Dark mode untouched. */
+  html:not(.dark) .text-ember,
+  html:not(.dark) .hover\:text-ember:hover,
+  html:not(.dark) .group:hover .group-hover\:text-ember {
+    color: var(--color-ember-ink);
+  }
+
   .transition-motion {
     transition-property: color, background-color, border-color, box-shadow, transform, opacity;
     transition-duration: 160ms;
@@ -403,7 +427,7 @@
 
 /* Dot background pattern — warm speckle in light, faint graphite in dark */
 .dot-bg {
-  background-image: radial-gradient(circle, rgba(33, 31, 26, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 html.dark .dot-bg {
@@ -452,7 +476,7 @@ html:not(.dark) .st-ambient {
   pointer-events: none;
   background-image:
     radial-gradient(circle, rgba(240, 100, 19, 0.30) 1.2px, transparent 1.8px),
-    radial-gradient(circle, rgba(33, 31, 26, 0.16) 1.1px, transparent 1.6px);
+    radial-gradient(circle, rgba(0, 0, 0, 0.16) 1.1px, transparent 1.6px);
   background-size: 30px 30px, 44px 44px;
   background-position: 0 0, 15px 19px;
   -webkit-mask-image: radial-gradient(ellipse 92% 82% at 50% 42%, black 30%, transparent 76%);
@@ -835,11 +859,11 @@ html[st-theme-vt] {
    always carry the active theme's canvas color, and the UA is told which
    form controls/chrome to render (color-scheme) in both themes. */
 html {
-  background-color: #ffffff;
+  background-color: #fbfbfd;
   color-scheme: light;
 }
 html.dark {
-  background-color: #101012;
+  background-color: #181818;
   color-scheme: dark;
 }
 
@@ -891,9 +915,8 @@ html.dark .st-softspot {
 }
 
 .st-diag {
-  background-image:
-    repeating-linear-gradient(45deg, rgba(33, 31, 26, 0.05) 0 1px, transparent 1px 9px),
-    repeating-linear-gradient(-45deg, rgba(33, 31, 26, 0.05) 0 1px, transparent 1px 9px);
+  background-image:    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 9px),
+  repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 9px);
 }
 html.dark .st-diag {
   background-image:
@@ -989,13 +1012,13 @@ html.dark .st-spotlight {
   .st-band {
     border-radius: var(--radius-sm);
     padding: 11px 13px;
-    background: rgba(240, 100, 19, 0.07);
-    border: 1px solid rgba(240, 100, 19, 0.20);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
     color: var(--color-text);
   }
   html.dark .st-band {
-    background: rgba(251, 146, 67, 0.10);
-    border-color: rgba(251, 146, 67, 0.26);
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
     color: var(--color-text);
   }
 

@@ -29,7 +29,10 @@ app.use(helmet({
       scriptSrc: isProd
         ? [
             "'self'",
-            "'sha256-VdYuVYQjNuxDot6Ed9TC6jFOyQhG8YhQevtV+eqxaJU='",
+            // index.html boot script (theme class + meta before first paint) —
+            // hash recomputed when Phase 2 retuned the theme-color literals.
+            "'sha256-eMqzSGqQg0AZ0CZe4WBvhwrETkN4EOBLE+OAo76w5cw='",
+            // guides/about.html year stamp.
             "'sha256-eLR/EGDHTdMyYyISNU9CsJ/GyIbpnfdXsDluEA+9YdQ='",
           ]
         : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],

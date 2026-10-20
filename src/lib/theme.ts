@@ -57,7 +57,7 @@ export function applyTheme(choice: ThemeChoice) {
   // must not flip anything a second time.
   if (root.classList.contains('dark') === isDark) {
     const metaAlready = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (metaAlready) metaAlready.content = isDark ? '#101012' : '#ffffff';
+    if (metaAlready) metaAlready.content = isDark ? '#181818' : '#fbfbfd';
     return;
   }
   // INSTANT, single-paint flip: kill every per-element color transition for
@@ -72,7 +72,7 @@ export function applyTheme(choice: ThemeChoice) {
   root.classList.toggle('dark', isDark);
   // Keep the browser chrome (address bar / status bar) in sync.
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (meta) meta.content = isDark ? '#101012' : '#ffffff';
+  if (meta) meta.content = isDark ? '#181818' : '#fbfbfd';
   requestAnimationFrame(() => style.remove());
 }
 
