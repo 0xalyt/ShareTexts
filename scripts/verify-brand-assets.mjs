@@ -38,7 +38,7 @@ async function sample(asset) {
 }
 
 // Tolerant predicates. Cream allows the designed warm glow tints (blue- or
-// red-dominant but still light); ember and ink stay strict.
+// red-dominant but still light); ember stays strict.
 const at = (d, w, x, y) => { const i = (y * w + x) * 4; return [d[i], d[i + 1], d[i + 2], d[i + 3]]; };
 const count = (d, w, x0, y0, x1, y1, pred, step = 3) => {
   let n = 0;
@@ -50,7 +50,6 @@ const count = (d, w, x0, y0, x1, y1, pred, step = 3) => {
 // platform requirement — both composite transparency onto black).
 const transparentField = (p) => p[3] === 0;
 const creamPlate = (p) => p[3] === 255 && p[0] > 240 && p[1] > 235 && p[2] > 225;
-const ink = (p) => p[0] < 130 && p[1] < 130 && p[2] < 130;
 // Ember field: warm orange — red dominant over blue, mid-high luminance.
 const ember = (p) => p[0] > 150 && p[0] > p[2] + 60 && p[1] > p[2] && p[1] < p[0];
 
@@ -59,25 +58,32 @@ const check = (name, cond) => checks.push([name, cond]);
 
 // ── OG card 1200x630 — the canonical share image every page points at.
 // Sampled from the path the meta tags actually serve, so this check cannot
-// pass against a retired file while the real one is broken. Artwork: logo +
-// wordmark above, laptop + phone product shot below, light background.
+// pass against a retired file while the real one is broken. Artwork: the
+// ember ShareTexts app-icon glyph, centered on a clean white field.
 // ──
 const og = await sample('/og/sharetext-og.jpg');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
-  // The card's background is the light field the text sits on; the product
-  // shot (laptop + phone) occupies roughly the right half, so the sample
-  // point has to be a real background pixel. (40,300) is the left margin,
-  // clear of the wordmark block and the device artwork — verified pure white
-  // (255,255,255) against the current card. The old (600,315) point landed on
-  // the laptop's dark screen once the artwork changed, so the assertion was
-  // measuring the product shot, not the background it was written to check.
+  // The card is a white field with the orange app icon centered. (40,300) is
+  // the left margin — verified pure white (255,255,255) against the card — so
+  // the sample lands on background, never on the centered glyph. (The prior
+  // card was dark logos + a laptop/phone shot; its `ink` assertion measured
+  // that artwork, not this one, and was replaced by the glyph checks below.)
   const p = at(og.data, og.w, 40, 300);
   check(`og background margin (40,300) light`, p[0] > 200 && p[1] > 200 && p[2] > 200);
-  const anyInk = count(og.data, og.w, 0, 0, og.w, og.h, ink, 6);
-  check(`og ink artwork present (${anyInk} px)`, anyInk > 50);
+  // The ember app-icon glyph must be present, substantial, and centered.
   const anyEmber = count(og.data, og.w, 0, 0, og.w, og.h, ember, 4);
-  check(`og ember brand glyph present (${anyEmber} px)`, anyEmber > 20);
+  check(`og ember app-icon glyph present (${anyEmber} px)`, anyEmber > 200);
+  // Bounding box of non-white pixels must sit horizontally centered (the icon
+  // is centered on the field): its horizontal midpoint within 15% of centre.
+  const nonWhite = (q) => !(q[0] > 245 && q[1] > 245 && q[2] > 245);
+  let minX = og.w, maxX = 0, inkCount = 0;
+  for (let y = 0; y < og.h; y += 3) for (let x = 0; x < og.w; x += 3) {
+    if (nonWhite(at(og.data, og.w, x, y))) { inkCount++; if (x < minX) minX = x; if (x > maxX) maxX = x; }
+  }
+  check(`og glyph present (${inkCount} px)`, inkCount > 500);
+  const midX = (minX + maxX) / 2 / og.w;
+  check(`og glyph horizontally centered (mid ${(midX * 100).toFixed(1)}%)`, midX > 0.4 && midX < 0.6);
 }
 
 // ── Maskable icon: the glyph on an opaque near-white plate, inside the
