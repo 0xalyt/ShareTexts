@@ -29,10 +29,18 @@ export { Space };
 const DEFAULT_ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3010',
-  'http://localhost:3311',
+  // 3012 = dev server, 3013 = prod-verification server (see HANDOFF). Room
+  // gates must run from an allowlisted origin or room creation 403s and the
+  // gate times out with no error — add them here, not to the deployed
+  // worker's env, so local prod verification keeps the real CSP too.
+  'http://localhost:3012',
+  'http://localhost:3013',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3010',
+  'http://127.0.0.1:3012',
+  'http://127.0.0.1:3013',
   'http://127.0.0.1:3311',
+  'http://localhost:3311',
   'https://sharetexts.online',
   'https://www.sharetexts.online',
 ];
