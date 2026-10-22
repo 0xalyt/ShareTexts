@@ -15,9 +15,10 @@ import { Cookie } from 'lucide-react';
  * other locales fall back automatically, and legal copy is safest untranslated.
  *
  * There is deliberately NO cookie consent banner anywhere in the app: the only
- * things ever stored are strictly-necessary localStorage entries (session
- * credentials, theme, language, drafts). The absence of tracking is stated as
- * a fact, not hidden behind a banner.
+ * things stored are strictly-necessary localStorage entries (session
+ * credentials, theme, language, drafts) and the user's own Saved Items library
+ * (IndexedDB, created only by an explicit save, local to the device). The
+ * absence of tracking is stated as a fact, not hidden behind a banner.
  */
 
 type LegalPage = 'privacy' | 'terms';
@@ -45,7 +46,8 @@ function PrivacyContent() {
         <p>
           ShareTexts moves text, photos, and files directly between <strong>your</strong> devices.
           Your content is end-to-end encrypted, travels peer-to-peer, and is never stored on our
-          servers. When the room closes, everything is gone.
+          servers. When the room closes, everything in it is gone — unless you explicitly saved
+          an item, which stays on your device only (see below).
         </p>
       </Section>
 
@@ -71,16 +73,23 @@ function PrivacyContent() {
       </Section>
 
       <Section icon={<Database className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="What stays on your device">
-        <p>To make rooms reconnectable, ShareTexts keeps a few entries in your browser's local storage:</p>
+        <p>ShareTexts keeps a few things in your browser's local storage and its local database:</p>
         <ul className="list-disc pl-5 space-y-1.5">
           <li><strong>Room credentials</strong> (room id + secret) so a refresh doesn't break the pairing</li>
           <li><strong>Recent messages</strong> so history survives an accidental reload</li>
           <li><strong>Preferences</strong>: theme, language, device name</li>
           <li><strong>Unsent drafts</strong> so a typed message survives a refresh</li>
+          <li><strong>Saved items</strong> you bookmark from a session — text, links, photos and
+            files you chose to keep, in this browser's IndexedDB storage</li>
         </ul>
         <p>
-          All of it is removed when you close the room, and clearing your browser data removes it
-          instantly. Nothing is synced anywhere.
+          Room entries are removed when you close the room, and clearing your browser data removes
+          everything instantly — saved items included. Saved items are the one deliberate
+          exception to the room's impermanence: saving is an explicit action, the content never
+          leaves this device, is never uploaded, and stays only until you remove it, clear the
+          library, or clear site data. Anyone with access to this browser profile can see it, and
+          browser storage is not encrypted by ShareTexts beyond normal device protection.
+          Nothing is synced anywhere.
         </p>
       </Section>
 
@@ -135,7 +144,8 @@ function TermsContent() {
           Rooms exist only for the length of a transfer session and expire automatically. Nothing
           incomplete is saved, and a closed room cannot be reopened. Treat ShareTexts like a
           hallway between two rooms of yours: convenient for passing things through, not a place
-          to store anything.
+          to store anything. The one deliberate exception is Saved Items: an item you explicitly
+          save stays in your own browser's storage until you remove it — and it stays only there.
         </p>
       </Section>
 

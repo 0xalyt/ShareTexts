@@ -282,8 +282,8 @@ function PrivacySection() {
       <div className="space-y-3">
         {[
           { icon: <Lock className="w-4 h-4" />, title: 'Encrypted end-to-end', desc: 'DTLS + app-level encryption. ShareTexts never sees your content.' },
-          { icon: <Shield className="w-4 h-4" />, title: 'No accounts, no history', desc: 'No sign-up, no cloud, no tracking. Close the tab, it is gone.' },
-          { icon: <Clock className="w-4 h-4" />, title: 'Temporary rooms', desc: 'Rooms expire automatically. Your data is never stored long-term.' },
+          { icon: <Shield className="w-4 h-4" />, title: 'No accounts, no history', desc: 'No sign-up, no cloud, no tracking. Close the tab, the room is gone.' },
+          { icon: <Clock className="w-4 h-4" />, title: 'Temporary rooms', desc: 'Rooms expire automatically. Nothing you share is ever stored on our servers.' },
           { icon: <Check className="w-4 h-4" />, title: 'Verified transfers', desc: 'SHA-256 on every transfer. What you send is exactly what arrives.' },
         ].map((item, i) => (
           <div key={i} className="flex gap-3.5 p-4 rounded-[14px] st-card">

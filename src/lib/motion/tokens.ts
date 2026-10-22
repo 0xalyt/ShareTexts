@@ -26,9 +26,11 @@
  * the moment state changes — motion/react interrupts and continues from
  * the current value, which is what keeps every animation interruptible.
  * Standard easing (--ease-out family) for opacity and informational fades.
- */
-
-/** Duration ladder in ms — the numbers CSS mirrors as --st-dur-*. */
+ *//** Duration ladder in ms — the numbers CSS mirrors as --st-dur-*.
+ *  NOTE: motion/react's `transition={{ duration }}` takes SECONDS — write
+ *  `DUR.short / 1000` there. Passing a raw DUR value runs the animation for
+ *  that many SECONDS (a 180ms backdrop fade becoming a 3-minute one that
+ *  never visibly appears and never unmounts from AnimatePresence). */
 export const DUR = {
   instant: 60,
   micro: 120,

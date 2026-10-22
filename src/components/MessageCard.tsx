@@ -18,19 +18,23 @@ import {
   Image as ImageIcon, Play, Pause, RefreshCw,
   CircleAlert as AlertCircle, ChevronDown, ChevronUp,
   Share2, ShieldCheck, Terminal, ZoomIn,
-  Link as Link2,
+  Link as Link2, Bookmark,
 } from 'lucide-react';
 import { hapticTick } from '../lib/haptics';
 import { EmojiReaction } from './spaceui/EmojiReaction';
 import { AnnotatedHint } from './AnnotatedHint';
 import { FileTypeIcon } from './FileTypeIcon';
 import { DraggableImage } from './DraggableImage';
-import { cn, formatBytes, sanitizeFilename, sanitizeUrl } from '../lib/utils';
+import { cn, formatBytes, sanitizeFilename } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 import type { I18nApi } from '../lib/i18n';
 import { ChatMessage, Attachment } from '../types';
 import { looksLikeStructuredText, maxLineLength, sliceAtGraphemeBoundary, hasStrongRtl } from '../lib/textFidelity';
 import { fetchLinkPreview, type LinkPreviewData } from '../lib/linkPreview';
+import { pureLinkUrl } from '../lib/linkUrl';
+export { pureLinkUrl };
+import { useSavedItems } from '../lib/savedItems';
+import { savedOriginKey, saveMessageItem, removeItem, SavedStoreError, type SavedErrorCode } from '../lib/savedStore';
 
 const LARGE_TEXT_THRESHOLD = 8000; // chars
 const LARGE_TEXT_PREVIEW = 1400;
@@ -63,18 +67,7 @@ async function toPngClipboardBlob(blob: Blob): Promise<Blob | null> {
 
 const timeOf = (ts: number) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-/** Universal composer — LINK detection: a message (or caption) that is
- *  EXACTLY one URL — nothing else — renders as a tappable link card instead
- *  of naked text ("paste URL → LINK"). Text containing a link plus other
- *  words stays a normal text bubble. No global flag: .test() must stay
- *  stateless. www. hosts get an https:// prefix so they open, not 404. */
-const PURE_URL_RE = /^(https?:\/\/\S+|www\.\S+)$/i;
-export function pureLinkUrl(text: string): string | null {
-  const raw = text.trim();
-  if (!PURE_URL_RE.test(raw)) return null;
-  const candidate = /^www\./i.test(raw) ? `https://${raw}` : raw;
-  return sanitizeUrl(candidate);
-}
+
 
 /**
  * Selection ring for selection mode (bencho selection list): an absolutely
@@ -579,6 +572,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 >
                   <RefreshCw className="w-3 h-3" /> {t('action.retry')}
                 </button>
+                <BookmarkButton msg={msg} />
               </>
             ) : (
               <>
@@ -596,6 +590,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   )}
                   {' • '}{timeOf(msg.timestamp)}
                 </span>
+                <BookmarkButton msg={msg} />
                 <button
                   onPointerDown={() => handleCopy(msg.text)}
                   aria-label={t('msg.copyMessage')}
@@ -867,6 +862,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                     <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} onBlue={isMe} testId="transfer-copy" />
                   )}
                   <ActionButton icon={<Share2 />} label={shared ? t('action.shared') : t('action.share')} active={shared} onClick={() => { void handleShare(); }} onBlue={isMe} testId="transfer-share" />
+                  <BookmarkAction msg={msg} onBlue={isMe} />
                   <ActionButton icon={saved ? <Check /> : <Download />} label={saved ? t('action.saved') : t('action.save')} active={saved} onClick={() => handleDownload(a.url!, a.name)} primary onBlue={isMe} testId="transfer-download" />
                 </>
               )}
@@ -943,7 +939,123 @@ function LiveSpeed({ transferId, progressPct }: { transferId: string; progressPc
   );
 }
 
-function ActionButton({ icon, label, onClick, active, primary, onBlue, testId }: { icon: React.ReactNode, label: string, onClick: () => void, active?: boolean, primary?: boolean, onBlue?: boolean, testId?: string }) {
+/** Bookmark toggle shared by both save surfaces (text footer icon slot and
+ *  attachment action pill): persisted state straight from the store, a ref
+ *  guard so a double-tap can't race a second save before the first commits,
+ *  and an announcement string the consumer renders into its role="status"
+ *  region. Failures keep their reason — the control never claims "Saved"
+ *  for a write that didn't happen. */
+function useBookmarkToggle(msg: ChatMessage) {
+  const { t } = useI18n();
+  const items = useSavedItems();
+  const originKey = savedOriginKey(msg);
+  const existing = items.find((i) => i.originKey === originKey);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const busyRef = useRef(false);
+  const clearTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => { if (clearTimer.current) window.clearTimeout(clearTimer.current); }, []);
+
+  const toggle = async () => {
+    if (busyRef.current) return; // rapid taps: one in-flight op per message
+    busyRef.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      if (existing) {
+        await removeItem(existing.id);
+        setStatus(t('saved.announceRemoved'));
+      } else {
+        await saveMessageItem(msg);
+        setStatus(t('saved.announceSaved'));
+        hapticTick();
+      }
+    } catch (e) {
+      const code: SavedErrorCode = e instanceof SavedStoreError ? e.code : 'failed';
+      const key = code === 'quota' ? 'saved.errQuota' : code === 'unavailable' ? 'saved.errUnavailable' : 'saved.errGeneric';
+      const msgText = t(key);
+      setError(msgText);
+      setStatus(msgText); // failures are announced too, not just successes
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+      if (clearTimer.current) window.clearTimeout(clearTimer.current);
+      clearTimer.current = window.setTimeout(() => { setStatus(''); setError(null); }, 5000);
+    }
+  };
+
+  return { saved: !!existing, busy, status, error, toggle };
+}
+
+/** Icon-only bookmark for the text bubble footer — the same 40px slot
+ *  rhythm as the copy button beside it. Saved = FILLED bookmark (shape, not
+ *  color alone) + aria-pressed + an accessible name that flips to the exact
+ *  remove action; failure swaps the glyph to an alert so the error isn't
+ *  color-only either. One click handler (not pointerdown) so keyboards work. */
+function BookmarkButton({ msg }: { msg: ChatMessage }) {
+  const { t } = useI18n();
+  const bm = useBookmarkToggle(msg);
+  const name = bm.error ?? (bm.saved ? t('saved.remove') : t('saved.save'));
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => { void bm.toggle(); }}
+        aria-label={name}
+        title={name}
+        aria-pressed={bm.saved}
+        disabled={bm.busy}
+        data-testid="save-item"
+        className={cn(
+          "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] rounded-full transition-motion active:scale-90",
+          bm.error
+            ? "text-status-danger"
+            : bm.saved
+              ? "text-ember"
+              : "text-apple-ink-muted hover:text-apple-ink dark:hover:text-white hover:bg-apple-divider/60 dark:hover:bg-apple-tile-3",
+          bm.busy && "opacity-50"
+        )}
+      >
+        {bm.error
+          ? <AlertCircle className="w-3.5 h-3.5" aria-hidden />
+          : <Bookmark className="w-3.5 h-3.5" fill={bm.saved ? 'currentColor' : 'none'} aria-hidden />}
+      </button>
+      <span role="status" className="sr-only">{bm.status}</span>
+    </>
+  );
+}
+
+/** Pill form for the attachment action row — sits inside the `complete`
+ *  branch next to Copy/Share/Save-file, so only byte-complete transfers are
+ *  offered (there is nothing durable to copy otherwise). viaClick makes the
+ *  control fire on click so keyboard Enter works, unlike the legacy
+ *  pointerdown-only pills around it. */
+function BookmarkAction({ msg, onBlue }: { msg: ChatMessage; onBlue: boolean }) {
+  const { t } = useI18n();
+  const bm = useBookmarkToggle(msg);
+  const name = bm.error ?? (bm.saved ? t('saved.remove') : t('saved.save'));
+  return (
+    <>
+      <ActionButton
+        icon={bm.error ? <AlertCircle className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
+        activeIcon={<Bookmark className="w-3.5 h-3.5" fill="currentColor" />}
+        label={bm.saved && !bm.error ? t('action.saved') : t('action.save')}
+        ariaLabel={name}
+        pressed={bm.saved}
+        active={bm.saved && !bm.error}
+        disabled={bm.busy}
+        viaClick
+        onClick={() => { void bm.toggle(); }}
+        onBlue={onBlue}
+        testId="save-item-attachment"
+      />
+      <span role="status" className="sr-only">{bm.status}</span>
+    </>
+  );
+}
+
+function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, activeIcon, ariaLabel, pressed, disabled, viaClick }: { icon: React.ReactNode, label: string, onClick: () => void, active?: boolean, primary?: boolean, onBlue?: boolean, testId?: string, activeIcon?: React.ReactNode, ariaLabel?: string, pressed?: boolean, disabled?: boolean, viaClick?: boolean }) {
   // OpenSourceUI CopyButton/DownloadButton keycap recipe (real sources,
   // spaceui registry notes): a raised key that SINKS on press — hairline
   // ring + downward drops + bottom shade at rest, inverts to a recess under
@@ -951,7 +1063,12 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId }:
   // 200ms later) the originals use for the copied/downloaded confirmations.
   return (
     <button
-      onPointerDown={(e) => { e.preventDefault(); onClick(); }}
+      type="button"
+      onClick={viaClick ? onClick : undefined}
+      onPointerDown={viaClick ? undefined : (e) => { e.preventDefault(); onClick(); }}
+      aria-label={ariaLabel}
+      aria-pressed={pressed}
+      disabled={disabled}
       data-testid={testId}
       className={cn(
         "flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-[40px] select-none",
@@ -970,7 +1087,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId }:
         transition={{ type: 'spring', bounce: 0, duration: 0.25 }}
         className="[&>svg]:w-3.5 [&>svg]:h-3.5"
       >
-        {active ? <Check /> : icon}
+        {active ? (activeIcon ?? <Check />) : icon}
       </motion.span>
       {label}
     </button>

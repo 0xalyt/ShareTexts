@@ -57,7 +57,7 @@ export function OverlaySheet({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: DUR.short }}
+            transition={{ duration: DUR.short / 1000 }} /* motion takes SECONDS; DUR is ms */
             className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
             onClick={onClose}
           />

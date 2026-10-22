@@ -330,7 +330,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: DUR.micro }}
+          transition={{ duration: DUR.micro / 1000 }} /* motion takes SECONDS; DUR is ms */
           className="fixed inset-0 z-[80] bg-black/25 dark:bg-black/55 flex items-start justify-center pt-[10vh] sm:pt-[12vh] px-4 backdrop-blur-[2px]"
           role="dialog"
           aria-modal="true"

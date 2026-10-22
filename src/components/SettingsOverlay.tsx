@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Moon, Sun, RefreshCw, WifiOff, Languages } from 'lucide-react';
+import { X, Moon, Sun, RefreshCw, WifiOff, Languages, Bookmark, ChevronRight } from 'lucide-react';
 import { SegmentedToggleButton } from './spaceui/SegmentedToggleButton';
 import { RateCard } from './spaceui/rating';
 import { LanguageMenu } from './LanguageMenu';
@@ -10,6 +10,7 @@ import { useI18n } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { useSession } from '../lib/SessionContext';
 import { useFocusTrap } from '../lib/useFocusTrap';
+import { useSavedCount } from '../lib/savedItems';
 import { cn } from '../lib/utils';
 
 /**
@@ -22,6 +23,8 @@ import { cn } from '../lib/utils';
  *     feel and look are the standard every other switch copies), with an
  *     explicit Dark/Light label that always states the CURRENT side.
  *   · LANGUAGE    — the existing language menu, embedded.
+ *   · SAVED ITEMS — entry into the local library (same collection the
+ *     landing header opens; renders only when the parent wires it).
  *   · STAY CONNECTED — the room's keep-alive promise (room sessions only).
  *   · RECONNECTION   — the live link state and an explicit Reconnect now
  *     action for the moments the automatic recovery needs a hand.
@@ -32,9 +35,13 @@ import { cn } from '../lib/utils';
 export function SettingsOverlay({
   open,
   onClose,
+  onOpenSaved,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Opens the ONE Saved Items library. Present only where the parent
+   *  mounts the library overlay — the row renders only when it can work. */
+  onOpenSaved?: () => void;
 }) {
   const { t } = useI18n();
   const { resolved, choice, setChoice } = useTheme();
@@ -45,6 +52,7 @@ export function SettingsOverlay({
   const { session, requestReconnect } = useSession();
   const inRoom = !!session.roomId;
   const trapRef = useFocusTrap(open, onClose);
+  const savedCount = useSavedCount();
   const [reconnecting, setReconnecting] = React.useState(false);
 
   const linkState = session.connectionType;
@@ -138,6 +146,40 @@ export function SettingsOverlay({
                   {/* The existing menu, opening leftward inside the card. */}
                   <LanguageMenu align="left" />
                 </div>
+
+                {/* ── Saved items — the SAME library the landing header
+                    opens (one collection, one store, one overlay). */}
+                {onOpenSaved && (
+                  <>
+                    <p className="st-eyebrow px-2 pt-3 pb-1">
+                      {t('saved.title')}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={onOpenSaved}
+                      data-testid="settings-open-saved"
+                      className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors text-left"
+                    >
+                      <span
+                        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-status-warning/10 text-status-warning-ink dark:bg-white/[0.07] dark:text-white/70"
+                        aria-hidden
+                      >
+                        <Bookmark className="w-4 h-4" strokeWidth={2} />
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-[13px] font-semibold text-apple-ink dark:text-white">
+                          {t('saved.title')}
+                        </span>
+                        {savedCount > 0 && (
+                          <span className="block text-[12px] font-medium text-apple-ink-muted dark:text-white/45 tnum">
+                            {savedCount === 1 ? t('saved.countOne') : t('saved.countMany', { n: savedCount })}
+                          </span>
+                        )}
+                      </span>
+                      <ChevronRight className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/40" aria-hidden />
+                    </button>
+                  </>
+                )}
 
                 {/* ── Stay Connected (room sessions only) ────────── */}
                 {inRoom && (

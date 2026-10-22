@@ -42,8 +42,10 @@ import { HeroTransferScene } from '../components/HeroTransferScene';
 import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
 import { HowItWorks, FeatureGrid, LandingFaq, LandingCta } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
+import { useSavedCount } from '../lib/savedItems';
 import { ConfirmSheet } from '../components/ConfirmSheet';
 import { SettingsOverlay } from '../components/SettingsOverlay';
+import { SavedItemsOverlay } from '../components/SavedItemsOverlay';
 import { StayConnectedToggle, StayBadge } from '../components/StayConnectedToggle';
 import { NearbyDevices } from '../components/NearbyDevices';
 import { SkeletonScreen } from '../components/SkeletonScreen';
@@ -60,7 +62,7 @@ import {
   Smartphone, Monitor as Monitor, X as X, ArrowLeftRight as ArrowRightLeft,
   ArrowLeft, Info, Pencil, FileUp as Upload,
   RefreshCw as RotateCcw, Settings as SettingsIcon, Clock as Clock3,
-  Plus, ChevronRight, File as FileIcon,
+  Plus, ChevronRight, File as FileIcon, Bookmark,
 } from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon } from 'lucide-react';
 import { SpaceCreateSheet, SpaceJoinSheet } from './SpaceView';
@@ -146,6 +148,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   // Settings — one overlay for theme / language / stay connected / reconnect.
   const [showSettings, setShowSettings] = useState(false);
+  // Saved Items — ONE library overlay mounted at the root; the landing
+  // header button and the room settings row open this same view (spec:
+  // one collection, never two).
+  const [showSaved, setShowSaved] = useState(false);
   // /space/create and /space/join land here with the right sheet already
   // open — the code entry point IS the app, not a dead end.
   const [spaceSheet, setSpaceSheet] = useState<null | 'create' | 'join'>(initialSpaceSheet ?? null);
@@ -762,6 +768,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // canvas and the tile composition carry the screen now — quiet is the
   // luxury.
   const ambientGlow = null;
+  // Saved — a quiet header entry in the same 40px control rhythm as its
+  // neighbors: bookmark glyph, optional count numeral, aria-label carrying
+  // both. Send/Receive stay the primary landing story.
+  const savedCount = useSavedCount();
+  const savedNavLabel = savedCount === 0
+    ? t('nav.saved')
+    : `${t('nav.saved')} · ${savedCount === 1 ? t('saved.countOne') : t('saved.countMany', { n: savedCount })}`;
   const headerNode = (
     <header className="shrink-0 sticky top-0 z-30 h-14 flex items-center justify-between px-6 lg:px-10 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06] relative">
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
@@ -774,6 +787,24 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         <div className="flex items-center gap-1">
           <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
           <LanguageMenu />
+          {/* Saved — the local library, reachable without a room. Bookmark
+              glyph in the shared 40px slot; the count is a quiet numeral,
+              never a colored badge. */}
+          {panelMode !== 'connected' && (
+            <IconButton3D
+              label={savedNavLabel}
+              onClick={() => setShowSaved(true)}
+              testId="open-saved"
+              className="relative"
+            >
+              <Bookmark className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
+              {savedCount > 0 && (
+                <span aria-hidden className="absolute bottom-1 right-1 text-[9px] font-bold leading-none tnum text-apple-ink-muted dark:text-white/50">
+                  {savedCount > 99 ? '99+' : savedCount}
+                </span>
+              )}
+            </IconButton3D>
+          )}
           {/* Docs sits BETWEEN the language and theme toggles (user request) —
               same 40px slot, same quiet icon style as its neighbors; the
               footer link stays too. */}
@@ -2034,8 +2065,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Settings — theme, language, stay connected, reconnection. */}
-      <SettingsOverlay open={showSettings} onClose={() => setShowSettings(false)} />
+      {/* Settings — theme, language, saved items, stay connected, reconnection. */}
+      <SettingsOverlay
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        onOpenSaved={() => { setShowSettings(false); setShowSaved(true); }}
+      />
+      {/* The ONE Saved Items library — landing header and settings both open it. */}
+      <SavedItemsOverlay open={showSaved} onClose={() => setShowSaved(false)} />
       <SpaceCreateSheet open={spaceSheet === 'create'} onClose={() => setSpaceSheet(null)} />
       <SpaceJoinSheet open={spaceSheet === 'join'} onClose={() => setSpaceSheet(null)} initialCode={initialSpaceCode} />
       {/* Apple-style bottom-sheet confirmation before really ending the session. */}
