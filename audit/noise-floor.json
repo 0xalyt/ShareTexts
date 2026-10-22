@@ -1,0 +1,1407 @@
+[
+ {
+  "f": "404-1440x900-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "404-1440x900-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "404-390x844-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "404-390x844-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "404-820x1180-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "404-820x1180-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "404-844x390-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "404-844x390-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "connecting-1440x900-dark.png",
+  "n": 135727,
+  "share": 10.473,
+  "box": [
+   92,
+   24,
+   1413,
+   879
+  ]
+ },
+ {
+  "f": "connecting-1440x900-light.png",
+  "n": 112742,
+  "share": 8.699,
+  "box": [
+   109,
+   81,
+   1423,
+   879
+  ]
+ },
+ {
+  "f": "connecting-390x844-dark.png",
+  "n": 73640,
+  "share": 22.372,
+  "box": [
+   0,
+   15,
+   389,
+   843
+  ]
+ },
+ {
+  "f": "connecting-390x844-light.png",
+  "status": "MISSING_IN_RUN2"
+ },
+ {
+  "f": "connecting-820x1180-dark.png",
+  "n": 105191,
+  "share": 10.871,
+  "box": [
+   0,
+   13,
+   819,
+   1177
+  ]
+ },
+ {
+  "f": "connecting-820x1180-light.png",
+  "n": 148025,
+  "share": 15.298,
+  "box": [
+   0,
+   11,
+   819,
+   1177
+  ]
+ },
+ {
+  "f": "connecting-844x390-dark.png",
+  "n": 117206,
+  "share": 35.608,
+  "box": [
+   0,
+   12,
+   843,
+   385
+  ]
+ },
+ {
+  "f": "connecting-844x390-light.png",
+  "status": "MISSING_IN_RUN2"
+ },
+ {
+  "f": "docs-1440x900-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "docs-1440x900-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "docs-390x844-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "docs-390x844-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "docs-820x1180-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "docs-820x1180-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "docs-844x390-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "docs-844x390-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "empty-room-1440x900-dark.png",
+  "n": 1,
+  "share": 0,
+  "box": [
+   983,
+   318,
+   983,
+   318
+  ]
+ },
+ {
+  "f": "empty-room-1440x900-light.png",
+  "n": 1,
+  "share": 0,
+  "box": [
+   983,
+   318,
+   983,
+   318
+  ]
+ },
+ {
+  "f": "empty-room-390x844-dark.png",
+  "n": 1,
+  "share": 0,
+  "box": [
+   141,
+   305,
+   141,
+   305
+  ]
+ },
+ {
+  "f": "empty-room-390x844-light.png",
+  "n": 9787,
+  "share": 2.973,
+  "box": [
+   85,
+   76,
+   304,
+   315
+  ]
+ },
+ {
+  "f": "empty-room-820x1180-dark.png",
+  "n": 1,
+  "share": 0,
+  "box": [
+   356,
+   448,
+   356,
+   448
+  ]
+ },
+ {
+  "f": "empty-room-820x1180-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "empty-room-844x390-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "empty-room-844x390-light.png",
+  "n": 9564,
+  "share": 2.906,
+  "box": [
+   312,
+   80,
+   531,
+   126
+  ]
+ },
+ {
+  "f": "enter-code-1440x900-dark.png",
+  "n": 1,
+  "share": 0,
+  "box": [
+   1172,
+   627,
+   1172,
+   627
+  ]
+ },
+ {
+  "f": "enter-code-1440x900-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "enter-code-390x844-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "enter-code-390x844-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "enter-code-820x1180-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "enter-code-820x1180-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "enter-code-844x390-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "enter-code-844x390-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "image-message-1440x900-dark.png",
+  "n": 890,
+  "share": 0.069,
+  "box": [
+   1217,
+   232,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "image-message-1440x900-light.png",
+  "n": 926,
+  "share": 0.071,
+  "box": [
+   1217,
+   232,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "image-message-390x844-dark.png",
+  "n": 850,
+  "share": 0.258,
+  "box": [
+   175,
+   211,
+   252,
+   360
+  ]
+ },
+ {
+  "f": "image-message-390x844-light.png",
+  "n": 876,
+  "share": 0.266,
+  "box": [
+   174,
+   211,
+   252,
+   360
+  ]
+ },
+ {
+  "f": "image-message-820x1180-dark.png",
+  "n": 992,
+  "share": 0.103,
+  "box": [
+   595,
+   219,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "image-message-820x1180-light.png",
+  "n": 974,
+  "share": 0.101,
+  "box": [
+   594,
+   219,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "image-message-844x390-dark.png",
+  "n": 2492,
+  "share": 0.757,
+  "box": [
+   573,
+   92,
+   805,
+   139
+  ]
+ },
+ {
+  "f": "image-message-844x390-light.png",
+  "n": 2241,
+  "share": 0.681,
+  "box": [
+   573,
+   92,
+   805,
+   139
+  ]
+ },
+ {
+  "f": "landing-1440x900-dark.png",
+  "n": 125,
+  "share": 0.01,
+  "box": [
+   218,
+   371,
+   235,
+   381
+  ]
+ },
+ {
+  "f": "landing-1440x900-light.png",
+  "n": 148,
+  "share": 0.011,
+  "box": [
+   218,
+   371,
+   235,
+   381
+  ]
+ },
+ {
+  "f": "landing-390x844-dark.png",
+  "n": 166,
+  "share": 0.05,
+  "box": [
+   150,
+   396,
+   167,
+   406
+  ]
+ },
+ {
+  "f": "landing-390x844-light.png",
+  "n": 155,
+  "share": 0.047,
+  "box": [
+   150,
+   396,
+   167,
+   406
+  ]
+ },
+ {
+  "f": "landing-820x1180-dark.png",
+  "n": 149,
+  "share": 0.015,
+  "box": [
+   365,
+   350,
+   382,
+   360
+  ]
+ },
+ {
+  "f": "landing-820x1180-light.png",
+  "n": 159,
+  "share": 0.016,
+  "box": [
+   365,
+   350,
+   382,
+   360
+  ]
+ },
+ {
+  "f": "landing-844x390-dark.png",
+  "n": 163,
+  "share": 0.05,
+  "box": [
+   377,
+   219,
+   394,
+   229
+  ]
+ },
+ {
+  "f": "landing-844x390-light.png",
+  "n": 163,
+  "share": 0.05,
+  "box": [
+   377,
+   219,
+   394,
+   229
+  ]
+ },
+ {
+  "f": "language-menu-1440x900-dark.png",
+  "n": 125,
+  "share": 0.01,
+  "box": [
+   218,
+   371,
+   235,
+   381
+  ]
+ },
+ {
+  "f": "language-menu-1440x900-light.png",
+  "n": 148,
+  "share": 0.011,
+  "box": [
+   218,
+   371,
+   235,
+   381
+  ]
+ },
+ {
+  "f": "language-menu-390x844-dark.png",
+  "n": 165,
+  "share": 0.05,
+  "box": [
+   150,
+   396,
+   167,
+   406
+  ]
+ },
+ {
+  "f": "language-menu-390x844-light.png",
+  "n": 165,
+  "share": 0.05,
+  "box": [
+   107,
+   396,
+   167,
+   406
+  ]
+ },
+ {
+  "f": "language-menu-820x1180-dark.png",
+  "n": 149,
+  "share": 0.015,
+  "box": [
+   365,
+   350,
+   382,
+   360
+  ]
+ },
+ {
+  "f": "language-menu-820x1180-light.png",
+  "n": 159,
+  "share": 0.016,
+  "box": [
+   365,
+   350,
+   382,
+   360
+  ]
+ },
+ {
+  "f": "language-menu-844x390-dark.png",
+  "n": 1086,
+  "share": 0.33,
+  "box": [
+   377,
+   93,
+   664,
+   266
+  ]
+ },
+ {
+  "f": "language-menu-844x390-light.png",
+  "n": 163,
+  "share": 0.05,
+  "box": [
+   377,
+   219,
+   394,
+   229
+  ]
+ },
+ {
+  "f": "offline-banner-1440x900-dark.png",
+  "n": 2950,
+  "share": 0.228,
+  "box": [
+   218,
+   7,
+   863,
+   381
+  ]
+ },
+ {
+  "f": "offline-banner-1440x900-light.png",
+  "n": 10223,
+  "share": 0.789,
+  "box": [
+   218,
+   7,
+   863,
+   381
+  ]
+ },
+ {
+  "f": "offline-banner-390x844-dark.png",
+  "n": 3022,
+  "share": 0.918,
+  "box": [
+   52,
+   8,
+   338,
+   406
+  ]
+ },
+ {
+  "f": "offline-banner-390x844-light.png",
+  "n": 1860,
+  "share": 0.565,
+  "box": [
+   51,
+   8,
+   338,
+   406
+  ]
+ },
+ {
+  "f": "offline-banner-820x1180-dark.png",
+  "n": 2075,
+  "share": 0.214,
+  "box": [
+   269,
+   7,
+   550,
+   360
+  ]
+ },
+ {
+  "f": "offline-banner-820x1180-light.png",
+  "n": 9643,
+  "share": 0.997,
+  "box": [
+   266,
+   7,
+   553,
+   360
+  ]
+ },
+ {
+  "f": "offline-banner-844x390-dark.png",
+  "n": 223,
+  "share": 0.068,
+  "box": [
+   292,
+   19,
+   394,
+   229
+  ]
+ },
+ {
+  "f": "offline-banner-844x390-light.png",
+  "n": 10902,
+  "share": 3.312,
+  "box": [
+   278,
+   6,
+   565,
+   229
+  ]
+ },
+ {
+  "f": "pairing-1440x900-dark.png",
+  "n": 1974,
+  "share": 0.152,
+  "box": [
+   132,
+   395,
+   1172,
+   575
+  ]
+ },
+ {
+  "f": "pairing-1440x900-light.png",
+  "n": 1834,
+  "share": 0.142,
+  "box": [
+   132,
+   471,
+   500,
+   497
+  ]
+ },
+ {
+  "f": "pairing-390x844-dark.png",
+  "n": 986,
+  "share": 0.3,
+  "box": [
+   53,
+   414,
+   337,
+   433
+  ]
+ },
+ {
+  "f": "pairing-390x844-light.png",
+  "n": 1102,
+  "share": 0.335,
+  "box": [
+   52,
+   414,
+   338,
+   433
+  ]
+ },
+ {
+  "f": "pairing-820x1180-dark.png",
+  "n": 1553,
+  "share": 0.161,
+  "box": [
+   226,
+   370,
+   594,
+   469
+  ]
+ },
+ {
+  "f": "pairing-820x1180-light.png",
+  "n": 1275,
+  "share": 0.132,
+  "box": [
+   226,
+   371,
+   464,
+   469
+  ]
+ },
+ {
+  "f": "pairing-844x390-dark.png",
+  "n": 2,
+  "share": 0.001,
+  "box": [
+   373,
+   370,
+   373,
+   371
+  ]
+ },
+ {
+  "f": "pairing-844x390-light.png",
+  "n": 1,
+  "share": 0,
+  "box": [
+   373,
+   371,
+   373,
+   371
+  ]
+ },
+ {
+  "f": "reaction-added-1440x900-dark.png",
+  "n": 824,
+  "share": 0.064,
+  "box": [
+   1128,
+   187,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "reaction-added-1440x900-light.png",
+  "n": 803,
+  "share": 0.062,
+  "box": [
+   1130,
+   187,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "reaction-added-390x844-dark.png",
+  "n": 825,
+  "share": 0.251,
+  "box": [
+   21,
+   22,
+   252,
+   360
+  ]
+ },
+ {
+  "f": "reaction-added-390x844-light.png",
+  "n": 714,
+  "share": 0.217,
+  "box": [
+   76,
+   166,
+   252,
+   360
+  ]
+ },
+ {
+  "f": "reaction-added-820x1180-dark.png",
+  "n": 791,
+  "share": 0.082,
+  "box": [
+   185,
+   22,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "reaction-added-820x1180-light.png",
+  "n": 914,
+  "share": 0.094,
+  "box": [
+   179,
+   15,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "reaction-added-844x390-dark.png",
+  "n": 300,
+  "share": 0.091,
+  "box": [
+   181,
+   17,
+   791,
+   125
+  ]
+ },
+ {
+  "f": "reaction-added-844x390-light.png",
+  "n": 36,
+  "share": 0.011,
+  "box": [
+   524,
+   92,
+   772,
+   98
+  ]
+ },
+ {
+  "f": "reaction-picker-open-1440x900-dark.png",
+  "n": 455,
+  "share": 0.035,
+  "box": [
+   1176,
+   203,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "reaction-picker-open-1440x900-light.png",
+  "n": 685,
+  "share": 0.053,
+  "box": [
+   803,
+   25,
+   1382,
+   355
+  ]
+ },
+ {
+  "f": "reaction-picker-open-390x844-dark.png",
+  "n": 1021,
+  "share": 0.31,
+  "box": [
+   73,
+   182,
+   359,
+   360
+  ]
+ },
+ {
+  "f": "reaction-picker-open-390x844-light.png",
+  "n": 447,
+  "share": 0.136,
+  "box": [
+   174,
+   182,
+   340,
+   360
+  ]
+ },
+ {
+  "f": "reaction-picker-open-820x1180-dark.png",
+  "n": 672,
+  "share": 0.069,
+  "box": [
+   493,
+   190,
+   779,
+   342
+  ]
+ },
+ {
+  "f": "reaction-picker-open-820x1180-light.png",
+  "n": 665,
+  "share": 0.069,
+  "box": [
+   493,
+   191,
+   779,
+   342
+  ]
+ },
+ {
+  "f": "reaction-picker-open-844x390-dark.png",
+  "n": 221,
+  "share": 0.067,
+  "box": [
+   505,
+   92,
+   792,
+   117
+  ]
+ },
+ {
+  "f": "reaction-picker-open-844x390-light.png",
+  "n": 580,
+  "share": 0.176,
+  "box": [
+   183,
+   19,
+   792,
+   117
+  ]
+ },
+ {
+  "f": "room-ended-1440x900-dark.png",
+  "n": 890,
+  "share": 0.069,
+  "box": [
+   1217,
+   232,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "room-ended-1440x900-light.png",
+  "n": 926,
+  "share": 0.071,
+  "box": [
+   1217,
+   232,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "room-ended-390x844-dark.png",
+  "n": 850,
+  "share": 0.258,
+  "box": [
+   175,
+   211,
+   252,
+   360
+  ]
+ },
+ {
+  "f": "room-ended-390x844-light.png",
+  "n": 1272,
+  "share": 0.386,
+  "box": [
+   17,
+   17,
+   252,
+   360
+  ]
+ },
+ {
+  "f": "room-ended-820x1180-dark.png",
+  "n": 992,
+  "share": 0.103,
+  "box": [
+   595,
+   219,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "room-ended-820x1180-light.png",
+  "n": 1278,
+  "share": 0.132,
+  "box": [
+   181,
+   17,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "room-ended-844x390-dark.png",
+  "n": 468,
+  "share": 0.142,
+  "box": [
+   606,
+   125,
+   691,
+   132
+  ]
+ },
+ {
+  "f": "room-ended-844x390-light.png",
+  "n": 438,
+  "share": 0.133,
+  "box": [
+   606,
+   125,
+   684,
+   132
+  ]
+ },
+ {
+  "f": "room-with-messages-1440x900-dark.png",
+  "n": 890,
+  "share": 0.069,
+  "box": [
+   1217,
+   232,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "room-with-messages-1440x900-light.png",
+  "n": 1075,
+  "share": 0.083,
+  "box": [
+   801,
+   23,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "room-with-messages-390x844-dark.png",
+  "n": 850,
+  "share": 0.258,
+  "box": [
+   175,
+   211,
+   252,
+   360
+  ]
+ },
+ {
+  "f": "room-with-messages-390x844-light.png",
+  "n": 10440,
+  "share": 3.172,
+  "box": [
+   85,
+   76,
+   304,
+   360
+  ]
+ },
+ {
+  "f": "room-with-messages-820x1180-dark.png",
+  "n": 992,
+  "share": 0.103,
+  "box": [
+   595,
+   219,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "room-with-messages-820x1180-light.png",
+  "n": 974,
+  "share": 0.101,
+  "box": [
+   594,
+   219,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "room-with-messages-844x390-dark.png",
+  "n": 3562,
+  "share": 1.082,
+  "box": [
+   573,
+   92,
+   805,
+   184
+  ]
+ },
+ {
+  "f": "room-with-messages-844x390-light.png",
+  "n": 12694,
+  "share": 3.856,
+  "box": [
+   183,
+   19,
+   805,
+   177
+  ]
+ },
+ {
+  "f": "settings-1440x900-dark.png",
+  "n": 820,
+  "share": 0.063,
+  "box": [
+   1217,
+   232,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "settings-1440x900-light.png",
+  "n": 902,
+  "share": 0.07,
+  "box": [
+   1217,
+   232,
+   1301,
+   355
+  ]
+ },
+ {
+  "f": "settings-390x844-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "settings-390x844-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "settings-820x1180-dark.png",
+  "n": 787,
+  "share": 0.081,
+  "box": [
+   595,
+   219,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "settings-820x1180-light.png",
+  "n": 881,
+  "share": 0.091,
+  "box": [
+   594,
+   219,
+   679,
+   342
+  ]
+ },
+ {
+  "f": "settings-844x390-dark.png",
+  "n": 356,
+  "share": 0.108,
+  "box": [
+   622,
+   125,
+   691,
+   132
+  ]
+ },
+ {
+  "f": "settings-844x390-light.png",
+  "n": 353,
+  "share": 0.107,
+  "box": [
+   622,
+   125,
+   684,
+   132
+  ]
+ },
+ {
+  "f": "space-create-1440x900-dark.png",
+  "n": 63,
+  "share": 0.005,
+  "box": [
+   218,
+   372,
+   233,
+   380
+  ]
+ },
+ {
+  "f": "space-create-1440x900-light.png",
+  "n": 145,
+  "share": 0.011,
+  "box": [
+   215,
+   370,
+   231,
+   383
+  ]
+ },
+ {
+  "f": "space-create-390x844-dark.png",
+  "n": 201,
+  "share": 0.061,
+  "box": [
+   147,
+   395,
+   169,
+   406
+  ]
+ },
+ {
+  "f": "space-create-390x844-light.png",
+  "n": 149,
+  "share": 0.045,
+  "box": [
+   147,
+   395,
+   168,
+   406
+  ]
+ },
+ {
+  "f": "space-create-820x1180-dark.png",
+  "n": 148,
+  "share": 0.015,
+  "box": [
+   362,
+   350,
+   383,
+   362
+  ]
+ },
+ {
+  "f": "space-create-820x1180-light.png",
+  "n": 211,
+  "share": 0.022,
+  "box": [
+   362,
+   348,
+   383,
+   362
+  ]
+ },
+ {
+  "f": "space-create-844x390-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "space-create-844x390-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "space-join-1440x900-dark.png",
+  "n": 63,
+  "share": 0.005,
+  "box": [
+   218,
+   372,
+   233,
+   380
+  ]
+ },
+ {
+  "f": "space-join-1440x900-light.png",
+  "n": 145,
+  "share": 0.011,
+  "box": [
+   215,
+   370,
+   231,
+   383
+  ]
+ },
+ {
+  "f": "space-join-390x844-dark.png",
+  "n": 230,
+  "share": 0.07,
+  "box": [
+   147,
+   395,
+   169,
+   408
+  ]
+ },
+ {
+  "f": "space-join-390x844-light.png",
+  "n": 170,
+  "share": 0.052,
+  "box": [
+   147,
+   395,
+   168,
+   408
+  ]
+ },
+ {
+  "f": "space-join-820x1180-dark.png",
+  "n": 148,
+  "share": 0.015,
+  "box": [
+   362,
+   350,
+   383,
+   362
+  ]
+ },
+ {
+  "f": "space-join-820x1180-light.png",
+  "n": 211,
+  "share": 0.022,
+  "box": [
+   362,
+   348,
+   383,
+   362
+  ]
+ },
+ {
+  "f": "space-join-844x390-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "space-join-844x390-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "space-room-1440x900-dark.png",
+  "n": 505,
+  "share": 0.039,
+  "box": [
+   545,
+   24,
+   704,
+   40
+  ]
+ },
+ {
+  "f": "space-room-1440x900-light.png",
+  "n": 485,
+  "share": 0.037,
+  "box": [
+   545,
+   24,
+   704,
+   40
+  ]
+ },
+ {
+  "f": "space-room-390x844-dark.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "space-room-390x844-light.png",
+  "n": 0,
+  "share": 0,
+  "box": null
+ },
+ {
+  "f": "space-room-820x1180-dark.png",
+  "n": 436,
+  "share": 0.045,
+  "box": [
+   235,
+   24,
+   394,
+   40
+  ]
+ },
+ {
+  "f": "space-room-820x1180-light.png",
+  "n": 544,
+  "share": 0.056,
+  "box": [
+   235,
+   24,
+   394,
+   40
+  ]
+ },
+ {
+  "f": "space-room-844x390-dark.png",
+  "n": 486,
+  "share": 0.148,
+  "box": [
+   247,
+   24,
+   406,
+   40
+  ]
+ },
+ {
+  "f": "space-room-844x390-light.png",
+  "n": 522,
+  "share": 0.159,
+  "box": [
+   247,
+   24,
+   406,
+   40
+  ]
+ }
+]
