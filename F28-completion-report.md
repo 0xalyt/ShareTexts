@@ -1,111 +1,153 @@
-# F28 — apple-grade pass: tokens, type, landing structure, OG refresh, testid-proof nearby gate
+# F28 — P0: truth, contract, baseline, safety net
 
-Date: 2026-10-20 · Scope: Phases 0–5 of the apple-grade plan as committed, plus the OG artwork
-refresh and the nearby E2E selector repair. Branch: `design/apple-grade` — 9 commits ahead of
-`main`, pushed to https://github.com/0xalyt/ShareTexts.
+Report for prompt P0. Proof rule: every row cites file:line, a command or a screenshot
+path. Anything unchecked says NOT VERIFIED. Prior F28 (apple-grade branch pass, commit
+`ca53b59`) is preserved in git history and is a source for STEP 2.
 
-## 0. Before / after
+## 1. Summary
 
-| Area | Before | After | Evidence |
-|---|---|---|---|
-| Colour | warm-tinted neutrals, mixed greys | pinned light/dark tokens (#fbfbfd/#181818 palettes), warmth gate in CI | commit `7fe0513`, `docs/design-tokens.md` |
-| Type | multiple font stacks/ladders | self-hosted Inter 4 variable + system SF fallback, one type ladder, hero 56/64 | commit `af7911c`, `764ff7b` |
-| Icons | lucide + @gravity-ui + Apple emoji art | lucide-react only, Unicode emoji | commit `af7911c` |
-| Landing | short page, no tail | full scroll tail, copy in i18n dicts, feedback moved to settings | commit `261fe37` |
-| Claims | overstated crypto/privacy wording | `docs/claims.md`: 6 TRUE / 6 OVERSTATED / 2 FALSE / 1 UNVERIFIED, all strings fixed to match | commit `5011be8` |
-| OG card | 69 KB icon-grid card, `?v=20` | 18,334 B ember app-icon card, `?v=21` in all 49 refs, new alt text | commit `20fdab8`, `public/og/sharetext-og.jpg` |
-| Nearby gate | selectors pinned to old "Nearby" copy — 0 rows matched, gate red | `data-testid` hooks + testid selectors, i18n-proof label assertion | commit `97a93a0`, 17/17 PASS |
+(to be completed at the end of P0)
 
-## 1. Phase 0 — audit (no edits)
+## 2. Commits pushed
 
-- Screenshot matrix: `docs/audits/shots-coreflow/` (light/dark, 390×844, 1440×900, reduced-motion still, RTL).
-- Baselines: `docs/p0-baselines.md` — LCP 640 ms, CLS 0.000 @390, entry JS 276 KB gzip,
-  `vendor-motion` 49 KB (static import in `main.tsx`), `vendor-icons` 6 KB. INP not instrumented.
-- Slop inventory: `docs/slop-inventory.md` with KEEP/REPLACE/KILL verdicts per element.
-
-## 2. Phase 1 — truth pass
-
-- `docs/claims.md`: 15 claims audited — 6 TRUE, 6 OVERSTATED, 2 FALSE, 1 UNVERIFIED.
-- Crypto wording corrected to what the code does (key derives from the server-issued room
-  secret). Protocol/crypto untouched, per plan. The 1 UNVERIFIED item is listed for owner decision.
-- Housekeeping done: `Alightttt` → `0xalyt` on all live surfaces (8 refs remain only in
-  `dist/` build output — regenerated each build — and in F26/F27 archive reports, kept per
-  `docs/claims.md` line 41). Package renamed `react-example` → `sharetexts`.
-  Remote already points at `https://github.com/0xalyt/ShareTexts.git`.
-
-## 3. Phases 2–5 — committed by this branch
-
-- Phase 2 (`7fe0513`): apple-grade neutral tokens, ember ink AA on light, warmth gate.
-- Phase 3 (`af7911c`): Inter 4 self-hosted (Latin woff2, `font-display: swap`), lucide-only,
-  Unicode emoji (no `react-apple-emojis`).
-- Phase 4 (`764ff7b`): one type ladder, hero display 56/64.
-- Phase 5 (`261fe37`): full scroll tail, copy moved to i18n, feedback moved to settings.
-- Worker (`b8ab804`): allow dev (3012) + prod-verify (3013) origins.
-
-## 4. This pass — OG refresh + nearby gate repair (commits `20fdab8`, `97a93a0`)
-
-- OG card replaced byte-exact (JPEG data despite the `.png` source name — kept the `.jpg`
-  URL, 1200×630, `image/jpeg`): hash `7c2bab14…`, 18,334 B.
-- `?v=20` → `?v=21` in 49 refs: `index.html` (og:image, twitter:image, JSON-LD
-  `image` + `screenshot`), all 21 `public/guides/*.html`, `scripts/seo-harden.mjs` hub template.
-  Zero `v=20` refs remain in source or `dist/`.
-- Alt text (`og:image:alt` + `twitter:image:alt`) now describes the new card.
-- Brand gate updated, not weakened: the `ink` (dark-pixel) assertion matched the OLD artwork
-  (0 dark px on the new card, 3,396 ember px). Replaced with ember-glyph-present (>200 px) +
-  horizontally-centered bbox checks; dead `ink` predicate removed. 22/22 green.
-- Nearby E2E: root cause was copy drift (badge reworded to "Available"), not a product bug —
-  the WS frames and list state were correct all along. Added `nearby-devices` /
-  `nearby-device-row` testids and pinned all 5 row selectors; label assertion now checks
-  device label + badge without asserting badge wording.
-- Service-worker precache left as `/og/sharetext-og.jpg` (path-keyed, now serves new bytes).
-
-## 5. Verification (this tree, exit codes captured)
-
-| Check | Result |
+| sha | message |
 |---|---|
-| `npm run build` (+ seo-routes prerender) | ✓ exit 0 |
-| `npx tsc --noEmit` | ✓ exit 0 |
-| `verify-brand-assets` | ✓ 22/22 |
-| `verify-seo` (production server) | ✓ 114/114 |
-| `verify-quality` | ✓ 17/17 (`swPrecachesOg: true`) |
-| `verify-nearby-browser` (2 live pairs + decline path) | ✓ 17/17, 0 console errors |
-| `verify-mobile-ui` | ✓ all green |
-| `verify-theme` | ✓ |
-| `verify-landing-onescreen` (7 viewports) | ✓ 0 failing |
-| `verify-visual-system` | ✓ (was 7/8 at F27; the raw-hex failure is gone) |
-| `test:protocol` | ✓ 0 page errors |
-| `worker:test` | ✓ 103/103 |
+| d5ca699 | feat(saved): per-device saved library — overlay, store, i18n keys, e2e gate (pre-P0 worktree, tsc+build+57/57 gate clean before committing) |
+| (this step) | docs: design contract v1.1 |
 
-All run against the local production build on `:3010`.
+Safety net: tag `before-p0` pushed to origin at d5ca699 (`git push origin before-p0`,
+output: `* [new tag] before-p0 -> before-p0`).
 
-## 6. Deliberately NOT done
+## 2a. Environment
 
-- **Protocol/crypto**: untouched (stop condition (a)). The UNVERIFIED claim stays for the owner.
-- **Phase 5 budgets not met**: entry JS is 276 KB gzip vs the 110 KB budget; `vendor-motion`
-  is a static import (plan asks for lazy motion). No Lighthouse CI (`lighthouserc` absent),
-  no Redmi 9 USB measurement (no device here), INP still not instrumented.
-- **Phase 6 not started**: no new content pages, no SERP teardown, no Search Console data,
-  no 3 title options, no robots.txt AI-crawler decision in this report.
-- **Phase 7 additions absent**: no Playwright multi-browser screenshot matrix
-  (CI has Chromium E2E + audit only), no `@axe-core/playwright`, no Lighthouse CI budgets,
-  no contrast script beyond existing gates, no `npx license-checker --summary` run.
-- **Maestro flows**: not run (no Android device/emulator in this environment).
-- **Screenshots for this pass**: OG card verified visually via live browser against
-  `:3010`; the committed Phase 0 matrix is in `docs/audits/shots-coreflow/`.
-- Vercel preview URL: not obtainable from this machine (no Vercel auth here).
+| Item | Value | Proof |
+|---|---|---|
+| OS | Windows 10/11 build 26200, Git Bash (MINGW64_NT-10.0-26200) | `uname -s` |
+| Node | v24.19.0 | `node -v` |
+| npm | 11.17.0 | `npm -v` |
+| Playwright | 1.62.1 | `npx playwright --version` |
+| Chromium | installed (chromium-1234, chromium-1248, headless shells, ffmpeg) | `$LOCALAPPDATA/ms-playwright` listing |
+| Dev server | `npm run dev` with PORT=3012 | contract §0.9 |
+| Prod server | `npm run build` then `NODE_ENV=production PORT=3013 node dist/server.cjs` | contract §0.9 |
+| Branch at start | design/apple-grade, 10 ahead / 0 behind main → fast-forwarded main to d5ca699, both pushed | `git rev-list --left-right --count main...HEAD` → `0 10` |
 
-## 7. Open risks
+## 3. Contract vs code (DESIGN.md sections 3–9)
 
-1. 276 KB entry gzip > 110 KB budget — CI cannot fail on it yet (no Lighthouse CI).
-2. All gate numbers are from the local production build; `https://sharetexts.online` re-run
-   is pending merge + owner approval.
-3. 8 `Alightttt` refs persist in `dist/` (regenerated) + 2 historical report archives.
-4. 1 UNVERIFIED claim (crypto) awaits owner decision; wording currently honest but partial.
-5. `vendor-motion` static import makes lazy-loading work unstarted.
+Values read from this tree (d5ca699 + DESIGN.md). Differences are recorded, not fixed —
+owner decides.
 
-## 8. Git
+### Section 3 — Colour
 
-Branch `design/apple-grade`, 9 commits ahead of `main`, pushed to
-`origin` (https://github.com/0xalyt/ShareTexts). PR creation link returned by the remote:
-https://github.com/0xalyt/ShareTexts/pull/new/design/apple-grade. No push to `main`, no
-production deploy — both await owner approval per plan.
+| Contract item | Code value | File:line | Match / Differs |
+|---|---|---|---|
+| light canvas #ffffff | #fbfbfd | src/index.css:72 (--color-bg), :98 (--color-apple-canvas) | Differs (#fbfbfd) |
+| light band #f5f5f7 | #f5f5f7 | src/index.css:73, :99, :160 | Match |
+| light ink #1d1d1f | #1d1d1f | src/index.css:67, :100 | Match |
+| light ink-2 #6e6e73 | #6e6e73 | src/index.css:68, :101 | Match |
+| light ink-3 #8e8e93 | #8e8e93 | src/index.css:69 | Match |
+| light line #dedee3 | rgb(0 0 0/0.08) (≈#ebebeb on white) | src/index.css:80 | Differs (alpha, not the hex) |
+| light divider #e8e8ed | rgb(0 0 0/0.08) | src/index.css:105 (--color-apple-divider) | Differs |
+| dark canvas #101012 | #181818 | src/index.css:285 | Differs |
+| dark band #141416 | #141414 | src/index.css:286 | Differs (#141414, 1 step off) |
+| dark raised #18181a | #262626 | src/index.css:287-289 | Differs |
+| dark ink #ededf2 | #e4e4e4 | src/index.css:293 | Differs |
+| dark ink-2 #9c9ca3 | #888888 | src/index.css:294 | Differs |
+| dark line #3a3a42 | #333333 | src/index.css:297 | Differs |
+| dark divider #2a2a30 | #2a2a2a | src/index.css:298 | Differs (1-2 values off) |
+| accent light #f06413 | #f06413 | src/index.css:51 (--color-brand), :57 (--color-ember), :93 (--color-focus) | Match (but 5 names, see below) |
+| accent dark #fb7a2e | #fb7a2e | src/index.css:301, :317 | Match |
+| press #d9560e (light) | #d9560e | src/index.css:52 | Match |
+| orange text on light #b3450b | #b3450b exists as --color-azure-800 | src/index.css:111 | Match value / token name not -accent-ink |
+| success #34c759 | #34c759 | src/index.css:85, :115 | Match |
+| success ink on light #1d7a35 | #1d7a35 | src/index.css:216 | Match |
+| warning #ff9500 | #ff9500 | src/index.css:87, :116 | Match |
+| warning ink on light #9a5a00 | #c77a00 | src/index.css:117 | Differs |
+| danger #ff3b30 | #ff3b30 | src/index.css:89, :119 | Match |
+| danger ink on light #c22e24 | #c22e24 | src/index.css:219 | Match |
+| one accent, few names | five names for #f06413: brand, ember, apple-blue, azure-600, focus | src/index.css:51,57,93,103,113 | Differs (lying names, the P0 "why") |
+| "Warm paper… One accent: iOS blue" top comment | comment still says iOS blue; code comment below says EMBER | src/index.css:38-44 vs :46-49 | Differs (stale header comment) |
+| toggle ON = success green | #5CCB67 | src/components/ThemeToggle.tsx:47,166 | Differs (not --color-status-success) |
+| no gradients on UI | --st-btn-primary/soft/secondary gradients defined and used | src/index.css:242-244, :320-322; src/components/TactileButton.tsx:51,58,65 | Differs |
+
+### Section 4 — Type
+
+| Contract item | Code value | File:line | Match / Differs |
+|---|---|---|---|
+| Apple devices get SF via -apple-system first | "Inter" leads the stack everywhere | src/index.css:35 | Differs (Inter first; SF only as fallback) |
+| Inter variable, self-hosted, 100–900, font-display swap, Latin subsets | @font-face Inter 100 900, swap, inter-latin{,-ext}.woff2 | src/index.css:13-29 | Match |
+| size-adjusted fallback | no `size-adjust` anywhere in src/ | grep -rn size-adjust src/ → 0 hits | Differs (absent) |
+| :lang() system fonts for hi/ar/ja/zh/ko | no :lang() CSS (only a comment saying they read locale from i18n) | grep -rn ':lang(' src/ → 0 CSS hits; src/lib/i18n.tsx:73 | Differs (absent) |
+| display 56/64, 650, -0.03em | text-[clamp(56px,6vw,64px)] + .st-display 650/-0.03em | src/views/SingleScreenApp.tsx:836; src/index.css:410 | Match |
+| h1 40 | no .st-h1 / no 40px h1 rule found; h1 only sets letter-spacing -0.03em | src/index.css:357; grep st-h1 → 0 | Differs (40px not defined) |
+| h2 32 | .st-h2 32px | src/index.css:411 | Match |
+| h3 22/600 | .st-h3 22px/600 | src/index.css:412 | Match |
+| body 17/1.47 | body 16px/1.5; .st-body 16px/1.55 | src/index.css:261-262, :414 | Differs (16px, 1.5–1.55) |
+| small 15 | no 15px step (nearest: .st-title 16, .st-support/.st-label 13) | src/index.css:413-415 | Differs (absent) |
+| caption 13 | .st-support/.st-label 13px | src/index.css:414-415 | Match |
+| micro 12 | .st-meta 12px, .st-eyebrow 12px | src/index.css:416, :421 | Match |
+| tighten letter-spacing only ≥20px | body 16px carries -0.01em; base body -0.008em; .st-title 16px -0.018em | src/index.css:264, :413-414 | Differs (tracking below 20px) |
+| tabular numbers for codes/counts | .tnum utility, used on codes, counts, % | src/index.css:382-384 | Match |
+| headings text-wrap: balance | balance on h-stacking + .st-display/h2/h3 | src/index.css:355, :410-412 | Match |
+| paragraphs text-wrap: pretty | 0 hits for text-pretty / text-wrap: pretty | grep → 0 | Differs (absent) |
+| line length ≤60ch | no max-width in ch found | NOT VERIFIED (no such rule located) | Differs / unchecked |
+
+### Section 5 — Shape, space, depth
+
+| Contract item | Code value | File:line | Match / Differs |
+|---|---|---|---|
+| radius 12 small controls | --radius-sm 12px | src/index.css:165 | Match |
+| radius 14 buttons | ConfirmSheet buttons rounded-[14px]; TactileButton sizes use rounded-full | src/components/ConfirmSheet.tsx:91-102; src/components/TactileButton.tsx:38-40 | Differs (two grammars) |
+| radius 16 cards | --radius-md 16px; cards use rounded-[16px] | src/index.css:166; src/components/SavedItemsOverlay.tsx:264 | Match |
+| radius 24 sheets | --st-radius-sheet: 20px (24px tier exists as --radius-xl) | src/index.css:168, :202 | Differs (sheet = 20) |
+| radius full for chips | rounded-full used for chips/pills | e.g. src/components/MessageCard.tsx:571 | Match |
+| one shadow token, floating layers only | 7 --shadow-* + 3 --st-elev-* levels | src/index.css:171-177, :210-212 | Differs (10 tokens) |
+| min touch target 44×44 | --st-control-md 44px / lg 52px, but many min-h-[40px] controls | src/index.css:197-199; e.g. src/components/SavedItemsOverlay.tsx:460,521 | Differs (40px controls exist) |
+| 4px grid, spacing steps 4/8/12/16/24/32/48/80 | no spacing-token list defined | NOT VERIFIED (tokens absent) | Differs (no token source) |
+
+### Section 6 — Buttons
+
+| Contract item | Code value | File:line | Match / Differs |
+|---|---|---|---|
+| primary = flat orange fill | primary uses linear-gradient (light #c25310→#a94008, dark #fb8447→#d9560e) | src/index.css:242, :320; src/components/TactileButton.tsx:51 | Differs (gradient) |
+| label white 19px/700 | no 19px found; sizes use text-[13px]/text-[16px] | src/components/TactileButton.tsx:38-40; grep text-\[19px\] → 0 | Differs |
+| 3px darker bottom edge #c04b09 | edge token #8a3608 (dark #a83f06); 3px→1px press shadow present | src/index.css:248, :323; src/components/ShareMenu.tsx:159 | Differs on colour (#8a3608 ≠ #c04b09); geometry matches |
+| press: down 2px, edge 3→1px, 60 ms | active:translate-y-[2px] + active:shadow-[0_1px_0_0_…]; DUR.instant=60 exists | src/components/ShareMenu.tsx:159; src/lib/motion/tokens.ts:32 | Match geometry; 60ms pin for this press NOT VERIFIED |
+| radius 14 on buttons | ConfirmSheet 14px; TactileButton rounded-full | src/components/ConfirmSheet.tsx:91-102; TactileButton.tsx:38-40 | Differs (split) |
+| height 52 hero / 44 default | --st-control-lg 52px / --st-control-md 44px | src/index.css:198-199 | Match |
+| secondary: surface fill, 1.5px line, ink 17px/600 | secondary bg-white/dark:bg-apple-tile-2, label 16px semibold; no 1.5px border token found | src/components/TactileButton.tsx:83; sizes :38-40 | Differs (16px label; border NOT VERIFIED) |
+| focus: 2px orange ring, 2px offset, keyboard only | :focus-visible outline 2px solid var(--color-ember), offset 2px; :focus:not(:focus-visible) none | src/index.css:364-369 | Match |
+| disabled: 40% opacity, no press | disabled:opacity-60 and opacity-80 in components | src/components/NearbyDetectOverlay.tsx:373,394; src/components/SavedItemsOverlay.tsx:599 | Differs (60–80%) |
+| state change inside same button | implemented per component; e.g. saved flows use busy/copy states | src/components/SavedItemsOverlay.tsx (busy, copied state) | Match (spot-checked); full audit NOT VERIFIED |
+
+### Section 7 — Icons and emoji
+
+| Contract item | Code value | File:line | Match / Differs |
+|---|---|---|---|
+| Lucide only, no other icon libs | no react-icons / @heroicons / @gravity-ui imports in src/ | grep "from 'react-icons…'\|@heroicons…" → 0 | Match |
+| stroke 1.5 everywhere | strokeWidth histogram: 2 → 14 uses, 1.5 → 9, 3 → 6, 2.5 → 6, 2.4 → 3, 2.2 → 3 | grep -rhoE 'strokeWidth=…' src \| sort \| uniq -c | Differs (1.5 not dominant) |
+| emoji from public/emoji-apple via src/lib/emoji.ts, VITE_EMOJI_SET switch | dir and file removed; no VITE_EMOJI_SET; reactions render Unicode glyphs via platform color-emoji font | ls public/emoji-apple → missing; ls src/lib/emoji.ts → missing; grep VITE_EMOJI_SET → 0; src/components/spaceui/EmojiReaction.tsx:16-19 | Differs (Phase 3 removed the pipeline the contract describes) |
+| image fails → native fallback, reaction never disappears | no image pipeline to fail; glyph always renders | src/components/spaceui/EmojiReaction.tsx:16-19 | Match in effect (glyph path), contract text stale |
+| no emoji as icons in UI | no icon-emoji usage found outside reactions (spot check) | NOT VERIFIED exhaustively | — |
+
+### Section 8 — Motion and haptics
+
+| Contract item | Code value | File:line | Match / Differs |
+|---|---|---|---|
+| durations 60/120/180/280/480 from src/lib/motion/tokens.ts | DUR = {60,120,180,280,480} | src/lib/motion/tokens.ts:32-38 | Match |
+| CSS mirrors the same ladder as --st-dur-* | CSS has only --st-dur-micro 120 + --st-dur-long 480, PLUS a different ladder --motion-micro/quick/normal/slow = 100/160/250/350 | src/index.css:543-544 vs :187-190 | Differs (two ladders; 60/180/280 missing from CSS) |
+| springs without overshoot for UI | SPRING.sheet {stiffness 380, damping 36} → ζ≈0.92; SPRING.snap {500, 40} → ζ≈0.89 | src/lib/motion/tokens.ts:46-50 | Differs (slightly underdamped; small overshoot possible) |
+| animate transform and opacity only | color/background transitions widespread (transition-colors); width animated too | src/index.css:1177 (transition: width); transition-* in most components | Differs (owner decides intent: entrance/layout vs state color) |
+| interruptible | motion/react retargets springs; documented in tokens header | src/lib/motion/tokens.ts:17-27 | Match |
+| respects prefers-reduced-motion | MotionConfig reducedMotion="user" + CSS @media guards (14+ blocks) | src/main.tsx:51; src/index.css:557,590,609,627,671,696,717,745,992-995 | Match |
+| loops only for live state, ≤1 per screen | loops exist for connecting/live dot; exhaustive count NOT VERIFIED | src/index.css:641 (bars hold still under reduced motion) | — NOT VERIFIED |
+| haptics only through src/lib/haptics.ts: tap light, toggle tick, success double tick, error firm | file exists; exports hapticSuccess [12,40,18], hapticArrive [10,34,12], hapticTick 8 — 3 of the 4 named haptics, different names | src/lib/haptics.ts:30,35,42 | Differs (missing tap-light/error-firm, names differ) |
+| do not promise iOS Safari haptics unless tested | NOT VERIFIED (no iOS Safari test here) | — | — |
+
+### Section 9 — Voice
+
+| Contract item | Code value | File:line | Match / Differs |
+|---|---|---|---|
+| banned words absent (seamless, effortless, unlock, supercharge, elevate, empower, revolutionize, magic, blazing, "in seconds", "whether you're") | 0 hits in src/lib/messages/en.ts | grep -rniE 'seamless\|effortless\|…' src/lib/messages/en.ts → empty | Match (en only; other 8 locales NOT VERIFIED) |
+| all user-visible text in src/lib/messages/*.ts | hard-coded English aria-labels exist outside messages | src/App.tsx:94,166; src/components/BrandLockup.tsx:51; src/components/CommandBar.tsx:494,504 | Differs |
+| no "!" / no "Oops" / no "Welcome to" in copy | NOT VERIFIED exhaustively (full string audit is STEP 3d) | — | — |
+| claims listed in docs/redesign/claims.md | file does not exist yet; docs/claims.md exists (prior pass) | ls docs/redesign → absent; docs/claims.md exists | Differs (STEP 6 creates it) |
