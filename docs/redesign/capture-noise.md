@@ -86,3 +86,50 @@ from the diff by the same rule as all motion output.
 - `settle = networkidle (8 s cap) + 800 ms` before each static shot
 - message screens wait for real DOM text, not timers
 - image-message waits 4 s after file input for the transfer to finish
+
+## STEP 9 result (2026-10-23) — PROOF HOLDS
+
+Re-captured the full matrix after the STEP 8 hygiene pass (`audit/baseline-post8/`,
+144/144 shots, capture script byte-identical to the baseline run — `git diff
+37caaa1..HEAD -- scripts/capture-baseline.mjs` empty) and diffed with
+`scripts/_diff-post8.mjs`:
+
+- **36 pixel-identical raw** · **100 emptied by the masks** · **8 excluded
+  (connecting)** · **0 flags** — `audit/step9-diff.txt`, `audit/step9-diff.json`.
+- Git proof first: `git diff --stat 21cbd26..HEAD -- src index.css public
+  index.html server.ts worker` is **empty** — STEP 8 touched no runtime file.
+  The captures are the belt-and-braces confirmation.
+
+Steps 4–5 of the procedure above: DONE. Masks = floor boxes from
+`audit/noise-floor.json` + cause-verified supplemental boxes in
+`audit/step9-masks.json` (each entry carries the confirmed cause). Every
+supplemental box was justified by diffmap/crop inspection
+(`scripts/_probe-step9-diffmap.mjs`, `scripts/_probe-step9-crops.mjs`) before
+being added. Regions outside both sets were flags, investigated one by one:
+
+| Region (first-seen) | px | Confirmed cause | Evidence |
+|---|---|---|---|
+| message meta strips (all room screens, all viewports) | up to 400/file | wall-clock text `Seen · hh:mm` — AND the format drifted between runs (`04:00 pm` → `11:22 AM`) because MessageCard's `timeOf` passes `[]` as locales (host default, not the app locale; host culture is now en-IN per `Get-Culture`) | crops `audit/step9-crops/*.base/post8`; src/components/MessageCard.tsx:68 |
+| header device icon (room-with-messages @390) | 250 | icon glow/connection-pulse phase at capture | diffmap rows y18–37, crops visually identical |
+| send button (room-with-messages @390) | ~40 | ↑ arrow render timing (present post8, absent baseline) — composer state timing race | crops send.base/send.post8 |
+| reaction picker chip row (@390) | ~300 | chip pop/enter animation phase (left half differed today, right half in the floor run) | diffmap rows 182–211 + crops |
+| reaction chip rows (@1440/@820) | ~50–160 | seconds-tick text row above the strip | diffmap rows 166–202 |
+| space code chip | 9 | random `bse-XXXX` glyph extent (floor box missed 3 px below) | diffmap y24–43 only |
+| pairing code/ring | up to 376 | random code tile glyph extent + countdown ring seconds-hand tip | diffmaps y443–469 / y471–497 + residual 1 px |
+| docs dashed divider (y959–960) | 16 | dotted divider dash phase (transfer diagram) | crops identical |
+| language rows (@844 dark), Paste icon, docs flash | 10/2/16 | sub-pixel AA / cursor blink (Devanagari hinting rows) | crops identical |
+| language-menu counter pill (@390) | 8 | live-rooms counter (server truth) | table row already covered the cause |
+| offline-banner edge columns + beneath | 4 | banner entrance/exit phase (known table cause; edges outside floor box) | diffmap y7–41 columns x269/x550 |
+
+Floor-box growth is the table row "message-timestamp + Seen meta line (wall
+clock)" doing its job — the text simply rendered wider today; boxes were
+re-measured, not widened past the observed region. One instructive miss:
+`pairing-1440x900-**light**`'s floor box covered only y471–497 while the dark
+variant covered the whole y395–575 band — the light run1-vs-run2 pair had the
+same code digits by luck. Fixed by masking the same band for both variants
+(recorded in step9-masks.json).
+
+Net: STEP 8 changed **no pixels on any of 136 diffed screens**; every residual
+traced to a zero-product-change cause (clock text, random room data, animation
+phase, sub-pixel AA). Reproduce: `node scripts/capture-baseline.mjs --out
+audit/baseline-post8 && node scripts/_diff-post8.mjs`.

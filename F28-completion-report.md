@@ -6,14 +6,47 @@ path. Anything unchecked says NOT VERIFIED. Prior F28 (apple-grade branch pass, 
 
 ## 1. Summary
 
-(to be completed at the end of P0)
+P0 made the repo safe to design in. All 8 steps done, each on main, each gated
+(tsc + build + relevant gates), each pushed:
+
+| Step | Delivered | Proof |
+|---|---|---|
+| 0 | Safety net: `before-p0` tag pushed at d5ca699 | §2 |
+| 1 | DESIGN.md (the contract) + §0 working rules incl. push/smoke/revert | DESIGN.md |
+| 2 | Prior-work ledger — 90 claims from audits/reports/protocol checked | docs/redesign/PRIOR-WORK.md |
+| 3 | APP-MAP (10 sections, every claim cites file:line) + audit generators, full gate run | docs/redesign/APP-MAP.md |
+| 4 | Proof machinery: `capture-baseline.mjs` (144-shot matrix), `smoke-live.mjs`, measured noise floor (33 pixel-clean / 109 noisy pairs at >8 threshold, boxes in audit/noise-floor.json) | 37caaa1 |
+| 5 | Slop inventory + bug ledger **B1–B15** (severity, proof, cause, fix-prompt slot each) | docs/redesign/slop.md, bugs.md |
+| 6 | Claims re-checked (18 rows), activity-counter definitions, emoji facts | docs/redesign/claims.md, ACTIVITY-COUNTERS.md |
+| 7 | Reference study — measured facts from obry.app, Apple, Duolingo, popl.co (sourced, observation only) | docs/redesign/reference-study.md |
+| 8 | Hygiene: last old-handle emitter fixed (8a), package rename verified (8b), build marker `meta sharetexts-build` = 12-char sha (8c), first live smoke run | §4 |
+| 9 | No-pixel-change proof: post-STEP-8 re-capture vs baseline — 36 identical + 100 mask-emptied + 8 excluded, **0 flags** | §5 |
+
+The truth gap that motivated the prompt is quantified rather than guessed:
+§3 below lists 47 contract-vs-code rows read from this tree (≈30 match,
+≈17 differ — stale comments, lying token names, two grammars for radius/
+durations/shadows). Fixing those is the redesign prompts' job, not P0's.
+
+Known-live failures stay open on purpose: **B1** (live CSP pin blocks the
+theme bootstrap — reproduced by the first live smoke), B3 (30 s vs 90 s
+timer copy), B16 (timestamps use host locale) — filed with proof, not fixed,
+per "do not fix anything not in this prompt".
 
 ## 2. Commits pushed
 
 | sha | message |
 |---|---|
-| d5ca699 | feat(saved): per-device saved library — overlay, store, i18n keys, e2e gate (pre-P0 worktree, tsc+build+57/57 gate clean before committing) |
-| (this step) | docs: design contract v1.1 |
+| d5ca699 | feat(saved): per-device saved library (pre-P0 worktree fast-forward) |
+| f8ddb09 | docs: design contract v1.1 (STEP 1) |
+| d16baaa | docs: prior-work ledger — 90 claims checked (STEP 2) |
+| fd77686 | docs: app map + audit generators + full gate run (STEP 3) |
+| 37caaa1 | feat(audit): P0 STEP 4 — proof scripts + baseline matrix + measured noise floor |
+| 726081e | docs(redesign): P0 STEP 5 — slop inventory + bug ledger |
+| c4badca | docs(redesign): P0 STEP 6 — claims re-check, counters, emoji facts |
+| 21cbd26 | docs(redesign): P0 STEP 7 — measured reference facts |
+| 8edbc79 | chore(seo): P0 STEP 8 — old handle fix + build marker |
+| 95568f5 | docs(redesign): first live smoke (marker 8edbc79ba8fd) — 5/6 PASS |
+| (this commit) | P0 STEP 9 pixel proof + report completion |
 
 Safety net: tag `before-p0` pushed to origin at d5ca699 (`git push origin before-p0`,
 output: `* [new tag] before-p0 -> before-p0`).
@@ -151,3 +184,85 @@ owner decides.
 | all user-visible text in src/lib/messages/*.ts | hard-coded English aria-labels exist outside messages | src/App.tsx:94,166; src/components/BrandLockup.tsx:51; src/components/CommandBar.tsx:494,504 | Differs |
 | no "!" / no "Oops" / no "Welcome to" in copy | NOT VERIFIED exhaustively (full string audit is STEP 3d) | — | — |
 | claims listed in docs/redesign/claims.md | file does not exist yet; docs/claims.md exists (prior pass) | ls docs/redesign → absent; docs/claims.md exists | Differs (STEP 6 creates it) |
+
+## 4. P0 STEP 8 — hygiene + first live smoke
+
+| Item | Result | Proof |
+|---|---|---|
+| 8a old GitHub handle on generated pages | `scripts/seo-routes.mjs:102` was the last live emitter — changed `Alightttt` → `0xalyt`; after build `grep -r Alightttt dist/` → **none** | commit 8edbc79 |
+| 8b package rename | already done pre-P0 (`react-example` → `sharetexts`) — verified `package.json:2` + repo-wide grep clean | `grep -rn react-example .` → 0 |
+| 8c build marker | builds stamp `<meta name="sharetexts-build">` = 12-char commit sha (Vercel `VERCEL_GIT_COMMIT_SHA`, local git HEAD) into dist/index.html + every derived SEO page; consumed by smoke `--expect` | local build → `21cbd267219e`; live after push → `8edbc79ba8fd` |
+| gates before push | tsc clean, `npm run build` ok, `verify-seo` **114/114** | 8edbc79 |
+| live smoke (`--expect 8edbc79ba8fd`) | **5/6 PASS**: 200, marker match, two devices paired (10 381 ms), message A→B (12 ms), echo. 1 FAIL = console errors | docs/redesign/live-smoke-log.md |
+| the 1 FAIL | pre-existing **B1**: `vercel.json` pins stale `sha256-dlnEh4mZ…`; the theme bootstrap (`eMqz…`) is CSP-blocked **on live** — both contexts | `git diff --stat 21cbd26..HEAD -- index.html vercel.json` empty → not a regression of this push; B1 row updated with the re-reproduction |
+| console warnings (3) | designed boot-probe redirect `…garv29devra.workers.dev → …alighttt.workers.dev` — baked `VITE_SIGNALING_URL` in Vercel env is the previous worker; already classified WORKER_NOISE by verify-seo | live-smoke-log.md |
+
+## 5. P0 STEP 9 — no-pixel-change proof
+
+Procedure per docs/redesign/capture-noise.md (masks measured in STEP 4).
+
+1. **Static proof first:** `git diff --stat 21cbd26..HEAD -- src index.css
+   public index.html server.ts worker` → **empty**. STEP 8 touched only
+   build tooling (seo-routes.mjs) and docs.
+2. **Re-capture:** `node scripts/capture-baseline.mjs --out
+   audit/baseline-post8` — 144/144 shots; capture script byte-identical to
+   the baseline run (`git diff 37caaa1..HEAD -- scripts/capture-baseline.mjs`
+   empty).
+3. **Diff:** `node scripts/_diff-post8.mjs` (threshold >8/channel, floor boxes
+   from audit/noise-floor.json + cause-verified supplemental boxes in
+   audit/step9-masks.json painted on BOTH sides):
+
+| Result | Count |
+|---|---|
+| pixel-identical (raw) | 36 |
+| noisy → emptied by masks | 100 |
+| excluded (connecting — animation phase is the content) | 8 |
+| **flags** | **0 → `PROOF HOLDS`** (audit/step9-diff.txt, exit 0) |
+
+Every mask box was justified by visual inspection before use
+(`_probe-step9-diffmap.mjs` / `_probe-step9-crops.mjs`, crops kept in
+`audit/step9-crops/`): wall-clock meta strips (incl. format drift caused by
+B16), icon-glow/send-arrow render timing, picker-chip animation phase,
+seconds-tick rows, random code extents, dotted-divider dash phase,
+sub-pixel AA. Full cause table: capture-noise.md §STEP 9.
+
+Note: `audit/baseline-post8/` (31 MB) stays local — precedent set by the
+temporary run2 matrix; the committed evidence is the diff output, masks and
+crops (audit/step9-diff.{txt,json}, step9-masks.json, step9-crops/).
+
+## 6. NOT VERIFIED
+
+- **Live CSP fix (B1)** — reproduced live, not fixed (outside P0's prompt).
+- **Other 8 locales** for §3 voice rows — en only (pre-existing gap).
+- **iOS Safari haptics** — no iOS device in this session (pre-existing).
+- **B5 owner emoji report** — not reproducible on this host; needs the
+  owner's device/OS (filed with evidence).
+- **post8 matrix on a second host/OS** — machine-specific drift (B16) was
+  observed between two runs here; cross-machine pixel equality is not
+  claimed.
+
+## 7. Questions for the owner (max 5)
+
+1. **B1 (live CSP blocks the theme bootstrap on every load)** — re-pin
+   `vercel.json` to the two hashes + add a pin-parity gate? **Recommend:
+   yes, next prompt (P-token) — it is the only S1 that hits all live
+   visitors.**
+2. **Vercel env `VITE_SIGNALING_URL`** still points at the old worker
+   (`…garv29devra…`), so every boot probes and redirects. **Recommend:
+   update the env var to `https://sharetext-signaling.alighttt.workers.dev`
+   (owner action in the Vercel dashboard).**
+3. **B16 timestamps use the host locale, not the app language.**
+   **Recommend: fix in the P-copy pass (format under `sharetext.locale`).**
+4. **B5 "Apple emoji reactions are missing" — which device/OS showed
+   nothing?** (Windows here renders them.) **Recommend: owner names the
+   device before P-emoji.**
+5. **Commit the 31 MB post-STEP-8 matrix?** **Recommend: no — results +
+   masks are committed; re-running the capture regenerates images.**
+
+## 8. What I would do next
+
+P1 prompts in DESIGN.md order, starting with the two S1s' fix slots (B1
+token/hygiene, then the §3 colour/type/shape divergence rows the contract
+already measured), then P-landing (B6/B13/B14 are all one hero-scene
+family). The proof machinery from P0 re-runs unchanged: capture → diff →
+gates → smoke.

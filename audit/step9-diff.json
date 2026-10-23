@@ -1,0 +1,1968 @@
+[
+ {
+  "f": "404-1440x900-dark.png",
+  "n": 0
+ },
+ {
+  "f": "404-1440x900-light.png",
+  "n": 0
+ },
+ {
+  "f": "404-390x844-dark.png",
+  "n": 0
+ },
+ {
+  "f": "404-390x844-light.png",
+  "n": 0
+ },
+ {
+  "f": "404-820x1180-dark.png",
+  "n": 0
+ },
+ {
+  "f": "404-820x1180-light.png",
+  "n": 0
+ },
+ {
+  "f": "404-844x390-dark.png",
+  "n": 0
+ },
+ {
+  "f": "404-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "connecting-1440x900-dark.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "connecting-1440x900-light.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "connecting-390x844-dark.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "connecting-390x844-light.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "connecting-820x1180-dark.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "connecting-820x1180-light.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "connecting-844x390-dark.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "connecting-844x390-light.png",
+  "status": "EXCLUDED (connecting)"
+ },
+ {
+  "f": "docs-1440x900-dark.png",
+  "n": 0
+ },
+ {
+  "f": "docs-1440x900-light.png",
+  "n": 0
+ },
+ {
+  "f": "docs-390x844-dark.png",
+  "n": 0
+ },
+ {
+  "f": "docs-390x844-light.png",
+  "n": 0
+ },
+ {
+  "f": "docs-820x1180-dark.png",
+  "n": 0
+ },
+ {
+  "f": "docs-820x1180-light.png",
+  "raw": 16,
+  "rawBox": [
+   487,
+   959,
+   599,
+   960
+  ],
+  "floorBox": null,
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "docs-844x390-dark.png",
+  "n": 0
+ },
+ {
+  "f": "docs-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "empty-room-1440x900-dark.png",
+  "raw": 1,
+  "rawBox": [
+   983,
+   318,
+   983,
+   318
+  ],
+  "floorBox": [
+   983,
+   318,
+   983,
+   318
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "empty-room-1440x900-light.png",
+  "raw": 1,
+  "rawBox": [
+   983,
+   318,
+   983,
+   318
+  ],
+  "floorBox": [
+   983,
+   318,
+   983,
+   318
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "empty-room-390x844-dark.png",
+  "n": 0
+ },
+ {
+  "f": "empty-room-390x844-light.png",
+  "n": 0
+ },
+ {
+  "f": "empty-room-820x1180-dark.png",
+  "raw": 1,
+  "rawBox": [
+   356,
+   448,
+   356,
+   448
+  ],
+  "floorBox": [
+   356,
+   448,
+   356,
+   448
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "empty-room-820x1180-light.png",
+  "n": 0
+ },
+ {
+  "f": "empty-room-844x390-dark.png",
+  "n": 0
+ },
+ {
+  "f": "empty-room-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "enter-code-1440x900-dark.png",
+  "raw": 1,
+  "rawBox": [
+   1172,
+   627,
+   1172,
+   627
+  ],
+  "floorBox": [
+   1172,
+   627,
+   1172,
+   627
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "enter-code-1440x900-light.png",
+  "raw": 2,
+  "rawBox": [
+   1162,
+   635,
+   1163,
+   635
+  ],
+  "floorBox": null,
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "enter-code-390x844-dark.png",
+  "n": 0
+ },
+ {
+  "f": "enter-code-390x844-light.png",
+  "n": 0
+ },
+ {
+  "f": "enter-code-820x1180-dark.png",
+  "n": 0
+ },
+ {
+  "f": "enter-code-820x1180-light.png",
+  "n": 0
+ },
+ {
+  "f": "enter-code-844x390-dark.png",
+  "n": 0
+ },
+ {
+  "f": "enter-code-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "image-message-1440x900-dark.png",
+  "raw": 868,
+  "rawBox": [
+   1243,
+   231,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1217,
+   232,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "image-message-1440x900-light.png",
+  "raw": 1226,
+  "rawBox": [
+   1217,
+   231,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1217,
+   232,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "image-message-390x844-dark.png",
+  "raw": 1188,
+  "rawBox": [
+   175,
+   210,
+   279,
+   363
+  ],
+  "floorBox": [
+   175,
+   211,
+   252,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "image-message-390x844-light.png",
+  "raw": 1258,
+  "rawBox": [
+   174,
+   210,
+   279,
+   363
+  ],
+  "floorBox": [
+   174,
+   211,
+   252,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "image-message-820x1180-dark.png",
+  "raw": 1114,
+  "rawBox": [
+   597,
+   218,
+   699,
+   345
+  ],
+  "floorBox": [
+   595,
+   219,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "image-message-820x1180-light.png",
+  "raw": 1254,
+  "rawBox": [
+   594,
+   218,
+   699,
+   345
+  ],
+  "floorBox": [
+   594,
+   219,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "image-message-844x390-dark.png",
+  "raw": 1961,
+  "rawBox": [
+   573,
+   92,
+   805,
+   139
+  ],
+  "floorBox": [
+   573,
+   92,
+   805,
+   139
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "image-message-844x390-light.png",
+  "raw": 614,
+  "rawBox": [
+   606,
+   118,
+   711,
+   129
+  ],
+  "floorBox": [
+   573,
+   92,
+   805,
+   139
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-1440x900-dark.png",
+  "raw": 57,
+  "rawBox": [
+   218,
+   371,
+   226,
+   381
+  ],
+  "floorBox": [
+   218,
+   371,
+   235,
+   381
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-1440x900-light.png",
+  "raw": 66,
+  "rawBox": [
+   218,
+   371,
+   226,
+   381
+  ],
+  "floorBox": [
+   218,
+   371,
+   235,
+   381
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-390x844-dark.png",
+  "raw": 57,
+  "rawBox": [
+   150,
+   396,
+   158,
+   406
+  ],
+  "floorBox": [
+   150,
+   396,
+   167,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-390x844-light.png",
+  "raw": 66,
+  "rawBox": [
+   150,
+   396,
+   158,
+   406
+  ],
+  "floorBox": [
+   150,
+   396,
+   167,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-820x1180-dark.png",
+  "raw": 57,
+  "rawBox": [
+   365,
+   350,
+   373,
+   360
+  ],
+  "floorBox": [
+   365,
+   350,
+   382,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-820x1180-light.png",
+  "raw": 66,
+  "rawBox": [
+   365,
+   350,
+   373,
+   360
+  ],
+  "floorBox": [
+   365,
+   350,
+   382,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-844x390-dark.png",
+  "raw": 57,
+  "rawBox": [
+   377,
+   219,
+   385,
+   229
+  ],
+  "floorBox": [
+   377,
+   219,
+   394,
+   229
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "landing-844x390-light.png",
+  "raw": 66,
+  "rawBox": [
+   377,
+   219,
+   385,
+   229
+  ],
+  "floorBox": [
+   377,
+   219,
+   394,
+   229
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-1440x900-dark.png",
+  "raw": 57,
+  "rawBox": [
+   218,
+   371,
+   226,
+   381
+  ],
+  "floorBox": [
+   218,
+   371,
+   235,
+   381
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-1440x900-light.png",
+  "raw": 66,
+  "rawBox": [
+   218,
+   371,
+   226,
+   381
+  ],
+  "floorBox": [
+   218,
+   371,
+   235,
+   381
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-390x844-dark.png",
+  "raw": 57,
+  "rawBox": [
+   150,
+   396,
+   158,
+   406
+  ],
+  "floorBox": [
+   150,
+   396,
+   167,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-390x844-light.png",
+  "raw": 124,
+  "rawBox": [
+   106,
+   395,
+   158,
+   406
+  ],
+  "floorBox": [
+   107,
+   396,
+   167,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-820x1180-dark.png",
+  "raw": 57,
+  "rawBox": [
+   365,
+   350,
+   373,
+   360
+  ],
+  "floorBox": [
+   365,
+   350,
+   382,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-820x1180-light.png",
+  "raw": 66,
+  "rawBox": [
+   365,
+   350,
+   373,
+   360
+  ],
+  "floorBox": [
+   365,
+   350,
+   382,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-844x390-dark.png",
+  "raw": 990,
+  "rawBox": [
+   377,
+   93,
+   664,
+   290
+  ],
+  "floorBox": [
+   377,
+   93,
+   664,
+   266
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "language-menu-844x390-light.png",
+  "raw": 66,
+  "rawBox": [
+   377,
+   219,
+   385,
+   229
+  ],
+  "floorBox": [
+   377,
+   219,
+   394,
+   229
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-1440x900-dark.png",
+  "raw": 2391,
+  "rawBox": [
+   218,
+   9,
+   862,
+   381
+  ],
+  "floorBox": [
+   218,
+   7,
+   863,
+   381
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-1440x900-light.png",
+  "raw": 754,
+  "rawBox": [
+   218,
+   7,
+   863,
+   381
+  ],
+  "floorBox": [
+   218,
+   7,
+   863,
+   381
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-390x844-dark.png",
+  "raw": 3041,
+  "rawBox": [
+   53,
+   9,
+   338,
+   406
+  ],
+  "floorBox": [
+   52,
+   8,
+   338,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-390x844-light.png",
+  "raw": 9449,
+  "rawBox": [
+   51,
+   8,
+   338,
+   406
+  ],
+  "floorBox": [
+   51,
+   8,
+   338,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-820x1180-dark.png",
+  "raw": 2020,
+  "rawBox": [
+   268,
+   7,
+   551,
+   360
+  ],
+  "floorBox": [
+   269,
+   7,
+   550,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-820x1180-light.png",
+  "raw": 1254,
+  "rawBox": [
+   266,
+   7,
+   553,
+   360
+  ],
+  "floorBox": [
+   266,
+   7,
+   553,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-844x390-dark.png",
+  "raw": 125,
+  "rawBox": [
+   292,
+   19,
+   385,
+   229
+  ],
+  "floorBox": [
+   292,
+   19,
+   394,
+   229
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "offline-banner-844x390-light.png",
+  "raw": 9616,
+  "rawBox": [
+   278,
+   8,
+   565,
+   229
+  ],
+  "floorBox": [
+   278,
+   6,
+   565,
+   229
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-1440x900-dark.png",
+  "raw": 1624,
+  "rawBox": [
+   130,
+   471,
+   1172,
+   575
+  ],
+  "floorBox": [
+   132,
+   395,
+   1172,
+   575
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-1440x900-light.png",
+  "raw": 1704,
+  "rawBox": [
+   132,
+   395,
+   1163,
+   583
+  ],
+  "floorBox": [
+   132,
+   471,
+   500,
+   497
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-390x844-dark.png",
+  "raw": 1037,
+  "rawBox": [
+   52,
+   414,
+   337,
+   433
+  ],
+  "floorBox": [
+   53,
+   414,
+   337,
+   433
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-390x844-light.png",
+  "raw": 1103,
+  "rawBox": [
+   53,
+   414,
+   338,
+   433
+  ],
+  "floorBox": [
+   52,
+   414,
+   338,
+   433
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-820x1180-dark.png",
+  "raw": 1654,
+  "rawBox": [
+   289,
+   443,
+   594,
+   469
+  ],
+  "floorBox": [
+   226,
+   370,
+   594,
+   469
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-820x1180-light.png",
+  "raw": 1544,
+  "rawBox": [
+   226,
+   370,
+   529,
+   469
+  ],
+  "floorBox": [
+   226,
+   371,
+   464,
+   469
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-844x390-dark.png",
+  "raw": 1,
+  "rawBox": [
+   373,
+   370,
+   373,
+   370
+  ],
+  "floorBox": [
+   373,
+   370,
+   373,
+   371
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "pairing-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "reaction-added-1440x900-dark.png",
+  "raw": 1057,
+  "rawBox": [
+   1114,
+   187,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1128,
+   187,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-added-1440x900-light.png",
+  "raw": 954,
+  "rawBox": [
+   1125,
+   187,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1130,
+   187,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-added-390x844-dark.png",
+  "raw": 728,
+  "rawBox": [
+   81,
+   166,
+   279,
+   363
+  ],
+  "floorBox": [
+   21,
+   22,
+   252,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-added-390x844-light.png",
+  "raw": 1023,
+  "rawBox": [
+   74,
+   166,
+   279,
+   363
+  ],
+  "floorBox": [
+   76,
+   166,
+   252,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-added-820x1180-dark.png",
+  "raw": 697,
+  "rawBox": [
+   502,
+   174,
+   699,
+   345
+  ],
+  "floorBox": [
+   185,
+   22,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-added-820x1180-light.png",
+  "raw": 910,
+  "rawBox": [
+   179,
+   15,
+   699,
+   345
+  ],
+  "floorBox": [
+   179,
+   15,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-added-844x390-dark.png",
+  "raw": 242,
+  "rawBox": [
+   182,
+   18,
+   791,
+   125
+  ],
+  "floorBox": [
+   181,
+   17,
+   791,
+   125
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-added-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "reaction-picker-open-1440x900-dark.png",
+  "raw": 493,
+  "rawBox": [
+   1176,
+   203,
+   1401,
+   358
+  ],
+  "floorBox": [
+   1176,
+   203,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-picker-open-1440x900-light.png",
+  "raw": 835,
+  "rawBox": [
+   803,
+   25,
+   1382,
+   358
+  ],
+  "floorBox": [
+   803,
+   25,
+   1382,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-picker-open-390x844-dark.png",
+  "raw": 860,
+  "rawBox": [
+   127,
+   182,
+   359,
+   363
+  ],
+  "floorBox": [
+   73,
+   182,
+   359,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-picker-open-390x844-light.png",
+  "raw": 1023,
+  "rawBox": [
+   73,
+   182,
+   359,
+   363
+  ],
+  "floorBox": [
+   174,
+   182,
+   340,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-picker-open-820x1180-dark.png",
+  "raw": 791,
+  "rawBox": [
+   493,
+   190,
+   779,
+   345
+  ],
+  "floorBox": [
+   493,
+   190,
+   779,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-picker-open-820x1180-light.png",
+  "raw": 848,
+  "rawBox": [
+   493,
+   190,
+   779,
+   345
+  ],
+  "floorBox": [
+   493,
+   191,
+   779,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-picker-open-844x390-dark.png",
+  "raw": 47,
+  "rawBox": [
+   762,
+   92,
+   792,
+   117
+  ],
+  "floorBox": [
+   505,
+   92,
+   792,
+   117
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "reaction-picker-open-844x390-light.png",
+  "raw": 212,
+  "rawBox": [
+   505,
+   92,
+   792,
+   117
+  ],
+  "floorBox": [
+   183,
+   19,
+   792,
+   117
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-1440x900-dark.png",
+  "raw": 868,
+  "rawBox": [
+   1243,
+   231,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1217,
+   232,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-1440x900-light.png",
+  "raw": 1226,
+  "rawBox": [
+   1217,
+   231,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1217,
+   232,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-390x844-dark.png",
+  "raw": 1188,
+  "rawBox": [
+   175,
+   210,
+   279,
+   363
+  ],
+  "floorBox": [
+   175,
+   211,
+   252,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-390x844-light.png",
+  "raw": 1654,
+  "rawBox": [
+   17,
+   17,
+   279,
+   363
+  ],
+  "floorBox": [
+   17,
+   17,
+   252,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-820x1180-dark.png",
+  "raw": 1114,
+  "rawBox": [
+   597,
+   218,
+   699,
+   345
+  ],
+  "floorBox": [
+   595,
+   219,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-820x1180-light.png",
+  "raw": 1636,
+  "rawBox": [
+   181,
+   17,
+   699,
+   345
+  ],
+  "floorBox": [
+   181,
+   17,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-844x390-dark.png",
+  "raw": 581,
+  "rawBox": [
+   606,
+   124,
+   711,
+   135
+  ],
+  "floorBox": [
+   606,
+   125,
+   691,
+   132
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-ended-844x390-light.png",
+  "raw": 613,
+  "rawBox": [
+   606,
+   124,
+   711,
+   135
+  ],
+  "floorBox": [
+   606,
+   125,
+   684,
+   132
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-1440x900-dark.png",
+  "raw": 868,
+  "rawBox": [
+   1243,
+   231,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1217,
+   232,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-1440x900-light.png",
+  "raw": 1378,
+  "rawBox": [
+   801,
+   23,
+   1322,
+   358
+  ],
+  "floorBox": [
+   801,
+   23,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-390x844-dark.png",
+  "raw": 1188,
+  "rawBox": [
+   175,
+   210,
+   279,
+   363
+  ],
+  "floorBox": [
+   175,
+   211,
+   252,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-390x844-light.png",
+  "raw": 1636,
+  "rawBox": [
+   18,
+   18,
+   356,
+   821
+  ],
+  "floorBox": [
+   85,
+   76,
+   304,
+   360
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-820x1180-dark.png",
+  "raw": 1114,
+  "rawBox": [
+   597,
+   218,
+   699,
+   345
+  ],
+  "floorBox": [
+   595,
+   219,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-820x1180-light.png",
+  "raw": 1254,
+  "rawBox": [
+   594,
+   218,
+   699,
+   345
+  ],
+  "floorBox": [
+   594,
+   219,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-844x390-dark.png",
+  "raw": 2429,
+  "rawBox": [
+   573,
+   92,
+   805,
+   184
+  ],
+  "floorBox": [
+   573,
+   92,
+   805,
+   184
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "room-with-messages-844x390-light.png",
+  "raw": 870,
+  "rawBox": [
+   183,
+   19,
+   711,
+   129
+  ],
+  "floorBox": [
+   183,
+   19,
+   805,
+   177
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "settings-1440x900-dark.png",
+  "raw": 758,
+  "rawBox": [
+   1243,
+   231,
+   1321,
+   358
+  ],
+  "floorBox": [
+   1217,
+   232,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "settings-1440x900-light.png",
+  "raw": 1194,
+  "rawBox": [
+   1217,
+   231,
+   1322,
+   358
+  ],
+  "floorBox": [
+   1217,
+   232,
+   1301,
+   355
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "settings-390x844-dark.png",
+  "n": 0
+ },
+ {
+  "f": "settings-390x844-light.png",
+  "n": 0
+ },
+ {
+  "f": "settings-820x1180-dark.png",
+  "raw": 974,
+  "rawBox": [
+   597,
+   218,
+   699,
+   345
+  ],
+  "floorBox": [
+   595,
+   219,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "settings-820x1180-light.png",
+  "raw": 1163,
+  "rawBox": [
+   594,
+   218,
+   699,
+   345
+  ],
+  "floorBox": [
+   594,
+   219,
+   679,
+   342
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "settings-844x390-dark.png",
+  "raw": 441,
+  "rawBox": [
+   622,
+   124,
+   711,
+   135
+  ],
+  "floorBox": [
+   622,
+   125,
+   691,
+   132
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "settings-844x390-light.png",
+  "raw": 532,
+  "rawBox": [
+   624,
+   124,
+   711,
+   135
+  ],
+  "floorBox": [
+   622,
+   125,
+   684,
+   132
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-create-1440x900-dark.png",
+  "raw": 23,
+  "rawBox": [
+   218,
+   372,
+   226,
+   376
+  ],
+  "floorBox": [
+   218,
+   372,
+   233,
+   380
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-create-1440x900-light.png",
+  "raw": 24,
+  "rawBox": [
+   217,
+   372,
+   226,
+   377
+  ],
+  "floorBox": [
+   215,
+   370,
+   231,
+   383
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-create-390x844-dark.png",
+  "raw": 24,
+  "rawBox": [
+   149,
+   397,
+   158,
+   401
+  ],
+  "floorBox": [
+   147,
+   395,
+   169,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-create-390x844-light.png",
+  "raw": 23,
+  "rawBox": [
+   149,
+   397,
+   158,
+   401
+  ],
+  "floorBox": [
+   147,
+   395,
+   168,
+   406
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-create-820x1180-dark.png",
+  "raw": 24,
+  "rawBox": [
+   364,
+   351,
+   373,
+   355
+  ],
+  "floorBox": [
+   362,
+   350,
+   383,
+   362
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-create-820x1180-light.png",
+  "raw": 23,
+  "rawBox": [
+   364,
+   351,
+   373,
+   355
+  ],
+  "floorBox": [
+   362,
+   348,
+   383,
+   362
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-create-844x390-dark.png",
+  "n": 0
+ },
+ {
+  "f": "space-create-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "space-join-1440x900-dark.png",
+  "raw": 23,
+  "rawBox": [
+   218,
+   372,
+   226,
+   376
+  ],
+  "floorBox": [
+   218,
+   372,
+   233,
+   380
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-join-1440x900-light.png",
+  "raw": 24,
+  "rawBox": [
+   217,
+   372,
+   226,
+   377
+  ],
+  "floorBox": [
+   215,
+   370,
+   231,
+   383
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-join-390x844-dark.png",
+  "raw": 26,
+  "rawBox": [
+   149,
+   397,
+   158,
+   401
+  ],
+  "floorBox": [
+   147,
+   395,
+   169,
+   408
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-join-390x844-light.png",
+  "raw": 23,
+  "rawBox": [
+   149,
+   397,
+   158,
+   401
+  ],
+  "floorBox": [
+   147,
+   395,
+   168,
+   408
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-join-820x1180-dark.png",
+  "raw": 24,
+  "rawBox": [
+   364,
+   351,
+   373,
+   355
+  ],
+  "floorBox": [
+   362,
+   350,
+   383,
+   362
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-join-820x1180-light.png",
+  "raw": 23,
+  "rawBox": [
+   364,
+   351,
+   373,
+   355
+  ],
+  "floorBox": [
+   362,
+   348,
+   383,
+   362
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-join-844x390-dark.png",
+  "n": 0
+ },
+ {
+  "f": "space-join-844x390-light.png",
+  "n": 0
+ },
+ {
+  "f": "space-room-1440x900-dark.png",
+  "raw": 658,
+  "rawBox": [
+   545,
+   24,
+   703,
+   43
+  ],
+  "floorBox": [
+   545,
+   24,
+   704,
+   40
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-room-1440x900-light.png",
+  "raw": 748,
+  "rawBox": [
+   545,
+   24,
+   704,
+   43
+  ],
+  "floorBox": [
+   545,
+   24,
+   704,
+   40
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-room-390x844-dark.png",
+  "n": 0
+ },
+ {
+  "f": "space-room-390x844-light.png",
+  "n": 0
+ },
+ {
+  "f": "space-room-820x1180-dark.png",
+  "raw": 769,
+  "rawBox": [
+   235,
+   24,
+   394,
+   43
+  ],
+  "floorBox": [
+   235,
+   24,
+   394,
+   40
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-room-820x1180-light.png",
+  "raw": 729,
+  "rawBox": [
+   235,
+   24,
+   393,
+   43
+  ],
+  "floorBox": [
+   235,
+   24,
+   394,
+   40
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-room-844x390-dark.png",
+  "raw": 749,
+  "rawBox": [
+   247,
+   24,
+   406,
+   43
+  ],
+  "floorBox": [
+   247,
+   24,
+   406,
+   40
+  ],
+  "masked": 0,
+  "maskedBox": null
+ },
+ {
+  "f": "space-room-844x390-light.png",
+  "raw": 624,
+  "rawBox": [
+   247,
+   24,
+   406,
+   43
+  ],
+  "floorBox": [
+   247,
+   24,
+   406,
+   40
+  ],
+  "masked": 0,
+  "maskedBox": null
+ }
+]
