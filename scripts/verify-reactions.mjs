@@ -11,14 +11,20 @@
 // to do with reactions.
 import { chromium } from 'playwright';
 
-const BASE = 'http://localhost:3010';
+const BASE = process.env.URL || 'http://localhost:3010';
 const CHIP = '[data-testid^="reaction-chip-"]';
 const results = [];
 const out = (name, ok, extra = '') => { results.push(ok); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${extra ? ' — ' + extra : ''}`); };
 
+// The chip's emoji is now Apple artwork (<img>), and an image's alt/label is
+// an attribute — it never appears in textContent. So read the count from
+// textContent and the emoji identity from the button's aria-label, which
+// still names the reaction ("React with ❤️" / "Remove ❤️ reaction").
 const chipText = async (page) => page.evaluate(() => {
   const chip = document.querySelector('[data-testid^="reaction-chip-"]');
-  return chip ? chip.textContent.trim() : null;
+  if (!chip) return null;
+  const label = chip.getAttribute('aria-label') || '';
+  return `${chip.textContent.trim()} ${label}`.trim();
 });
 
 const browser = await chromium.launch();

@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { hapticTick } from '../lib/haptics';
 import { EmojiReaction } from './spaceui/EmojiReaction';
+import { Emoji } from './Emoji';
+import { REACTIONS } from '../lib/emoji';
 import { AnnotatedHint } from './AnnotatedHint';
 import { FileTypeIcon } from './FileTypeIcon';
 import { DraggableImage } from './DraggableImage';
@@ -108,14 +110,11 @@ function SelectionRing({ selected }: { selected: boolean }) {
  *  bar — press to open, slide onto an emoji, hold to stream more — opening
  *  above the bubble on the bubble's own side (inside the column, so the
  *  attachment card's clipped bubble can never eat it). */
-const REACTION_CHOICES: Array<{ name: string; char: string }> = [
-  { name: 'red-heart', char: '❤️' },
-  { name: 'thumbs-up', char: '👍' },
-  { name: 'face-with-tears-of-joy', char: '😂' },
-  { name: 'face-with-open-mouth', char: '😮' },
-  { name: 'fire', char: '🔥' },
-  { name: 'folded-hands', char: '🙏' },
-];
+// The room's six reactions, from the one switchable source (src/lib/emoji.ts)
+// so the picker, the burst and these chips can never drift apart. `char` is
+// the native fallback / the key the room's reaction state uses.
+const REACTION_CHOICES: Array<{ name: string; char: string }> =
+  REACTIONS.map((r) => ({ name: r.id, char: r.char }));
 const CHAR_BY_NAME: Record<string, string> = Object.fromEntries(
   REACTION_CHOICES.map(({ name, char }) => [name, char]),
 );
@@ -157,7 +156,7 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
                 : 'bg-black/[0.035] border-black/[0.08] text-apple-ink-muted dark:bg-white/[0.07] dark:border-white/10 group-hover/chip:border-black/20 dark:group-hover/chip:border-white/25'
             )}
           >
-            <span className="text-[13px] leading-none">{emoji}</span>
+            <span className="text-[13px] leading-none"><Emoji char={emoji} size={20} /></span>
             {r.count > 0 && <span className="tnum">{r.count}</span>}
           </span>
         </motion.button>

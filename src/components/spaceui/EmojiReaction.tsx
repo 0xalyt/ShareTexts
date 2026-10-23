@@ -13,14 +13,13 @@
 // Escape/outside-close, arrow-key roving focus, and the trigger's
 // X / last-emoji / smile states.
 //
-// Adaptations for this app: emoji render as plain Unicode glyphs through the
-// platform's own color-emoji font (Apple Color Emoji / Segoe UI Emoji / Noto
-// Color Emoji) — the Apple-artwork PNG pipeline (react-apple-emojis + the
-// public/emoji-apple copies) was removed in Phase 3: shipping another OS
-// vendor's artwork as bundled images is the same slop in a different coat,
-// and the text glyphs cost zero bytes. The closed trigger uses an inline
-// monoline glyph, picking ticks the app's haptic engine, and the surface
-// tints follow the app's dark palette tokens.
+// Adaptations for this app: emoji render through the shared <Emoji>
+// component (src/components/Emoji.tsx), which draws the bundled Apple
+// artwork from public/emoji-apple and falls back to the native character on
+// image error — the switch (VITE_EMOJI_SET=apple|native) lives in
+// src/lib/emoji.ts (P1 STEP 1). The closed trigger uses an inline monoline
+// glyph, picking ticks the app's haptic engine, and the surface tints follow
+// the app's dark palette tokens.
 // ---------------------------------------------------------------------------
 
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
@@ -30,21 +29,13 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { hapticTick } from '../../lib/haptics';
+import { REACTIONS, preloadReactionEmoji } from '../../lib/emoji';
+import { Emoji } from '../Emoji';
 
 // Only the room's palette — six reactions, names hyphenated as on Emojipedia.
-// The glyphs are plain Unicode text; the platform's color-emoji font paints
-// them (a presentation-selector FE0F where the bare text default isn't a
-// picture, e.g. 2764 FE0F = ❤️ rather than a red ❤ letter).
-const EMOJI_GLYPHS: Record<string, string> = {
-  'red-heart': '\u{2764}\u{FE0F}',
-  'thumbs-up': '\u{1F44D}',
-  'face-with-tears-of-joy': '\u{1F602}',
-  'face-with-open-mouth': '\u{1F62E}',
-  fire: '\u{1F525}',
-  'folded-hands': '\u{1F64F}',
-};
-
-const REACTION_NAMES = Object.keys(EMOJI_GLYPHS);
+// The list and the artwork/native switch live in src/lib/emoji.ts; the
+// picker just names the ids.
+const REACTION_NAMES: string[] = REACTIONS.map((r) => r.id);
 
 const SURFACE = 'bg-apple-parchment dark:bg-apple-tile-2';
 
@@ -227,12 +218,8 @@ const BurstEmoji = memo(function BurstEmoji({
       }}
       onAnimationComplete={() => onDone(particle.id)}
     >
-      <span
-        aria-hidden
-        className="max-w-none leading-none"
-        style={{ fontSize: size }}
-      >
-        {EMOJI_GLYPHS[particle.name]}
+      <span aria-hidden className="max-w-none leading-none" style={{ width: size, height: size, display: 'inline-flex' }}>
+        <Emoji id={particle.name} size={size} />
       </span>
     </motion.span>
   );
@@ -397,6 +384,7 @@ export function EmojiReaction({
   const onTriggerPointerDown = useCallback((event: React.PointerEvent) => {
     if (open) return;
     openEventTs.current = event.timeStamp;
+    preloadReactionEmoji();
     setOpen(true);
     justOpened.current = true;
 
@@ -543,13 +531,7 @@ export function EmojiReaction({
                     whileHover={reduced ? undefined : { scale: 1.22 }}
                     whileTap={{ scale: 0.92 }}
                   >
-                    <span
-                      aria-hidden
-                      className="max-w-none leading-none"
-                      style={{ fontSize: s.emoji }}
-                    >
-                      {EMOJI_GLYPHS[name]}
-                    </span>
+                    <Emoji id={name} size={s.emoji} className="max-w-none" />
                   </motion.button>
                 ))}
               </div>
