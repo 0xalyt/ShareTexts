@@ -15,7 +15,7 @@ Read this before every task. If code and this file disagree, tell the owner; do 
  a) At the start of each prompt: `git pull`, then `git tag before-<prompt-id>` and `git push origin before-<prompt-id>`.
  b) Push only finished steps that pass tsc, build and the relevant gates.
  c) One idea per commit. Push after each finished step, not at the end.
- d) After each push, wait until the live page shows your build marker (meta sharetexts-build), then run `node scripts/smoke-live.mjs` and record the result. (Until P0 adds the marker and the script, skip this.)
+ d) After each push, wait until the live page shows your build marker (meta sharetexts-build — added in P0, stamped by scripts/seo-routes.mjs), then run `node scripts/smoke-live.mjs` and record the result.
  e) If a push breaks the live site: `git revert <sha>`, push at once, write it in the report. Do not debug on live.
 11. Every task ends with a report file (F-number): files changed, proof, NOT VERIFIED list, questions for the owner (max 5, each with your recommendation), what you would do next. No adjectives. Evidence only.
 

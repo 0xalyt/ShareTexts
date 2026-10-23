@@ -31,13 +31,37 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 
 const dist = path.join(process.cwd(), 'dist');
 const seoDir = path.join(dist, 'seo');
 mkdirSync(seoDir, { recursive: true });
 
-const base = readFileSync(path.join(dist, 'index.html'), 'utf8');
+// ---------------------------------------------------------------------------
+// Build marker (P0 STEP 8c). DESIGN.md §0d: after each push, wait until the
+// live page shows this marker, then run `node scripts/smoke-live.mjs --expect
+// <marker>`. The marker is the 12-char commit hash of the build — one value
+// per push, predictable before deploy, so "is the new build live yet?"
+// becomes a one-line curl. Vercel sets VERCEL_GIT_COMMIT_SHA at build time;
+// local builds fall back to git HEAD.
+// ---------------------------------------------------------------------------
+const shortSha = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 12)
+  || (() => {
+    try {
+      return execSync('git rev-parse --short=12 HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    } catch {
+      return 'unknown';
+    }
+  })();
+const BUILD_MARKER = `<meta name="sharetexts-build" content="${shortSha}" />`;
+
+let base = readFileSync(path.join(dist, 'index.html'), 'utf8');
+if (!base.includes('name="sharetexts-build"')) {
+  base = base.replace('</head>', `  ${BUILD_MARKER}\n  </head>`);
+  writeFileSync(path.join(dist, 'index.html'), base);
+  console.log(`seo-routes: stamped build marker ${shortSha} into dist/index.html (+ every derived page)`);
+}
 
 // ---------------------------------------------------------------------------
 // Shared shell chrome — quiet, on-brand, dark-mode aware via the existing
@@ -99,7 +123,7 @@ function shellBody({ overline, h1, subtitle, main, footerNote }) {
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
           <a href="https://x.com/0xalyt" rel="noopener">x.com/0xalyt</a>
-          <a href="https://github.com/Alightttt/ShareTexts" rel="noopener">GitHub</a>
+          <a href="https://github.com/0xalyt/ShareTexts" rel="noopener">GitHub</a>
           ${footerNote ? `<span class="muted">${footerNote}</span>` : ''}
         </footer>
       </div>

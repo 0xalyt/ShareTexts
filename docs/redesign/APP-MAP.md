@@ -361,5 +361,5 @@ session), :3013 production build for verify-seo, harness ports for the rest.
 | Dev CSP | 'unsafe-inline' + 'unsafe-eval' (non-prod only) | server.ts:39 |
 | Service worker | cache `sharetexts-v23`; precache SHELL = /, index.html, manifest, favicon.svg/16/32/48, 3 brand pngs, icon-192/512, maskable-192/512, apple-touch-icon, og/sharetext-og.jpg, demo/photo-4x3.jpg; nav network-first, same-origin GET cache-first, cross-origin untouched | public/sw.js:16, SHELL list |
 | Static guides | 21 HTML pages + _template.css, prerendered SEO routes (docs/privacy/terms/404) by scripts/seo-routes.mjs | dist/seo output in build log |
-| Build marker | not yet present (STEP 8c adds `<meta name="sharetexts-build">`) | curl live → no sharetexts-build match |
+| Build marker | `<meta name="sharetexts-build">` = 12-char commit hash, stamped by scripts/seo-routes.mjs at build into dist/index.html + every derived SEO page (Vercel: VERCEL_GIT_COMMIT_SHA; local: git HEAD); consumed by scripts/smoke-live.mjs `--expect` | P0 STEP 8c; grep dist/index.html after build |
 

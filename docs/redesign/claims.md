@@ -49,7 +49,7 @@ the owner. `docs/claims.md` stays as the Phase 1 record; this supersedes it.
 | # | Claim | Proof | Verdict | Status |
 |---|---|---|---|---|
 | 16 | `inLanguage` lists 9 locales | index.html:109,136 both `"en"` | TRUE now | FIXED |
-| 17 | sameAs / GitHub → `github.com/Alightttt/ShareTexts` | index.html:95,354-355 now `0xalyt`; **but scripts/seo-routes.mjs:102 still emits the old handle** on generated guide pages | FALSE where seo-routes emits it | **OPEN** — B4, STEP 8a |
+| 17 | sameAs / GitHub → `github.com/Alightttt/ShareTexts` | index.html:95,354-355 now `0xalyt`; scripts/seo-routes.mjs:102 was the last live emitter — fixed in P0 STEP 8a, verified: `grep -r Alightttt dist/` → none | TRUE | FIXED — P0 STEP 8a |
 | 18 | Meta/OG "…right in your browser… No app, no account, nothing stored." | index.html:9,43,56 | browser-only part TRUE; "nothing stored" overstated (see #2) | OPEN — P-copy with #2 |
 
 ## Emoji rendering facts (DESIGN.md §7 contract vs code)
