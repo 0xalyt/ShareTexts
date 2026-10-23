@@ -40,3 +40,20 @@ the probe hop.
 Conclusion: marker pipeline works end to end (push → Vercel build stamps
 VERCEL_GIT_COMMIT_SHA → live meta → smoke `--expect` pins it). Live pairing
 and delivery verified on the new build.
+
+## 2026-10-23 — marker `9e0b8297c0b5` (P0 STEP 9, docs-only push)
+
+Command: `node scripts/smoke-live.mjs --expect 9e0b8297c0b5`
+
+| Check | Result |
+|---|---|
+| answers 200 | PASS |
+| build marker === 9e0b8297c0b5 | PASS (live on poll 1) |
+| two devices paired (code …808) | PASS — 12 679 ms to connected |
+| message A → B | PASS (5 ms) |
+| sender echo | PASS |
+| no console errors | **FAIL — same pre-existing B1 CSP violation** (identical hash detail as the 8edbc79 run) |
+
+[smoke-live] 1 FAILURE(S). Identical to the previous run: the only failure
+is B1 (stale vercel.json pin), filed and assigned P-token/hygiene. No new
+failures from this push.
