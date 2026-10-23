@@ -32,6 +32,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import path from 'node:path';
 
 const dist = path.join(process.cwd(), 'dist');
@@ -119,6 +120,7 @@ function shellBody({ overline, h1, subtitle, main, footerNote }) {
         <footer class="st-seo-footer">
           <a href="/">ShareTexts</a>
           <a href="/docs">Docs</a>
+          <a href="/guides">Guides</a>
           <a href="/about">About</a>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
@@ -362,3 +364,48 @@ emit('404.html', {
 });
 
 console.log('seo-routes: done');
+
+// ---------------------------------------------------------------------------
+// Re-pin the CSP script hashes in vercel.json from the HTML we just shipped.
+// A hand-pinned hash is a time bomb: the theme bootstrap stops running on
+// EVERY load the moment its bytes change — which is what had shipped (the
+// pinned hash matched nothing). The build computes the truth, so the policy
+// can never disagree with the page it serves.
+const VERCEL = path.join(process.cwd(), 'vercel.json');
+try {
+  const built = readFileSync(path.join(dist, 'index.html'), 'utf8');
+  const about = (() => {
+    try { return readFileSync(path.join(dist, 'guides', 'about.html'), 'utf8'); } catch { return ''; }
+  })();
+  const pins = new Set();
+  // External (src=) and module scripts are covered by 'self'; JSON-LD never
+  // executes. Only bare inline scripts need a hash.
+  const re = /<script(?![^>]*\bsrc=)(?![^>]*type="module")(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g;
+  for (const html of [built, about]) { // one CSP header serves every path:
+    let m;                                // every page's inline script must be pinned
+    re.lastIndex = 0;
+    while ((m = re.exec(html)) !== null) {
+      // The HTML parser normalizes CRLF/CR to LF before hashing, so the pin
+      // must be computed on the normalized body — raw CRLF bytes produce a
+      // hash no browser will ever match (this is what broke the live CSP).
+      const body = m[1].replace(/\r\n?/g, '\n');
+      pins.add(`'sha256-${crypto.createHash('sha256').update(body, 'utf8').digest('base64')}'`);
+    }
+  }
+  const cfg = JSON.parse(readFileSync(VERCEL, 'utf8'));
+  const csp = cfg.headers
+    ?.flatMap((r) => r.headers || [])
+    ?.find((h) => h.key === 'Content-Security-Policy');
+  if (csp && pins.size) {
+    const next = csp.value.replace(/script-src [^;]*/, `script-src 'self' ${[...pins].join(' ')}`);
+    if (next !== csp.value) {
+      csp.value = next;
+      writeFileSync(VERCEL, JSON.stringify(cfg, null, 2) + '\n');
+      console.log(`seo-routes: re-pinned vercel.json CSP (${pins.size} hash(es))`);
+    } else {
+      console.log('seo-routes: vercel.json CSP already current');
+    }
+  }
+} catch (e) {
+  console.warn('seo-routes: CSP re-pin skipped —', e?.message ?? e);
+}

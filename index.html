@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- Primary -->
-    <title>AirDrop for everyone — ShareTexts</title>
-    <meta name="description" content="Send text, links, photos, and files between any two devices — phone to PC, iPhone to Windows — right in your browser. No app, no account, nothing stored." />
+    <title>ShareTexts — Share Files Between Devices, Phone to PC (No App)</title>
+    <meta name="description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send. Nothing is stored." />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
     <meta name="application-name" content="ShareTexts" />
@@ -39,8 +39,8 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ShareTexts" />
-    <meta property="og:title" content="AirDrop for everyone — ShareTexts" />
-    <meta property="og:description" content="Send text, links, photos, and files between any two devices — phone to PC, iPhone to Windows — right in your browser. No app, no account, nothing stored." />
+    <meta property="og:title" content="ShareTexts — Share Files Between Devices, Phone to PC (No App)" />
+    <meta property="og:description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send. Nothing is stored." />
     <meta property="og:url" content="https://sharetexts.online/" />
     <!-- ?v=19 busts X/WhatsApp/LinkedIn caches: the same artwork, freshly
          fetched. Bump the query whenever the artwork file changes. -->
@@ -52,8 +52,8 @@
 
     <!-- Twitter/X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AirDrop for everyone — ShareTexts" />
-    <meta name="twitter:description" content="Send text, links, photos, and files between any two devices — phone to PC, iPhone to Windows — right in your browser. No app, no account, nothing stored." />
+    <meta name="twitter:title" content="ShareTexts — Share Files Between Devices, Phone to PC (No App)" />
+    <meta name="twitter:description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send." />
     <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og.jpg?v=21" />
     <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og.jpg?v=21" />
     <meta name="twitter:image:alt" content="ShareTexts — AirDrop for everyone. The ShareTexts app icon, a warm ember broadcast glyph, centered on a clean white card." />
@@ -63,6 +63,11 @@
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
+    <!-- /favicon.ico FIRST: crawlers, bookmark bars and OS shortcuts probe
+         this URL by default; a 404 here is the usual reason a site's icon
+         never appears in search results. Generated from the same artwork by
+         scripts/gen-favicon-ico.mjs, so it can never drift from the PNGs. -->
+    <link rel="icon" href="/favicon.ico?v=22" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=21" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=21" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=21" />

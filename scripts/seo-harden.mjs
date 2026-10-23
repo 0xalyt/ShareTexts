@@ -22,7 +22,7 @@ import path from 'node:path';
 const ORIGIN = 'https://sharetexts.online';
 const DIR = path.join(process.cwd(), 'public', 'guides');
 
-let hubWritten = 0, crumbsAdded = 0, faqAdded = 0, skipped = 0, refreshed = 0, deduped = 0;
+let hubWritten = 0, crumbsAdded = 0, faqAdded = 0, skipped = 0, refreshed = 0, deduped = 0, faviconAdded = 0;
 const files = readdirSync(DIR).filter(f => f.endsWith('.html') && f !== 'index.html');
 
 const meta = (html, name) => {
@@ -34,6 +34,22 @@ const titleOf = (html) => {
   if (!m) return null;
   return { full: m[1], short: m[1].split(' — ')[0].split(' - ')[0].trim() };
 };
+
+// ── 0. favicon.ico link (the SERP icon fallback) ──────────────────────────
+// /favicon.ico is the URL crawlers probe by default. The link goes first so
+// a reader that honours source order picks the raster fallback before the
+// SVG. Idempotent: any page already linking /favicon.ico is left alone.
+const FAVICON_LINK = '  <link rel="icon" href="/favicon.ico?v=22" sizes="32x32" />';
+for (const file of readdirSync(DIR).filter(f => f.endsWith('.html'))) {
+  const p = path.join(DIR, file);
+  const html = readFileSync(p, 'utf8');
+  if (html.includes('rel="icon" href="/favicon.ico') || !html.includes('</head>')) continue;
+  const withLink = /<link rel="icon" type="image\/svg\+xml"/.test(html)
+    ? html.replace(/(\s*)(<link rel="icon" type="image\/svg\+xml")/, `$1${FAVICON_LINK}$1$2`)
+    : html.replace('</head>', `${FAVICON_LINK}\n</head>`);
+  writeFileSync(p, withLink);
+  faviconAdded++;
+}
 
 // ── 1. Hub page ─────────────────────────────────────────────────────────
 const entries = files.map(file => {
@@ -198,4 +214,4 @@ for (const file of files) {
   console.log(`  FAQ: ${file} (${pairs.length} Q&As)`);
 }
 
-console.log(`seo-harden: hub=${hubWritten} breadcrumbs=${crumbsAdded} faq=${faqAdded} skipped=${skipped} refreshed=${refreshed} deduped=${deduped}`);
+console.log(`seo-harden: hub=${hubWritten} breadcrumbs=${crumbsAdded} faq=${faqAdded} skipped=${skipped} refreshed=${refreshed} deduped=${deduped} favicon=${faviconAdded}`);

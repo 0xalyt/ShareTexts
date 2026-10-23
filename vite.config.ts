@@ -39,6 +39,11 @@ export default defineConfig(() => {
             'vendor-react': ['react', 'react-dom'],
             'vendor-motion': ['motion/react'],
             'vendor-icons': ['lucide-react'],
+            // The signaling client only matters once a room opens, but it is
+            // a static import of src/lib/socket.ts — so at least keep it in
+            // its own long-lived chunk: an app release must not re-download
+            // it (hashed + immutable cache), and it parses in parallel.
+            'vendor-socket': ['socket.io-client'],
           },
         },
       },

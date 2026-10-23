@@ -13,11 +13,12 @@
  *     the cache on first fetch. Cross-origin requests (the signaling
  *     Worker's /health, /lookup, /ws) are never intercepted.
  */
-const CACHE = 'sharetexts-v23';
+const CACHE = 'sharetexts-v25';
 const SHELL = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/favicon.ico',
   '/favicon.svg',
   '/favicon-16.png',
   '/favicon-32.png',
@@ -36,6 +37,15 @@ const SHELL = [
   '/apple-touch-icon.png',
   '/og/sharetext-og.jpg',
   '/demo/photo-4x3.jpg',
+  // Apple-emoji reaction artwork (P1 STEP 1) — unhashed, so a re-paint of the
+  // six faces follows the same network-first "unhashed" rule as the favicons
+  // and brand glyphs. Precached so reactions render offline once installed.
+  '/emoji-apple/red-heart_2764-fe0f.png',
+  '/emoji-apple/thumbs-up_1f44d.png',
+  '/emoji-apple/face-with-tears-of-joy_1f602.png',
+  '/emoji-apple/face-with-open-mouth_1f62e.png',
+  '/emoji-apple/fire_1f525.png',
+  '/emoji-apple/folded-hands_1f64f.png',
 ];
 
 self.addEventListener('install', (event) => {

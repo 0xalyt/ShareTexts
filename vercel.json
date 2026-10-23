@@ -2,8 +2,18 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "sharetext-phi.vercel.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "sharetext-phi.vercel.app"
+        }
+      ],
       "destination": "https://sharetexts.online/$1",
+      "permanent": true
+    },
+    {
+      "source": "/guides/",
+      "destination": "/guides",
       "permanent": true
     }
   ],
@@ -65,13 +75,6 @@
       "destination": "/index.html"
     }
   ],
-  "redirects": [
-    {
-      "source": "/guides/",
-      "destination": "/guides",
-      "permanent": true
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -98,7 +101,34 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'sha256-dlnEh4mZw5JxaCkg9Kk//YTm0YKXquqYsUswRzAfToM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' blob: https: wss: ws:; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'sha256-eMqzSGqQg0AZ0CZe4WBvhwrETkN4EOBLE+OAo76w5cw=' 'sha256-eLR/EGDHTdMyYyISNU9CsJ/GyIbpnfdXsDluEA+9YdQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' blob: https: wss: ws:; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(og|brand|demo|emoji-apple|fonts)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(favicon\\.ico|favicon\\.svg|favicon-[0-9]+\\.png|icon-[0-9]+\\.png|icon-maskable-[0-9]+\\.png|apple-touch-icon\\.png|manifest\\.json|llms\\.txt)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
         }
       ]
     }

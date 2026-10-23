@@ -14,6 +14,39 @@ const app = express();
 // (Vite middleware) needs them for HMR, so they're dev-only.
 const isProd = process.env.NODE_ENV === 'production';
 
+// Hash-pin the inline scripts we actually ship, computed from the built HTML
+// at boot. A hand-maintained pin drifts the first time its script changes —
+// and a stale pin blocks the theme bootstrap on EVERY load (two different
+// dead pins had shipped: vercel.json held one, this file another). Reading
+// the served files means the CSP can never disagree with the HTML.
+function inlineScriptPins(): string[] {
+  const pins: string[] = [];
+  const seen = new Set<string>();
+  for (const rel of ['index.html', 'guides/about.html']) {
+    let html: string;
+    try {
+      html = readFileSync(path.join(__dirname, rel), 'utf8');
+    } catch {
+      continue; // absent in this layout — nothing to pin for it
+    }
+    // JSON-LD never executes; module scripts are already covered by 'self';
+    // external scripts (src=) are covered by 'self' too and must be skipped —
+    // their empty body would otherwise pin a hash of "nothing".
+    const re = /<script(?![^>]*\bsrc=)(?![^>]*type="module")(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html)) !== null) {
+      // The HTML parser normalizes CRLF/CR to LF before the script text ever
+      // reaches the JS engine, so the browser hashes the NORMALIZED body —
+      // hashing raw CRLF bytes pins a hash no browser will ever produce
+      // (that mismatch is what blocked the theme bootstrap on live).
+      const body = m[1].replace(/\r\n?/g, '\n');
+      const pin = `'sha256-${crypto.createHash('sha256').update(body, 'utf8').digest('base64')}'`;
+      if (!seen.has(pin)) { seen.add(pin); pins.push(pin); }
+    }
+  }
+  return pins;
+}
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -29,11 +62,10 @@ app.use(helmet({
       scriptSrc: isProd
         ? [
             "'self'",
-            // index.html boot script (theme class + meta before first paint) —
-            // hash recomputed when Phase 2 retuned the theme-color literals.
-            "'sha256-eMqzSGqQg0AZ0CZe4WBvhwrETkN4EOBLE+OAo76w5cw='",
-            // guides/about.html year stamp.
-            "'sha256-eLR/EGDHTdMyYyISNU9CsJ/GyIbpnfdXsDluEA+9YdQ='",
+            // index.html boot script (theme class + meta before first paint)
+            // and the guides/about year stamp — hashed from the shipped HTML
+            // above, never by hand.
+            ...inlineScriptPins(),
           ]
         : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       // Fonts are self-hosted (public/fonts/inter-*.woff2, @font-face in
