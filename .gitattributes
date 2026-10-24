@@ -1,0 +1,20 @@
+# P1a / STEP 2a — LF everywhere for text, binaries declared.
+#
+# Why: the CSP pins sha256 over the EXACT bytes of the inline boot script in
+# index.html (pin-csp.mjs, seo-routes.mjs, server.ts). A checkout that flips
+# LF→CRLF changes those bytes, so the pinned hash stops matching the shipped
+# script and the browser blocks the boot (bug B1). With `eol=lf` the working
+# copy is always LF, on every platform, so the hash is stable.
+* text=auto eol=lf
+
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.woff2 binary
+*.woff binary
+*.ttf  binary
+*.gz   binary
+*.zip  binary
+*.pdf  binary

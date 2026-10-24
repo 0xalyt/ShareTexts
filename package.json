@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "node scripts/gen-favicon-ico.mjs && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && node scripts/seo-routes.mjs",
+    "build": "node scripts/gen-favicon-ico.mjs && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && node scripts/seo-routes.mjs && node scripts/pin-csp.mjs --check",
+    "pin-csp": "npm run build && node scripts/pin-csp.mjs --write",
     "start": "node -e \"process.env.NODE_ENV=process.env.NODE_ENV||'production';require('./dist/server.cjs')\"",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
@@ -25,6 +26,7 @@
     "test:protocol": "node scripts/verify-protocol.mjs",
     "test:reactions": "node scripts/verify-reactions.mjs",
     "test:emoji": "node scripts/verify-emoji.mjs",
+    "test:csp": "node scripts/verify-csp.mjs",
     "test:resume": "node scripts/verify-resume.mjs"
   },
   "dependencies": {
