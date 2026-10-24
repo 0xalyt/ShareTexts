@@ -1,9 +1,66 @@
 import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useIsPresent } from 'motion/react';
 import { useI18n } from '../lib/i18n';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { DUR } from '../lib/motion/tokens';
+
+/**
+ * The two action buttons, as a CHILD of AnimatePresence so `useIsPresent`
+ * reports the sheet's presence.
+ *
+ * While the sheet slides out it is still mounted — and still clickable — for
+ * the whole spring. Without this guard a second tap in that window fires
+ * onConfirm again, which on a destructive sheet means "Disconnect" or
+ * "Clear all" runs twice. `isPresent` flips false the instant exit begins,
+ * so we drop the handlers then; the buttons also stop responding to hover,
+ * which reads correctly as "this is already happening".
+ */
+function ConfirmActions({
+  confirmLabel,
+  cancelLabel,
+  destructive,
+  confirmRef,
+  onConfirm,
+  onCancel,
+}: {
+  confirmLabel: string;
+  cancelLabel: string;
+  destructive: boolean;
+  confirmRef: React.RefObject<HTMLButtonElement | null>;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const isPresent = useIsPresent();
+  const gate = (fn: () => void) => () => {
+    if (isPresent) fn();
+  };
+  return (
+    <div className="px-4 sm:px-4 pb-4 sm:pb-4 pt-2 flex flex-col-reverse sm:flex-col gap-2">
+      <button
+        type="button"
+        onClick={gate(onCancel)}
+        className="w-full min-h-[44px] rounded-[14px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[16px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.98] disabled:opacity-60"
+        disabled={!isPresent}
+      >
+        {cancelLabel}
+      </button>
+      <button
+        ref={confirmRef}
+        type="button"
+        onClick={gate(onConfirm)}
+        disabled={!isPresent}
+        className={
+          destructive
+            ? 'w-full min-h-[44px] rounded-[14px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.98] disabled:opacity-60'
+            : 'w-full min-h-[44px] rounded-[14px] bg-ember hover:bg-brand-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.98] disabled:opacity-60'
+        }
+      >
+        {confirmLabel}
+      </button>
+    </div>
+  );
+}
 
 /**
  * ConfirmSheet — an Apple-style bottom action sheet for one decision.
@@ -84,27 +141,14 @@ export function ConfirmSheet({
                   <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{body}</p>
                 )}
               </div>
-              <div className="px-4 sm:px-4 pb-4 sm:pb-4 pt-2 flex flex-col-reverse sm:flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="w-full min-h-[44px] rounded-[14px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[16px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.98]"
-                >
-                  {cancelLabel}
-                </button>
-                <button
-                  ref={confirmRef}
-                  type="button"
-                  onClick={onConfirm}
-                  className={
-                    destructive
-                      ? 'w-full min-h-[44px] rounded-[14px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.98]'
-                      : 'w-full min-h-[44px] rounded-[14px] bg-ember hover:bg-brand-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.98]'
-                  }
-                >
-                  {confirmLabel}
-                </button>
-              </div>
+              <ConfirmActions
+                confirmLabel={confirmLabel}
+                cancelLabel={cancelLabel}
+                destructive={destructive}
+                confirmRef={confirmRef}
+                onConfirm={onConfirm}
+                onCancel={onCancel}
+              />
             </div>
           </motion.div>
         </motion.div>

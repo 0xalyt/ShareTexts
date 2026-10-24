@@ -567,7 +567,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 </span>
                 <button
                   onPointerDown={(e) => { e.preventDefault(); void retryText(msg.id); }}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-95 bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
+                  className="st-tap flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-95 bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
                 >
                   <RefreshCw className="w-3 h-3" /> {t('action.retry')}
                 </button>

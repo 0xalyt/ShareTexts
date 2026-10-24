@@ -15,7 +15,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'rea
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon,
-  Image as ImageIcon, Link2, Pause, Play, Plus, QrCode, Share2, Trash2, UploadCloud,
+  Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
   X, XCircle,
 } from 'lucide-react';
 import { SpinLoader } from '../components/SpinLoader';
@@ -25,6 +25,7 @@ import { useI18n } from '../lib/i18n';
 import { TactileButton } from '../components/TactileButton';
 import type { MsgKey } from '../lib/messages/types';
 import { OverlaySheet } from '../components/OverlaySheet';
+import { TriLineGlyph } from '../components/TriLineGlyph';
 import { ShareMenu } from '../components/ShareMenu';
 import { ConfirmSheet } from '../components/ConfirmSheet';
 import { useSpaceClient, type LocalUpload } from '../lib/space/useSpaceClient';
@@ -283,24 +284,24 @@ function UploadRow({
             <span className="block text-[12px] text-red-600/80 dark:text-red-400/80 truncate">{up.progress.error}</span>
           )}
         </span>
-        {phase === 'paused' && (
+        {/* One control, two states — the tri-line glyph MORPHS between play
+            and pause (shared 3-line structure) instead of one icon unmounting
+            and another popping in. Collapsing the two buttons into one also
+            keeps the target still: the Cancel button that sits beside it can
+            never shuffle sideways when an upload pauses. */}
+        {(active || phase === 'paused') && (
           <button
-            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] text-[12px] font-medium text-apple-ink dark:text-white/80 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            onClick={() => onResume(up.key)}
-            data-testid="space-upload-resume"
+            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] text-[12px] font-medium transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            onClick={() => (phase === 'paused' ? onResume(up.key) : onPause(up.key))}
+            data-testid={phase === 'paused' ? 'space-upload-resume' : 'space-upload-pause'}
           >
-            <Play className="w-3.5 h-3.5" />
-            {t('space.resume')}
-          </button>
-        )}
-        {active && (
-          <button
-            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] text-[12px] font-medium text-apple-ink-muted dark:text-white/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
-            onClick={() => onPause(up.key)}
-            data-testid="space-upload-pause"
-          >
-            <Pause className="w-3.5 h-3.5" />
-            {t('space.pause')}
+            <TriLineGlyph
+              state={phase === 'paused' ? 'play' : 'pause'}
+              className="w-3.5 h-3.5 text-apple-ink dark:text-white/70"
+            />
+            <span className={phase === 'paused' ? 'text-apple-ink dark:text-white/80' : 'text-apple-ink-muted dark:text-white/60'}>
+              {phase === 'paused' ? t('space.resume') : t('space.pause')}
+            </span>
           </button>
         )}
         {(active || phase === 'paused') && (

@@ -28,6 +28,7 @@ import { DUR } from '../lib/motion/tokens';
 import { cn, formatBytes } from '../lib/utils';
 import { FileTypeIcon } from './FileTypeIcon';
 import { ConfirmSheet } from './ConfirmSheet';
+import { FitWidth, Expandable } from './Expandable';
 import { useSavedSnapshot } from '../lib/savedItems';
 import {
   removeItem, clearSavedItems, reloadSavedItems,
@@ -185,7 +186,7 @@ function RowAction({
   testId?: string;
 }) {
   const cls = cn(
-    'inline-flex items-center gap-1.5 px-3 min-h-[40px] rounded-full text-[12px] font-semibold transition-colors',
+    'st-tap inline-flex items-center gap-1.5 px-3 min-h-[40px] rounded-full text-[12px] font-semibold transition-colors',
     danger
       ? 'text-apple-ink-muted dark:text-white/55 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10'
       : 'bg-black/[0.045] text-apple-ink hover:bg-black/[0.08] dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.12]'
@@ -194,14 +195,17 @@ function RowAction({
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" className={cls} data-testid={testId} title={label} aria-label={label}>
         {icon}
-        <span>{label}</span>
+        <FitWidth><span>{label}</span></FitWidth>
       </a>
     );
   }
   return (
     <button type="button" onClick={onClick} className={cls} data-testid={testId} title={label} aria-label={label}>
       {icon}
-      <span>{label}</span>
+      {/* Label swaps in place (Copy → Copied). FitWidth springs the button to
+          the new label's width so the action row beside it reflows *with* the
+          animation instead of one frame after it — the container never snaps. */}
+      <FitWidth><span>{label}</span></FitWidth>
     </button>
   );
 }
@@ -264,7 +268,12 @@ function SavedRow({
   const longText = item.kind === 'text' && (item.text?.length ?? 0) > 240;
 
   return (
-    <li
+    <motion.li
+      layout
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.18, ease: 'easeOut' } }}
+      transition={{ type: 'spring', stiffness: 480, damping: 36 }}
       className="st-card rounded-[16px] p-3 flex gap-3"
       data-testid="saved-row"
       data-kind={item.kind}
@@ -292,12 +301,18 @@ function SavedRow({
           </div>
         ) : item.kind === 'text' ? (
           <div className="min-w-0">
-            <p className={cn(
-              'text-[14px] leading-snug text-apple-ink dark:text-white whitespace-pre-wrap break-words',
-              !expanded && 'line-clamp-3'
-            )}>
-              {item.text}
-            </p>
+            {/* line-clamp releasing is a content resize with NO unmount — the
+                node stays put, its height changes. Expandable tracks that
+                height and springs, so the text grows instead of snapping; the
+                button below rides down with it. */}
+            <Expandable>
+              <p className={cn(
+                'text-[14px] leading-snug text-apple-ink dark:text-white whitespace-pre-wrap break-words',
+                !expanded && 'line-clamp-3'
+              )}>
+                {item.text}
+              </p>
+            </Expandable>
             {longText && (
               <button
                 type="button"
@@ -378,7 +393,7 @@ function SavedRow({
           />
         </div>
       </div>
-    </li>
+    </motion.li>
   );
 }
 
@@ -509,9 +524,16 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
           </p>
         )}
         <ul className="px-4 flex flex-col gap-2.5 list-none">
-          {shown.map((item) => (
-            <SavedRow key={item.id} item={item} onRemove={handleRemove} onView={setViewing} setError={setActionError} />
-          ))}
+          {/* popLayout: a filtered-out row is pulled from flow the instant it
+              starts leaving, so the rows beneath glide up *with* its exit
+              instead of jumping the moment it unmounts. propagate: closing the
+              whole sheet also animates the rows out with their sheet, rather
+              than the sheet sliding down over rows that vanish pre-frame. */}
+          <AnimatePresence mode="popLayout" propagate>
+            {shown.map((item) => (
+              <SavedRow key={item.id} item={item} onRemove={handleRemove} onView={setViewing} setError={setActionError} />
+            ))}
+          </AnimatePresence>
         </ul>
         {filtered.length > limit && (
           <div className="flex justify-center pt-3 pb-1">

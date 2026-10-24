@@ -1245,6 +1245,21 @@ html.dark .st-spotlight {
     .st-glow::before { animation: none; opacity: 0.7; }
   }
 
+  /* .st-tap — Fitts's Law, applied invisibly. The target a finger or cursor
+     aims at can be visually small (a 20px icon, a 36px chip) while the real
+     hit area is generously sized. The ::before grows the clickable box by
+     `--st-tap-grow` on every side without changing layout, so dense toolbars
+     stay visually tight but are forgiving to hit. It sits *under* the real
+     content (::before, not ::after), never intercepts pointer events meant
+     for a child, and needs the parent to be positioned + overflow-visible. */
+  .st-tap { position: relative; }
+  .st-tap::before {
+    content: "";
+    position: absolute;
+    inset: calc(var(--st-tap-grow, 10px) * -1);
+    border-radius: inherit;
+  }
+
   .st-head-row {
     display: flex;
     align-items: baseline;
