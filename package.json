@@ -24,6 +24,7 @@
     "test:autoconnect": "node scripts/verify-autoconnect.mjs",
     "test:protocol": "node scripts/verify-protocol.mjs",
     "test:reactions": "node scripts/verify-reactions.mjs",
+    "test:emoji": "node scripts/verify-emoji.mjs",
     "test:resume": "node scripts/verify-resume.mjs"
   },
   "dependencies": {

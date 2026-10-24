@@ -46,6 +46,9 @@ docs/audits/shots-*/
 # scratch temp test dirs from queue probes
 st-*/
 .tmpq/
+# verify-emoji native-build check (scripts/verify-emoji.mjs) — rebuilt and
+# deleted on every run, but must never be committable if a run dies mid-way.
+.tmp-native*/
 
 # Local dev-server scratch (pids + agent regression logs)
 *.pid
