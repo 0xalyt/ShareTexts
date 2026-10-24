@@ -883,7 +883,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           {a.status !== 'complete' && a.status !== 'draft' && a.status !== 'failed' && a.status !== 'cancelled' && a.status !== 'paused' && a.status !== 'waiting' && (
             <>
               <div
-                className="w-full st-bar"
+                className="w-full st-bar st-bar-live"
                 role="progressbar"
                 aria-valuemin={0}
                 aria-valuemax={100}

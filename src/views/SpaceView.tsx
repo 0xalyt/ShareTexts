@@ -269,7 +269,7 @@ function UploadRow({
   const active = phase === 'uploading' || phase === 'preparing';
 
   return (
-    <div className="st-card p-3.5" data-testid="space-upload" data-phase={phase}>
+    <div className={`p-3.5 ${active ? 'st-glow' : 'st-card'}`} data-testid="space-upload" data-phase={phase}>
       <div className="flex items-center gap-3">
         <span className={`st-glyph shrink-0 w-10 h-10 ${done ? 'st-glyph-ok' : failed || cancelled ? 'st-glyph-danger' : ''}`}>
           <UploadCloud className={`w-5 h-5 ${done ? '' : failed || cancelled ? 'opacity-70' : ''}`} />
@@ -341,7 +341,7 @@ function UploadRow({
         )}
       </div>
       {!done && !failed && !cancelled && (
-        <div className="mt-3 st-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={phase === 'verifying' ? 100 : phase === 'preparing' ? Math.round((up.progress.prepare ?? 0) * 100) : pct} aria-label={label}>
+        <div className="mt-3 st-bar st-bar-live" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={phase === 'verifying' ? 100 : phase === 'preparing' ? Math.round((up.progress.prepare ?? 0) * 100) : pct} aria-label={label}>
           <i className={phase === 'verifying' ? 'animate-pulse' : ''}
             style={{ width: `${phase === 'verifying' ? 100 : phase === 'preparing' ? Math.round((up.progress.prepare ?? 0) * 100) : pct}%` }} />
         </div>
