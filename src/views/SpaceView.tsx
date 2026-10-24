@@ -159,7 +159,7 @@ function ItemCard({
               src={src}
               alt={item.name || ''}
               draggable={false}
-              className="w-full max-h-72 object-cover"
+              className="w-full max-h-72 object-cover st-img-edge"
               loading="lazy"
             />
           ) : (

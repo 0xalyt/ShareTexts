@@ -728,6 +728,48 @@ html.dark .st-dotfield::after {
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
 }
 
+/* ── Scroll fade: only the edge that still has content behind it ───────
+   (craft.gustavofior "Scroll Fades", driven by useScrollFade instead of a
+   scroll-driven animation). The two fade sizes are custom properties the
+   element's OWN scroll position writes: the top fade grows over the first
+   40px of scrolling, the bottom fade shrinks to 0 over the last 40px.
+   A container that never overflows keeps BOTH at 0 — no static mask's
+   "half-hidden last row" lie. It is a mask, not an overlay: it works over
+   any background, never blocks clicks, and the scrollbar fades with the
+   content (these panels already run quiet scrollbars). */
+.st-scroll-fade-y {
+  --st-fade-start: 0px;
+  --st-fade-end: 0px;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--st-fade-start),
+    black calc(100% - var(--st-fade-end)),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--st-fade-start),
+    black calc(100% - var(--st-fade-end)),
+    transparent 100%
+  );
+}
+
+/* ── Image outline: a faint inset edge so media always has a shape ─────
+   (craft.gustavofior "Image Outlines"). Images don't know what's behind
+   them — a pale photo on a white card has no edge at all. Painted OVER
+   the outermost pixels (negative outline-offset), so it takes no layout
+   space the way a border would; ~10% is faint enough to read as a shape
+   rather than a frame (below ~5% vanishes, above ~20% reads as design). */
+.st-img-edge {
+  outline: 1px solid rgb(0 0 0 / 0.10);
+  outline-offset: -1px;
+}
+html.dark .st-img-edge {
+  outline-color: rgb(255 255 255 / 0.12);
+}
+
 /* ── DataFlow: the packet riding the wire ────────────────────────────────
    The path is declared with pathLength=100 and a 14/86 dash, so animating
    dashoffset from 0 to −100 slides the dash exactly one full circuit and

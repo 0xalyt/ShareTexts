@@ -7,6 +7,7 @@ import {
 import { SpinLoader } from './SpinLoader';
 import { useI18n } from '../lib/i18n';
 import { cn } from '../lib/utils';
+import { useScrollFade } from '../lib/useScrollFade';
 import type { PeerDevice } from '../types';
 
 /**
@@ -88,6 +89,9 @@ export function DevicePicker({
   const { t } = useI18n();
   const [query, setQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
+  // Edge-aware fade on the option list — 50+ members scroll (the fade
+  // signals it); a 3-device list never overflows, so both stops stay 0.
+  const listRef = useScrollFade<HTMLDivElement>();
   // Outside pointer press dismisses the popover — the picker is an overlay
   // of the composer, not a destination of its own.
   const rootRef = useRef<HTMLDivElement>(null);
@@ -174,7 +178,7 @@ export function DevicePicker({
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2.5 space-y-1" role="listbox" aria-label={t('picker.title')} aria-multiselectable="true">
+      <div ref={listRef} className="st-scroll-fade-y min-h-0 flex-1 overflow-y-auto p-2.5 space-y-1" role="listbox" aria-label={t('picker.title')} aria-multiselectable="true">
         {filtered.length === 0 ? (
           <p className="px-3 py-6 text-center text-sm text-neutral-400">
             {others.length === 0 ? t('picker.empty') : t('picker.noMatch')}

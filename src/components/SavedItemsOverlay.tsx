@@ -24,6 +24,7 @@ import {
 import { useI18n } from '../lib/i18n';
 import type { I18nApi } from '../lib/i18n';
 import { useFocusTrap } from '../lib/useFocusTrap';
+import { useScrollFade } from '../lib/useScrollFade';
 import { DUR } from '../lib/motion/tokens';
 import { cn, formatBytes } from '../lib/utils';
 import { FileTypeIcon } from './FileTypeIcon';
@@ -141,7 +142,7 @@ function KindThumb({ item }: { item: SavedItem }) {
   if (item.kind === 'image') {
     return url ? (
       <span className="shrink-0 w-12 h-12 rounded-[10px] overflow-hidden bg-black/[0.05] dark:bg-white/[0.06]">
-        <img src={url} alt="" className="w-full h-full object-cover" />
+        <img src={url} alt="" className="w-full h-full object-cover st-img-edge" />
       </span>
     ) : (
       <span className="shrink-0 w-12 h-12 rounded-[10px] bg-apple-parchment dark:bg-apple-tile-2 flex items-center justify-center text-apple-ink-muted" aria-hidden>
@@ -406,6 +407,9 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
 
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(60);
+  // Edge-aware fade on the list viewport — arms only while the list can
+  // actually scroll, so a short list keeps its last row fully visible.
+  const listRef = useScrollFade<HTMLDivElement>();
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -605,7 +609,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
                   </button>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-2">
+                <div ref={listRef} className="st-scroll-fade-y flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-2">
                   {body}
                 </div>
 

@@ -712,7 +712,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                     <DraggableImage
                       src={a.url}
                       name={a.name}
-                      className="w-full h-auto object-contain max-h-[60vh] block cursor-grab active:cursor-grabbing"
+                      className="w-full h-auto object-contain max-h-[60vh] block cursor-grab active:cursor-grabbing st-img-edge"
                       onLoad={(e) => {
                         const el = e.currentTarget;
                         if (el.naturalWidth > 0) setImgMeta({ w: el.naturalWidth, h: el.naturalHeight });
@@ -1252,7 +1252,7 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
             alt=""
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover st-img-edge"
             onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }}
           />
         </span>

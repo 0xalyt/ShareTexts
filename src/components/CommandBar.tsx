@@ -20,6 +20,7 @@ import { metricsSnapshot, clearTransferMetrics, type TransferRecord } from '../l
 import { formatBytes } from '../lib/utils';
 import { connMachine } from '../lib/connectionState';
 import { getNetStats, describeRoute } from '../lib/netStats';
+import { useScrollFade } from '../lib/useScrollFade';
 
 /**
  * CommandBar — the app's whole surface, one ⌘K away.
@@ -289,6 +290,11 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
   // Keep the selection inside bounds as the filter narrows.
   useEffect(() => { setIndex(i => Math.min(i, Math.max(0, filtered.length - 1))); }, [filtered.length]);
 
+  // Edge-aware fades for the two list views (language menu + command list):
+  // armed only while the view can actually scroll, never mid-list.
+  const langListRef = useScrollFade<HTMLDivElement>();
+  const cmdListRef = useScrollFade<HTMLDivElement>();
+
   const runCmd = (cmd: Cmd) => {
     if (cmd.opensSub) { if (cmd.id === 'stats') setStatsOpen(true); else if (cmd.id === 'diagnostics') setDiagOpen(true); else setSubOpen(true); return; }
     // Close FIRST (synchronously), then run — the action targets state that
@@ -365,7 +371,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
                     <ChevronLeft className="w-4 h-4" /> {t('command.title')}
                   </button>
                 </div>
-                <div role="listbox" aria-label={t('lang.menu')} className="max-h-[52vh] overflow-y-auto p-2">
+                <div role="listbox" aria-label={t('lang.menu')} ref={langListRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-2">
                   {LANGS.map((l) => (
                     <button
                       key={l.code}
@@ -402,7 +408,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
                   />
                   <kbd className="shrink-0 px-1.5 py-0.5 rounded-[6px] border border-black/[0.08] dark:border-white/[0.09] text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/35">Esc</kbd>
                 </div>
-                <div id="commandbar-list" role="listbox" className="max-h-[46vh] overflow-y-auto p-2">
+                <div id="commandbar-list" role="listbox" ref={cmdListRef} className="st-scroll-fade-y max-h-[46vh] overflow-y-auto p-2">
                   {filtered.length === 0 && (
                     <p className="px-3.5 py-8 text-[13px] text-apple-ink-muted/80 dark:text-white/35 text-center">{t('command.noResults')}</p>
                   )}
@@ -463,6 +469,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
  */
 function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
   const { t } = useI18n();
+  const bodyRef = useScrollFade<HTMLDivElement>();
   const { session } = useSession();
   const [, force] = useState(0);
   useEffect(() => {
@@ -490,7 +497,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
           <ChevronLeft className="w-4 h-4" /> {t('command.title')}
         </button>
       </div>
-      <div className="max-h-[52vh] overflow-y-auto p-4 flex flex-col gap-4">
+      <div ref={bodyRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-4 flex flex-col gap-4">
         <section aria-label="Connection">
           <h4 className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-1.5">Connection</h4>
           <div className="flex flex-col gap-1">
@@ -544,6 +551,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
  */
 function TransferStatsPanel({ onBack }: { onBack: () => void }) {
   const { t } = useI18n();
+  const bodyRef = useScrollFade<HTMLDivElement>();
   const [, force] = useState(0);
   const snap = metricsSnapshot();
   const { totals, recent } = snap;
@@ -566,7 +574,7 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
           {t('command.clearStats')}
         </button>
       </div>
-      <div className="max-h-[52vh] overflow-y-auto p-4">
+      <div ref={bodyRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-4">
         {/* Lifetime totals */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           <div className="rounded-[14px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
