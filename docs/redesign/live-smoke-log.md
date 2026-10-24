@@ -57,3 +57,25 @@ Command: `node scripts/smoke-live.mjs --expect 9e0b8297c0b5`
 [smoke-live] 1 FAILURE(S). Identical to the previous run: the only failure
 is B1 (stale vercel.json pin), filed and assigned P-token/hygiene. No new
 failures from this push.
+
+## 2026-10-24 — marker `459a3ac537d6` (P1a STEP 1 — verify-emoji gate)
+
+Command: `node scripts/smoke-live.mjs --expect 459a3ac537d6`
+
+| Check | Result |
+|---|---|
+| answers 200 | PASS |
+| build marker === 459a3ac537d6 | PASS (live on poll 1) |
+| two devices paired (code …229) | PASS — 8 523 ms to connected, room up in 13 010 ms |
+| message A → B | PASS (4 ms) |
+| sender echo | PASS |
+| no console errors | **PASS** |
+
+[smoke-live] GREEN against https://sharetexts.online.
+
+Unexpected vs the P1a prompt's expectation ("still 5/6 (B1) until STEP 2"):
+this run is 6/6 — the B1 CSP console violation no longer fires on live.
+Most likely `899d19e` (fix(seo): derived CSP pins) corrected the live pin
+after the P0 runs recorded 5/6. Not claimed as a B1 fix yet: the pin is
+still hand-derived, not build-time-verified, so STEP 2 still ships
+`pin-csp --check` in the build chain and `verify-csp --live` to prove it.
