@@ -1,6 +1,10 @@
 /** Countdown + closing-time formatting (§7): remaining time first, local
  *  closing time where useful, emphasis that grows as the deadline nears —
- *  no fake urgency. */
+ *  no fake urgency. All clock times go through format.ts with the APP's
+ *  active language (B16) — never the machine locale. */
+
+import { fmtTime } from '../format';
+import type { Lang } from '../i18n';
 
 /** "5h 42m", "2d 3h", "45s". */
 export function remainingShort(msLeft: number): string {
@@ -15,13 +19,9 @@ export function remainingShort(msLeft: number): string {
   return `${s}s`;
 }
 
-/** Local closing time: "10:40 PM" / "22:40". */
-export function closingTime(expiresAt: number): string {
-  try {
-    return new Date(expiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  } catch {
-    return '';
-  }
+/** Local closing time: "10:40 PM" / "22:40" — shaped by the app language. */
+export function closingTime(lang: Lang, expiresAt: number): string {
+  return fmtTime(lang, expiresAt);
 }
 
 /** Visual emphasis tier: calm → soon → imminent. Pure UI semantics. */

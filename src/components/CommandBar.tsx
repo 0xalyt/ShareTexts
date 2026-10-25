@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '../lib/SessionContext';
 import { useTheme } from '../lib/theme';
 import { LANGS, useI18n } from '../lib/i18n';
+import { fmtNumber, fmtTime } from '../lib/format';
 import { cn, shortCodeOf } from '../lib/utils';
 import { DUR, SPRING } from '../lib/motion/tokens';
 // lucide icons under the local names this file already uses (all icons are
@@ -468,7 +469,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
  * straight from getStats(). Samples at 1 Hz while open; zero cost closed.
  */
 function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const bodyRef = useScrollFade<HTMLDivElement>();
   const { session } = useSession();
   const [, force] = useState(0);
@@ -533,7 +534,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
                   <span className="text-apple-ink-muted dark:text-white/50 font-medium">{h.from}</span>
                   <span aria-hidden>→</span>
                   <span className="font-semibold text-apple-ink dark:text-white/85">{h.to}</span>
-                  <span className="ml-auto text-apple-ink-muted/60 dark:text-white/30 tnum">{new Date(h.at).toLocaleTimeString()}</span>
+                  <span className="ml-auto text-apple-ink-muted/60 dark:text-white/30 tnum">{fmtTime(lang, h.at)}</span>
                 </div>
               ))}
             </div>
@@ -550,7 +551,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
  * and outcome. All local; wipe with one tap.
  */
 function TransferStatsPanel({ onBack }: { onBack: () => void }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const bodyRef = useScrollFade<HTMLDivElement>();
   const [, force] = useState(0);
   const snap = metricsSnapshot();
@@ -577,8 +578,7 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
       <div ref={bodyRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-4">
         {/* Lifetime totals */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="rounded-[14px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
-            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{totals.transfers.toLocaleString()}</div>
+          <div className="rounded-[14px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">              <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{fmtNumber(lang, totals.transfers)}</div>
             <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.transfers')}</div>
           </div>
           <div className="rounded-[14px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">

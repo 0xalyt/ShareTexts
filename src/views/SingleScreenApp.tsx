@@ -51,6 +51,7 @@ import { NearbyDevices } from '../components/NearbyDevices';
 import { SkeletonScreen } from '../components/SkeletonScreen';
 import { productEvent } from '../lib/telemetry';
 import { useI18n } from '../lib/i18n';
+import { fmtNumber, fmtShortDate } from '../lib/format';
 import { LanguageMenu } from '../components/LanguageMenu';
 import { cn, shortCodeOf, sanitizeDeviceName, formatBytes } from '../lib/utils';
 // Icons: Gravity UI's set, aliased onto the local names this file already
@@ -121,7 +122,7 @@ function useIsDesktopLayout() {
 /*  Main component                                                    */
 /* ------------------------------------------------------------------ */
 export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initialSpaceSheet?: 'create' | 'join'; initialSpaceCode?: string } = {}) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { session, createSession, abandonSession, joinWithCode, joinWithShortCode, setDeviceName, rejoinStayRoom, requestReconnect, refreshCode } = useSession();
   const isDesktopLayout = useIsDesktopLayout();
   // "Is the link actually usable right now?" — during a stall the room
@@ -868,7 +869,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
                 ) : roomsCreated != null ? (
                   <>
-                    <span className="text-[16px] font-bold text-apple-ink/90 dark:text-white/90 tnum leading-none">{roomsCreated.toLocaleString()}</span>
+                    <span className="text-[16px] font-bold text-apple-ink/90 dark:text-white/90 tnum leading-none">{fmtNumber(lang, roomsCreated)}</span>
                     <span className="text-[13px] font-medium text-apple-ink-muted/85 dark:text-white/50 leading-none">{t('home.roomsMade')}</span>
                   </>
                 ) : null}
@@ -902,7 +903,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   const facts: string[] = [];
                   if (stay.partnerName) facts.push(stay.partnerName);
                   if (typeof stay.messageCount === 'number' && stay.messageCount > 0) {
-                    facts.push(t('stay.rejoinMsgs', { n: stay.messageCount.toLocaleString() }));
+                    facts.push(t('stay.rejoinMsgs', { n: fmtNumber(lang, stay.messageCount) }));
                   }
                   if (typeof stay.lastActiveAt === 'number') {
                     const d = new Date(stay.lastActiveAt);
@@ -911,7 +912,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     const isYesterday = new Date(today.getTime() - 86_400_000).toDateString() === d.toDateString();
                     facts.push(isToday ? t('time.today')
                       : isYesterday ? t('time.yesterday')
-                      : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+                      : fmtShortDate(lang, d));
                   }
                   return (
                     <motion.div

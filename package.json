@@ -26,6 +26,7 @@
     "test:protocol": "node scripts/verify-protocol.mjs",
     "test:reactions": "node scripts/verify-reactions.mjs",
     "test:emoji": "node scripts/verify-emoji.mjs",
+    "test:format": "node scripts/verify-format.mjs",
     "test:csp": "node scripts/verify-csp.mjs",
     "test:resume": "node scripts/verify-resume.mjs"
   },

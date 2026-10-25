@@ -22,6 +22,7 @@ import {
   FileText, Link as Link2, ChevronDown, ChevronUp, AlertCircle, Bookmark,
 } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
+import { fmtDateTime } from '../lib/format';
 import type { I18nApi } from '../lib/i18n';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { useScrollFade } from '../lib/useScrollFade';
@@ -225,7 +226,7 @@ function SavedRow({
   onView: (item: SavedItem) => void;
   setError: (msg: string | null) => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -235,7 +236,7 @@ function SavedRow({
       : item.kind === 'link' ? 'saved.typeLink'
         : item.kind === 'image' ? 'saved.typeImage' : 'saved.typeFile'
   );
-  const date = new Date(item.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+  const date = fmtDateTime(lang, item.savedAt);
   const meta = [
     kindLabel,
     typeof item.size === 'number' && item.kind !== 'text' && item.kind !== 'link' ? formatBytes(item.size) : null,

@@ -32,6 +32,7 @@ import { generateTOTP, getTOTPRemainingSeconds } from '../lib/totp';
 import { saveDraft, loadDraft, clearDraft, ComposerDraft } from '../lib/draftStore';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { useI18n } from '../lib/i18n';
+import { fmtDayHeading, fmtShortDate, fmtTime } from '../lib/format';
 import { applyFormat, type FormatKind } from '../lib/richText';
 
 /** Shortcut hint glyph for tooltips and kbd chips — ⌘ on Apple platforms,
@@ -47,7 +48,7 @@ function dateKeyOf(ts: number): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' } = {}) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   // Stable translator for effects: effects fire on session changes, not on
   // locale changes — routing through a ref means an announcement/toast that
   // lands later still speaks the CURRENT language.
@@ -234,18 +235,19 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // settles into 'connecting' while partnerConnected stays true; every green
   // "Connected" treatment must key off this, not the flag alone.
   const partnerLinkHealthy = session.partnerConnected && session.connectionType !== 'disconnected' && session.connectionType !== 'connecting';
-  // The session's start, as people say it: "7:24 PM" today, else "Sep 19, 7:24
-  // PM". Computed once per room — createdAt never changes mid-room.
+  // The session's start, as people say it: "07:24 PM" today, else "Sep 19,
+  // 07:24 PM" — shaped by the APP language via format.ts (B16). Computed
+  // once per room — createdAt never changes mid-room, lang can.
   const startedAtLabel = useMemo(() => {
     if (!session.createdAt) return null;
     try {
       const d = new Date(session.createdAt);
       const now = new Date();
-      const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      const time = fmtTime(lang, d);
       if (d.toDateString() === now.toDateString()) return time;
-      return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}, ${time}`;
+      return `${fmtShortDate(lang, d)}, ${time}`;
     } catch { return null; }
-  }, [session.roomId, session.createdAt]);
+  }, [session.roomId, session.createdAt, lang]);
   // Localized day keys for the date separators — recomputed per render is
   // fine (two string builds), and they must be fresh so midnight rolls over.
   const now = Date.now();
@@ -1410,7 +1412,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   // dates get an honest localized label.
                   const showSep = idx === 0 || dateKeyOf(session.messages[idx - 1].timestamp) !== dateKeyOf(msg.timestamp);
                   const sepKey = dateKeyOf(msg.timestamp);
-                  const sepLabel = sepKey === todayKey ? t('time.today') : sepKey === yesterdayKey ? t('time.yesterday') : new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(msg.timestamp);
+                  const sepLabel = sepKey === todayKey ? t('time.today') : sepKey === yesterdayKey ? t('time.yesterday') : fmtDayHeading(lang, msg.timestamp);
                   return (
                     <React.Fragment key={msg.id}>
                       {showSep && (

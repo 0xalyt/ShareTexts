@@ -29,6 +29,7 @@ import { FileTypeIcon } from './FileTypeIcon';
 import { DraggableImage } from './DraggableImage';
 import { cn, formatBytes, sanitizeFilename } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
+import { fmtTime } from '../lib/format';
 import type { I18nApi } from '../lib/i18n';
 import { ChatMessage, Attachment } from '../types';
 import { looksLikeStructuredText, maxLineLength, sliceAtGraphemeBoundary, hasStrongRtl } from '../lib/textFidelity';
@@ -67,7 +68,8 @@ async function toPngClipboardBlob(blob: Blob): Promise<Blob | null> {
   } catch { return null; }
 }
 
-const timeOf = (ts: number) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// Times go through format.ts with the APP's active language (B16) — see
+// lib/format.ts; the meta strip carries data-testid="msg-time" for the gate.
 
 
 
@@ -357,7 +359,7 @@ export interface MessageCardProps {
 }
 
 export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart }) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, session } = useSession();
   const isMe = msg.sender === 'me';
   const a = msg.attachment;
@@ -587,7 +589,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                         from a DEVICE — the name makes the bridge concrete. */
                     <span className="font-semibold">{session.partnerName ? t('msg.fromDevice', { name: session.partnerName }) : t('msg.received')}</span>
                   )}
-                  {' • '}{timeOf(msg.timestamp)}
+                  {' • '}<span data-testid="msg-time">{fmtTime(lang, msg.timestamp)}</span>
                 </span>
                 <BookmarkButton msg={msg} />
                 <button
@@ -823,13 +825,13 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                     {' • '}{formatBytes(a.size)}
                     {dimsTxt ? <span title={t('msg.verifiedTitle')}>{' • '}{dimsTxt}</span> : null}
                     {a.type === 'image' && fmtShort && !decodeFailed ? ` • ${fmtShort}` : ''}
-                    {' • '}{timeOf(msg.timestamp)}
+                    {' • '}{fmtTime(lang, msg.timestamp)}
                   </span>
                   {/* Mobile keeps time only — size already sits under the
                       filename above, and the orphaned “• 3 MB” fragment this
                       used to render wrapped onto its own line. */}
                   <span className="sm:hidden">
-                    {' • '}{timeOf(msg.timestamp)}
+                    {' • '}{fmtTime(lang, msg.timestamp)}
                   </span>
                 </span>
               ) : (

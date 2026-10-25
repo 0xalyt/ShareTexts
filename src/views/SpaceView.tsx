@@ -22,6 +22,7 @@ import { SpinLoader } from '../components/SpinLoader';
 import { Bar } from '../components/SkeletonScreen';
 import { Inbox } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
+import { fmtShortDate, fmtTime, fmtWeekdayTime } from '../lib/format';
 import { TactileButton } from '../components/TactileButton';
 import type { MsgKey } from '../lib/messages/types';
 import { OverlaySheet } from '../components/OverlaySheet';
@@ -64,7 +65,7 @@ function isUrlLike(s: string): boolean {
 // ── small atoms ───────────────────────────────────────────────────────────
 
 function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: number; createdAt?: number }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const left = expiresAt - now;
   const tier = urgencyTier(left);
   // Honest urgency: real elapsed share of the promised lifetime (or the last
@@ -80,7 +81,7 @@ function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: numb
       <span className={`inline-flex items-center gap-1.5 text-[13px] font-medium tabular-nums ${color}`}>
         <Clock className="w-3.5 h-3.5" />
         {t('space.closesIn', { time: remainingShort(left) })}
-        <span className="hidden sm:inline text-apple-ink-muted/60 dark:text-white/35">· {closingTime(expiresAt)}</span>
+        <span className="hidden sm:inline text-apple-ink-muted/60 dark:text-white/35">· {closingTime(lang, expiresAt)}</span>
       </span>
     </span>
   );
@@ -354,7 +355,7 @@ function UploadRow({
 // ── create sheet ──────────────────────────────────────────────────────────
 
 export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): void }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [codeState, setCodeState] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
@@ -503,9 +504,9 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
               <span className="mt-1 text-[12px] font-medium tabular-nums leading-none opacity-60 whitespace-nowrap">
                 {(() => {
                   const end = new Date(Date.now() + d.ms);
-                  if (d.ms <= 24 * HOUR) return end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-                  if (d.ms <= 72 * HOUR) return end.toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
-                  return end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                  if (d.ms <= 24 * HOUR) return fmtTime(lang, end);
+                  if (d.ms <= 72 * HOUR) return fmtWeekdayTime(lang, end);
+                  return fmtShortDate(lang, end);
                 })()}
               </span>
             </button>
