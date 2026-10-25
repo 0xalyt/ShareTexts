@@ -103,3 +103,22 @@ to (`eMqz…` boot on the shells, `eLR/…` about year stamp), no dead pins. See
 `audit/p1a/verify-csp-live.txt` and `audit/p1a/csp-live.txt` (curl -sI).
 `pin-csp --check` now runs at the end of `npm run build` (fails the build on a
 missing or dead pin; `SKIP_CSP_CHECK=1` is the emergency escape).
+
+## 2026-10-25 — marker `618abd41de68` (P1a STEP 3 — B16: app language drives formatting)
+
+Command: `node scripts/smoke-live.mjs --expect 618abd41de68`
+Commit: `618abd4` — fix(format): app language drives all dates, times and numbers (B16)
+
+| Check | Run 1 | Run 2 |
+|---|---|---|
+| answers 200 | PASS | PASS |
+| build marker === 618abd41de68 | PASS | PASS |
+| two devices paired | PASS — 50 008 ms to connected, room up in 59 008 ms (B missed the 20 s chat-view wait) | PASS — 30 801 ms, room up in 36 122 ms |
+| message A → B | **FAIL — timed out at 15 s** | PASS (465 ms) |
+| sender echo | PASS | PASS |
+| no console errors | PASS (3 warnings: signaling worker redirect) | PASS (same 3 warnings) |
+
+Run 1 was 5/6: pairing took 50 s on live, so the 15 s delivery window expired
+before the channel was usable — an infra-timing flake, not a formatting
+regression (no console/page errors, sender path healthy). Run 2 on the same
+marker: **GREEN 6/6**. Recorded both runs rather than only the green one.
