@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- Primary -->
-    <title>ShareTexts — Share Files Between Devices, Phone to PC (No App)</title>
+    <title>AirDrop for everyone — ShareTexts</title>
     <meta name="description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send. Nothing is stored." />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
@@ -36,27 +36,35 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ShareTexts" />
 
-    <!-- Open Graph -->
+    <!-- Open Graph — every social surface reads THIS block (X, WhatsApp,
+         LinkedIn, Slack, Discord, iMessage, Telegram). Title and image are
+         the brand line and a designed card, not a bare icon on white: the
+         old artwork read as an empty rectangle at card size, which is why
+         shared links looked broken.
+         ?v=22 + a NEW file name bust the caches: platforms key the preview
+         on the URL, so the same path would keep serving the retired card. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ShareTexts" />
-    <meta property="og:title" content="ShareTexts — Share Files Between Devices, Phone to PC (No App)" />
-    <meta property="og:description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send. Nothing is stored." />
+    <meta property="og:title" content="AirDrop for everyone — ShareTexts" />
+    <meta property="og:description" content="Send text, photos, and files between any two devices. No app. No account. No wires. Free, in the browser." />
     <meta property="og:url" content="https://sharetexts.online/" />
-    <!-- ?v=19 busts X/WhatsApp/LinkedIn caches: the same artwork, freshly
-         fetched. Bump the query whenever the artwork file changes. -->
-    <meta property="og:image" content="https://sharetexts.online/og/sharetext-og.jpg?v=21" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-v11.png?v=22" />
+    <meta property="og:image:secure_url" content="https://sharetexts.online/og/sharetext-og-v11.png?v=22" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:alt" content="ShareTexts — AirDrop for everyone. The ShareTexts app icon, a warm ember broadcast glyph, centered on a clean white card." />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="ShareTexts — AirDrop for everyone. A room with a six-digit code, a laptop and a phone, and the ShareTexts lockup on a warm cream card." />
 
     <!-- Twitter/X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ShareTexts — Share Files Between Devices, Phone to PC (No App)" />
-    <meta name="twitter:description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send." />
-    <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og.jpg?v=21" />
-    <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og.jpg?v=21" />
-    <meta name="twitter:image:alt" content="ShareTexts — AirDrop for everyone. The ShareTexts app icon, a warm ember broadcast glyph, centered on a clean white card." />
+    <meta name="twitter:site" content="@0xalyt" />
+    <meta name="twitter:creator" content="@0xalyt" />
+    <meta name="twitter:title" content="AirDrop for everyone — ShareTexts" />
+    <meta name="twitter:description" content="Send text, photos, and files between any two devices. No app. No account. No wires. Free, in the browser." />
+    <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-v11.png?v=22" />
+    <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og-v11.png?v=22" />
+    <meta name="twitter:image:alt" content="ShareTexts — AirDrop for everyone. A room with a six-digit code, a laptop and a phone, and the ShareTexts lockup on a warm cream card." />
 
     <link rel="canonical" href="https://sharetexts.online/" />
     <link rel="alternate" hreflang="x-default" href="https://sharetexts.online/" />
@@ -112,8 +120,8 @@
           "browserRequirements": "Requires a supported browser and an internet connection",
           "isAccessibleForFree": true,
           "inLanguage": "en",
-          "image": "https://sharetexts.online/og/sharetext-og.jpg?v=21",
-          "screenshot": "https://sharetexts.online/og/sharetext-og.jpg?v=21",
+          "image": "https://sharetexts.online/og/sharetext-og-v11.png?v=22",
+          "screenshot": "https://sharetexts.online/og/sharetext-og-v11.png?v=22",
           "featureList": [
             "Device discovery while ShareTexts is open on your other device",
             "Six-digit live pairing code",

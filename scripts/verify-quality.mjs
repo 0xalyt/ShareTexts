@@ -271,7 +271,7 @@ const HELPERS = () => {
       manifest: !!man, name: man?.name || man?.short_name || '', theme: man?.theme_color || '',
       icons: (man?.icons || []).map(i => i.sizes).join(','),
       swCache: (sw.match(/const CACHE = '([^']+)'/) || [])[1] || '',
-      swPrecachesOg: sw.includes('/og/sharetext-og.jpg'),
+      swPrecachesOg: sw.includes('/og/sharetext-og-v11.png'),
       swRegistered: !!navigator.serviceWorker?.controller,
     };
   });

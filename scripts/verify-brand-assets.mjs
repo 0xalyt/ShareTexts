@@ -58,32 +58,42 @@ const check = (name, cond) => checks.push([name, cond]);
 
 // ── OG card 1200x630 — the canonical share image every page points at.
 // Sampled from the path the meta tags actually serve, so this check cannot
-// pass against a retired file while the real one is broken. Artwork: the
-// ember ShareTexts app-icon glyph, centered on a clean white field.
+// pass against a retired file while the real one is broken.
+//
+// Artwork contract (2026-10, scripts/gen-og-card.mjs): a DESIGNED card —
+// ember lockup top-left, the brand headline in ink on the LEFT half, the
+// live room/phone scene on the RIGHT half, warm cream field. The previous
+// card was the bare icon centered on white, which read as an empty
+// rectangle in an X/Slack preview; a centered-glyph check would now pass a
+// blank card, so the assertions below measure the real composition.
 // ──
-const og = await sample('/og/sharetext-og.jpg');
+const og = await sample('/og/sharetext-og-v11.png');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
-  // The card is a white field with the orange app icon centered. (40,300) is
-  // the left margin — verified pure white (255,255,255) against the card — so
-  // the sample lands on background, never on the centered glyph. (The prior
-  // card was dark logos + a laptop/phone shot; its `ink` assertion measured
-  // that artwork, not this one, and was replaced by the glyph checks below.)
+  // The file checked above must be the file the head actually advertises —
+  // otherwise this suite could pass against an asset no platform ever sees.
+  const { readFileSync } = await import('node:fs');
+  const head = readFileSync('index.html', 'utf8');
+  check('og:image and twitter:image point at this card',
+    head.includes('/og/sharetext-og-v11.png?v=22') &&
+    (head.match(/sharetext-og-v11\.png\?v=22/g) || []).length >= 4);
+}
+{
   const p = at(og.data, og.w, 40, 300);
   check(`og background margin (40,300) light`, p[0] > 200 && p[1] > 200 && p[2] > 200);
-  // The ember app-icon glyph must be present, substantial, and centered.
   const anyEmber = count(og.data, og.w, 0, 0, og.w, og.h, ember, 4);
-  check(`og ember app-icon glyph present (${anyEmber} px)`, anyEmber > 200);
-  // Bounding box of non-white pixels must sit horizontally centered (the icon
-  // is centered on the field): its horizontal midpoint within 15% of centre.
-  const nonWhite = (q) => !(q[0] > 245 && q[1] > 245 && q[2] > 245);
-  let minX = og.w, maxX = 0, inkCount = 0;
-  for (let y = 0; y < og.h; y += 3) for (let x = 0; x < og.w; x += 3) {
-    if (nonWhite(at(og.data, og.w, x, y))) { inkCount++; if (x < minX) minX = x; if (x > maxX) maxX = x; }
-  }
-  check(`og glyph present (${inkCount} px)`, inkCount > 500);
-  const midX = (minX + maxX) / 2 / og.w;
-  check(`og glyph horizontally centered (mid ${(midX * 100).toFixed(1)}%)`, midX > 0.4 && midX < 0.6);
+  check(`og ember brand glyph present (${anyEmber} px)`, anyEmber > 150);
+  // Dark ink (the headline + room chrome) must be substantial on BOTH halves:
+  // the card has to carry the words, not just a mark in the middle.
+  const ink = (q) => q[0] < 90 && q[1] < 90 && q[2] < 90;
+  const left = count(og.data, og.w, 0, 0, og.w / 2, og.h, ink, 3);
+  const right = count(og.data, og.w, og.w / 2, 0, og.w, og.h, ink, 3);
+  check(`og headline ink on the left half (${left} px)`, left > 800);
+  check(`og product scene on the right half (${right} px)`, right > 300);
+  // The headline must not touch the frame: a 1px unfilled border proves the
+  // layout is padded, which is what keeps it readable when cropped to 500px.
+  const bgPixel = at(og.data, og.w, 4, 4);
+  check('og card is padded (no ink at 4,4)', bgPixel[0] > 200 && bgPixel[1] > 200 && bgPixel[2] > 200);
 }
 
 // ── Maskable icon: the glyph on an opaque near-white plate, inside the

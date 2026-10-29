@@ -13,7 +13,7 @@
  *     the cache on first fetch. Cross-origin requests (the signaling
  *     Worker's /health, /lookup, /ws) are never intercepted.
  */
-const CACHE = 'sharetexts-v25';
+const CACHE = 'sharetexts-v26';
 const SHELL = [
   '/',
   '/index.html',
@@ -35,7 +35,7 @@ const SHELL = [
   '/icon-maskable-192.png',
   '/icon-maskable-512.png',
   '/apple-touch-icon.png',
-  '/og/sharetext-og.jpg',
+  '/og/sharetext-og-v11.png',
   '/demo/photo-4x3.jpg',
   // Apple-emoji reaction artwork (P1 STEP 1) — unhashed, so a re-paint of the
   // six faces follows the same network-first "unhashed" rule as the favicons
