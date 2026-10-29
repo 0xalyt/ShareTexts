@@ -10,6 +10,8 @@
 //   2. <meta name="sharetexts-build"> present. Until STEP 8c ships the
 //      marker this is a WARN, not a failure — the smoke still proves the
 //      product works. With --expect it becomes a strict comparison.
+//   2b. The share card (title, og:title, og:image → a real 1200x630 PNG,
+//      twitter:card) — the link preview is invisible from inside the app.
 //   3. Two devices pair over the REAL live signaling path (A creates a
 //      room, B joins by code) — the verified flow in scripts/lib/flow.mjs.
 //   4. A text message arrives at B within 15 s and A sees its own echo.
@@ -71,6 +73,44 @@ try {
     warn('build marker absent (STEP 8c adds <meta name="sharetexts-build">)');
   } else {
     out(true, 'build marker present', marker);
+  }
+
+  // ── 2b. the share card the whole internet reads ───────────────────────
+  // A link preview is the first thing anyone sees of this product on X,
+  // WhatsApp, Slack or Discord — and it is invisible from the app itself,
+  // so nothing else in the battery would catch a blank card, a relative
+  // URL, or a title that drifted back to an SEO string. Fetch the real
+  // HTML and the real image, and measure both.
+  {
+    let ok = true;
+    try {
+      const html = await (await fetch(BASE, { signal: AbortSignal.timeout(15000) })).text();
+      const meta = (attr, name) => html.match(new RegExp(`<meta ${attr}="${name}" content="([^"]*)"`))?.[1] ?? '';
+      const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
+      const ogImage = meta('property', 'og:image');
+      out(/^AirDrop for everyone — ShareTexts$/.test(title), 'share title is the brand line', title);
+      out(/^AirDrop for everyone — ShareTexts$/.test(meta('property', 'og:title')), 'og:title is the brand line', meta('property', 'og:title'));
+      out(ogImage.startsWith('https://'), 'og:image is absolute', ogImage || 'absent');
+      out(/\?v=\d+/.test(ogImage), 'og:image carries a cache-buster', ogImage || 'absent');
+      out(meta('name', 'twitter:card') === 'summary_large_image', 'twitter card is summary_large_image');
+      out(meta('property', 'og:image:width') === '1200' && meta('property', 'og:image:height') === '630', 'og:image declares 1200x630');
+      if (ogImage.startsWith('https://')) {
+        const img = await fetch(ogImage, { signal: AbortSignal.timeout(15000) });
+        const bytes = Buffer.from(await img.arrayBuffer());
+        const isPng = bytes.length > 24 && bytes.toString('ascii', 1, 4) === 'PNG';
+        const w = isPng ? bytes.readUInt32BE(16) : 0;
+        const h = isPng ? bytes.readUInt32BE(20) : 0;
+        out(img.ok && isPng && w === 1200 && h === 630,
+          'og:image serves as a real 1200x630 PNG',
+          `${img.status} ${img.headers.get('content-type')} ${w}x${h} ${Math.round(bytes.length / 1024)}KB`);
+      } else {
+        out(false, 'og:image serves as a real 1200x630 PNG', 'no absolute url');
+      }
+    } catch (e) {
+      ok = false;
+      out(false, 'share card is complete and reachable', e.message);
+    }
+    void ok;
   }
 
   // ── 3. two devices pair over live signaling ────────────────────────────
