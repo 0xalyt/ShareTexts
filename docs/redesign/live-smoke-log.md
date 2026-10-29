@@ -144,3 +144,20 @@ noise documented above, not errors.
 This marker carries the capture tooling (STEP 4) and the contract's §17
 (STEP 5) — neither touches runtime code, so pairing/message here is the
 regression check for STEP 1–3's runtime changes riding the same deploy.
+
+## 2026-10-29 — marker `e1959cae5c29` (P1a STEP 6 — report + bug statuses)
+
+Command: `node scripts/smoke-live.mjs --expect e1959cae5c29`
+
+| Check | Result |
+|---|---|
+| answers 200 | PASS (200) |
+| build marker === e1959cae5c29 | PASS (live on poll 2) |
+| two devices paired (code …690) | PASS — 7 370 ms to connected, room up in 11 476 ms |
+| message A → B arrived within 15 s | PASS (5 ms) |
+| sender sees its own message | PASS |
+| no console errors during smoke | PASS (2 warnings: signaling worker redirect) |
+
+**[smoke-live] GREEN — 6/6.** Docs-only push (report + bug statuses); the
+runtime under it is the same code the previous marker proved, and pairing is
+back to ~7 s on live after the 12 s run on `fa0374a…`.
