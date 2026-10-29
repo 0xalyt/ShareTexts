@@ -1,4 +1,4 @@
-# ShareTexts — Design Contract v1.1
+# ShareTexts — Design Contract v1.2
 Read this before every task. If code and this file disagree, tell the owner; do not guess.
 
 ## 0. Working rules (every task)
@@ -38,8 +38,8 @@ Personality: calm, quick, friendly, honest. Never loud, techy, corporate or gimm
 
 ## 3. Colour (source of truth: src/index.css)
 Target token names (P1 renames the old ones; values stay): --color-accent, -accent-press, -accent-soft, -accent-ink; -canvas, -band, -raised; -ink, -ink-2, -ink-3; -divider, -line, -line-strong; -success/-soft/-ink, -warning/-soft/-ink, -danger/-soft/-ink.
-Light: canvas #ffffff · band #f5f5f7 · ink #1d1d1f · ink-2 #6e6e73 · ink-3 #8e8e93 · line #dedee3 · divider #e8e8ed
-Dark: canvas #101012 · band #141416 · raised #18181a · ink #ededf2 · ink-2 #9c9ca3 · line #3a3a42 · divider #2a2a30
+Light: canvas #fbfbfd · band #f5f5f7 · ink #1d1d1f · ink-2 #6e6e73 · ink-3 #8e8e93 · line rgb(0 0 0 / 0.08) · divider rgb(0 0 0 / 0.08)
+Dark: canvas #181818 · band #141414 · raised #262626 · ink #e4e4e4 · ink-2 #888888 (see 17: lightened to #949494 on raised, 4.5:1) · line #333333 · divider #2a2a2a
 Accent (brand orange "ember"): #f06413 light, #fb7a2e dark. Press #d9560e. Orange TEXT on light: #b3450b.
 Status: success #34c759 (text on light #1d7a35) · warning #ff9500 (text on light #9a5a00) · danger #ff3b30 (text on light #c22e24)
 Rules:
@@ -55,7 +55,7 @@ Rules:
 - Apple devices: the system font (SF) through -apple-system. Never add SF files to the repo: Apple's licence does not allow SF on websites.
 - Everywhere else: Inter variable, self-hosted (SIL OFL), Latin subsets, font-display: swap, size-adjusted fallback. The system stack stays as the last fallback.
 - Hindi, Arabic, Japanese, Chinese, Korean and other scripts use system fonts through :lang(). Do not force Inter.
-- Scale (px): display 56/64 (650, -0.03em) · h1 40 · h2 32 · h3 22 (600) · body 17/1.47 · small 15 · caption 13 · micro 12. Tighten letter-spacing only at 20px and above.
+- Scale (px): display 56/64 (650, -0.03em) · h2 32 · h3 22 (600) · title 16 · body 16/1.5 · support 13 · meta 12. Tighten letter-spacing only at 20px and above.
 - Codes, counts and progress use tabular numbers.
 - Line length 60 characters or less. Headings text-wrap: balance. Paragraphs text-wrap: pretty.
 
@@ -130,3 +130,26 @@ Glossy gradients · glow shadows · dot-grid or pattern backgrounds · page colo
 
 ## 16. Activity numbers
 The live line shows two real counts: rooms made, and times people used the app (the definition is set by the owner after docs/redesign/ACTIVITY-COUNTERS.md). They come only from counters stored on the server for real events. No floor, no multiplier, no invented growth. The label says exactly what is counted. If the service cannot be reached, hide the numbers.
+
+## 17. Decisions (owner approved)
+Where the code and this contract disagreed, the owner chose. This table is the record; the "Done in" column says which phase carries the change.
+
+| Row | Decision | Done in |
+| --- | --- | --- |
+| Light canvas #fbfbfd | code wins | n/a |
+| Dark values #181818/#141414/#262626/#e4e4e4/#888/#333 | code wins, but ink-2 #888888 is only 4.27:1 on raised #262626: lighten it to at least 4.5:1 (about #949494) | P1c |
+| Warning text #c77a00 (3.4:1) | contract wins: #9a5a00 | P1c |
+| Toggle ON #5CCB67 | contract wins: success green | P1c |
+| Font order (Inter first) | contract wins: -apple-system, BlinkMacSystemFont, Inter, … | P1b |
+| size-adjust fallback, :lang() rules, text-wrap: pretty | contract wins | P1b |
+| Tracking below 20px | contract wins: none | P1b |
+| Five names for orange, six for white | merge identical values only | P1b |
+| Buttons: gradient, sheen, 16px label, rounded-full, edge #8a3608, disabled 60–80% | contract wins: flat, 19/700 label, radius 14, edge #c04b09, disabled 40% | P1c |
+| Sheet radius 20 | contract wins: 24 | P1c |
+| 10 shadow tokens | contract wins: one floating token | P1c |
+| Controls with min-h 40px | contract wins: 44 | P1c |
+| strokeWidth mix (2, 1.5, 3, 2.5…) | contract wins: 1.5 at 20/24px, 1.75 at 16–18px, 2 only for check marks | P1c |
+| Two motion ladders, springs with small overshoot | contract wins: one ladder 60/120/180/280/480; springs with damping ratio of at least 1 | P5 |
+| Haptic names | contract wins: tap, toggle, success, error | P5 |
+| Hard-coded aria-labels outside messages | contract wins | P6 |
+| Emoji: Apple images through src/lib/emoji.ts | shipped in STEP 1 | P1a |
