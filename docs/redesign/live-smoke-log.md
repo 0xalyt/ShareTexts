@@ -122,3 +122,25 @@ Run 1 was 5/6: pairing took 50 s on live, so the 15 s delivery window expired
 before the channel was usable — an infra-timing flake, not a formatting
 regression (no console/page errors, sender path healthy). Run 2 on the same
 marker: **GREEN 6/6**. Recorded both runs rather than only the green one.
+
+## 2026-10-29 — marker `fa0374a4ea15` (P1a STEP 4 + STEP 5)
+
+Command: `node scripts/smoke-live.mjs --expect fa0374a4ea15`
+
+| Check | Result |
+|---|---|
+| https://sharetexts.online answers 200 | PASS (200) |
+| build marker === fa0374a4ea15 | PASS (got fa0374a4ea15) |
+| two devices paired (code …776) | PASS — 12 539 ms to connected, room up in 17 791 ms |
+| message A → B arrived within 15 s | PASS (9 ms) |
+| sender sees its own message | PASS |
+| no console errors during smoke | PASS (2 warnings: signaling worker redirect) |
+
+**[smoke-live] GREEN — 6/6.** First run after B1's fix (STEP 2) with no CSP
+violation in either context: the pre-paint theme bootstrap now executes on
+live. The two warnings are the pre-existing `VITE_SIGNALING_URL` redirect
+noise documented above, not errors.
+
+This marker carries the capture tooling (STEP 4) and the contract's §17
+(STEP 5) — neither touches runtime code, so pairing/message here is the
+regression check for STEP 1–3's runtime changes riding the same deploy.
