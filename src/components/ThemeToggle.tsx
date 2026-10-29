@@ -1,192 +1,107 @@
-import React, { useEffect, useRef } from 'react';
-import { animate, motion, useMotionValue } from 'motion/react';
+import React from 'react';
+import { motion } from 'motion/react';
 import { useTheme } from '../lib/theme';
 import { useI18n } from '../lib/i18n';
+import { cn } from '../lib/utils';
 
 /**
- * The theme switch — a compact iOS-class control.
+ * ThemeToggle — the theme control, as a single morphing glyph.
  *
- * Visual contract (fixed at every breakpoint — never scales with viewport):
+ * Why an icon and not a switch: a 56×26 switch in a toolbar of 40px glyph
+ * buttons reads as a settings row that fell into the header — it was the
+ * loudest object on the landing and the only one whose state you had to
+ * decode ("is this switch about dark mode, or about something on?"). The
+ * owner's call: one icon, like every other control in that row, that
+ * MORPHS between the two states it controls.
  *
- *   TRACK  56 × 26 · radius 13 · green when on, gray when off
- *   THUMB  34 × 22 · radius 11 · 2px inset all around
+ * The morph: the sun's disc shrinks into the moon's crescent while the
+ * whole glyph rotates a quarter turn. Both layers are always in the DOM
+ * (opacity + rotate + scale), so the change is a cross-dissolve of two
+ * shapes rather than two icons swapping — no pop, no layout shift.
  *
- * The thumb fills 88% of the track height — a large white pill inside a
- * slim colored margin. The silhouette never changes; the only animations
- * are the thumb sliding on x and the track's color.
- *
- * Interaction:
- *   tap (anywhere on the control)  → toggle
- *   drag the thumb horizontally    → follows the pointer, constrained to the
- *                                    track; release settles by midpoint
- *   keyboard (Enter/Space)         → toggle; role=switch + aria-checked
- *
- * The visible pill stays 56×26; the clickable/keyboard target is an
- * invisible padded wrapper so the hit area stays comfortable
- * without ever changing the visual size.
+ * Contract:
+ *   SLOT   40×40 (the header's uniform control slot)
+ *   GLYPH  18×18, strokeWidth 1.5 (the header icon ladder)
+ *   A11y   role="switch" + aria-checked, Enter/Space, visible focus ring
  */
-
-/* ── Geometry ───────────────────────────────────────────────────────────
- * Compact header footprint: 56×26 track, 34×22 thumb, 2px inset, 18px
- * travel. Same wide-pill silhouette
- * at every breakpoint — all sizes FIXED: no vw, no clamp(), no responsive
- * prefixes, no aspect-ratio.
- */
-const TRACK_W = 56;
-const TRACK_H = 26;
-const INSET = 2;                      // (26 − 22) / 2
-const THUMB_W = 34;
-const THUMB_H = 22;
-const X_ON = TRACK_W - THUMB_W - 2 * INSET; // 18 — thumb's travel distance
-const RADIUS_TRACK = 13;
-const RADIUS_THUMB = 11;
-/* iOS settle: quick ease-out without overshoot. */
-const SPRING = { type: 'spring', stiffness: 550, damping: 38 } as const;
-
-/* ── Colors ───────────────────────────────────────────────────────────── */
-const GREEN_ON = '#5CCB67';
-const GRAY_OFF = '#e9e9ea';
-const GRAY_OFF_DARK = '#39393d';
+const SPRING = { type: 'spring', stiffness: 420, damping: 34 } as const;
 
 export function ThemeToggle({ className = '' }: { className?: string }) {
   const { resolved, toggle } = useTheme();
   const { t } = useI18n();
   const isDark = resolved === 'dark';
 
-  const x = useMotionValue(isDark ? X_ON : 0);
-  const draggingRef = useRef(false);
-  const movedRef = useRef(false);
-  const startXRef = useRef(0);
-  const startPosRef = useRef(0);
-
-  // The flip itself is INSTANT — iOS-style. Perceived smoothness comes from
-  // the thumb's spring (below), not from cross-fading the whole tree.
-  // The old View Transition snapshot + the all-elements CSS transition
-  // fallback forced a repaint of every node with 200ms+ transitions — that
-  // was the reported "laggy" feel on mobile. A class flip is one style
-  // recalculation; the compositor takes it from there.
-  const applyTheme = () => {
-    toggle();
-  };
-
-  // State → thumb position. Skipped while dragging (the pointer owns x).
-  useEffect(() => {
-    if (draggingRef.current) return;
-    const controls = animate(x, isDark ? X_ON : 0, SPRING);
-    return () => controls.stop();
-  }, [isDark, x]);
-
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    draggingRef.current = true;
-    movedRef.current = false;
-    startXRef.current = e.clientX;
-    startPosRef.current = x.get();
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-  };
-
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!draggingRef.current) return;
-    const dx = e.clientX - startXRef.current;
-    if (Math.abs(dx) > 3) movedRef.current = true;
-    x.set(Math.max(0, Math.min(X_ON, startPosRef.current + dx)));
-  };
-
-  const settle = () => {
-    if (!draggingRef.current) return;
-    draggingRef.current = false;
-    const target: boolean = x.get() > X_ON / 2 ? true : false;
-    if (target !== isDark) {
-      // The isDark effect below animates the thumb the rest of the way.
-      applyTheme();
-    } else {
-      animate(x, target ? X_ON : 0, SPRING);
-    }
-  };
-
   return (
-    <div
+    <button
+      type="button"
       role="switch"
       aria-checked={isDark}
       aria-label={t('settings.darkLight')}
+      title={t('settings.darkLight')}
       data-testid="theme-toggle"
-      tabIndex={0}
-      onClick={() => { if (!movedRef.current) applyTheme(); movedRef.current = false; }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); applyTheme(); }
-      }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={settle}
-      onPointerCancel={settle}
-      onLostPointerCapture={settle}
-      className={className}
-      style={{
-        // Invisible comfort padding around the fixed 56×26 pill — hit
-        // target 70×40, matching the header's uniform 40px control slot
-        // (Language menu etc.). The matching negative margin cancels the
-        // padding in flow, so layout spacing sees exactly the 56×26 pill
-        // while the touch target extends 7px beyond it on every side.
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 7,
-        margin: -7,
-        flex: '0 0 auto',
-        cursor: 'pointer',
-        WebkitTapHighlightColor: 'transparent',
-        touchAction: 'pan-y',
-        userSelect: 'none',
-        outline: 'none',
-        borderRadius: RADIUS_TRACK,
-      }}
-      onFocus={(e) => {
-        if (e.currentTarget.matches(':focus-visible')) {
-          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(240,100,19,0.45)';
-        }
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.boxShadow = 'none';
-      }}
+      onClick={toggle}
+      className={cn(
+        'relative flex items-center justify-center w-10 h-10 shrink-0 rounded-full',
+        'text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white',
+        'hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.94]',
+        'transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-apple-ink/25 dark:focus-visible:ring-white/40',
+        className,
+      )}
     >
-      <motion.div
+      <span
         aria-hidden
-        style={{
-          position: 'relative',
-          width: TRACK_W,
-          height: TRACK_H,
-          minWidth: TRACK_W,
-          maxWidth: TRACK_W,
-          minHeight: TRACK_H,
-          maxHeight: TRACK_H,
-          flex: '0 0 auto',
-          borderRadius: RADIUS_TRACK,
-          // OFF in light mode uses a visibly darker track than the white
-          // thumb — the old #e9e9ea vanished against parchment cards.
-          backgroundColor: isDark ? GREEN_ON : GRAY_OFF_DARK,
-          transition: 'background-color 250ms cubic-bezier(0.23, 1, 0.32, 1)',
-        }}
+        className="relative flex items-center justify-center w-[18px] h-[18px]"
       >
-        <motion.div
-          style={{
-            position: 'absolute',
-            top: INSET,
-            left: INSET,
-          width: THUMB_W,
-          height: THUMB_H,
-          minWidth: THUMB_W,
-          maxWidth: THUMB_W,
-          minHeight: THUMB_H,
-          maxHeight: THUMB_H,
-          borderRadius: RADIUS_THUMB,
-            backgroundColor: '#ffffff',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
-            x,
-            willChange: 'transform',
-          }}
+        {/* SUN — disc + eight rays. Leaves by scaling down and rotating out. */}
+        <motion.svg
+          viewBox="0 0 24 24"
+          className="absolute inset-0 w-[18px] h-[18px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          strokeLinecap="round"
           initial={false}
-        />
-      </motion.div>
-    </div>
+          animate={{
+            opacity: isDark ? 0 : 1,
+            rotate: isDark ? -90 : 0,
+            scale: isDark ? 0.55 : 1,
+          }}
+          transition={SPRING}
+        >
+          <circle cx="12" cy="12" r="4.1" />
+          <path d="M12 2.4v2" />
+          <path d="M12 19.6v2" />
+          <path d="M2.4 12h2" />
+          <path d="M19.6 12h2" />
+          <path d="M5.2 5.2 6.6 6.6" />
+          <path d="M17.4 17.4 18.8 18.8" />
+          <path d="M18.8 5.2 17.4 6.6" />
+          <path d="M6.6 17.4 5.2 18.8" />
+        </motion.svg>
+        {/* MOON — arrives by growing out of the sun's own rotation. */}
+        <motion.svg
+          viewBox="0 0 24 24"
+          className="absolute inset-0 w-[18px] h-[18px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={false}
+          animate={{
+            opacity: isDark ? 1 : 0,
+            rotate: isDark ? 0 : 90,
+            scale: isDark ? 1 : 0.55,
+          }}
+          transition={SPRING}
+        >
+          <path d="M20.4 14.2A8.6 8.6 0 0 1 9.8 3.6a8.6 8.6 0 1 0 10.6 10.6Z" />
+        </motion.svg>
+      </span>
+      {/* The state in words for assistive tech (aria-checked alone leaves
+          "what does on mean?" open on a theme control). */}
+      <span className="sr-only">{isDark ? t('settings.dark') : t('settings.light')}</span>
+    </button>
   );
 }

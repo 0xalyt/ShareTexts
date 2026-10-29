@@ -777,15 +777,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     ? t('nav.saved')
     : `${t('nav.saved')} · ${savedCount === 1 ? t('saved.countOne') : t('saved.countMany', { n: savedCount })}`;
   const headerNode = (
-    <header className="shrink-0 sticky top-0 z-30 h-14 flex items-center justify-between px-6 lg:px-10 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06] relative">
+    <header className="shrink-0 sticky top-0 z-30 h-14 sm:h-16 flex items-center justify-between gap-3 px-5 sm:px-6 lg:px-10 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06] relative">
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
             equal-height object, display-face wordmark, minimal gap. */}
         <BrandLockup />
-        {/* One rhythm for every header control — desktop AND mobile. Each
-            item is a 40px-tall slot on a tight gap grid; icons are uniform
-            18px. Docs and language sit closest (one shared cluster), the
-            theme toggle breathes a little after them. */}
-        <div className="flex items-center gap-1">
+        {/* Tools first, state last. The four utility glyphs share ONE soft
+            capsule so the row reads as a single control group instead of
+            four loose marks floating toward the edge; the theme glyph sits
+            outside it because it is not a tool — it changes the room you
+            are standing in. Every slot keeps the 40px contract. */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-0.5 rounded-full bg-black/[0.035] dark:bg-white/[0.055] px-0.5">
           <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
           <LanguageMenu />
           {/* Saved — the local library, reachable without a room. Bookmark
@@ -812,10 +814,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <IconButton3D label={t('nav.docs')} href="/docs">
             <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
           </IconButton3D>
-          {/* In the ROOM the header carries no theme switch: the room already
+          </div>
+          {/* In the ROOM the header carries no theme control: the room already
               has a settings sheet whose first row IS the theme control, and a
-              second switch beside it — looking exactly like the Stay
-              Connected pill below — made "which toggle is which" a puzzle on
+              second one beside it made "which control is which" a puzzle on
               a screen the user is supposed to be sharing files from. */}
           {panelMode !== 'connected' && <ThemeToggle />}
         </div>

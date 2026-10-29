@@ -22,17 +22,35 @@ try {
     { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(300);
 
-  // 1. Toggle geometry on desktop
+  // 1. Theme control on desktop. The header no longer carries a 56×26
+  //    switch (retired: it read as a settings row dropped into a toolbar).
+  //    The contract now is ONE 40×40 icon slot holding an 18×18 morphing
+  //    sun/moon glyph — ThemeToggle.tsx's docblock. Measured, not assumed.
   const tg = await page.evaluate(() => {
-    const sw = document.querySelector('[role="switch"]');
-    const track = sw.firstElementChild, thumb = track.firstElementChild;
-    const tr = track.getBoundingClientRect(), th = thumb.getBoundingClientRect();
-    return { w: +tr.width.toFixed(1), h: +tr.height.toFixed(1), tw: +th.width.toFixed(1), thh: +th.height.toFixed(1), x: +(th.x - tr.x).toFixed(1) };
+    const sw = document.querySelector('[data-testid="theme-toggle"]');
+    if (!sw) return null;
+    const r = sw.getBoundingClientRect();
+    // Computed CSS width, NOT getBoundingClientRect: the inactive glyph is
+    // scaled to 0.55 as part of the morph, and a rendered box would measure
+    // that transform instead of the 18px slot both glyphs share.
+    const glyphs = [...sw.querySelectorAll('svg')].map(s => {
+      const cs = getComputedStyle(s);
+      return {
+        w: +parseFloat(cs.width).toFixed(1), h: +parseFloat(cs.height).toFixed(1),
+        opacity: cs.opacity,
+      };
+    });
+    return {
+      w: +r.width.toFixed(1), h: +r.height.toFixed(1),
+      role: sw.getAttribute('role'), checked: sw.getAttribute('aria-checked'),
+      glyphs,
+    };
   });
-  // Current design system: the header ThemeToggle ships at 56×26 with a
-  // 34×22 thumb — ThemeToggle.tsx's own visual-contract docblock.
-  out('desktop-toggle-56x26', Math.abs(tg.w - 56) < 1.5 && Math.abs(tg.h - 26) < 1.5, JSON.stringify(tg));
-  out('desktop-thumb-34x22', Math.abs(tg.tw - 34) < 1.5 && Math.abs(tg.thh - 22) < 1.5);
+  out('desktop-theme-control-40x40', !!tg && Math.abs(tg.w - 40) < 1.5 && Math.abs(tg.h - 40) < 1.5, JSON.stringify(tg && { w: tg.w, h: tg.h }));
+  out('theme-control-holds-a-switch-role', !!tg && tg.role === 'switch' && /^(true|false)$/.test(tg.checked || ''), tg && `${tg.role}/${tg.checked}`);
+  out('theme-glyphs-are-18x18-sun-and-moon', !!tg && tg.glyphs.length === 2 && tg.glyphs.every(g => Math.abs(g.w - 18) < 1.5 && Math.abs(g.h - 18) < 1.5), JSON.stringify(tg && tg.glyphs));
+  // Exactly one glyph is visible in either state (the morph is a cross-fade).
+  out('exactly-one-theme-glyph-visible', !!tg && tg.glyphs.filter(g => +g.opacity > 0.5).length === 1, tg && JSON.stringify(tg.glyphs.map(g => g.opacity)));
 
   // 2. Live tracker: ABOVE the buttons (headline → subline → tracker →
   //    Send/Receive), left-aligned with the subline, count ≥ 113, white
@@ -60,21 +78,31 @@ try {
   // whites as oklab(0.99… / 0.5), opaque ones as rgb(255, 255, 255).
   out('desktop-tracker-label-white-in-dark', !!tk && /^(rgb\(255, 255, 255\)|oklab\(0\.99)/.test(tk?.labelColor || ''), tk?.labelColor);
 
-  // 3. Header: language + docs gap ≈ docs + toggle gap
+  // 3. Header rhythm: the four utility glyphs live in ONE capsule, and the
+  //    theme glyph sits just outside it. Both gaps must stay on the same
+  //    tight grid, or the row reads as two unrelated groups.
   const gap = await page.evaluate(() => {
-    const cluster = [...document.querySelectorAll('header div.flex.items-center')].find(d => d.querySelector('[role="switch"]'));
-    const kids = cluster ? [...cluster.children] : [];
-    const items = kids.map(k => { const r = k.getBoundingClientRect(); return { x: r.x, r: r.x + r.width }; });
+    const sw = document.querySelector('[data-testid="theme-toggle"]');
+    const cluster = sw?.parentElement;
+    if (!cluster) return null;
+    const capsule = [...cluster.children].find(c => c !== sw);
+    const items = [...(capsule ? capsule.children : []), ...(capsule ? [sw] : [])]
+      .map(k => { const r = k.getBoundingClientRect(); return { x: r.x, r: r.x + r.width }; });
     const gaps = [];
     for (let i = 1; i < items.length; i++) gaps.push(+(items[i].x - items[i - 1].r).toFixed(1));
-    return gaps;
+    return { gaps, capsuleItems: capsule ? capsule.children.length : 0 };
   });
-  // Header rhythm is an 8px gap grid since the single-rhythm header landed.
-  out('desktop-header-gaps-tight', gap.length >= 2 && Math.max(...gap.slice(-3)) <= 8.5, JSON.stringify(gap));
+  out('desktop-tool-cluster-has-4-glyphs', !!gap && gap.capsuleItems === 4, JSON.stringify(gap));
+  // Inside the capsule: 2px. Between the capsule and the theme glyph: a
+  // deliberate 8–16px breath, so "tools" and "state" never fuse into one
+  // row of five equal marks.
+  out('desktop-header-gaps-tight', !!gap && gap.gaps.length >= 4
+    && gap.gaps.slice(0, -1).every(g => g <= 8.5)
+    && gap.gaps.at(-1) >= 8 && gap.gaps.at(-1) <= 16, JSON.stringify(gap && gap.gaps));
 
-  // 4. Hero heading + the shipped <title> (product decision 2026-10-18: the
-  //    landing tab reads "AirDrop for everyone — ShareTexts"; other routes
-  //    keep their own task titles via seo-routes / Docs / Legal).
+  // 4. Hero heading + the shipped <title> (product decision: the landing tab
+  //    and every share card read "AirDrop for everyone — ShareTexts"; other
+  //    routes keep their own task titles via seo-routes / Docs / Legal).
   const meta = await page.evaluate(() => ({ h1: document.querySelector('h1')?.innerText, title: document.title }));
   out('hero-heading-restored', /Move anything/i.test(meta.h1 || ''), meta.h1);
   out('site-title-airdrop-for-everyone', /^AirDrop for everyone — ShareTexts$/.test(meta.title), meta.title);

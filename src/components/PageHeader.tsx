@@ -42,7 +42,7 @@ export function PageHeader({
         className,
       )}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-3">
         {/* Back arrow and lockup are siblings — BrandLockup is an anchor
             itself, and an anchor inside an anchor is invalid HTML. */}
         <div className="flex items-center gap-2 shrink-0">
@@ -73,6 +73,7 @@ export function PageHeader({
               {currentLabel}
             </span>
           )}
+          <span aria-hidden className="w-px h-5 bg-apple-divider dark:bg-white/10" />
           <ThemeToggle />
         </div>
       </div>

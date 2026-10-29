@@ -18,8 +18,11 @@ import { cn } from '../lib/utils';
  * The visible pill stays 56×26; an invisible padded wrapper keeps the
  * touch target comfortable (70×40) without changing the visual size.
  *
- * The theme toggle itself keeps its own component (its off-state uses a
- * darker light-mode track); everything else in the app uses THIS switch.
+ * ON is success green in BOTH themes (DESIGN.md §17 — the owner's decision:
+ * a switch that is on says "on", in the one colour this product already uses
+ * for "good / live / done"; ember stays the ACTION colour, never a state).
+ * The header's theme control is a morphing sun/moon icon (ThemeToggle), not
+ * a switch — everything else in the app uses THIS switch.
  */
 
 /* ── Geometry (ThemeToggle parity, fixed at every breakpoint) ── */
@@ -34,12 +37,12 @@ const RADIUS_THUMB = 11;
 /* iOS settle: quick ease-out without overshoot. */
 const SPRING = { type: 'spring', stiffness: 550, damping: 38 } as const;
 
-/* ── Colors: ember when on (the app's action color), gray when off ──
-   SVG fill literals: MUST mirror the @theme tokens — EMBER_ON =
-   --color-ember, EMBER_ON_DARK = --color-azure-400, GRAY_* = iOS grays. */
-const EMBER_ON = '#f06413';
-const EMBER_ON_DARK = '#fb9243';
-const GRAY_OFF = '#e9e9ea';
+/* ── Colors: success green when on, gray when off ──
+   Literals mirror the @theme tokens — GREEN_ON = --color-status-success
+   (#34c759, the same green as the live dot), GRAY_* = iOS grays. Green is
+   legible on both canvases, so one value covers light and dark. */
+const GREEN_ON = '#34c759';
+const GRAY_OFF = '#dcdcde';
 const GRAY_OFF_DARK = '#39393d';
 
 export function StandardSwitch({
@@ -143,7 +146,7 @@ export function StandardSwitch({
       }}
       onFocus={(e) => {
         if (e.currentTarget.matches(':focus-visible')) {
-          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(240,100,19,0.45)';
+          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(52,199,89,0.45)';
         }
       }}
       onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
@@ -161,7 +164,7 @@ export function StandardSwitch({
           flex: '0 0 auto',
           borderRadius: RADIUS_TRACK,
           backgroundColor: checked
-            ? (isDark ? EMBER_ON_DARK : EMBER_ON)
+            ? GREEN_ON
             : (isDark ? GRAY_OFF_DARK : GRAY_OFF),
           transition: 'background-color 250ms cubic-bezier(0.23, 1, 0.32, 1)',
         }}
