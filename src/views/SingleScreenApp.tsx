@@ -787,7 +787,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             outside it because it is not a tool — it changes the room you
             are standing in. Every slot keeps the 40px contract. */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-0.5 rounded-full bg-black/[0.035] dark:bg-white/[0.055] px-0.5">
+          <div className="flex items-center gap-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] px-0.5">
           <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
           <LanguageMenu />
           {/* Saved — the local library, reachable without a room. Bookmark
@@ -836,7 +836,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   tracker is passive status, so it lives ABOVE the action
                   cluster — status never interrupts the Send/Receive flow
                   (usability audit #6). */}
-              <h1 className="st-display order-1 text-[clamp(56px,6vw,64px)] text-apple-ink dark:text-white text-center sm:text-left text-balance">
+              <h1 className="st-display order-1 text-[clamp(38px,6.4vw,58px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center sm:text-left text-balance">
                 {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
               </h1>
               {/* whitespace-pre-line honors the subtitle's deliberate line
@@ -1400,7 +1400,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           )}
     </AnimatePresence>
   );  const footerNode = (
-    <footer className="shrink-0 px-6 lg:px-10 pt-8 pb-[max(env(safe-area-inset-bottom),24px)] sm:pb-9 border-t border-apple-divider/60 dark:border-white/[0.06]">
+    <footer className="shrink-0 px-6 lg:px-10 pt-10 pb-[max(env(safe-area-inset-bottom),28px)] sm:pb-10 border-t border-apple-divider/60 dark:border-white/[0.06]">
         {/* A product footer for the LANDING only. It sits at the END of the
             hero's scroll — below the fold, revealed by scrolling, never
             pinned over the hero (the footer must not be always visible).
@@ -1409,8 +1409,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             the legal words — and the project link closes the row. Groups
             are INLINE on desktop and stack on mobile; every link keeps its
             40px tap floor via -my-2. */}
-        <div className="max-w-6xl mx-auto grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(0,1fr))_auto] md:items-start md:gap-x-8">
-          <div className="col-span-2 flex min-w-0 flex-col gap-2 md:col-span-1">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-[minmax(230px,1.5fr)_repeat(3,minmax(0,0.75fr))_auto] md:items-start md:gap-x-10">
+          <div className="col-span-2 flex min-w-0 flex-col gap-3 md:col-span-1">
             {/* The brand lockup — the footer's sign-off: ember mark +
                 themed wordmark, same voice as the header. self-start keeps
                 it off the column's stretch axis. */}
@@ -1421,7 +1421,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 3.83:1 and white/30 2.69:1 — now /55 (6.18:1) and /50
                 (5.31:1). Hierarchy survives: the copyright stays one step
                 quieter than the promise line, by alpha AND size. */}
-            <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/55">
+            <span className="text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 max-w-[34ch]">
               {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
             </span>
             <span className="text-[12px] font-medium leading-none text-apple-ink-muted/90 dark:text-white/50">
@@ -1456,18 +1456,21 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               ],
             },
           ].map((group) => (
-            <div key={group.title} className="min-w-0 flex flex-col gap-1">
-              <h2 className="st-eyebrow">
+            <div key={group.title} className="min-w-0 flex flex-col">
+              <h2 className="st-eyebrow mb-1">
                 {group.title}
               </h2>
-              <div className="flex flex-wrap items-center gap-x-3">
+              {/* One link per row, left-aligned: the old inline rows centred
+                  every label inside a 40px slot, which produced ragged, uneven
+                  gaps between links that were not words on a line. */}
+              <div className="flex flex-col items-start">
                 {group.items.map((item) =>
                   item.onClick ? (
                     <button
                       key={item.label}
                       type="button"
                       onClick={item.onClick}
-                      className="inline-flex items-center min-h-[40px] min-w-[40px] justify-center -my-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white transition-colors"
+                      className="inline-flex items-center min-h-[40px] -my-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white transition-colors"
                     >
                       {item.label}
                     </button>
@@ -1475,7 +1478,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <a
                       key={item.label}
                       href={item.href}
-                      className="inline-flex items-center min-h-[40px] min-w-[40px] justify-center -my-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white transition-colors"
+                      className="inline-flex items-center min-h-[40px] -my-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white transition-colors"
                     >
                       {item.label}
                     </a>
@@ -1493,7 +1496,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             rel="noopener noreferrer"
             aria-label={t('footer.followAria')}
             title="x.com/0xalyt"
-            className="col-span-2 inline-flex min-h-[40px] min-w-[40px] -my-2 w-fit items-center justify-center gap-1.5 px-2.5 justify-self-start rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors md:col-span-1 md:my-0 md:justify-self-end"
+            className="col-span-2 inline-flex min-h-[40px] min-w-[40px] w-fit items-center justify-center gap-1.5 px-3 justify-self-start self-start rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors md:col-span-1 md:justify-self-end"
           >
             <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
             <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
@@ -1507,27 +1510,30 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       landing footer below would eat a third of the room rail and read as
       marketing inside a tool; app surfaces keep the one-band footer. */
   const compactFooterNode = (
-    <footer className="shrink-0 px-6 lg:px-10 pt-2.5 pb-[max(env(safe-area-inset-bottom),8px)] sm:pb-2.5 border-t border-apple-divider/60 dark:border-white/[0.06]">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-x-5 gap-y-2 flex-wrap">
-        <BrandLockup compact className="select-none" />
-        <nav className="flex items-center gap-5 sm:gap-7 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
-          <a href="/docs" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
-          <a href="/about" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
-          <a href="/privacy" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
-          <a href="/terms" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.terms')}</a>
-          <a href="/guides" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.guides')}</a>
-        </nav>
+    <footer className="shrink-0 px-6 lg:px-10 pt-3 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-3 border-t border-apple-divider/60 dark:border-white/[0.06]">
+      {/* Two tidy rows on a phone (brand + X, then the links) instead of one
+          row that wrapped mid-list and left the X stranded on its own line.
+          From sm up it collapses back to the single quiet band. */}
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-x-5 gap-y-0.5 flex-wrap">
+        <BrandLockup compact className="select-none order-1" />
         <a
           href="https://x.com/0xalyt"
           target="_blank"
           rel="noopener noreferrer"
           aria-label={t('footer.followAria')}
           title="x.com/0xalyt"
-          className="inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] -my-2.5 px-2.5 rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors"
+          className="order-2 sm:order-3 inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors"
         >
           <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
         </a>
+        <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center gap-5 sm:gap-7 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
+          <a href="/docs" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
+          <a href="/about" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
+          <a href="/privacy" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
+          <a href="/terms" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.terms')}</a>
+          <a href="/guides" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.guides')}</a>
+        </nav>
       </div>
     </footer>
   );

@@ -407,8 +407,12 @@
        label   13px → +0.002em   (turns the corner: looser than body)
        caption 12px → +0.008em
        eyebrow 12px → +0.060em   (small quiet label, opened right up) ── */
-  .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.03em; line-height: 1.04; text-wrap: balance; }
-  .st-h2      { font-size: 32px;   font-weight: 600; letter-spacing: -0.028em; line-height: 1.12; text-wrap: balance; }
+  /* Display ladder: the hero reaches 58px on a desktop, and steps down to a
+     38px phone size — a 56px headline on a 390px screen was four lines of
+     shouting. Leading tightens with the size (1.03 display, 1.1 h2) and the
+     tracking does too; below 20px nothing is tightened (DESIGN §1). */
+  .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.034em; line-height: 1.03; text-wrap: balance; }
+  .st-h2      { font-size: clamp(26px, 3.2vw, 34px); font-weight: 600; letter-spacing: -0.032em; line-height: 1.1; text-wrap: balance; }
   .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.024em; line-height: 1.2; text-wrap: balance; }
   .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.018em; line-height: 1.25; }
   .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; }

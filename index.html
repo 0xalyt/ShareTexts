@@ -178,202 +178,162 @@
   </head>
   <body>
     <div id="root">
-      <!-- Boot skeleton: the app holding the user's place, not an animation.
-           Mirrors the REAL landing composition — brand lockup top-left, hero
-           (headline → subline → action pair) on the left, the product scene
-           card on the right, the app canvas — so the swap to live content
-           moves nothing. NO bright white sweep: the old 55%-white shimmer
-           band read as a bold white outline crawling the page. Bars carry a
-           barely-there ember-tinted breath instead; reduced-motion holds
-           them still. -->
+      <!-- Boot screen: ONE quiet mark, one hairline progress, one line of
+           text — the product holding your place while its code arrives.
+           The old shell drew a full faux landing page (headline, fake Send
+           buttons, a how-it-works list and ten FAQ answers) as grey bars, so
+           the first thing anyone saw was a wireframe of a website: slop.
+           A loader's only job is to say "coming, and it's ShareTexts".
+           The crawlable copy did not disappear with it — it moved into the
+           <noscript> block below, where it serves crawlers and no-JS
+           visitors without ever being shown to a browser that can run the
+           app. -->
       <div id="loading-shell">
         <style>
           #loading-shell {
             min-height: 100dvh;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             background: #fbfbfd;
-            font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-            transition: opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
           }
           #loading-shell.fade-out { opacity: 0; }
           html.dark #loading-shell { background: #181818; }
-          #loading-shell .st-bar {
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.075);
-            position: relative;
-            overflow: hidden;
-          }
-          html.dark #loading-shell .st-bar { background: rgba(255, 255, 255, 0.075); }
-          #loading-shell .st-bar::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            transform: translateX(-101%);
-            /* Warm, whisper-quiet breath — ember at 5%: the page feels alive
-               without a white band sweeping across it. */
-            background: linear-gradient(90deg, transparent, rgba(240,100,19,0.07) 50%, transparent);
-            animation: st-sweep 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-          }
-          @keyframes st-sweep { to { transform: translateX(101%); } }
-          @media (prefers-reduced-motion: reduce) {
-            #loading-shell .st-bar::after { animation: none; content: none; }
-          }
-          /* Real content in the shell: the crawlable copy doubles as the boot
-             screen, so no-JS visitors and crawlers read the actual product
-             while JS users see it only for the boot instant before React
-             replaces it with the same words in the same places. */
-          /* Boot-screen H1 mirrors the live hero exactly (clamp endpoints,
-             weight, tracking) so hydration paints no size jump. If the
-             hero clamp in SingleScreenApp changes, change this too. */
-          #loading-shell .st-h1 {
-            margin: 0 0 16px;
-            font-size: clamp(56px, 6vw, 64px);
-            line-height: 1.04;
-            font-weight: 650;
-            letter-spacing: -0.03em;
-            color: #1d1d1f;
-          }
-          html.dark #loading-shell .st-h1 { color: #e4e4e4; }
-          #loading-shell .st-sub {
-            margin: 0 0 22px;
-            font-size: 17px;
-            line-height: 1.55;
-            font-weight: 500;
-            color: #6e6e73;
-            max-width: 46ch;
-          }
-          html.dark #loading-shell .st-sub { color: rgba(255,255,255,0.62); }
-          #loading-shell .st-note {
-            margin: 14px 0 0;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #6e6e73;
-          }
-          html.dark #loading-shell .st-note { color: rgba(255,255,255,0.5); }
-          #loading-shell .st-section { max-width: 1120px; margin: 0 auto; padding: 36px 28px 0; width: 100%; }
-          #loading-shell .st-section h2 {
-            margin: 0 0 14px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.09em;
-            text-transform: uppercase;
-            color: rgba(110,110,115,0.9);
-          }
-          html.dark #loading-shell .st-section h2 { color: rgba(136,136,136,0.9); }
-          #loading-shell .st-section ol {
-            margin: 0;
-            padding-left: 20px;
-            font-size: 14.5px;
-            line-height: 1.75;
-            color: #3d3d3d;
-          }
-          html.dark #loading-shell .st-section ol { color: rgba(228,228,228,0.85); }
-          #loading-shell .st-section ol strong { color: #1d1d1f; font-weight: 600; }
-          html.dark #loading-shell .st-section ol strong { color: #e4e4e4; }
-          #loading-shell .st-faq h3 { margin: 18px 0 4px; font-size: 14.5px; font-weight: 600; color: #1d1d1f; }
-          html.dark #loading-shell .st-faq h3 { color: #e4e4e4; }
-          #loading-shell .st-faq p { margin: 0; font-size: 14px; line-height: 1.65; color: #6e6e73; }
-          html.dark #loading-shell .st-faq p { color: rgba(255,255,255,0.6); }
-          #loading-shell .st-foot {
-            border-top: 1px solid rgba(0,0,0,0.08);
-            margin-top: 36px;
-            padding: 18px 28px 26px;
+          #loading-shell .st-boot {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px 22px;
+            flex-direction: column;
             align-items: center;
-            font-size: 13px;
+            gap: 20px;
+            padding: 24px;
+            animation: st-boot-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
           }
-          html.dark #loading-shell .st-foot { border-top-color: rgba(255,255,255,0.08); }
-          #loading-shell .st-foot a { color: #6e6e73; text-decoration: none; font-weight: 500; }
-          html.dark #loading-shell .st-foot a { color: rgba(255,255,255,0.55); }
-          #loading-shell .st-foot a:hover { color: #1d1d1f; }
-          html.dark #loading-shell .st-foot a:hover { color: #fff; }
-          /* Below 900px the hero stacks (same grid collapse as the live
-             landing). No scene geometry to collapse — the boot hero is copy
-             and actions only. */
-          @media (max-width: 900px) {
-            #loading-shell .st-hero { grid-template-columns: 1fr !important; }
+          @keyframes st-boot-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+          #loading-shell .st-boot-brand {
+            display: flex; align-items: center; gap: 9px;
+          }
+          #loading-shell .st-boot-brand img { display: block; width: 32px; height: 32px; }
+          #loading-shell .st-boot-brand span {
+            font-size: 23px; font-weight: 650; letter-spacing: -0.035em; color: #1d1d1f;
+          }
+          html.dark #loading-shell .st-boot-brand span { color: #e4e4e4; }
+          /* One hairline bar: a warm run travels left to right inside a 2px
+             track. No shimmer sweeps across the page, no layout of fake
+             content — a progress indicator, not a mock site. */
+          #loading-shell .st-track {
+            position: relative; width: 132px; height: 2px; overflow: hidden;
+            border-radius: 999px; background: rgba(0, 0, 0, 0.08);
+          }
+          html.dark #loading-shell .st-track { background: rgba(255, 255, 255, 0.12); }
+          #loading-shell .st-track::after {
+            content: ''; position: absolute; top: 0; bottom: 0; width: 45%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(254, 171, 48, 0.5), #f06413);
+            animation: st-run 1.25s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+          }
+          @keyframes st-run {
+            0% { transform: translateX(-110%); }
+            100% { transform: translateX(320%); }
+          }
+          #loading-shell .st-note {
+            margin: 0; font-size: 13px; font-weight: 500; line-height: 1.5;
+            color: #6e6e73; letter-spacing: -0.01em;
+          }
+          html.dark #loading-shell .st-note { color: rgba(255, 255, 255, 0.55); }
+          @media (prefers-reduced-motion: reduce) {
+            #loading-shell .st-boot { animation: none; }
+            #loading-shell .st-track::after { animation: none; width: 40%; transform: none; }
+          }
+          #st-boot-slow {
+            margin: 0; max-width: 34ch; text-align: center;
+            font-size: 12.5px; font-weight: 500; line-height: 1.5; color: #6e6e73;
           }
         </style>
-        <!-- Header band: the real brand mark (inline, ember gradient) where
-             the live header will sit. -->
-        <header style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <img src="/brand/logo-glyph-orange.png" alt="" width="30" height="30" style="display:block" aria-hidden="true">
-            <span style="font-size:21px;font-weight:700;letter-spacing:-0.02em;color:#1d1d1f">ShareTexts</span>
+
+        <div class="st-boot">
+          <div class="st-boot-brand">
+            <img src="/brand/logo-glyph-orange.png" alt="" aria-hidden="true" />
+            <span>ShareTexts</span>
           </div>
-          <div class="st-bar" aria-hidden="true" style="width:56px;height:26px;border-radius:13px"></div>
-        </header>
-        <!-- Hero: the landing's real geometry. -->
-        <div class="st-hero" style="flex:1;display:grid;grid-template-columns:minmax(0,10fr) minmax(0,9fr);align-items:center;gap:40px;width:100%;max-width:1120px;margin:0 auto;padding:0 28px">
-          <div style="max-width:470px">
-            <h1 class="st-h1">Move anything between your devices.</h1>
-            <p class="st-sub">ShareTexts sends text, links, photos, videos, and files directly between any two devices — phone to PC, iPhone to Windows — straight from your browser. No app, no account, no cable.</p>
-            <!-- The two pills stay boot bars: a button that does nothing
-                 without JavaScript would be a fake affordance. The product
-                 facts live in the real copy and the guide below. -->
-            <div aria-hidden="true" style="display:flex;gap:12px">
-              <div class="st-bar" style="width:138px;height:52px;border-radius:999px;background:linear-gradient(180deg, rgba(240,100,19,0.32), rgba(240,100,19,0.20))"></div>
-              <div class="st-bar" style="width:138px;height:52px;border-radius:999px"></div>
-            </div>
-            <p class="st-note">Send on one device, Receive on the other — free to use, no sign-up. How it works, below.</p>
-          </div>
+          <div class="st-track" aria-hidden="true"></div>
+          <p class="st-note">Opening ShareTexts…</p>
+          <!-- The honest escalation (mirrors the in-app connecting screen): an
+               8s boot is NOT normal — say so instead of animating forever. -->
+          <p id="st-boot-slow" style="display:none">
+            Still loading — your connection is slow. If this doesn't clear, check your network and refresh.
+          </p>
         </div>
-        <!-- Crawlable product content, in source HTML: the same facts the
-             app teaches. Removed with the shell once React mounts; no-JS
-             visitors and crawlers read the real product copy here. -->
-        <main>
-          <section class="st-section" aria-labelledby="st-how-h">
-            <h2 id="st-how-h">How ShareTexts works</h2>
-            <ol>
-              <li><strong>Open</strong> sharetexts.online on both devices — in the browser. Nothing to install.</li>
-              <li><strong>Find your other device.</strong> It appears under Available while ShareTexts is open on both devices; otherwise connect with a six-digit code, a QR code, or a share link.</li>
-              <li><strong>Connect with one tap.</strong> The connection is encrypted in transit.</li>
-              <li><strong>Send anything</strong> — text, links, photos, videos, audio, any file. It moves directly between the two devices.</li>
-              <li><strong>Receive it on the other device</strong> — then close the room. Nothing is kept.</li>
-            </ol>
-          </section>
-          <section class="st-section st-faq" aria-labelledby="st-faq-h">
-            <h2 id="st-faq-h">Frequently asked questions</h2>
-            <h3>What is ShareTexts?</h3>
-            <p>ShareTexts is a temporary bridge between two devices. Move text, links, photos, videos, and files directly from one screen to another. No app, no account, nothing kept.</p>
-            <h3>Do I need to install an app or create an account?</h3>
-            <p>No. ShareTexts runs in the browser — no app, no account, nothing to install. It works between an iPhone and a Windows PC, or any two devices with a modern browser.</p>
-            <h3>What can I send?</h3>
-            <p>Text, links, photos, videos, audio, documents — any file type, transferred as the original bytes. Transfers are encrypted in transit. Rooms store nothing after they close.</p>
-            <h3>How do devices find each other?</h3>
-            <p>Four ways: device discovery (the other device appears automatically while ShareTexts is open on both), a six-digit code, a QR code, or a share link. The code, QR, and link work over any internet connection.</p>
-            <h3>Is device discovery private?</h3>
-            <p>Yes. Your device appears only while ShareTexts is open on it, and other devices see a temporary label like “Windows PC” — never your IP, accounts, or any permanent identifier.</p>
-            <h3>Is ShareTexts private?</h3>
-            <p>Transfers are encrypted in transit. ShareTexts keeps no account and no permanent history. Rooms close automatically and keep nothing. A Temporary Space stores its content only until it expires, then that content is deleted.</p>
-            <h3>What happens if my internet drops mid-transfer?</h3>
-            <p>ShareTexts tells you whether the transfer can be retried. For large files, a stable connection is recommended.</p>
-            <h3>Can I use ShareTexts between an iPhone and an Android phone?</h3>
-            <p>Yes. ShareTexts works between any two devices with a modern browser — iPhone to Android, Android to Windows, iPhone to Mac.</p>
-            <h3>What is a Temporary Space?</h3>
-            <p>A Temporary Space is a shared shelf that lives for a set time — 6 hours up to 7 days. You create it, get an 8-character space code, and share that code instead of files. Anyone with the code can add text, links, photos, or files, and everyone in the space sees them. When the time is up, the space closes and the content is deleted.</p>
-            <h3>How do I join a Temporary Space with a code?</h3>
-            <p>Open sharetexts.online/space/join, enter the 8-character code the creator gave you, and tap Join space. You can also paste a full space link — it carries the same access. Both the code and the link stop working when the space closes.</p>
-          </section>
-        </main>
-        <footer class="st-foot">
-          <a href="/docs">Docs</a>
-          <a href="/about">About</a>
-          <a href="/privacy">Privacy</a>
-          <a href="/terms">Terms</a>
-          <a href="https://x.com/0xalyt" rel="noopener">x.com/0xalyt</a>
-          <a href="https://github.com/0xalyt/ShareTexts" rel="noopener">GitHub</a>
-        </footer>
-        <!-- The honest escalation (mirrors the in-app connecting screen):
-             an 8s boot is NOT normal — say so instead of shimmering forever.
-             Removed by main.tsx with the shell; never shown on a healthy boot. -->
-        <p id="st-boot-slow" style="display:none;margin:0 0 22px;padding:0 24px;font-size:12.5px;font-weight:500;color:#6e6e73;text-align:center;line-height:1.5">
-          Still loading — your connection is slow. If this doesn't clear, check your network and refresh.
-        </p>
       </div>
+
+      <!-- Crawlable product copy, for crawlers and no-JS visitors only. The
+           app replaces this whole block on boot. -->
+      <noscript>
+        <style>
+          .st-ns-head { max-width: 720px; margin: 0 auto; padding: 20px 24px 8px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+          .st-ns-head a { display: inline-flex; align-items: center; gap: 8px;
+            color: #1d1d1f; text-decoration: none; font-size: 19px; font-weight: 650;
+            letter-spacing: -0.035em; }
+          .st-ns-head img { width: 28px; height: 28px; display: block; }
+          .st-ns { max-width: 720px; margin: 0 auto; padding: 0 24px 48px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            color: #1d1d1f; background: #fbfbfd; }
+          .st-ns h1 { font-size: 34px; line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 12px; }
+          .st-ns h2 { font-size: 15px; font-weight: 600; letter-spacing: 0.04em;
+            text-transform: uppercase; color: #6e6e73; margin: 32px 0 10px; }
+          .st-ns h3 { font-size: 15px; font-weight: 600; margin: 16px 0 4px; }
+          .st-ns p, .st-ns li { font-size: 15px; line-height: 1.65; color: #3d3d3d; }
+          .st-ns p { margin: 0 0 10px; }
+          .st-ns a { color: #c04b09; }
+        </style>
+        <!-- Landmarks live here so the pre-hydration document is still an
+             outline (header + main + one H1) for crawlers and no-JS
+             readers, while the visible boot screen stays a loader. -->
+        <header class="st-ns-head">
+          <a href="/"><img src="/brand/logo-glyph-orange.png" alt="" aria-hidden="true" />ShareTexts</a>
+        </header>
+        <main class="st-ns">
+          <h1>Move anything between your devices.</h1>
+          <p>ShareTexts sends text, links, photos, videos, and files directly between any two
+            devices — phone to PC, iPhone to Windows — straight from your browser. No app, no
+            account, no cable.</p>
+          <h2>How ShareTexts works</h2>
+          <ol>
+            <li><strong>Open</strong> sharetexts.online on both devices — in the browser. Nothing to install.</li>
+            <li><strong>Find your other device.</strong> It appears under Available while ShareTexts is open on both devices; otherwise connect with a six-digit code, a QR code, or a share link.</li>
+            <li><strong>Connect with one tap.</strong> The connection is encrypted in transit.</li>
+            <li><strong>Send anything</strong> — text, links, photos, videos, audio, any file. It moves directly between the two devices.</li>
+            <li><strong>Receive it on the other device</strong> — then close the room. Nothing is kept.</li>
+          </ol>
+          <h2>Frequently asked questions</h2>
+          <h3>What is ShareTexts?</h3>
+          <p>ShareTexts is a temporary bridge between two devices. Move text, links, photos, videos, and files directly from one screen to another. No app, no account, nothing kept.</p>
+          <h3>Do I need to install an app or create an account?</h3>
+          <p>No. ShareTexts runs in the browser — no app, no account, nothing to install. It works between an iPhone and a Windows PC, or any two devices with a modern browser.</p>
+          <h3>What can I send?</h3>
+          <p>Text, links, photos, videos, audio, documents — any file type, transferred as the original bytes. Transfers are encrypted in transit. Rooms store nothing after they close.</p>
+          <h3>How do devices find each other?</h3>
+          <p>Four ways: device discovery (the other device appears automatically while ShareTexts is open on both), a six-digit code, a QR code, or a share link. The code, QR, and link work over any internet connection.</p>
+          <h3>Is device discovery private?</h3>
+          <p>Yes. Your device appears only while ShareTexts is open on it, and other devices see a temporary label like “Windows PC” — never your IP, accounts, or any permanent identifier.</p>
+          <h3>Is ShareTexts private?</h3>
+          <p>Transfers are encrypted in transit. ShareTexts keeps no account and no permanent history. Rooms close automatically and keep nothing. A Temporary Space stores its content only until it expires, then that content is deleted.</p>
+          <h3>What happens if my internet drops mid-transfer?</h3>
+          <p>ShareTexts tells you whether the transfer can be retried. For large files, a stable connection is recommended.</p>
+          <h3>Can I use ShareTexts between an iPhone and an Android phone?</h3>
+          <p>Yes. ShareTexts works between any two devices with a modern browser — iPhone to Android, Android to Windows, iPhone to Mac.</p>
+          <h3>What is a Temporary Space?</h3>
+          <p>A Temporary Space is a shared shelf that lives for a set time — 6 hours up to 7 days. You create it, get an 8-character space code, and share that code instead of files. Anyone with the code can add text, links, photos, or files, and everyone in the space sees them. When the time is up, the space closes and the content is deleted.</p>
+          <h3>How do I join a Temporary Space with a code?</h3>
+          <p>Open sharetexts.online/space/join, enter the 8-character code the creator gave you, and tap Join space. You can also paste a full space link — it carries the same access. Both the code and the link stop working when the space closes.</p>
+          <h2>More</h2>
+          <p><a href="/docs">Docs</a> · <a href="/guides">Guides</a> · <a href="/about">About</a> ·
+            <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
+            <a href="https://x.com/0xalyt" rel="noopener">x.com/0xalyt</a> ·
+            <a href="https://github.com/0xalyt/ShareTexts" rel="noopener">GitHub</a></p>
+        </main>
+      </noscript>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

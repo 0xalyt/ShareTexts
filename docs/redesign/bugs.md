@@ -39,3 +39,10 @@ B1, B2, B4, B13, B14, B15 were found during STEP 3–5 verification.
 - Whether the bottom (SingleScreenApp) sheet stays open after the top sheet's
   Cancel — probe covered the confirm path only.
 - Real-device scroll behaviour of B12 (desktop probe only).
+
+## Found during the 2026-10-29 owner pass (not fixed — listed, per the rule)
+
+| ID | Sev | Screen | What is wrong | Where | State | Next |
+| --- | --- | --- | --- | --- | --- | --- |
+| B18 | S3 | landing, ≤430px | The hero's device demo overflows the right edge: the phone frame and the laptop's right side are cropped at 390×844, so the composition reads as a mistake rather than a bleed. | src/components/HeroDeviceDemo.tsx, the `max-w-[420px]` wrapper in SingleScreenViews landing hero (`div.st-hide-landscape`) | logged | Either scale the scene to the container width or crop it deliberately with a fade. |
+| B19 | S2 | landing, both themes | The primary Send CTA is the AA-deepened ember (#c04b09 gradient), which measures 3.21:1 with its white label in light and 2.65:1 in dark — it reads brown next to the bright ember logo, and the contrast sweeps carry it as an accepted exception. | src/index.css `--st-btn-primary-grad`; verify-quality BRAND_CTA_SEL | logged | Decide with the owner: brand ember + dark label, or the deepened tone as fills only. |

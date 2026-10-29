@@ -65,12 +65,12 @@ export function SkeletonScreen({ variant = 'room' }: { variant?: SkeletonVariant
               <Bar className="h-2 w-16" />
             </div>
           </div>
-          {/* Message column — alternating sides like real cards, stable
-              heights so nothing jumps when content replaces it. */}
+          {/* Message column — two quiet cards, not a wireframe of a long
+              conversation: a skeleton should say "your room is coming", not
+              invent content the user will never see. */}
           <div className="flex-1 flex flex-col justify-end gap-3 px-4 pb-4">
-            <Bar className="mr-auto h-10 w-[64%] !rounded-[16px]" />
-            <Bar className="ml-auto h-10 w-[52%] !rounded-[16px]" />
-            <Bar className="mr-auto h-16 w-[72%] !rounded-[16px]" />
+            <Bar className="mr-auto h-10 w-[58%] !rounded-[16px]" />
+            <Bar className="ml-auto h-12 w-[46%] !rounded-[16px]" />
           </div>
           {/* Composer */}
           <div className="flex items-center gap-2 px-4 pb-5">
