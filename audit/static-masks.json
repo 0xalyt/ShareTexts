@@ -1,0 +1,16 @@
+{
+  "pairing-1440x900-light.png": { "boxes": [[127, 390, 504, 501]], "cause": "server-generated TOTP digits and countdown-ring arc; bounded code/ring panel only" },
+  "pairing-1440x900-dark.png": { "boxes": [[127, 390, 504, 501]], "cause": "server-generated TOTP digits and countdown-ring arc; bounded code/ring panel only" },
+  "pairing-390x844-light.png": { "boxes": [[48, 349, 342, 437]], "cause": "server-generated TOTP digits and countdown-ring arc; bounded code/ring panel only" },
+  "pairing-390x844-dark.png": { "boxes": [[48, 349, 342, 437]], "cause": "server-generated TOTP digits and countdown-ring arc; bounded code/ring panel only" },
+  "pairing-820x1180-light.png": { "boxes": [[221, 366, 598, 473]], "cause": "server-generated TOTP digits and countdown-ring arc; bounded code/ring panel only" },
+  "pairing-820x1180-dark.png": { "boxes": [[221, 366, 598, 473]], "cause": "server-generated TOTP digits and countdown-ring arc; bounded code/ring panel only" },
+  "pairing-844x390-light.png": { "boxes": [[368, 366, 377, 376]], "cause": "server-clock countdown ring arc tip only; code tiles are hidden at this viewport" },
+  "pairing-844x390-dark.png": { "boxes": [[368, 366, 377, 376]], "cause": "server-clock countdown ring arc tip only; code tiles are hidden at this viewport" },
+  "space-room-1440x900-light.png": { "boxes": [[619, 13, 735, 44]], "cause": "server-issued random space code chip only; excludes countdown text and adjacent member chip" },
+  "space-room-1440x900-dark.png": { "boxes": [[619, 13, 735, 44]], "cause": "server-issued random space code chip only; excludes countdown text and adjacent member chip" },
+  "space-room-820x1180-light.png": { "boxes": [[309, 13, 425, 44]], "cause": "server-issued random space code chip only; excludes countdown text and adjacent member chip" },
+  "space-room-820x1180-dark.png": { "boxes": [[309, 13, 425, 44]], "cause": "server-issued random space code chip only; excludes countdown text and adjacent member chip" },
+  "space-room-844x390-light.png": { "boxes": [[320, 13, 438, 44]], "cause": "server-issued random space code chip only; excludes countdown text and adjacent member chip" },
+  "space-room-844x390-dark.png": { "boxes": [[320, 13, 438, 44]], "cause": "server-issued random space code chip only; excludes countdown text and adjacent member chip" }
+}

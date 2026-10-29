@@ -49,9 +49,12 @@ export function resolveChrome() {
   return undefined; // let playwright find its own bundled browser
 }
 
-export async function launchBrowser() {
+export async function launchBrowser(extraArgs = []) {
   const executablePath = resolveChrome();
-  return chromium.launch(executablePath ? { headless: true, executablePath } : { headless: true });
+  const args = extraArgs;
+  return chromium.launch(
+    executablePath ? { headless: true, executablePath, args } : { headless: true, args }
+  );
 }
 
 export const sleep = (ms) => new Promise(r => setTimeout(r, ms));

@@ -1,0 +1,149 @@
+screen                                  | diff px | %        | notes
+----------------------------------------|---------|----------|------
+404-1440x900-dark.png                   |       0 | 0.00%    | 
+404-1440x900-light.png                  |       0 | 0.00%    | 
+404-390x844-dark.png                    |       0 | 0.00%    | 
+404-390x844-light.png                   |       0 | 0.00%    | 
+404-820x1180-dark.png                   |       0 | 0.00%    | 
+404-820x1180-light.png                  |       0 | 0.00%    | 
+404-844x390-dark.png                    |       0 | 0.00%    | 
+404-844x390-light.png                   |       0 | 0.00%    | 
+connecting-1440x900-dark.png            |       0 | 0.00%    | 
+connecting-1440x900-light.png           |       0 | 0.00%    | 
+connecting-390x844-dark.png             |       0 | 0.00%    | 
+connecting-390x844-light.png            |       0 | 0.00%    | 
+connecting-820x1180-dark.png            |       0 | 0.00%    | 
+connecting-820x1180-light.png           |       0 | 0.00%    | 
+connecting-844x390-dark.png             |       0 | 0.00%    | 
+connecting-844x390-light.png            |       0 | 0.00%    | 
+docs-1440x900-dark.png                  |       0 | 0.00%    | 
+docs-1440x900-light.png                 |       0 | 0.00%    | 
+docs-390x844-dark.png                   |       0 | 0.00%    | 
+docs-390x844-light.png                  |       0 | 0.00%    | 
+docs-820x1180-dark.png                  |       0 | 0.00%    | 
+docs-820x1180-light.png                 |       0 | 0.00%    | 
+docs-844x390-dark.png                   |       0 | 0.00%    | 
+docs-844x390-light.png                  |       0 | 0.00%    | 
+empty-room-1440x900-dark.png            |       0 | 0.00%    | 
+empty-room-1440x900-light.png           |       0 | 0.00%    | 
+empty-room-390x844-dark.png             |       0 | 0.00%    | 
+empty-room-390x844-light.png            |       0 | 0.00%    | 
+empty-room-820x1180-dark.png            |       0 | 0.00%    | 
+empty-room-820x1180-light.png           |       0 | 0.00%    | 
+empty-room-844x390-dark.png             |       0 | 0.00%    | 
+empty-room-844x390-light.png            |       0 | 0.00%    | 
+enter-code-1440x900-dark.png            |       0 | 0.00%    | 
+enter-code-1440x900-light.png           |       0 | 0.00%    | 
+enter-code-390x844-dark.png             |       0 | 0.00%    | 
+enter-code-390x844-light.png            |       0 | 0.00%    | 
+enter-code-820x1180-dark.png            |       0 | 0.00%    | 
+enter-code-820x1180-light.png           |       0 | 0.00%    | 
+enter-code-844x390-dark.png             |       0 | 0.00%    | 
+enter-code-844x390-light.png            |       0 | 0.00%    | 
+image-message-1440x900-dark.png         |       0 | 0.00%    | 
+image-message-1440x900-light.png        |       0 | 0.00%    | 
+image-message-390x844-dark.png          |       0 | 0.00%    | 
+image-message-390x844-light.png         |       0 | 0.00%    | 
+image-message-820x1180-dark.png         |       0 | 0.00%    | 
+image-message-820x1180-light.png        |       0 | 0.00%    | 
+image-message-844x390-dark.png          |       0 | 0.00%    | 
+image-message-844x390-light.png         |       0 | 0.00%    | 
+landing-1440x900-dark.png               |       0 | 0.00%    | 
+landing-1440x900-light.png              |       0 | 0.00%    | 
+landing-390x844-dark.png                |       0 | 0.00%    | 
+landing-390x844-light.png               |       0 | 0.00%    | 
+landing-820x1180-dark.png               |       0 | 0.00%    | 
+landing-820x1180-light.png              |       0 | 0.00%    | 
+landing-844x390-dark.png                |       0 | 0.00%    | 
+landing-844x390-light.png               |       0 | 0.00%    | 
+language-menu-1440x900-dark.png         |       0 | 0.00%    | 
+language-menu-1440x900-light.png        |       0 | 0.00%    | 
+language-menu-390x844-dark.png          |       0 | 0.00%    | 
+language-menu-390x844-light.png         |       0 | 0.00%    | 
+language-menu-820x1180-dark.png         |       0 | 0.00%    | 
+language-menu-820x1180-light.png        |       0 | 0.00%    | 
+language-menu-844x390-dark.png          |       0 | 0.00%    | 
+language-menu-844x390-light.png         |       0 | 0.00%    | 
+offline-banner-1440x900-dark.png        |       0 | 0.00%    | 
+offline-banner-1440x900-light.png       |       0 | 0.00%    | 
+offline-banner-390x844-dark.png         |       0 | 0.00%    | 
+offline-banner-390x844-light.png        |       0 | 0.00%    | 
+offline-banner-820x1180-dark.png        |       0 | 0.00%    | 
+offline-banner-820x1180-light.png       |       0 | 0.00%    | 
+offline-banner-844x390-dark.png         |       0 | 0.00%    | 
+offline-banner-844x390-light.png        |       0 | 0.00%    | 
+pairing-1440x900-dark.png               |       0 | 0.00%    | masked
+pairing-1440x900-light.png              |       0 | 0.00%    | masked
+pairing-390x844-dark.png                |       0 | 0.00%    | masked
+pairing-390x844-light.png               |       0 | 0.00%    | masked
+pairing-820x1180-dark.png               |       0 | 0.00%    | masked
+pairing-820x1180-light.png              |       0 | 0.00%    | masked
+pairing-844x390-dark.png                |       0 | 0.00%    | masked
+pairing-844x390-light.png               |       0 | 0.00%    | masked
+reaction-added-1440x900-dark.png        |       0 | 0.00%    | 
+reaction-added-1440x900-light.png       |       0 | 0.00%    | 
+reaction-added-390x844-dark.png         |       0 | 0.00%    | 
+reaction-added-390x844-light.png        |       0 | 0.00%    | 
+reaction-added-820x1180-dark.png        |       0 | 0.00%    | 
+reaction-added-820x1180-light.png       |       0 | 0.00%    | 
+reaction-added-844x390-dark.png         |       0 | 0.00%    | 
+reaction-added-844x390-light.png        |       0 | 0.00%    | 
+reaction-picker-open-1440x900-dark.png  |       0 | 0.00%    | 
+reaction-picker-open-1440x900-light.png |       0 | 0.00%    | 
+reaction-picker-open-390x844-dark.png   |       0 | 0.00%    | 
+reaction-picker-open-390x844-light.png  |       0 | 0.00%    | 
+reaction-picker-open-820x1180-dark.png  |       0 | 0.00%    | 
+reaction-picker-open-820x1180-light.png |       0 | 0.00%    | 
+reaction-picker-open-844x390-dark.png   |       0 | 0.00%    | 
+reaction-picker-open-844x390-light.png  |       0 | 0.00%    | 
+room-ended-1440x900-dark.png            |       0 | 0.00%    | 
+room-ended-1440x900-light.png           |       0 | 0.00%    | 
+room-ended-390x844-dark.png             |       0 | 0.00%    | 
+room-ended-390x844-light.png            |       0 | 0.00%    | 
+room-ended-820x1180-dark.png            |       0 | 0.00%    | 
+room-ended-820x1180-light.png           |       0 | 0.00%    | 
+room-ended-844x390-dark.png             |       0 | 0.00%    | 
+room-ended-844x390-light.png            |       0 | 0.00%    | 
+room-with-messages-1440x900-dark.png    |       0 | 0.00%    | 
+room-with-messages-1440x900-light.png   |       0 | 0.00%    | 
+room-with-messages-390x844-dark.png     |       0 | 0.00%    | 
+room-with-messages-390x844-light.png    |       0 | 0.00%    | 
+room-with-messages-820x1180-dark.png    |       0 | 0.00%    | 
+room-with-messages-820x1180-light.png   |       0 | 0.00%    | 
+room-with-messages-844x390-dark.png     |       0 | 0.00%    | 
+room-with-messages-844x390-light.png    |       0 | 0.00%    | 
+settings-1440x900-dark.png              |       0 | 0.00%    | 
+settings-1440x900-light.png             |       0 | 0.00%    | 
+settings-390x844-dark.png               |       0 | 0.00%    | 
+settings-390x844-light.png              |       0 | 0.00%    | 
+settings-820x1180-dark.png              |       0 | 0.00%    | 
+settings-820x1180-light.png             |       0 | 0.00%    | 
+settings-844x390-dark.png               |       0 | 0.00%    | 
+settings-844x390-light.png              |       0 | 0.00%    | 
+space-create-1440x900-dark.png          |       0 | 0.00%    | 
+space-create-1440x900-light.png         |       0 | 0.00%    | 
+space-create-390x844-dark.png           |       0 | 0.00%    | 
+space-create-390x844-light.png          |       0 | 0.00%    | 
+space-create-820x1180-dark.png          |       0 | 0.00%    | 
+space-create-820x1180-light.png         |       0 | 0.00%    | 
+space-create-844x390-dark.png           |       0 | 0.00%    | 
+space-create-844x390-light.png          |       0 | 0.00%    | 
+space-join-1440x900-dark.png            |       0 | 0.00%    | 
+space-join-1440x900-light.png           |       0 | 0.00%    | 
+space-join-390x844-dark.png             |       0 | 0.00%    | 
+space-join-390x844-light.png            |       0 | 0.00%    | 
+space-join-820x1180-dark.png            |       0 | 0.00%    | 
+space-join-820x1180-light.png           |       0 | 0.00%    | 
+space-join-844x390-dark.png             |       0 | 0.00%    | 
+space-join-844x390-light.png            |       0 | 0.00%    | 
+space-room-1440x900-dark.png            |       0 | 0.00%    | masked
+space-room-1440x900-light.png           |       0 | 0.00%    | masked
+space-room-390x844-dark.png             |       0 | 0.00%    | 
+space-room-390x844-light.png            |       0 | 0.00%    | 
+space-room-820x1180-dark.png            |       0 | 0.00%    | masked
+space-room-820x1180-light.png           |       0 | 0.00%    | masked
+space-room-844x390-dark.png             |       0 | 0.00%    | masked
+space-room-844x390-light.png            |       0 | 0.00%    | masked
+
+144 identical · 0 differ · 14 masked · tolerance=0 · masks=audit/static-masks.json
+PASS: every screen byte-identical (masked boxes painted equal)

@@ -1,5 +1,86 @@
 # Capture noise floor — masks for the pixel proof
 
+## P1a (2026-10-29) — the current floor: strict static mode
+
+A pixel proof is only worth what its capture pins. `--static` is now the only
+mode a diff may use, and `scripts/diff-matrix.mjs` compares at **tolerance 0**
+(any channel differing by one step counts).
+
+Everything the capture pins as an INPUT (never a mask):
+
+- context: `locale: 'en-US'`, `timezoneId: 'UTC'`, `deviceScaleFactor: 1`,
+  `reducedMotion: 'reduce'`; screenshot `animations: 'disabled'`, `caret: 'hide'`.
+- `page.clock.setFixedTime(2026-10-22T10:00:00Z)` — Date only, timers keep running
+  (installing the clock and pausing it also freezes rAF and breaks rendering).
+- seeded `mulberry32` behind `Math.random` / `crypto.getRandomValues`, so every
+  client-made id, code and default name is identical run to run.
+- pinned HTTP: `/stats` (the live rooms counter) and `/space` snapshots
+  (`createdAt`/`expiresAt`) rewritten to the frozen clock's values.
+- pinned socket payloads: `presence_list` → empty, `space_sync`/`space_event`
+  lifetime rewritten to the frozen values.
+- `backdrop-filter` disabled (Chromium's one non-bit-stable compositing op).
+- `RTCPeerConnection.getStats()` waits for a succeeded candidate pair before it
+  answers, so the header's one-shot route classification lands every time (see
+  the route-line row below).
+- landing offline gate no longer abortable: `navigator.onLine` may lag the
+  context emulation by a frame, and a 5 s timeout there used to kill a whole
+  8-screen combo. The banner-absent check is the real condition.
+
+### The two transients that used to break the proof
+
+| Screen | Why it moved | Pin |
+|---|---|---|
+| `connecting` (all vps) | The app signals over a WebSocket, and one trip carries the join ack, the offer and the channel-open in a few ms. Both passes caught the panel already gone (99.96 % on `844x390-dark`, 29 % on `390x844-light`; `console.txt` read `panel=false composer=true`). | `ctx.routeWebSocket('**/socket.io/**')` proxies the creator's socket and delivers every frame **4 s late** while the joiner types its code and the shot is taken — same signaling, just slower. `console.txt` now logs `connecting-state phase=connecting panel=true composer=false` for all 8 variants, and the 8 shots are byte-identical with **no mask**. |
+| room screens (header route line) | The subtitle starts as the generic “Connected” and resolves to “Same network” / “Relay” once the link is classified — and that classification runs ONCE, on the peer's first `connected` event, from a `getStats()` snapshot. Taken mid-negotiation, it finds no succeeded candidate pair and leaves “Connected” for the life of the room. One pass shot the resolved label, the other the generic one on every room screen of a combo (479 px @390x844, 2990 px @820x1180). | Two belts: the `getStats()` pin above makes the snapshot honest, and `settleRoom()` still refuses to shoot until the label reads “Same network” / “Relay” (plus 900 ms of stable body text). The one-shot classification itself is a product bug — logged in `bugs.md`. |
+
+### Masks — 14 boxes, each measured and cause-verified
+
+`audit/static-masks.json` (this replaces `audit/step9-masks.json`; the older
+file and the `_diff-post8/_diff-runs/_probe-step9-*` probes are deleted):
+
+| Group | Boxes | Cause |
+|---|---|---|
+| `pairing-*` (8) | the code tiles + countdown ring panel; `[[368,366,377,376]]` at 844x390 where the tiles are hidden | server-generated TOTP digits and the ring's seconds arc |
+| `space-room-*` (6) | the header code chip only (e.g. `[[619,13,735,44]]` @1440) | server-issued random space code; excludes the countdown text and member chip |
+
+Nothing else is masked. Measured on 2026-10-29 over two full passes
+(`STATIC_RUN_SEED=9001` vs `9002`, 144/144 shots each, no combo failures):
+
+- **144 of 144 byte-identical** with the masks → `PASS` at tolerance 0.
+- **132 of 144 byte-identical with NO masks at all**; the 12 that differ are
+exactly the 6 `pairing` and 6 `space-room` sheets above, and every differing
+pixel falls inside their named box (`audit/static-p1a-diff-nomasks.txt`).
+  The old floor was 26 raw-identical pairs out of 142 with 100 screens masked;
+  this one masks 14 small boxes and nothing else.
+
+### Running the proof
+
+```bash
+STATIC_RUN_SEED=777 node scripts/capture-baseline.mjs --static --out audit/p1a-a
+STATIC_RUN_SEED=888 node scripts/capture-baseline.mjs --static --out audit/p1a-b
+node scripts/diff-matrix.mjs audit/p1a-a audit/p1a-b --masks audit/static-masks.json
+```
+
+A single combo can be re-shot into an existing directory with
+`--combo 390x844-dark` (it skips the manifest and `console.txt` writes).
+
+Two operational rules the pair above depends on:
+
+- **Restart the dev server before each pass.** The dev space backend keeps
+  registered codes AND the per-IP create throttle in memory for the life of the
+  process, so a second run on the same server collides with the first run's
+  codes and dies in `space create did not navigate after retries` (cost: three
+  wasted 65 s throttle waits per combo). A fresh server per pass took both
+  passes to 144/144 with zero failures.
+- **The launch flags include
+  `--disable-features=LocalNetworkAccessChecks,BlockInsecurePrivateNetworkRequests`.**
+  Without them Chromium intermittently blocks the page's own signaling
+  WebSocket to `localhost` (`ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`),
+  which both breaks space creation and hides the `connecting` panel. It is an
+  environment pin, like `--disable-gpu`, not a product change.
+
+## STEP 9 (2026-10-23) — superseded floor (kept as history)
+
 STEP 9 proves the hygiene pass (STEP 8) changed **no pixels**: re-run
 `scripts/capture-baseline.mjs` after the pass and diff against
 `audit/baseline/`. A raw diff would drown in false positives, because
