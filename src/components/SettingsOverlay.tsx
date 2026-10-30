@@ -81,7 +81,10 @@ export function SettingsOverlay({
             className="w-full sm:max-w-[400px]"
             data-testid="settings-overlay"
           >
-            <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] bg-white/95 dark:bg-surface-dark/95 backdrop-blur-2xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.4)] shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.3)] pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0">
+            {/* A sheet is the canonical glass surface: it is a layer OVER the
+                room, so it shows the room tinted through itself (st-lens)
+                rather than switching to an opaque panel. */}
+            <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] st-lens pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0">
               <div className="sm:hidden flex justify-center pt-2.5 pb-1" aria-hidden>
                 <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
               </div>

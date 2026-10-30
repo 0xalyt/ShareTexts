@@ -351,7 +351,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={SPRING.panel}
-            className="w-full max-w-[560px] rounded-[20px] bg-white/95 dark:bg-surface-dark/95 border border-black/[0.06] dark:border-white/[0.08] shadow-[0_24px_70px_-12px_rgba(0,0,0,0.35)] overflow-hidden backdrop-blur-2xl"
+            className="w-full max-w-[560px] rounded-[20px] st-lens overflow-hidden"
             onPointerDown={(e) => e.stopPropagation()}
           >
             {statsOpen ? (

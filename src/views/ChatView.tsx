@@ -945,7 +945,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           names, live status, and one tap to details (rename, encryption,
           rejoin code). The parent keeps `relative` so the details popover
           anchors just under the bar. */}
-      <div className="relative flex h-14 items-center justify-between gap-2 px-3 sm:px-5 shrink-0 border-b border-apple-divider/60 dark:border-white/[0.08] bg-apple-canvas/90 dark:bg-night-950/90 backdrop-blur-xl z-30">
+      {/* The room's device bar is the top layer of the room, so it carries
+          the same lens as the composer below it — the thread between them is
+          visibly glass, and the two edges of the room agree. */}
+      <div className="relative flex h-14 items-center justify-between gap-2 px-3 sm:px-5 shrink-0 z-30 st-lens">
         <button
           type="button"
           data-testid="connection-details"
@@ -1605,7 +1608,18 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             {/* No `layout` here: the pill resizes on every keystroke (auto-grow
                 textarea), and FLIP measurement per keystroke was real jank on
                 phones. Attachment previews keep their own small layout anims. */}
-            <motion.div className="relative flex-1 min-w-0 rounded-[24px] bg-white dark:bg-apple-tile-2 overflow-visible shadow-[0_1px_2px_rgba(0,0,0,0.05),0_10px_28px_-14px_rgba(0,0,0,0.16)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_12px_32px_-14px_rgba(0,0,0,0.55)] border border-black/[0.04] dark:border-white/[0.06] focus-within:ring-2 focus-within:ring-ember/25 transition-shadow">
+            {/* The composer is CHROME, not content — it floats over the
+                thread, so it is the one surface in the room that should read
+                as glass (st-lens). Same material as the header cluster: the
+                messages scroll UNDER it and tint it, which is the point. */}
+            {/* The composer is CHROME, not content — it floats over the
+                thread, so it wears the lens. `st-lens-quiet` because it sits
+                ON an animating list: a backdrop blur here re-samples the
+                region under the bar on every message frame and took INP from
+                ~100ms to as much as 2000ms (measured, verify-quality). The
+                rim, specular and graded fill cost a single paint and read
+                the same at this size; the blur stays on static chrome. */}
+            <motion.div className="relative flex-1 min-w-0 rounded-[24px] st-lens st-lens-quiet overflow-visible focus-within:ring-2 focus-within:ring-ember/25 transition-shadow">
             {/* Composer teaching row — visible only while the composer is
                 empty AND untouched, it names the four real input paths in
                 product vocabulary (Type · Paste · Drop · Pick a file) so the

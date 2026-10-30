@@ -455,90 +455,57 @@
      transparency → opaque surface, no blur; forced-colours → system colours;
      reduced motion → no swell.
      ═════════════════════════════════════════════════════════════════════ */
+  /* NOTE — why there is no masked pseudo-element rim here.
+     The first version of this material drew its 1px rim and its dispersive
+     edge with `padding: 1px` + `mask-composite: exclude` on ::before/::after.
+     It looked right and it was ruinous: any layout change inside a glass
+     element re-rasterised two masked layers, so typing, growing the textarea
+     or rendering a message re-painted the whole bar. Measured with
+     verify-quality on the room composer: INP on send went from ~100ms to
+     1378–3497ms and the reconnect loop starved. A rim is not worth a stall.
+
+     The same light-bending read is built from INSET SHADOWS — a bright
+     hairline where light lands on the top edge, a dark one on the bottom, and
+     a soft 1px ring all round. All of it is a single paint, composited once,
+     and it survives any animation inside the element. */
   .st-lens {
     position: relative;
     isolation: isolate;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.72) 100%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    backdrop-filter: blur(20px) saturate(180%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.74) 100%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),   /* the specular hit */
-      inset 0 -1px 0 rgba(20, 18, 14, 0.05),     /* the floor of the pane */
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),   /* specular: light lands here */
+      inset 0 -1px 0 rgba(20, 18, 14, 0.06),     /* the floor of the pane */
+      inset 0 0 0 1px rgba(255, 255, 255, 0.45), /* the bending rim */
       0 1px 2px rgba(20, 18, 14, 0.05),
       0 10px 28px -14px rgba(20, 18, 14, 0.30);  /* it floats, faintly */
   }
-  /* The bending rim: bright at the light edge, shadowed at the far edge. */
-  .st-lens::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      148deg,
-      rgba(255, 255, 255, 1) 0%,
-      rgba(255, 255, 255, 0.55) 26%,
-      rgba(20, 18, 14, 0.06) 58%,
-      rgba(20, 18, 14, 0.18) 100%
-    );
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  /* Dispersion: the colours that split out of white light at a thick edge. */
-  .st-lens::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: conic-gradient(
-      from 210deg,
-      rgba(255, 170, 90, 0.55),
-      rgba(255, 255, 255, 0) 18%,
-      rgba(120, 170, 255, 0) 46%,
-      rgba(120, 170, 255, 0.45) 64%,
-      rgba(255, 255, 255, 0) 82%,
-      rgba(255, 170, 90, 0.55)
-    );
-    opacity: 0.35;
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    mix-blend-mode: plus-lighter;
-  }
 
   html.dark .st-lens {
-    background: linear-gradient(180deg, rgba(38, 38, 40, 0.78) 0%, rgba(24, 24, 26, 0.72) 100%);
+    background: linear-gradient(180deg, rgba(38, 38, 40, 0.80) 0%, rgba(24, 24, 26, 0.74) 100%);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
       inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.07),
       0 1px 2px rgba(0, 0, 0, 0.40),
       0 12px 30px -16px rgba(0, 0, 0, 0.85);
   }
-  html.dark .st-lens::before {
-    background: linear-gradient(
-      148deg,
-      rgba(255, 255, 255, 0.30) 0%,
-      rgba(255, 255, 255, 0.10) 30%,
-      rgba(255, 255, 255, 0.02) 58%,
-      rgba(0, 0, 0, 0.35) 100%
-    );
-  }
-  html.dark .st-lens::after { opacity: 0.22; }
 
-  /* The swell. Only on things you PRESS — applying it to static panes would
-     make the whole UI twitch. */
-  .st-lens-press {
-    transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 140ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Quiet lens — the material WITHOUT the blur.
+     For glass that sits on top of something that is animating (the composer
+     over the message thread). A backdrop-filter there re-blurs the region
+     under the bar on every frame of every incoming message. The rim,
+     specular and graded fill are paints, not samples, so they stay; the fill
+     goes slightly denser to keep text legible against whatever scrolls
+     beneath. */
+  .st-lens-quiet {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.90) 100%);
   }
-  .st-lens-press:active {
-    transform: scale(1.018);
-    filter: brightness(1.035);
+  html.dark .st-lens-quiet {
+    background: linear-gradient(180deg, rgba(40, 40, 43, 0.97) 0%, rgba(28, 28, 30, 0.94) 100%);
   }
 
   /* The ember gradient as text — brand-mark contexts only. */
@@ -1040,12 +1007,6 @@ html[st-theme-vt] {
      material falls back to the solid tone it was standing in for. */
   .st-lens { background: var(--st-tone-raised) !important; }
   html.dark .st-lens { background: #262628 !important; }
-  .st-lens::after { display: none; }
-}
-
-/* Reduced motion: the lens gathers instantly or not at all. */
-@media (prefers-reduced-motion: reduce) {
-  .st-lens-press:active { transform: none; }
 }
 
 /* Forced colours: a lens is a background image, not a surface the OS can
@@ -1055,8 +1016,6 @@ html[st-theme-vt] {
     background: Canvas !important;
     box-shadow: none;
   }
-  .st-lens::before { display: none; }
-  .st-lens::after { display: none; }
 }
 
 /* Theme flips are INSTANT (a single class change on <html>); the toggle's

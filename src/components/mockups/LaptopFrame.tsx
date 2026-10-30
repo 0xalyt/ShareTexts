@@ -55,6 +55,15 @@ export function LaptopFrame({
           )}
         >
           {children}
+          {/* The display's own glass, catching light. Real hardware has a
+              reflection across the top-left corner of the panel; without it
+              a screen reads as a flat rectangle with a UI printed on it.
+              Pointer-transparent, and it sits above the live content so it
+              behaves like the panel surface rather than a layer of the app. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(135deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.05)_20%,rgba(255,255,255,0)_42%)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.02)_18%,rgba(255,255,255,0)_38%)]"
+          />
         </div>
       </div>
       {/* Deck: 9px of aluminium that tapers to the opening notch. */}

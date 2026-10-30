@@ -60,6 +60,13 @@ export function PhoneFrame({
           )}
         >
           {children}
+          {/* The panel's glass, catching the room light. Same idea as the
+              laptop: a hard reflection in the top-left corner, gone by 40%.
+              Without it the phone is a rounded rectangle with a UI on it. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(140deg,rgba(255,255,255,0.20)_0%,rgba(255,255,255,0.05)_18%,rgba(255,255,255,0)_36%)] dark:bg-[linear-gradient(140deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.02)_16%,rgba(255,255,255,0)_34%)]"
+          />
           {/* Dynamic island — an overlay, so live content can sit under it. */}
           <span
             aria-hidden
