@@ -149,7 +149,7 @@ export function LandingFaq() {
   return (
     <section aria-labelledby="faq-title" className="w-full py-10">
       <SectionHead eyebrow={t('home.faq.eyebrow')} heading={t('home.faq.heading')} />
-      <FaqSection items={items} defaultOpen={null} className="max-w-[720px]" />
+      <FaqSection items={items} defaultOpen={null} hideLabel className="max-w-[720px]" />
       <a
         href="/docs"
         className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-ember hover:underline dark:text-azure-400"

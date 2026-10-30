@@ -24,12 +24,20 @@ export type QA = { q: string; a: string };
 export function FaqSection({
   items,
   heading,
+  hideLabel = false,
   className,
   defaultOpen = 0,
 }: {
   items: QA[];
   /** Rendered as the section's own h2 when given (long-form pages have one). */
   heading?: string;
+  /**
+   * Suppress the built-in "Questions" rule-and-label. The landing already
+   * introduces this list with its own eyebrow ("FAQ") AND heading ("Questions,
+   * answered."), so the label was the third stacked title over one list —
+   * noise, not hierarchy. Long-form pages keep it.
+   */
+  hideLabel?: boolean;
   className?: string;
   defaultOpen?: number | null;
 }) {
@@ -44,7 +52,7 @@ export function FaqSection({
         >
           {heading}
         </h2>
-      ) : (
+      ) : hideLabel ? null : (
         <div className="mb-5 flex items-baseline gap-3">
           <h2
             id="faq-title"
