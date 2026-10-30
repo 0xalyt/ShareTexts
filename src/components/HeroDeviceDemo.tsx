@@ -65,11 +65,16 @@ const EASE_IN_OUT = [0.45, 0, 0.25, 1] as const;
 
 /**
  * The mini screens are AUTHORED at these glass sizes — the exact pixel
- * geometry the 1440 hero had when the scenes were written. A bigger glass
- * scales the whole picture up proportionally (transform, so text stays
- * sharp), so the content grows WITH the frame instead of drowning inside
- * it; the floor of 1 keeps phone-width rendering pixel-identical to the
- * fixed-px original.
+ * geometry the 1440 hero had when the scenes were written. The whole
+ * picture is scaled proportionally to whatever glass it sits behind
+ * (transform, so text stays sharp), in BOTH directions: on a wide glass it
+ * grows WITH the frame instead of drowning inside it, and on a narrow one
+ * (a 390px phone, where the laptop glass is ~233px) it shrinks to FIT.
+ *
+ * It used to floor the factor at 1, i.e. "never smaller than authored" —
+ * which cropped a third of both screens on every phone: "Paste a lin…",
+ * "Enter the cod…", and four of the six room-code digits simply fell off
+ * the edge. Both ends of the story have to be legible, so fit wins.
  */
 const LAPTOP_GLASS = { w: 331, h: 207 }; // 16:10 glass behind LaptopFrame
 const PHONE_GLASS = { w: 116, h: 251 };  // 9:19.5 glass behind PhoneFrame
@@ -88,12 +93,14 @@ function ScaledScreen({
     const el = hostRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(([entry]) => {
-      const width = entry.contentRect.width;
-      if (!width) return;
-      // Floor 1: below the authored size the scene renders as authored
-      // (the fixed px it was tuned at), never smaller.
+      const { width, height } = entry.contentRect;
+      if (!width || !height) return;
+      // Fit BOTH axes (the glass is the frame's inner rect, so a slightly
+      // short glass would otherwise crop the composer). The 0.55 floor is a
+      // floor on silliness, not on legibility: it is only reached below a
+      // ~182px laptop glass.
       setK((prev) => {
-        const next = Math.max(1, width / design.w);
+        const next = Math.max(0.55, Math.min(width / design.w, height / design.h));
         return Math.abs(prev - next) < 0.004 ? prev : next;
       });
     });
