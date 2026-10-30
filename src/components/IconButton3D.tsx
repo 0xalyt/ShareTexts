@@ -26,7 +26,7 @@ export interface IconButton3DProps {
 export function IconButton3D({ label, children, onClick, href, active = false, className, testId }: IconButton3DProps) {
   const classes = cn(
     'flex items-center justify-center w-10 h-10 rounded-full',
-    'text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white',
+    'text-apple-ink/70 dark:text-white/70 hover:text-apple-ink dark:hover:text-white',
     'hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-[0.97]',
     'transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none',
     active && 'text-ember dark:text-azure-400 bg-ember/[0.08] dark:bg-azure-400/[0.10]',

@@ -624,7 +624,7 @@ export function CommandBarChip({ onClick }: { onClick: () => void }) {
   // The chip uses the same quiet 40px icon slot as the other header actions.
   return (
     <IconButton3D label={t('command.openAria')} onClick={onClick} className="hidden lg:flex">
-      <Search className="w-4 h-4" />
+      <Search className="w-[18px] h-[18px]" strokeWidth={1.5} />
     </IconButton3D>
   );
 }

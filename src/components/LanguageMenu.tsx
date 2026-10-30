@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Languages, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { LANGS, useI18n } from '../lib/i18n';
 import { cn } from '../lib/utils';
 
@@ -72,9 +72,27 @@ export function LanguageMenu({ className, align = 'right' }: { className?: strin
         aria-expanded={open}
         aria-label={t('lang.menu')}
         title={t('lang.menu')}
-        className="flex items-center justify-center w-10 h-10 rounded-full text-apple-ink-muted hover:text-apple-ink dark:text-white/50 dark:hover:text-white hover:bg-apple-divider/50 dark:hover:bg-white/[0.07] transition-colors"
+        className="flex items-center justify-center w-10 h-10 rounded-full text-apple-ink/70 hover:text-apple-ink dark:text-white/70 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
       >
-        <Languages className="w-[18px] h-[18px]" />
+        {/* A globe, drawn at the header's 18px/stroke-1.5 ladder. The lucide
+            `Languages` glyph stacks a CJK character under a Latin one — at
+            18px that collapses into an unreadable blob that looked like a
+            rendering bug in the toolbar. A globe with meridians reads as
+            "language" at a glance and stays crisp at any size. */}
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden
+          className="w-[18px] h-[18px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M3.5 12h17" />
+          <path d="M12 3.5c2.4 2.3 3.7 5.3 3.7 8.5s-1.3 6.2-3.7 8.5c-2.4-2.3-3.7-5.3-3.7-8.5S9.6 5.8 12 3.5Z" />
+        </svg>
       </button>
       <AnimatePresence>
         {open && (

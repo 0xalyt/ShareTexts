@@ -781,13 +781,15 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
             equal-height object, display-face wordmark, minimal gap. */}
         <BrandLockup />
-        {/* Tools first, state last. The four utility glyphs share ONE soft
-            capsule so the row reads as a single control group instead of
-            four loose marks floating toward the edge; the theme glyph sits
-            outside it because it is not a tool — it changes the room you
-            are standing in. Every slot keeps the 40px contract. */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] px-0.5">
+        {/* ONE capsule holds every header control: search, language, saved,
+            docs, then a hairline and the theme glyph. Grouped, they read as
+            a single instrument cluster instead of five loose marks drifting
+            toward the edge — and the theme control, though it changes the
+            room rather than a setting, belongs to that same cluster on a
+            page where everything else already does. Every slot keeps the
+            40px contract; the capsule only adds 1px of breathing room. */}
+        <div className="flex items-center">
+          <div className="flex items-center gap-0 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.05] px-1 py-0.5 backdrop-blur-sm">
           <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
           <LanguageMenu />
           {/* Saved — the local library, reachable without a room. Bookmark
@@ -810,16 +812,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           )}
           {/* Docs sits BETWEEN the language and theme toggles (user request) —
               same 40px slot, same quiet icon style as its neighbors; the
-              footer link stays too. */}
-          <IconButton3D label={t('nav.docs')} href="/docs">
+              footer link stays too. Hidden on a phone, where the footer
+              already carries it and the cluster needs the width. */}
+          <IconButton3D label={t('nav.docs')} href="/docs" className="hidden sm:flex">
             <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
           </IconButton3D>
-          </div>
           {/* In the ROOM the header carries no theme control: the room already
               has a settings sheet whose first row IS the theme control, and a
               second one beside it made "which control is which" a puzzle on
               a screen the user is supposed to be sharing files from. */}
-          {panelMode !== 'connected' && <ThemeToggle />}
+          {panelMode !== 'connected' && (
+            <>
+              <span aria-hidden className="w-px h-4 mx-1 bg-black/[0.08] dark:bg-white/[0.12]" />
+              <ThemeToggle />
+            </>
+          )}
+          </div>
         </div>
         {/* Spotlight bar: a hairline of brand light where the sticky header
             meets the page, so the seam reads as intentional depth rather
@@ -831,12 +839,19 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
-            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-[470px] mx-auto flex flex-col">
+            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
               {/* Flex + order: H1 → subtitle → live tracker → actions. The
                   tracker is passive status, so it lives ABOVE the action
                   cluster — status never interrupts the Send/Receive flow
                   (usability audit #6). */}
-              <h1 className="st-display order-1 text-[clamp(38px,6.4vw,58px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center sm:text-left text-balance">
+              {/* Two lines, not three: the headline's own break (after
+                  "anything") plus a measure wide enough that "between your
+                  devices." holds together — at 58px in a 470px column it
+                  split and stranded "devices." on its own line. 46px is the
+                  largest size whose second line still measures inside the
+                  column (483px of glyphs in 486px, before tracking), so the
+                  headline keeps its weight AND its intended two lines. */}
+              <h1 className="st-display order-1 text-[clamp(34px,3.9vw,46px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center sm:text-left text-balance">
                 {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
               </h1>
               {/* whitespace-pre-line honors the subtitle's deliberate line
@@ -853,7 +868,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   rather than inventing longevity. QUIET by rank: it is
                   metadata, so it whispers — the Send/Receive pair owns this
                   screen. */}
-              <motion.div
+              {(nearbyStatus || roomsCreated != null) && (<motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
@@ -875,7 +890,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <span className="text-[13px] font-medium text-apple-ink-muted/85 dark:text-white/50 leading-none">{t('home.roomsMade')}</span>
                   </>
                 ) : null}
-              </motion.div>
+              </motion.div>)}
               {/* Equal-width grid: the two primary actions share ONE geometry
                   (audit #12 — Receive rendered wider than Send), and each
                   hint sits directly beneath its own button so the
@@ -1527,12 +1542,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
           <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
         </a>
-        <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center gap-5 sm:gap-7 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
-          <a href="/docs" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
-          <a href="/about" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
-          <a href="/privacy" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
-          <a href="/terms" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.terms')}</a>
-          <a href="/guides" className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] -my-2.5 hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.guides')}</a>
+        <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center justify-between sm:justify-start gap-4 sm:gap-7 pt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
+          <a href="/docs" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
+          <a href="/about" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
+          <a href="/privacy" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
+          <a href="/terms" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.terms')}</a>
+          <a href="/guides" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.guides')}</a>
         </nav>
       </div>
     </footer>

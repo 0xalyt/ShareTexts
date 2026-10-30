@@ -78,27 +78,34 @@ try {
   // whites as oklab(0.99… / 0.5), opaque ones as rgb(255, 255, 255).
   out('desktop-tracker-label-white-in-dark', !!tk && /^(rgb\(255, 255, 255\)|oklab\(0\.99)/.test(tk?.labelColor || ''), tk?.labelColor);
 
-  // 3. Header rhythm: the four utility glyphs live in ONE capsule, and the
-  //    theme glyph sits just outside it. Both gaps must stay on the same
-  //    tight grid, or the row reads as two unrelated groups.
+  // 3. Header rhythm: EVERY header control — search, language, saved, docs,
+  //    the hairline divider, and the theme glyph — lives inside ONE capsule,
+  //    on one tight grid. A theme control floating on its own left the right
+  //    edge ragged and read as two unrelated groups; the row is now a single
+  //    instrument cluster with the theme glyph last, after the divider.
   const gap = await page.evaluate(() => {
     const sw = document.querySelector('[data-testid="theme-toggle"]');
-    const cluster = sw?.parentElement;
-    if (!cluster) return null;
-    const capsule = [...cluster.children].find(c => c !== sw);
-    const items = [...(capsule ? capsule.children : []), ...(capsule ? [sw] : [])]
-      .map(k => { const r = k.getBoundingClientRect(); return { x: r.x, r: r.x + r.width }; });
+    const capsule = sw?.parentElement;
+    if (!capsule) return null;
+    const kids = [...capsule.children];
+    const items = kids.map(k => { const r = k.getBoundingClientRect(); return { x: r.x, r: r.x + r.width }; });
     const gaps = [];
     for (let i = 1; i < items.length; i++) gaps.push(+(items[i].x - items[i - 1].r).toFixed(1));
-    return { gaps, capsuleItems: capsule ? capsule.children.length : 0 };
+    return {
+      gaps,
+      capsuleItems: kids.length,
+      themeInCapsule: capsule.contains(sw),
+      themeIsLast: kids.at(-1) === sw,
+      hasDivider: kids.some(k => k.tagName === 'SPAN' && k.getAttribute('aria-hidden') === 'true'),
+    };
   });
-  out('desktop-tool-cluster-has-4-glyphs', !!gap && gap.capsuleItems === 4, JSON.stringify(gap));
-  // Inside the capsule: 2px. Between the capsule and the theme glyph: a
-  // deliberate 8–16px breath, so "tools" and "state" never fuse into one
-  // row of five equal marks.
+  out('desktop-header-single-control-capsule',
+    !!gap && gap.themeInCapsule && gap.themeIsLast && gap.hasDivider && gap.capsuleItems >= 5,
+    JSON.stringify(gap && { items: gap.capsuleItems, inCapsule: gap.themeInCapsule, last: gap.themeIsLast, divider: gap.hasDivider }));
+  // Every seam in that capsule stays on the tight grid (0px between glyph
+  // slots, 4px either side of the hairline divider).
   out('desktop-header-gaps-tight', !!gap && gap.gaps.length >= 4
-    && gap.gaps.slice(0, -1).every(g => g <= 8.5)
-    && gap.gaps.at(-1) >= 8 && gap.gaps.at(-1) <= 16, JSON.stringify(gap && gap.gaps));
+    && gap.gaps.every(g => g <= 12), JSON.stringify(gap && gap.gaps));
 
   // 4. Hero heading + the shipped <title> (product decision: the landing tab
   //    and every share card read "AirDrop for everyone — ShareTexts"; other
