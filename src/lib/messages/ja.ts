@@ -604,6 +604,7 @@ const ja: Dict = {
   'footer.useIt': '使う',
   'footer.read': '読む',
   'footer.terms': '利用規約',
+  'footer.legal': '法的情報',
   'footer.open': 'ShareTextsを開く',
   'footer.withCode': 'コードで共有',
   'footer.devs': '開発者向け',

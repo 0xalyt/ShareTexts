@@ -435,6 +435,112 @@
   html.dark .st-elev-raised   { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.35); }
   html.dark .st-elev-floating { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 32px rgba(0, 0, 0, 0.5); }
 
+  /* ══ st-lens — the glass material ══════════════════════════════════════
+     The four things that separate glass from "a white box at 70%":
+
+     1. TRANSMISSION. The fill is a gradient, not a flat alpha — the top of
+        the pane sits fractionally brighter than its base, because light
+        arrives from above. Behind it, backdrop-filter blurs AND saturates,
+        so the room's colours pool inside the pane instead of turning grey.
+     2. THE RIM. A 1px ring that is not one colour: bright where light
+        lands (top-left), dark where it leaves (bottom-right). Drawn with a
+        masked gradient border so it inherits ANY radius — pill, sheet, card
+        — without a per-component variant.
+     3. DISPERSION. At the very edge, a whisper of warm/cool separates — the
+        prism read you get from a real thick lens. 6% alpha: felt, not seen.
+     4. THE SWELL. Pressing makes the lens gather slightly (scale up) and
+        brighten, then relax. 140ms, ease-out — physical, never bouncy.
+
+     Fallbacks are part of the contract, not an afterthought: reduced
+     transparency → opaque surface, no blur; forced-colours → system colours;
+     reduced motion → no swell.
+     ═════════════════════════════════════════════════════════════════════ */
+  .st-lens {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.72) 100%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),   /* the specular hit */
+      inset 0 -1px 0 rgba(20, 18, 14, 0.05),     /* the floor of the pane */
+      0 1px 2px rgba(20, 18, 14, 0.05),
+      0 10px 28px -14px rgba(20, 18, 14, 0.30);  /* it floats, faintly */
+  }
+  /* The bending rim: bright at the light edge, shadowed at the far edge. */
+  .st-lens::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      148deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 0.55) 26%,
+      rgba(20, 18, 14, 0.06) 58%,
+      rgba(20, 18, 14, 0.18) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  /* Dispersion: the colours that split out of white light at a thick edge. */
+  .st-lens::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from 210deg,
+      rgba(255, 170, 90, 0.55),
+      rgba(255, 255, 255, 0) 18%,
+      rgba(120, 170, 255, 0) 46%,
+      rgba(120, 170, 255, 0.45) 64%,
+      rgba(255, 255, 255, 0) 82%,
+      rgba(255, 170, 90, 0.55)
+    );
+    opacity: 0.35;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    mix-blend-mode: plus-lighter;
+  }
+
+  html.dark .st-lens {
+    background: linear-gradient(180deg, rgba(38, 38, 40, 0.78) 0%, rgba(24, 24, 26, 0.72) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+      0 1px 2px rgba(0, 0, 0, 0.40),
+      0 12px 30px -16px rgba(0, 0, 0, 0.85);
+  }
+  html.dark .st-lens::before {
+    background: linear-gradient(
+      148deg,
+      rgba(255, 255, 255, 0.30) 0%,
+      rgba(255, 255, 255, 0.10) 30%,
+      rgba(255, 255, 255, 0.02) 58%,
+      rgba(0, 0, 0, 0.35) 100%
+    );
+  }
+  html.dark .st-lens::after { opacity: 0.22; }
+
+  /* The swell. Only on things you PRESS — applying it to static panes would
+     make the whole UI twitch. */
+  .st-lens-press {
+    transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1), filter 140ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .st-lens-press:active {
+    transform: scale(1.018);
+    filter: brightness(1.035);
+  }
+
   /* The ember gradient as text — brand-mark contexts only. */
   .text-ember-gradient {
     background: var(--gradient-ember);
@@ -925,10 +1031,32 @@ html[st-theme-vt] {
 /* Respect reduced transparency */
 @media (prefers-reduced-transparency: reduce) {
   .backdrop-blur-sm, .backdrop-blur, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl,
+  .st-lens,
   [style*="backdrop-filter"] {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
+  /* Without the blur there is nothing for the alpha to sit on, so the
+     material falls back to the solid tone it was standing in for. */
+  .st-lens { background: var(--st-tone-raised) !important; }
+  html.dark .st-lens { background: #262628 !important; }
+  .st-lens::after { display: none; }
+}
+
+/* Reduced motion: the lens gathers instantly or not at all. */
+@media (prefers-reduced-motion: reduce) {
+  .st-lens-press:active { transform: none; }
+}
+
+/* Forced colours: a lens is a background image, not a surface the OS can
+   theme, so it hands the pane back to the system and keeps only the border. */
+@media (forced-colors: active) {
+  .st-lens {
+    background: Canvas !important;
+    box-shadow: none;
+  }
+  .st-lens::before { display: none; }
+  .st-lens::after { display: none; }
 }
 
 /* Theme flips are INSTANT (a single class change on <html>); the toggle's

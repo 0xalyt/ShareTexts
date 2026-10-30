@@ -12,12 +12,20 @@ import type { MsgKey } from '../../lib/messages/types';
  * with nine pages: it either repeats the top nav, or it invents links that
  * lead nowhere. So this footer carries what a person at the end of a long
  * page actually might want next — the product, the two legal pages, the one
- * guide, and a way to say something went wrong — in three short columns, each
- * with a heading that means something.
+ * guide — in three short columns, each with a heading that means something.
+ *
+ * Hierarchy (rev 2026-10, matching the landing footer):
+ *   band     the footer is its own tone (parchment), not "page + hairline"
+ *   brand    lockup → one-sentence promise → "every platform" status line
+ *   columns  heading (12px eyebrow) → links at a 40px tap floor
+ *   legal    one row: © · the deal in three words · the one social handle
+ *
+ * The third column used to be headed "Terms" while also containing a "Terms"
+ * link — the heading and the link read as a duplicate. It is `Legal` now
+ * (footer.legal, translated in every locale), which is what the column is.
  *
  * Fully localized (the hardcoded-English version shipped before the demo
- * round's 9-locale pass caught it). The bottom row states the deal one last
- * time in words that already exist in every locale.
+ * round's 9-locale pass caught it).
  */
 const COLUMNS: { title: MsgKey; links: { label: MsgKey; href: string; external?: boolean }[] }[] = [
   {
@@ -38,7 +46,7 @@ const COLUMNS: { title: MsgKey; links: { label: MsgKey; href: string; external?:
     ],
   },
   {
-    title: 'footer.terms',
+    title: 'footer.legal',
     links: [
       { label: 'nav.privacy', href: '/privacy' },
       { label: 'nav.terms', href: '/terms' },
@@ -51,20 +59,27 @@ export function SiteFooter({ className }: { className?: string }) {
   const { t } = useI18n();
   const year = new Date().getFullYear();
   return (
-    <footer className={cn('border-t border-apple-divider/70 dark:border-white/[0.06]', className)}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
-        <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 sm:gap-x-7 lg:grid-cols-[minmax(260px,1.6fr)_repeat(3,minmax(0,1fr))] lg:gap-x-10">
+    <footer
+      className={cn(
+        // Its own band, edge to edge: the tone change is the divider, so the
+        // footer needs no border and no shadow on top of it.
+        'bg-apple-parchment/80 dark:bg-white/[0.02] border-t border-black/[0.05] dark:border-white/[0.06]',
+        className,
+      )}
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-12 sm:py-14">
+        <div className="grid gap-x-8 gap-y-10 grid-cols-2 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.7fr)_repeat(3,minmax(0,1fr))]">
           <div className="col-span-2 min-w-0 sm:col-span-3 lg:col-span-1">
             {/* The brand lockup, linked home — same ember mark + themed
                 wordmark as every other header, never a cream night swap. */}
             <BrandLockup className="w-fit" />
-            <p className="mt-3.5 max-w-[320px] text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">
+            <p className="mt-4 max-w-[34ch] text-[14px] leading-[1.55] text-apple-ink-muted dark:text-white/60">
               {t('home.subtitle')}
             </p>
             {/* AA floors in BOTH themes: muted/80 (3.75:1) and white/40
-                (3.83:1) both failed the 4.5:1 bar — raised to opaque muted
+                (3.83:1) both failed the 4.5:1 bar — this is opaque muted
                 (5.79:1) and white/55 (6.18:1). */}
-            <p className="mt-3 flex items-center gap-2 text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
+            <p className="mt-3.5 flex items-center gap-2 text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
               <span className="h-1.5 w-1.5 rounded-full bg-status-success" aria-hidden />
               iPhone · Android · Windows · macOS · Linux
             </p>
@@ -72,18 +87,21 @@ export function SiteFooter({ className }: { className?: string }) {
 
           {COLUMNS.map((col) => (
             <nav key={col.title} aria-label={t(col.title)} className="min-w-0">
-              <h2 className="st-eyebrow">
-                {t(col.title)}
-              </h2>
-              <ul className="mt-3 space-y-0.5">
+              <h2 className="st-eyebrow">{t(col.title)}</h2>
+              <ul className="mt-2.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
                       {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      className="inline-flex min-h-[40px] items-center text-[13px] font-medium text-apple-ink/80 hover:text-ember dark:text-white/65 dark:hover:text-azure-400 transition-colors"
+                      className="group inline-flex min-h-[40px] items-center text-[14px] font-medium text-apple-ink/80 hover:text-ember dark:text-white/70 dark:hover:text-azure-400 transition-colors"
                     >
-                      {t(link.label)}
+                      {/* The underline grows from the left on hover — the
+                          quiet affordance an Apple footer uses instead of
+                          turning the label blue. */}
+                      <span className="bg-gradient-to-r from-current to-current bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size] duration-200 group-hover:bg-[length:100%_1px] motion-reduce:transition-none">
+                        {t(link.label)}
+                      </span>
                     </a>
                   </li>
                 ))}
@@ -94,21 +112,20 @@ export function SiteFooter({ className }: { className?: string }) {
 
         {/* The bottom row: the deal, stated once, plus the one action a
             reader might want at the very end of a page. */}
-        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-x-6 border-t border-apple-divider/60 pt-4 sm:pt-5 dark:border-white/[0.06]">
+        <div className="mt-10 flex flex-col gap-1 border-t border-black/[0.06] pt-5 dark:border-white/[0.08] sm:flex-row sm:items-center sm:justify-between sm:gap-x-6">
           <p className="text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>
-          <div className="flex items-center gap-4 text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
-            <a
-              href="https://x.com/0xalyt"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[40px] items-center gap-1.5 hover:text-apple-ink dark:hover:text-white transition-colors"
-            >
-              <AtSign className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
-              0xalyt
-            </a>
-          </div>
+          <a
+            href="https://x.com/0xalyt"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('footer.followAria')}
+            className="inline-flex min-h-[40px] w-fit items-center gap-1.5 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/55 dark:hover:text-white"
+          >
+            <AtSign className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
+            0xalyt
+          </a>
         </div>
       </div>
     </footer>

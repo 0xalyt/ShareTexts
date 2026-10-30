@@ -604,6 +604,7 @@ const ar: Dict = {
   'footer.useIt': 'استخدِمه',
   'footer.read': 'اقرأ',
   'footer.terms': 'الشروط',
+  'footer.legal': 'المعلومات القانونية',
   'footer.open': 'افتح ShareTexts',
   'footer.withCode': 'شارك برمز',
   'footer.devs': 'للمطورين',

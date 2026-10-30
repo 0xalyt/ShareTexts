@@ -605,6 +605,7 @@ const de: Dict = {
   'footer.useIt': 'Benutzen',
   'footer.read': 'Lesen',
   'footer.terms': 'Bedingungen',
+  'footer.legal': 'Rechtliches',
   'footer.open': 'ShareTexts öffnen',
   'footer.withCode': 'Mit einem Code teilen',
   'footer.devs': 'Für Entwickler',

@@ -604,6 +604,7 @@ const zh: Dict = {
   'footer.useIt': '使用',
   'footer.read': '阅读',
   'footer.terms': '条款',
+  'footer.legal': '法律信息',
   'footer.open': '打开 ShareTexts',
   'footer.withCode': '用代码共享',
   'footer.devs': '开发者',

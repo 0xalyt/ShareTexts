@@ -789,7 +789,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             page where everything else already does. Every slot keeps the
             40px contract; the capsule only adds 1px of breathing room. */}
         <div className="flex items-center">
-          <div className="flex items-center gap-0 rounded-full border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.05] px-1 py-0.5 backdrop-blur-sm">
+          {/* The cluster is ONE piece of glass (st-lens): gradient fill,
+              a rim that is bright where the light lands and dark where it
+              leaves, and — at 6% alpha — a whisper of dispersion at the
+              edge. A flat `bg-white/70` was the thing that made this row
+              read as a default toolbar. */}
+          <div className="flex items-center gap-0 rounded-full st-lens px-1 py-[3px]">
           <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
           <LanguageMenu />
           {/* Saved — the local library, reachable without a room. Bookmark
@@ -1415,7 +1420,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           )}
     </AnimatePresence>
   );  const footerNode = (
-    <footer className="shrink-0 px-6 lg:px-10 pt-10 pb-[max(env(safe-area-inset-bottom),28px)] sm:pb-10 border-t border-apple-divider/60 dark:border-white/[0.06]">
+    <footer className="shrink-0 px-6 lg:px-10 pt-10 pb-[max(env(safe-area-inset-bottom),28px)] sm:pb-10 border-t border-black/[0.05] dark:border-white/[0.06] bg-apple-parchment/80 dark:bg-white/[0.02]">
         {/* A product footer for the LANDING only. It sits at the END of the
             hero's scroll — below the fold, revealed by scrolling, never
             pinned over the hero (the footer must not be always visible).
@@ -1464,7 +1469,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               ],
             },
             {
-              title: t('footer.terms'),
+              title: t('footer.legal'),
               items: [
                 { label: t('nav.privacy'), href: '/privacy' },
                 { label: t('nav.terms'), href: '/terms' },
@@ -1485,7 +1490,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       key={item.label}
                       type="button"
                       onClick={item.onClick}
-                      className="inline-flex items-center min-h-[40px] -my-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white transition-colors"
+                      className="inline-flex items-center min-h-[40px] -my-1 text-[14px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white decoration-[1px] underline-offset-[6px] hover:underline transition-colors"
                     >
                       {item.label}
                     </button>
@@ -1493,7 +1498,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <a
                       key={item.label}
                       href={item.href}
-                      className="inline-flex items-center min-h-[40px] -my-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white transition-colors"
+                      className="inline-flex items-center min-h-[40px] -my-1 text-[14px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white decoration-[1px] underline-offset-[6px] hover:underline transition-colors"
                     >
                       {item.label}
                     </a>

@@ -74,14 +74,18 @@ export function HowItWorks() {
           {t('home.how.heading')}
         </h2>
       </div>
-      <ol className="grid gap-4 sm:grid-cols-3">
+      {/* Three rules, three steps. No boxes: a card with a number in it is
+          the most generic shape a landing page can draw. A hairline over
+          each step (Apple's own editorial rhythm) gives the sequence a
+          spine while leaving the words alone on the page. */}
+      <ol className="grid gap-x-8 gap-y-7 sm:grid-cols-3">
         {steps.map((step, i) => (
           <Reveal key={i}>
-            <li className="rounded-[16px] border border-apple-divider/70 bg-white dark:bg-white/[0.04] dark:border-white/[0.08] p-5 h-full">
+            <li className="border-t border-black/[0.10] pt-4 dark:border-white/[0.14]">
               <span className="block font-mono text-[12px] font-semibold tabular-nums tracking-[0.09em] text-ember dark:text-azure-400">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <p className="mt-2.5 text-[16px] font-medium leading-snug text-apple-ink dark:text-white">
+              <p className="mt-2 text-[16px] font-medium leading-snug text-apple-ink dark:text-white">
                 {step}
               </p>
             </li>
@@ -108,17 +112,19 @@ export function FeatureGrid() {
   return (
     <section aria-labelledby="features-title" className="w-full py-10">
       <SectionHead id="features-title" eyebrow={t('home.features.eyebrow')} heading={t('home.features.heading')} />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* The same hairline grid as the steps, with the glyph sitting bare
+          above the title. The old version put every icon in a tinted circle
+          inside a bordered card — three competing containers for one small
+          idea, which is exactly what makes a page read as a template. */}
+      <ul className="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map(({ key, Icon }) => (
           <Reveal key={key}>
-            <li className="rounded-[16px] border border-apple-divider/70 bg-white dark:bg-white/[0.04] dark:border-white/[0.08] p-5 h-full">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-ember/[0.08] dark:bg-azure-400/[0.12] text-ember dark:text-azure-400">
-                <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden />
-              </span>
-              <h3 className="st-title mt-3 text-apple-ink dark:text-white">
+            <li className="border-t border-black/[0.10] pt-4 dark:border-white/[0.14]">
+              <Icon className="h-[18px] w-[18px] text-ember dark:text-azure-400" strokeWidth={1.5} aria-hidden />
+              <h3 className="st-title mt-2.5 text-apple-ink dark:text-white">
                 {t(`home.features.${key}.title`)}
               </h3>
-              <p className="mt-1.5 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/60">
+              <p className="mt-1.5 text-[15px] leading-relaxed text-apple-ink-muted dark:text-white/60">
                 {t(`home.features.${key}.body`)}
               </p>
             </li>
@@ -171,7 +177,9 @@ export function LandingCta({
   const { t } = useI18n();
   return (
     <section aria-labelledby="cta-title" className="w-full py-12">
-      <Reveal className="rounded-[24px] border border-apple-divider/70 bg-white dark:bg-white/[0.04] dark:border-white/[0.08] px-6 py-9 text-center">
+      {/* A tone shift instead of a bordered card: the CTA is the last calm
+          moment on the page, so it gets room, not a frame. */}
+      <Reveal className="rounded-[24px] bg-apple-parchment/70 dark:bg-white/[0.04] px-6 py-10 text-center sm:py-12">
         <h2 id="cta-title" className="st-h2 text-apple-ink dark:text-white">
           {t('home.cta.heading')}
         </h2>

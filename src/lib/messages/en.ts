@@ -676,6 +676,7 @@ const en = {
   'footer.useIt': 'Use it',
   'footer.read': 'Read',
   'footer.terms': 'Terms',
+  'footer.legal': 'Legal',
   'footer.open': 'Open ShareTexts',
   'footer.withCode': 'Share with a code',
   'footer.devs': 'For developers',

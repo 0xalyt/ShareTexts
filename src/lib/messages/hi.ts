@@ -604,6 +604,7 @@ const hi: Dict = {
   'footer.useIt': 'इस्तेमाल करें',
   'footer.read': 'पढ़ें',
   'footer.terms': 'शर्तें',
+  'footer.legal': 'कानूनी जानकारी',
   'footer.open': 'ShareTexts खोलें',
   'footer.withCode': 'कोड से शेयर करें',
   'footer.devs': 'डेवलपर्स के लिए',
