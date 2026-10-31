@@ -27,6 +27,11 @@ import { LiveCodeInput } from '../components/LiveCodeInput';
 import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
+import { GlassCapsule } from '../components/ui/GlassCapsule';
+import { GlassCircleButton } from '../components/ui/GlassCircleButton';
+import { ListRow } from '../components/ui/ListRow';
+import { ScreenStack } from '../components/ui/ScreenStack';
+import { OverlaySheet } from '../components/OverlaySheet';
 import { TactileButton } from '../components/TactileButton';
 import { SlideToConfirm } from '../components/SlideToConfirm';
 import { ShareMenu } from '../components/ShareMenu';
@@ -64,7 +69,7 @@ import {
   Smartphone, Monitor as Monitor, X as X, ArrowLeftRight as ArrowRightLeft,
   ArrowLeft, Info, Pencil, FileUp as Upload,
   RefreshCw as RotateCcw, Settings as SettingsIcon, Clock as Clock3,
-  Plus, ChevronRight, File as FileIcon, Bookmark,
+  Plus, ChevronRight, File as FileIcon, Bookmark, MoreHorizontal,
 } from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon } from 'lucide-react';
 import { SpaceCreateSheet, SpaceJoinSheet } from './SpaceView';
@@ -154,6 +159,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // header button and the room settings row open this same view (spec:
   // one collection, never two).
   const [showSaved, setShowSaved] = useState(false);
+  // Phone header's overflow sheet (§18: three controls, the rest behind More).
+  const [showMore, setShowMore] = useState(false);
   // /space/create and /space/join land here with the right sheet already
   // open — the code entry point IS the app, not a dead end.
   const [spaceSheet, setSpaceSheet] = useState<null | 'create' | 'join'>(initialSpaceSheet ?? null);
@@ -711,6 +718,47 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // Dismiss the connecting overlay. The creator goes back to their pairing
   // screen (the room stays open — the peer can still connect); the joiner
   // abandons and can enter a fresh code.
+  /* ─ Task screens (§18): no header bar. A floating glass Back circle sits
+     inside the pane with a 12px canvas fade under it, so scrolling content
+     never collides with the control. */
+  const isTaskScreen = panelMode === 'sending' || panelMode === 'receiving' || panelMode === 'connecting';
+  const taskChrome = isTaskScreen ? (
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20">
+      <div aria-hidden className="h-[52px] w-full bg-gradient-to-b from-apple-canvas via-apple-canvas/80 to-transparent dark:from-night-950 dark:via-night-950/80" />
+      <div className="absolute left-4 top-2 pointer-events-auto sm:left-6 lg:left-8">
+        <GlassCircleButton label={t('cancel')} onClick={handleCancel} testId="task-back">
+          <ArrowLeft className="h-5 w-5" strokeWidth={1.8} aria-hidden />
+        </GlassCircleButton>
+      </div>
+    </div>
+  ) : null;
+  /* ─ History (§18): each task level owns one history entry, so browser and
+     Android Back do exactly what the in-app Back circle does. The Room keeps
+     its own entry (ChatView pushes and unwinds it with a generation tag), so
+     this only manages the levels it creates — it never pops someone else's. */
+  const taskHistoryRef = useRef(false);
+  useEffect(() => {
+    if (isTaskScreen && !taskHistoryRef.current) {
+      taskHistoryRef.current = true;
+      try { history.pushState({ stTask: Date.now() }, ''); } catch { /* private mode */ }
+    } else if (!isTaskScreen) {
+      taskHistoryRef.current = false;
+    }
+  }, [isTaskScreen]);
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const st = (e.state ?? null) as { stTask?: number; stRoom?: number } | null;
+      if (st && (st.stTask || st.stRoom)) return; // our own entry, still current
+      if (taskHistoryRef.current) {
+        taskHistoryRef.current = false;
+        handleCancel();
+      }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [handleCancel]);
+
+
   const dismissConnecting = useCallback(() => {
     if (session.isCreator) { creatorLeftConnectingRef.current = true; setPanelMode('sending'); return; }
     createAbortRef.current++;
@@ -804,50 +852,46 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             room rather than a setting, belongs to that same cluster on a
             page where everything else already does. Every slot keeps the
             40px contract; the capsule only adds 1px of breathing room. */}
-        <div className="flex items-center">
-          {/* The cluster is ONE piece of glass (st-lens): gradient fill,
-              a rim that is bright where the light lands and dark where it
-              leaves, and — at 6% alpha — a whisper of dispersion at the
-              edge. A flat `bg-white/70` was the thing that made this row
-              read as a default toolbar. */}
-          <div className="flex items-center gap-0 rounded-full st-lens px-1 py-[3px]">
-          <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
-          <LanguageMenu />
-          {/* Saved — the local library, reachable without a room. Bookmark
-              glyph in the shared 40px slot; the count is a quiet numeral,
-              never a colored badge. */}
-          {panelMode !== 'connected' && (
-            <IconButton3D
-              label={savedNavLabel}
-              onClick={() => setShowSaved(true)}
-              testId="open-saved"
-              className="relative"
-            >
-              <Bookmark className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
-              {savedCount > 0 && (
-                <span aria-hidden className="absolute bottom-1 right-1 text-[9px] font-bold leading-none tnum text-apple-ink-muted dark:text-white/50">
-                  {savedCount > 99 ? '99+' : savedCount}
-                </span>
+        {/* Two compositions, one grammar (§18).
+            ≥768px: a single glass capsule of instruments (search, language,
+            saved, docs) with the theme glyph as its own circle beside it.
+            Phones: language + More in one capsule, theme circle beside —
+            three controls on the narrowest screen, which is the Hick limit.
+            Everything else the capsule used to carry moves into More. */}
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 sm:flex">
+            <GlassCapsule label={t('nav.more')}>
+              <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
+              <LanguageMenu />
+              {panelMode !== 'connected' && (
+                <IconButton3D
+                  label={savedNavLabel}
+                  onClick={() => setShowSaved(true)}
+                  testId="open-saved"
+                  className="relative"
+                >
+                  <Bookmark className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
+                  {savedCount > 0 && (
+                    <span aria-hidden className="absolute bottom-1 right-1 text-[9px] font-bold leading-none tnum text-apple-ink-muted dark:text-white/50">
+                      {savedCount > 99 ? '99+' : savedCount}
+                    </span>
+                  )}
+                </IconButton3D>
               )}
-            </IconButton3D>
-          )}
-          {/* Docs sits BETWEEN the language and theme toggles (user request) —
-              same 40px slot, same quiet icon style as its neighbors; the
-              footer link stays too. Hidden on a phone, where the footer
-              already carries it and the cluster needs the width. */}
-          <IconButton3D label={t('nav.docs')} href="/docs" className="hidden sm:flex">
-            <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
-          </IconButton3D>
-          {/* In the ROOM the header carries no theme control: the room already
-              has a settings sheet whose first row IS the theme control, and a
-              second one beside it made "which control is which" a puzzle on
-              a screen the user is supposed to be sharing files from. */}
-          {panelMode !== 'connected' && (
-            <>
-              <span aria-hidden className="w-px h-4 mx-1 bg-black/[0.08] dark:bg-white/[0.12]" />
-              <ThemeToggle />
-            </>
-          )}
+              <IconButton3D label={t('nav.docs')} href="/docs">
+                <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
+              </IconButton3D>
+            </GlassCapsule>
+            {panelMode !== 'connected' && <ThemeToggle />}
+          </div>
+          <div className="flex items-center gap-2 sm:hidden">
+            <GlassCapsule label={t('nav.more')}>
+              <LanguageMenu />
+              <IconButton3D label={t('nav.more')} onClick={() => setShowMore(true)} testId="header-more">
+                <MoreHorizontal className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
+              </IconButton3D>
+            </GlassCapsule>
+            {panelMode !== 'connected' && <ThemeToggle />}
           </div>
         </div>
         {/* Spotlight bar: a hairline of brand light where the sticky header
@@ -1153,13 +1197,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           {/* ── SENDING: pair the other device ────────────────────── */}
           {panelMode === 'sending' && (
             <motion.div key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="max-w-md w-full mx-auto overflow-hidden">
-              {/* Back arrow leads the title — iOS navigation pattern. */}
-              <div className="flex items-center gap-1 mb-4">
-                <button onClick={handleCancel} aria-label={t('cancel')} className="flex items-center justify-center min-w-[40px] min-h-[40px] -ml-2 rounded-full text-apple-ink-muted hover:text-apple-ink dark:text-white/50 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-95 transition-colors">
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <h2 className="text-[22px] font-semibold text-apple-ink dark:text-white tracking-[-0.02em]">{t('create.title')}</h2>
-              </div>
+              <h2 className="mb-4 text-[32px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [text-wrap:balance]">{t('create.title')}</h2>
               {isCreating && !session.secret ? (
                 <div className="flex flex-col items-center py-8">
                   <ShareTextsLogo size={20} motion="connecting" />
@@ -1221,12 +1259,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           {/* ── RECEIVING: enter code ────────────────────────────── */}
           {panelMode === 'receiving' && (
             <motion.div key="receiving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="max-w-md mx-auto">
-              <div className="flex items-center gap-1 mb-4">
-                <button onClick={handleCancel} aria-label={t('cancel')} className="flex items-center justify-center min-w-[40px] min-h-[40px] -ml-2 rounded-full text-apple-ink-muted hover:text-apple-ink dark:text-white/50 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-95 transition-colors">
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <h2 className="text-[22px] font-semibold text-apple-ink dark:text-white tracking-[-0.02em]">{t('receive.title')}</h2>
-              </div>
+              <h2 className="mb-4 text-[32px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [text-wrap:balance]">{t('receive.title')}</h2>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/50 font-medium mb-5">{t('receive.hint')}</p>
               {/* The capsule stays mounted through the whole attempt — that
                   is what makes the interaction beats visible: verifying
@@ -1635,7 +1668,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           user knows releasing HERE is the action. pointer-events-none keeps
           dragleave/drop flowing to the pane beneath. */}
       {homeDropVeil}
-      {headerNode}
+      {!isTaskScreen && headerNode}
+      {taskChrome}
       {/* Hero area — the H1 lives INSIDE the hero column (restored): one
           source of truth for the headline on desktop and mobile, sitting in
           the same max-w-md column as the subtitle and actions. */}
@@ -1645,10 +1679,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             anchoring it left a dead zone below. Idle/pairing content is
             tall enough to top-anchor; only the room rail benefits. */}
         <div className={panelMode === 'connected' ? "my-auto w-full" : "w-full"}>
-          {heroContent}
+          {/* Hierarchy pushes (§18): Send/Receive slide in over Home; the
+              room entry crossfades because it is a mode, not a level. */}
+          <ScreenStack screen={panelMode} mode={panelMode === 'connected' ? 'mode' : 'push'}>
+            {heroContent}
+          </ScreenStack>
         </div>
       </div>
-      {compactFooterNode}
+      {panelMode === 'idle' && compactFooterNode}
     </div>
   );
 
@@ -2029,16 +2067,19 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <div className="relative isolate flex flex-1 flex-col bg-apple-canvas dark:bg-night-900 st-landing">
                 {ambientGlow}
                 <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] st-horizon opacity-55" />
-                {headerNode}
+                {!isTaskScreen && headerNode}
+                {taskChrome}
                 {/* TOP-ANCHORED like the desktop pane: justify-center with
                     overflowing content pushes the heading into dead space
                     above (and clips it) — start-anchoring keeps the title
                     right under the header on every phone height. */}
                 <div id="main-content" className="flex-1 flex flex-col justify-start px-6 lg:px-10 pt-3 sm:pt-6 pb-6 min-h-0">
-                  {heroContent}
+                  <ScreenStack screen={panelMode} mode={panelMode === 'connected' ? 'mode' : 'push'}>
+                    {heroContent}
+                  </ScreenStack>
                 </div>
               </div>
-              {compactFooterNode}
+              {panelMode === 'idle' && compactFooterNode}
             </div>
           </div>
         )
@@ -2136,6 +2177,20 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       />
       {/* The ONE Saved Items library — landing header and settings both open it. */}
       <SavedItemsOverlay open={showSaved} onClose={() => setShowSaved(false)} />
+      {/* More — the phone header's overflow (§18). A sheet on phones, and the
+          same rows on a desktop popover-sized sheet; every destination the
+          capsule can't hold without becoming a toolbar. */}
+      <OverlaySheet open={showMore} onClose={() => setShowMore(false)} label={t('nav.more')} maxWidth={400} testId="more-sheet">
+        <div className="flex flex-col">
+          <ListRow title={t('nav.saved')} leading={<Bookmark className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setShowSaved(true); }} testId="more-saved" />
+          <ListRow title={t('nav.search')} leading={<Info className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setCmdOpen(true); }} testId="more-search" />
+          <ListRow title={t('nav.docs')} href="/docs" leading={<BookOpen className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
+          <ListRow title={t('nav.guides')} href="/guides" />
+          <ListRow title={t('nav.about')} href="/about" />
+          <ListRow title={t('nav.privacy')} href="/privacy" />
+          <ListRow title={t('nav.terms')} href="/terms" />
+        </div>
+      </OverlaySheet>
       <SpaceCreateSheet open={spaceSheet === 'create'} onClose={() => setSpaceSheet(null)} />
       <SpaceJoinSheet open={spaceSheet === 'join'} onClose={() => setSpaceSheet(null)} initialCode={initialSpaceCode} />
       {/* Apple-style bottom-sheet confirmation before really ending the session. */}
