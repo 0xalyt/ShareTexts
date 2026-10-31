@@ -1,4 +1,4 @@
-# ShareTexts — Design Contract v1.2
+# ShareTexts — Design Contract v1.3
 Read this before every task. If code and this file disagree, tell the owner; do not guess.
 
 ## 0. Working rules (every task)
@@ -153,3 +153,25 @@ Where the code and this contract disagreed, the owner chose. This table is the r
 | Haptic names | contract wins: tap, toggle, success, error | P5 |
 | Hard-coded aria-labels outside messages | contract wins | P6 |
 | Emoji: Apple images through src/lib/emoji.ts | shipped in STEP 1 | P1a |
+
+## 18. Apple DNA grammar (v1.3, owner approved)
+Source: the Apple DNA reference kit (docs/references/apple-dna/ if present). Its numbers are inferred starting points, not official Apple values. We take the grammar, not the look.
+Screens
+- App screens are content-first: large left-aligned title (h2 32/700), flat canvas, inset hairline separators. No dashboards of tiles.
+- Task screens have a floating glass Back circle (44) on the left, an optional centred title (17/600) and an optional glass capsule of at most 2 actions on the right. No bar background; a 12px canvas fade sits under the controls.
+- The bottom has at most one floating control group (composer, or status plus primary action).
+Glass (selective)
+- Allowed only on: the Back circle, the trailing action capsule, the bottom floating group, a sheet's grabber area. Never on cards, rows or the page.
+- Light: fill rgb(255 255 255 / 72%), 1px inner rim rgb(0 0 0 / 6%), shadow 0 3px 16px rgb(0 0 0 / 8%), blur 16px, saturate 1.2.
+- Dark: fill rgb(38 38 38 / 72%), 1px rim rgb(255 255 255 / 12%), shadow 0 3px 16px rgb(0 0 0 / 40%), blur 16px.
+- Budget: at most 3 glass elements on screen; never animate blur. Solid fallback (canvas or raised) when backdrop-filter is unsupported, prefers-reduced-transparency is set, html.no-glass is set (low-memory phones or the Settings switch).
+Press
+- Every tappable control: on contact scale .975 in 95 ms, release 155 ms, never delaying the action. Primary buttons use the translateY(2px) plus edge press from section 6 instead.
+Navigation
+- Hierarchy pushes: the new screen slides in from the right in 280 ms, the parent shifts -8% and dims to .96; Back reverses. Mode changes (for example Code | QR | Link) crossfade in 190 ms. A segmented control slides one shared thumb in 240 ms. Sheets rise in 320 ms with a grabber; the drag follows the finger; dismiss when the drag passes 28% of the height or the velocity passes 0.6 px/ms (minimum 36px); otherwise snap back.
+- Browser and Android Back always equal the in-app Back. Parent screen state (scroll, selection, drafts) is kept.
+- Reduced motion: no translation or parallax; crossfade 140 ms; the same information and controls.
+Desktop
+- From 1024px use a master-detail layout (left column 320, detail beside it), never a stretched phone layout. Single-purpose screens (Send, Receive) use one centred column of 480px.
+Colour decision (owner): the primary fill is the brand orange #f06413 in both themes; the label is white 19px/700 (WCAG large text, 3.2:1). Never darken the brand colour to pass contrast; change the label size or use ink instead.
+Haptics: success and error moments only by default; taps off. Android uses navigator.vibrate; iOS stays off until the owner tests it. One Settings switch controls all of it.
