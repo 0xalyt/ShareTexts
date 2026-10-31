@@ -42,6 +42,17 @@ import { DevicePicker, RecipientSummary } from '../components/DevicePicker';
 import { hapticArrive } from '../lib/haptics';
 import { RecipientStrip } from '../components/RecipientStrip';
 
+/** Text carried in from the landing intent field (SingleScreenApp parks it
+ *  right before creating the room). Consumed once, so a later room in the
+ *  same tab never inherits it. */
+function takeIntentText(): string | null {
+  const w = window as Window & { __stPendingIntentText?: string };
+  const v = w.__stPendingIntentText;
+  if (!v) return null;
+  delete w.__stPendingIntentText;
+  return v;
+}
+
 /** Localized date-separator label: Today / Yesterday / a real date. */
 function dateKeyOf(ts: number): string {
   const d = new Date(ts);
@@ -100,7 +111,18 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     let cancelled = false;
     void loadDraft(session.roomId).then((d) => {
-      if (cancelled || !d) { setDraftReady(true); return; }
+      if (cancelled) return;
+      // What the user typed into the intent field on the way here is the
+      // thing they chose to move — it outranks a stale draft for this room
+      // (and is normally the only content there anyway).
+      const carried = takeIntentText();
+      if (carried) {
+        setInputText(carried);
+        setComposerTouched(true);
+        setDraftReady(true);
+        return;
+      }
+      if (!d) { setDraftReady(true); return; }
       setInputText(d.text);
       setAttachments(d.attachments.filter(a => a.file && a.file.size > 0));
       setDraftReady(true);

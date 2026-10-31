@@ -26,6 +26,7 @@ import { LiveCodeDisplay } from '../components/LiveCodeDisplay';
 import { LiveCodeInput } from '../components/LiveCodeInput';
 import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
+import { IntentField } from '../components/IntentField';
 import { TactileButton } from '../components/TactileButton';
 import { SlideToConfirm } from '../components/SlideToConfirm';
 import { ShareMenu } from '../components/ShareMenu';
@@ -685,6 +686,21 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     }
   }, [isJoining, joinWithCode, t, friendlyConnectError, reduceMotion, clearAcceptBeat]);
 
+  // Intent-first entry: one field stands in front of Send/Receive. Typing
+  // something opens the room with that text already staged in the composer
+  // (ChatView consumes the parked string on mount), and pasting a room code
+  // walks straight into the join that the Receive panel would have run —
+  // same handler, same errors, same beat. Nobody is asked "Send or Receive?"
+  // before they have said what they are moving.
+  const handleIntentCreate = useCallback((text: string) => {
+    if (text) (window as Window & { __stPendingIntentText?: string }).__stPendingIntentText = text;
+    void handleSend();
+  }, [handleSend]);
+  const handleIntentJoin = useCallback((code: string) => {
+    handleReceive();
+    void handleCodeComplete(code);
+  }, [handleReceive, handleCodeComplete]);
+
   const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
@@ -900,7 +916,25 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   (audit #12 — Receive rendered wider than Send), and each
                   hint sits directly beneath its own button so the
                   label↔action mapping is unambiguous (audit #11). */}
-              <div className="order-3 mt-6 grid grid-cols-2 gap-x-3 gap-y-1 max-w-[400px] mx-auto sm:mx-0">
+              {/* INTENT FIRST. The field leads: paste or type and the app
+                  works out whether to open a room or walk into one. The
+                  Send/Receive pair survives below it for the two cases that
+                  field can't infer — "I just need a channel" and "I only
+                  have a code" — but nobody has to answer that question
+                  before they have said what they are moving. */}
+              <div className="order-3 mt-5 w-full">
+                <IntentField
+                  onCreate={handleIntentCreate}
+                  onJoin={handleIntentJoin}
+                  busy={isCreating || isJoining}
+                />
+              </div>
+              <div className="order-4 mt-4 flex w-full items-center gap-3" aria-hidden>
+                <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/60 dark:text-white/30">{t('home.or')}</span>
+                <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
+              </div>
+              <div className="order-5 mt-3 grid grid-cols-2 gap-x-3 gap-y-1 max-w-[400px] mx-auto sm:mx-0">
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
                   <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
