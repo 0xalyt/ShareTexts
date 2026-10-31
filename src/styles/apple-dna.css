@@ -1,0 +1,389 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   apple-dna.css — the grammar in DESIGN.md §18, as CSS.
+
+   This file carries BEHAVIOUR, not a new look: the press response, the one
+   glass material, the segmented thumb, the push transition and the sheet
+   drag. Every colour comes from the existing token ladder in index.css; no
+   new palette is introduced here.
+
+   Ordering: imported at the END of index.css so these classes win over the
+   utility soup in components only where they are deliberately applied.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    /* Press */
+    --st-press-scale: 0.975;
+
+    /* Durations (§18) */
+    --st-t-press: 95ms;
+    --st-t-release: 155ms;
+    --st-t-popover: 175ms;
+    --st-t-thumb: 240ms;
+    --st-t-mode: 190ms;
+    --st-t-push: 280ms;
+    --st-t-sheet: 320ms;
+    --st-t-reduce: 140ms;
+
+    /* Easings (§18) */
+    --st-ease-enter: cubic-bezier(0.23, 1, 0.32, 1);
+    --st-ease-move: cubic-bezier(0.77, 0, 0.175, 1);
+    --st-ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+
+    /* Glass — light */
+    --st-glass-fill: rgb(255 255 255 / 0.72);
+    --st-glass-rim: rgb(0 0 0 / 0.06);
+    --st-glass-shadow: 0 3px 16px rgb(0 0 0 / 0.08);
+
+    /* Push geometry */
+    --st-push-shift: -8%;
+    --st-push-dim: 0.96;
+  }
+
+  html.dark {
+    --st-glass-fill: rgb(38 38 38 / 0.72);
+    --st-glass-rim: rgb(255 255 255 / 0.12);
+    --st-glass-shadow: 0 3px 16px rgb(0 0 0 / 0.4);
+  }
+}
+
+/* ── Press ──────────────────────────────────────────────────────────────
+   Every tappable control answers contact within 95 ms. Primary buttons use
+   the translateY + edge press from §6 instead, so they do not also scale. */
+.press {
+  transition: transform var(--st-t-release) var(--st-ease-enter);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.press:active:not(:disabled):not([aria-disabled='true']) {
+  transform: scale(var(--st-press-scale));
+  transition-duration: var(--st-t-press);
+}
+
+/* ── Glass ──────────────────────────────────────────────────────────────
+   Allowed only on the Back circle, the trailing action capsule, the bottom
+   floating group and a sheet's grabber area (§18). Never on cards or rows. */
+.glass,
+.glass-capsule {
+  background: var(--st-glass-fill);
+  box-shadow: inset 0 0 0 1px var(--st-glass-rim), var(--st-glass-shadow);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+}
+.glass-capsule {
+  border-radius: 9999px;
+}
+
+/* Solid fallbacks — same silhouette, no sampling. Any one of these being
+   true means the material costs more than it gives. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass,
+  .glass-capsule {
+    background: var(--color-apple-canvas);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-capsule {
+    background: var(--color-apple-canvas);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+html.no-glass .glass,
+html.no-glass .glass-capsule {
+  background: var(--color-apple-canvas);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ── Segmented control ──────────────────────────────────────────────────
+   One shared thumb that slides; the labels never animate their own box. */
+.segmented {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  isolation: isolate;
+  padding: 3px;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 0.045);
+}
+html.dark .segmented {
+  background: rgb(255 255 255 / 0.07);
+}
+.segmented-thumb {
+  position: absolute;
+  z-index: 0;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 9999px;
+  background: var(--color-apple-canvas);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px rgb(0 0 0 / 0.04);
+  transition:
+    transform var(--st-t-thumb) var(--st-ease-enter),
+    width var(--st-t-thumb) var(--st-ease-enter);
+  pointer-events: none;
+}
+html.dark .segmented-thumb {
+  background: rgb(255 255 255 / 0.14);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+}
+.segmented [role='tab'] {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-apple-ink-muted);
+  transition: color var(--st-t-mode) var(--st-ease-enter);
+}
+.segmented [role='tab'][aria-selected='true'] {
+  color: var(--color-apple-ink);
+}
+html.dark .segmented [role='tab'] {
+  color: rgb(255 255 255 / 0.55);
+}
+html.dark .segmented [role='tab'][aria-selected='true'] {
+  color: #fff;
+}
+
+/* ── Route stack ────────────────────────────────────────────────────────
+   Hierarchy pushes from the right; the parent recedes by 8% and dims to
+   .96. Modes crossfade. Everything is transform/opacity only, so it can be
+   interrupted at any frame. */
+.route-stack {
+  position: relative;
+}
+.route-screen {
+  will-change: transform, opacity;
+}
+.route-screen[data-route-state='incoming'] {
+  animation: st-push-in var(--st-t-push) var(--st-ease-enter) both;
+}
+.route-screen[data-route-state='behind'] {
+  animation: st-recede var(--st-t-push) var(--st-ease-enter) both;
+  pointer-events: none;
+}
+.route-screen[data-route-state='returning'] {
+  animation: st-push-in var(--st-t-push) var(--st-ease-enter) reverse both;
+}
+.route-screen[data-route-state='closing'] {
+  animation: st-push-out var(--st-t-push) var(--st-ease-enter) both;
+  pointer-events: none;
+}
+.route-screen[data-route-state='mode'] {
+  animation: st-crossfade var(--st-t-mode) var(--st-ease-enter) both;
+}
+
+@keyframes st-push-in {
+  from { opacity: 0.6; transform: translate3d(100%, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes st-push-out {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to   { opacity: 0.6; transform: translate3d(100%, 0, 0); }
+}
+@keyframes st-recede {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: var(--st-push-dim); transform: translate3d(var(--st-push-shift), 0, 0) scale(0.985); }
+}
+@keyframes st-crossfade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Sheet ──────────────────────────────────────────────────────────────
+   Rise 320 ms with a grabber. The drag follows the finger through --drag;
+   release past 28% of the height (minimum 36px) or 0.6 px/ms dismisses, or
+   the sheet snaps back. */
+.sheet {
+  transform: translate3d(0, var(--drag, 0px), 0);
+  transition: transform var(--st-t-sheet) var(--st-ease-sheet);
+}
+.sheet[data-dragging='true'] {
+  transition: none;
+}
+.sheet-grabber {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgb(0 0 0 / 0.18);
+}
+html.dark .sheet-grabber {
+  background: rgb(255 255 255 / 0.28);
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────
+   No travel, no parallax: the same information arrives as a 140 ms fade. */
+@media (prefers-reduced-motion: reduce) {
+  .press,
+  .press:active {
+    transform: none;
+    transition: none;
+  }
+  .route-screen[data-route-state] {
+    animation: st-crossfade var(--st-t-reduce) linear both;
+  }
+  .segmented-thumb {
+    transition: none;
+  }
+  .sheet {
+    transition: opacity var(--st-t-reduce) linear;
+  }
+}
+
+/* ── Buttons (§6) ───────────────────────────────────────────────────────
+   One grammar for the whole app. The primary fill is the brand orange in
+   BOTH themes with a white 19px/700 label (WCAG large text); pressing
+   moves it down 2px and the edge shrinks 3→1px in 60 ms. */
+.st-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--st-t-release) var(--st-ease-enter),
+    color var(--st-t-release) var(--st-ease-enter),
+    transform var(--st-t-press) var(--st-ease-enter),
+    box-shadow var(--st-t-press) var(--st-ease-enter);
+}
+.st-btn:focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 2px;
+}
+.st-btn:disabled,
+.st-btn[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Primary: flat orange, a darker bottom edge that is part of the shape. */
+.st-btn--primary {
+  background: #f06413;
+  color: #fff;
+  font-size: 19px;
+  box-shadow: 0 3px 0 #c04b09;
+}
+.st-btn--primary:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #c04b09;
+}
+html.dark .st-btn--primary {
+  background: #f06413;
+  box-shadow: 0 3px 0 #c04b09;
+}
+
+/* Secondary: raised surface, hairline, ink label. Never orange. */
+.st-btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1.5px rgb(0 0 0 / 0.12);
+}
+html.dark .st-btn--secondary {
+  background: #262626;
+  color: #f2f2f2;
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.14);
+}
+.st-btn--secondary:active:not(:disabled) {
+  transform: scale(var(--st-press-scale));
+}
+
+/* Tertiary: a word, not a box. */
+.st-btn--tertiary {
+  background: transparent;
+  color: var(--color-apple-ink-muted);
+  font-size: 15px;
+  font-weight: 600;
+  padding-inline: 8px;
+}
+.st-btn--tertiary:hover {
+  color: var(--color-text);
+}
+html.dark .st-btn--tertiary {
+  color: rgb(255 255 255 / 0.55);
+}
+html.dark .st-btn--tertiary:hover {
+  color: #fff;
+}
+
+/* Destructive: text in the danger ink, always inside a confirm sheet. */
+.st-btn--destructive {
+  background: transparent;
+  color: var(--color-status-danger-ink);
+  font-size: 17px;
+  font-weight: 700;
+}
+html.dark .st-btn--destructive {
+  color: var(--color-status-danger-ink-dark);
+}
+
+/* Sizes: 52 hero, 44 standard, 36 for a quiet instrument. */
+.st-btn--lg { min-height: 52px; padding: 0 26px; }
+.st-btn--md { min-height: 44px; padding: 0 20px; }
+.st-btn--sm { min-height: 36px; padding: 0 14px; font-size: 14px; }
+
+/* Hover exists only where a pointer can hover. */
+@media (hover: hover) and (pointer: fine) {
+  .st-btn--primary:hover:not(:disabled) { background: #e85e10; }
+  .st-btn--secondary:hover:not(:disabled) { background: var(--color-bg-secondary); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-btn,
+  .st-btn:active {
+    transform: none;
+    transition: background-color 120ms linear, color 120ms linear;
+  }
+}
+
+/* ── Scripts (§4) ───────────────────────────────────────────────────────
+   Inter's Latin subsets have no business setting Devanagari, CJK or Arabic.
+   Those scripts get the platform's own faces, which are designed for them.
+   The stack ends in the same generic so a missing font degrades, not breaks. */
+:lang(hi), :lang(ja), :lang(zh), :lang(ko), :lang(ar), :lang(fa), :lang(he), :lang(th), :lang(bn), :lang(ur) {
+  --font-sans: system-ui, -apple-system, "Noto Sans", "Noto Sans Devanagari",
+    "Noto Sans JP", "Noto Sans SC", "Noto Sans KR", "Noto Naskh Arabic",
+    "Hiragino Sans", "PingFang SC", "Malgun Gothic", sans-serif;
+  --font-display: var(--font-sans);
+}
+
+/* Display type: never tighter than 1.1 or the lines of a phone H1 collide. */
+.st-display {
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* A compact brand pill (ShareMenu's trigger): the same flat fill and edge as
+   the primary button, at the small size it needs. Kept as a class so no TSX
+   has to spell out the orange in hex. */
+.st-pill-brand {
+  background: #f06413;
+  color: #fff;
+  box-shadow: 0 3px 0 #c04b09;
+  transition: background-color var(--st-t-release) var(--st-ease-enter),
+    transform var(--st-t-press) var(--st-ease-enter),
+    box-shadow var(--st-t-press) var(--st-ease-enter);
+}
+.st-pill-brand:hover {
+  background: #e85e10;
+}
+.st-pill-brand:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #c04b09;
+}

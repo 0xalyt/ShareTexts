@@ -10,6 +10,18 @@
    it lands (the fallback metrics below keep that swap from shifting layout).
    Files: public/fonts/inter-latin{,-ext}.woff2 (85KB + 48KB, generated from
    Google's static CDN, committed so the build has no network dependency). */
+/* Size-adjusted fallback (§4): the swap from the system face to Inter shifts
+   nothing, because this face is declared with the metrics Inter actually
+   lands on (Arial, adjusted). Browsers that ignore size-adjust just use it
+   as a plain Arial alias — still no jump, only a slightly different width. */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
+  size-adjust: 107.4%;
+  ascent-override: 90%;
+  descent-override: 22.4%;
+  line-gap-override: 0%;
+}
 @font-face {
   font-family: "Inter";
   font-style: normal;
@@ -40,9 +52,13 @@
      drifting to whatever the platform ships; the system faces follow as
      fallbacks for the pre-paint frame and for any glyph Inter lacks. --font-display
      is the same family (the old SF-Pro-Display-first split is retired). */
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* SF first on Apple devices (§4, decision P1b): the system face is the
+     most native thing a web app can wear, and it costs nothing. Inter is
+     self-hosted for everyone else; the size-adjusted alias follows so the
+     swap never moves a letter. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Inter Fallback", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Inter", "Inter Fallback", "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   /* ── Brand: EMBER — the one accent across the entire app ──────
      Ember is the brand color, full stop: buttons, links, focus,

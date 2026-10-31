@@ -6,7 +6,9 @@ import { installDiagGlobal, diag } from './lib/diag';
 import { prewarmSignaling, signalingHttpBaseForTelemetry } from './lib/socket';
 import { productEvent } from './lib/telemetry';
 import { initInstallCapture } from './lib/pwaInstall';
+import { applyGlassPreference } from './lib/device';
 import './index.css';
+import './styles/apple-dna.css';
 
 // Product telemetry: one anonymous page_view per load (see lib/telemetry.ts
 // for the privacy contract — event names only, no payloads, whitelist both ends).
@@ -16,6 +18,11 @@ productEvent('product.page_view');
 // Lifecycle diagnostics for the signaling/transfer journey — read them via
 // window.__sharetextDiag.snapshot() when a connect or transfer fails.
 installDiagGlobal();
+
+// The glass material has a floor: a low-memory or low-core phone (or the
+// user's own switch) gets solid fills instead of a backdrop blur, before the
+// first paint so nothing flashes from glass to solid.
+applyGlassPreference();
 
 // Toughness net: unhandled promise rejections and window errors are logged
 // into the same diag ring the diagnostics panel reads. The app keeps working
@@ -46,7 +53,17 @@ if (shell) {
   setTimeout(() => shell.remove(), 260);
 }
 
-createRoot(document.getElementById('root')!).render(
+// Dev-only primitive gallery (DESIGN.md §18, step 2g): /__kit renders every
+// control in light and dark so a change can be looked at in one place. The
+// import is inside `import.meta.env.DEV`, so a production build contains no
+// branch and no chunk for it.
+const kitRoot = document.getElementById('root')!;
+if (import.meta.env.DEV && window.location.pathname === '/__kit') {
+  void import('./dev/KitPage').then(({ KitPage }) => {
+    createRoot(kitRoot).render(<StrictMode><KitPage /></StrictMode>);
+  });
+} else
+createRoot(kitRoot).render(
   <StrictMode>
     {/* Respect prefers-reduced-motion: JS-driven animations (hero demo,
         message cards, code digits) are disabled when the user asks for it. */}

@@ -1,24 +1,65 @@
 /**
  * Haptics — reserved for the moments that matter.
  *
- * Restraint is the design: vibration is NOT a texture on every tap —
- * it is reserved for rare, meaningful events (a device connected —
- * the AirDrop "someone's here" moment; a transfer arriving intact).
- * Ordinary taps answer through the visual language instead: TactileButton's
- * press anatomy, state transitions, toasts, and the horizontal shake for
- * denials (LiveCodeInput's wrong-code shake, the nearby failure card) —
- * visual haptics, not vibration.
+ * Restraint is the design: vibration is NOT a texture on every tap. The
+ * everyday answer to a tap is the press itself (styles/apple-dna.css). The
+ * motor only speaks at the two peaks — "someone's here" and "it arrived" —
+ * plus the firm beat that says something went wrong.
  *
- * navigator.vibrate is Android-only in practice (iOS Safari ignores it);
- * everything here is a guarded, no-throw progressive enhancement.
+ * Platforms: navigator.vibrate is Chromium-on-Android. iOS Safari ignores it
+ * entirely, so nothing here fires on an iPhone; `HAPTICS_IOS` stays false
+ * until the owner has tested a device (DESIGN.md §18). Every call is a
+ * guarded no-throw enhancement.
  */
+
+export type HapticEvent = 'tap' | 'select' | 'success' | 'error';
+
+/** Master switch (Settings exposes it in P3). '0' silences everything. */
+export const HAPTICS_STORE = 'sharetext.haptics';
+
+/** iOS has no web haptics API — leave the flag false until it is tested. */
+export const HAPTICS_IOS = false;
+
+const PATTERNS: Record<HapticEvent, number | number[]> = {
+  tap: 8,
+  select: 6,
+  success: [10, 30, 10],
+  error: [24, 40, 24],
+};
+
+/** Events that are ON by default. Taps are texture; the owner asked for them
+ *  to stay quiet unless they opt in. */
+const DEFAULT_ON: Record<HapticEvent, boolean> = {
+  tap: false,
+  select: true,
+  success: true,
+  error: true,
+};
+
+function prefEnabled(event: HapticEvent): boolean {
+  try {
+    const master = localStorage.getItem(HAPTICS_STORE);
+    if (master === '0') return false;
+    const perEvent = localStorage.getItem(`${HAPTICS_STORE}.${event}`);
+    if (perEvent === '1') return true;
+    if (perEvent === '0') return false;
+  } catch { /* private mode — fall through to the defaults */ }
+  return DEFAULT_ON[event];
+}
+
+function reducedMotion(): boolean {
+  try {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
 
 function vibrate(pattern: number | number[]) {
   try {
     if (typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
-    // Chrome refuses a vibrate() before the user has touched the page at all
-    // (and logs a console error while refusing — the connect pulse can fire
-    // on a room that was joined by URL). Ask the user-activation API first so
+    // Chrome refuses vibrate() before the page has been touched at all (and
+    // logs a console error while refusing). Ask the activation API first so
     // the call is never made, instead of being made and rejected.
     const activation = (navigator as Navigator & { userActivation?: { hasBeenActive?: boolean } }).userActivation;
     if (activation && activation.hasBeenActive === false) return;
@@ -26,17 +67,27 @@ function vibrate(pattern: number | number[]) {
   } catch { /* never let feedback break an action */ }
 }
 
+/**
+ * Fire one named haptic. Call it inside a user gesture (a tap handler), not
+ * from an effect — browsers require activation, and a motor that buzzes
+ * without a touch reads as a bug rather than as feedback.
+ */
+export function haptic(event: HapticEvent): void {
+  if (typeof window === 'undefined') return;
+  if (reducedMotion()) return;
+  if (typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !HAPTICS_IOS) return;
+  if (!prefEnabled(event)) return;
+  vibrate(PATTERNS[event]);
+}
+
 /** Rising pulse — a device connected (the AirDrop moment). Once per room. */
-export const hapticSuccess = () => vibrate([12, 40, 18]);
+export const hapticSuccess = () => haptic('success');
 
-/** Quieter double-tick — a transfer arrived intact. Same family as the
- *  connect pulse, one step down: the room already exists, this confirms
- *  the payload landed. */
-export const hapticArrive = () => vibrate([10, 34, 12]);
+/** Quieter double-tick — a transfer arrived intact. */
+export const hapticArrive = () => haptic('success');
 
-/** The shortest tick we can ask for — one 8ms beat, used at the two moments
- *  where a gesture changes SHARED state and the eyes may be elsewhere:
- *  dropping a reaction onto the other device's message, and arming a
- *  destructive slide. Still not a texture on ordinary taps — those answer
- *  through press anatomy and toasts alone. */
-export const hapticTick = () => vibrate(8);
+/** The shortest beat we can ask for — shared state changing under the eyes. */
+export const hapticTick = () => haptic('select');
+
+/** Explicit tap texture, for a surface that opts in (off by default). */
+export const hapticTap = () => haptic('tap');
