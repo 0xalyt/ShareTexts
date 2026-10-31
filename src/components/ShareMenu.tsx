@@ -156,7 +156,9 @@ export function ShareMenu({
             ? cn(
                 'gap-2 h-11 w-full px-5 rounded-full text-[13px] font-semibold',
                 pillTone === 'brand'
-                  ? 'bg-ember text-white shadow-[0_3px_0_0_var(--st-btn-primary-edge)] hover:brightness-[1.03] active:translate-y-[2px] active:shadow-[0_1px_0_0_var(--st-btn-primary-edge)]'
+                  // The one button grammar (§6): flat orange, 3px edge that
+                  // shrinks on press. No brightness filter, no gradient.
+                  ? 'st-pill-brand'
                   : 'bg-apple-parchment dark:bg-white/[0.08] text-apple-ink dark:text-white hover:bg-apple-divider/60 dark:hover:bg-white/[0.12]'
               )
             : 'w-11 h-11 rounded-full bg-white dark:bg-white/[0.06] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/30 dark:hover:border-white/30'

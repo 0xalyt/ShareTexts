@@ -75,7 +75,10 @@ const headerHeights = await M.evaluate(() => {
   const controls = header.querySelectorAll('button[aria-haspopup="listbox"], [role="switch"], button');
   return Array.from(controls).filter(c => c.getBoundingClientRect().height > 0).map(c => Math.round(c.getBoundingClientRect().height));
 });
-ok(`mobile header uniform (${headerHeights.join(',')})`, headerHeights.length >= 2 && headerHeights.every(h => h === 40));
+// P2 raised every header control to 44 (§5/§18: glass capsules hold 44px
+// targets; a 40px glyph beside a 44px Back circle read as a mistake). The
+// check keeps its job — one shared height, no straggler — at the new size.
+ok(`mobile header uniform (${headerHeights.join(',')})`, headerHeights.length >= 2 && headerHeights.every(h => h === 44));
 
 // ── Room flow on mobile: connect A(mobile) to B(desktop) ─────────
 const D = await browser.newPage();

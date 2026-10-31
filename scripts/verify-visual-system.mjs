@@ -112,12 +112,22 @@ const corpus = srcFiles.map(f => read(f)).join('\n');
 const dead = tokens.filter(t => !corpus.includes(t));
 ok(`every --st-* token consumed (${tokens.length} defined)`, dead.length === 0, dead.length ? `dead: ${dead.join(', ')}` : '');
 
-// ── 5. TactileButton wears tokens, not inline gradients ──────────────────
+// ── 5. TactileButton wears the one button grammar (§6, §18) ──────────────
+// P2 replaced the gradient/sheen button with the flat grammar. The old pins
+// ("consumes --st-btn-*-grad", "wires --st-control-*") protected the costume
+// the owner retired, so they now protect its absence: no gradient token may
+// exist anywhere, the component must use the shared .st-btn class, and the
+// three control heights are pinned in the grammar itself (52/44/36).
+const dna = read(path.join(SRC, 'styles', 'apple-dna.css'));
 const tb = read(path.join(SRC, 'components', 'TactileButton.tsx'));
-ok('TactileButton consumes --st-btn-*-grad tokens',
-  tb.includes('var(--st-btn-primary-grad)') && tb.includes('var(--st-btn-soft-grad)') && tb.includes('var(--st-btn-secondary-grad)'));
-ok('TactileButton control heights wire --st-control-*',
-  tb.includes('min-h-[var(--st-control-sm)]') && tb.includes('min-h-[var(--st-control-md)]') && tb.includes('min-h-[var(--st-control-lg)]'));
+ok('TactileButton is built on the shared .st-btn grammar',
+  tb.includes("'st-btn'") && tb.includes('SIZE_CLASS') && tb.includes('VARIANT_CLASS'));
+ok('no gradient button token survives (flat fill only)',
+  !/--st-btn-[a-z-]*grad\s*:/.test(css) && !/--st-btn-[a-z-]*grad/.test(tb) && !/--st-btn-primary-edge/.test(corpus));
+ok('grammar pins the three control heights (52/44/36)',
+  /\.st-btn--lg\s*\{\s*min-height:\s*52px/.test(dna) && /\.st-btn--md\s*\{\s*min-height:\s*44px/.test(dna) && /\.st-btn--sm\s*\{\s*min-height:\s*36px/.test(dna));
+ok('primary is the flat brand orange in both themes (§18)',
+  (dna.match(/background:\s*#f06413/g) ?? []).length >= 2 && dna.includes('#c04b09'));
 
 // ── 6. Status soft/ink/strong pairs exist ────────────────────────────────
 ok('status soft/ink/strong pairs defined in @theme',

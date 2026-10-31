@@ -41,7 +41,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       data-testid="theme-toggle"
       onClick={toggle}
       className={cn(
-        'relative flex items-center justify-center w-10 h-10 shrink-0 rounded-full',
+        'press relative flex items-center justify-center w-11 h-11 shrink-0 rounded-full',
         'text-apple-ink/70 dark:text-white/70 hover:text-apple-ink dark:hover:text-white',
         'hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.94]',
         'transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none',

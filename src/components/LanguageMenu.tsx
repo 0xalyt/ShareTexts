@@ -72,7 +72,7 @@ export function LanguageMenu({ className, align = 'right' }: { className?: strin
         aria-expanded={open}
         aria-label={t('lang.menu')}
         title={t('lang.menu')}
-        className="flex items-center justify-center w-10 h-10 rounded-full text-apple-ink/70 hover:text-apple-ink dark:text-white/70 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+        className="press flex items-center justify-center w-11 h-11 rounded-full text-apple-ink/70 hover:text-apple-ink dark:text-white/70 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
       >
         {/* A globe, drawn at the header's 18px/stroke-1.5 ladder. The lucide
             `Languages` glyph stacks a CJK character under a Latin one — at
