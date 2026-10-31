@@ -1,6 +1,0 @@
-files compared: 144 (A) vs 144 (B)
-pixel-identical (raw): 36
-noisy, emptied by the measured floor masks: 100
-excluded (connecting): 8
-
-PROOF HOLDS — masked diff empty on every diffed screen
