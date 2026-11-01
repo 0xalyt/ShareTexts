@@ -6,7 +6,7 @@ import { installDiagGlobal, diag } from './lib/diag';
 import { prewarmSignaling, signalingHttpBaseForTelemetry } from './lib/socket';
 import { productEvent } from './lib/telemetry';
 import { initInstallCapture } from './lib/pwaInstall';
-import { applyGlassPreference } from './lib/device';
+import { applyGlassPreference, applyPlatformType } from './lib/device';
 import './index.css';
 import './styles/apple-dna.css';
 
@@ -23,6 +23,8 @@ installDiagGlobal();
 // user's own switch) gets solid fills instead of a backdrop blur, before the
 // first paint so nothing flashes from glass to solid.
 applyGlassPreference();
+// SF first on Apple, Inter everywhere else (§2e) — decided before first paint.
+applyPlatformType();
 
 // Toughness net: unhandled promise rejections and window errors are logged
 // into the same diag ring the diagnostics panel reads. The app keeps working

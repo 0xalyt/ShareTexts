@@ -39,6 +39,31 @@ export function prefersNoGlass(): boolean {
   return false;
 }
 
+/**
+ * True on a real Apple platform (macOS, iOS, iPadOS). iPadOS reports
+ * `MacIntel` as its platform, so the UA check backs it up.
+ *
+ * This exists because `-apple-system` is NOT a safe way to ask for SF: Blink
+ * resolves it on Windows too, and a stack that begins with it renders Arial
+ * there and never reaches the self-hosted Inter. The font tokens therefore put
+ * Inter first and this class puts SF back in front, on Apple only.
+ */
+export function isApplePlatform(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const uaData = (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData;
+  const platform = uaData?.platform || navigator.platform || '';
+  const ua = navigator.userAgent || '';
+  return /mac|iphone|ipad|ipod/i.test(platform) || /macintosh|iphone|ipad|ipod/i.test(ua);
+}
+
+/** Apply (or clear) the Apple type class. Safe to call on every boot. */
+export function applyPlatformType(): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  if (isApplePlatform()) root.classList.add('apple-type');
+  else root.classList.remove('apple-type');
+}
+
 /** Apply (or clear) the class. Safe to call on every boot. */
 export function applyGlassPreference(): void {
   if (typeof document === 'undefined') return;
