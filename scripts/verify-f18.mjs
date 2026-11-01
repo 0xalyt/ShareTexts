@@ -66,7 +66,10 @@ try {
   out('desktop landing: hero words sit in the left half', landing.heroLeftHalf, `heroTop=${landing.heroTop}`);
   out('desktop landing: sticky header on desktop', landing.headerSticky);
   out('desktop landing: footer reachable', landing.footerVisible);
-  out('desktop landing: depth layers (horizon + spotlight) mounted', landing.horizon && landing.spotlight);
+  // §18: the hero sits on a FLAT canvas — the warm horizon wash behind it was
+  // removed in P2 (no glow, no gradient behind the hero). The spotlight
+  // hairline under the header stays: that one is a seam, not decoration.
+  out('desktop landing: flat canvas (no horizon glow) + header spotlight', !landing.horizon && landing.spotlight);
   out('desktop landing: single screen, no document scroll', !landing.docScrolls);
   const ofD = await overflow(D);
   out('desktop landing: no horizontal overflow', ofD.offenders.length === 0, JSON.stringify(ofD.offenders));
@@ -242,15 +245,25 @@ try {
   }
 
   // Landing geometry again after the drag — the same one-screen composition.
+  // §18 changed the shape, not the promise: the Space block left the hero and
+  // became a quiet row on Home, with Create/Join one tap deeper in a sheet.
+  // The gate now walks that real path instead of looking for the old section.
   const backHome = await pa.evaluate(() => ({
     h1: !!document.querySelector('h1'),
-    spaceEntry: !!document.querySelector('[data-testid="space-entry"]'),
-    spaceLabel: document.querySelector('[data-testid="space-entry"]')?.textContent?.includes('Temporary Space') ?? false,
-    create: !!document.querySelector('[data-testid="space-create-entry"]'),
-    join: !!document.querySelector('[data-testid="space-join-entry"]'),
+    rows: !!document.querySelector('[data-testid="home-rows"]'),
+    nearby: !!document.querySelector('[data-testid="home-nearby"]'),
+    spaceLabel: document.querySelector('[data-testid="home-space"]')?.textContent?.includes('Temporary Space') ?? false,
   }));
-  out('landing returns after the drag with the Space section intact', backHome.h1 && backHome.spaceEntry && backHome.create && backHome.join, JSON.stringify(backHome));
-  out('Temporary Space reads as a labelled section', backHome.spaceLabel);
+  out('landing returns after the drag with the two doors intact', backHome.h1 && backHome.rows && backHome.nearby && backHome.spaceLabel, JSON.stringify(backHome));
+  await pa.getByTestId('home-space').click();
+  let sheetOk = false;
+  try {
+    await pa.getByTestId('space-sheet').waitFor({ timeout: 8000 });
+    sheetOk = await pa.evaluate(() => !!document.querySelector('[data-testid="space-sheet-create"]') && !!document.querySelector('[data-testid="space-sheet-join"]'));
+  } catch { /* reported below */ }
+  out('Temporary Space opens a chooser with Create and Join', sheetOk);
+  await pa.keyboard.press('Escape');
+  await pa.waitForTimeout(300);
   await pa.screenshot({ path: path.join(OUT, '10-landing-space-section.png') });
 
   const realErrors = errors.filter(e => !/favicon|Download the React DevTools|ResizeObserver loop/i.test(e));

@@ -27,6 +27,9 @@ export function ListRow({
   ariaLabel,
   disabled,
 }: {
+  /** React key is accepted here because rows are rendered from lists; React
+   *  strips it before the component body, so it never reaches the DOM. */
+  key?: React.Key;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   leading?: React.ReactNode;

@@ -365,6 +365,7 @@ const pt: Dict = {
 
   // ── nearby device discovery ───────────────────────────────────────
   'nearby.hint': 'Abra o ShareTexts em outro dispositivo',
+  'nearby.title': 'Nearby',
   "nearby.autoTitle": "Conexão automática",
   "nearby.autoHint": "Pede confirmação quando um dispositivo próximo aparecer",
   'nearby.sectionTitle': 'Dispositivos por perto',

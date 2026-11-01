@@ -27,6 +27,7 @@ export function OverlaySheet({
   maxWidth = 440,
   children,
   testId,
+  keepMounted = false,
 }: {
   open: boolean;
   onClose(): void;
@@ -36,6 +37,14 @@ export function OverlaySheet({
   maxWidth?: number;
   children: React.ReactNode;
   testId?: string;
+  /**
+   * Keep the children mounted while the sheet is closed, inside an inert
+   * hidden host. For content that IS the work — nearby discovery keeps
+   * scanning, so its popup can still arrive while the list is shut — the
+   * sheet must not unmount it. Everything inside stays unreachable by
+   * keyboard and assistive tech (hidden + aria-hidden) while closed.
+   */
+  keepMounted?: boolean;
 }) {
   const { t } = useI18n();
   const trapRef = useFocusTrap(open);
@@ -49,9 +58,60 @@ export function OverlaySheet({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  const panelClass =
+    'relative w-full rounded-t-[24px] sm:rounded-[20px] bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet sm:shadow-2xl p-5 sm:p-6 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-6 max-h-[90dvh] overflow-y-auto';
+
+  // ── Held mode: ONE host, mounted for the life of the screen ──────────
+  // Toggling between two different trees (open sheet / hidden copy) remounts
+  // the children, which for a live engine like nearby discovery means
+  // re-announcing from zero every time the list is opened. So keepMounted
+  // renders the same nodes forever and only animates them: the panel slides
+  // out of view and goes `visibility: hidden` (no paint, no focus, kept
+  // mounted), the backdrop fades to nothing and stops taking pointers.
+  if (keepMounted) {
+    return createPortal(
+      <div
+        className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-6"
+        style={{ pointerEvents: open ? undefined : 'none' }}
+        aria-hidden={open ? undefined : true}
+        data-held={open ? undefined : 'closed'}
+      >
+        <motion.div
+          animate={{ opacity: open ? 1 : 0 }}
+          transition={{ duration: DUR.short / 1000 }}
+          className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
+          style={{ pointerEvents: open ? undefined : 'none' }}
+          onClick={open ? onClose : undefined}
+        />
+        <motion.div
+          ref={trapRef}
+          role="dialog"
+          aria-modal={open || undefined}
+          aria-label={label}
+          animate={{ y: open ? 0 : '100%', opacity: open ? 1 : 0.4 }}
+          transition={SPRING.sheet}
+          style={{ maxWidth, visibility: open ? 'visible' : 'hidden' }}
+          className={panelClass}
+          data-testid={testId}
+        >
+          <span className="sm:hidden absolute top-2.5 left-1/2 -translate-x-1/2 w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" aria-hidden />
+          <button
+            onClick={onClose}
+            aria-label={t('common.close')}
+            className="absolute top-4 right-4 w-10 h-10 -m-1 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-90 transition-all"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          {children}
+        </motion.div>
+      </div>,
+      typeof document !== 'undefined' ? document.body : null,
+    );
+  }
+
   return createPortal(
     <AnimatePresence>
-      {open && (
+      {open ? (
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center sm:p-6">
           <motion.div
             initial={{ opacity: 0 }}
@@ -90,7 +150,7 @@ export function OverlaySheet({
             {children}
           </motion.div>
         </div>
-      )}
+      ) : null}
     </AnimatePresence>,
     typeof document !== 'undefined' ? document.body : null,
   );

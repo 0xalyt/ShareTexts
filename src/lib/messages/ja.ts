@@ -364,6 +364,7 @@ const ja: Dict = {
 
   // ── nearby device discovery ───────────────────────────────────────
   'nearby.hint': '別のデバイスでShareTextsを開く',
+  'nearby.title': 'Nearby',
   "nearby.autoTitle": "自動接続",
   "nearby.autoHint": "近くのデバイスが見つかると確認してから接続します",
   'nearby.sectionTitle': '近くのデバイス',

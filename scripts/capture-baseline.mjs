@@ -976,10 +976,9 @@ async function motionFrames() {
     console.log(`  motion ${name}: ${COUNT} frames`);
   };
 
-  // the landing demo, started by its own Send control (never self-plays)
-  await capture('landing-demo', async (page) => {
-    await page.locator('[data-testid="demo-send"]').first().click({ timeout: 5000 });
-  });
+  // the landing demo (§18: it has no Send control of its own any more — the
+  // walk starts on its own, so the sequence opens where a visitor does)
+  await capture('landing-demo', async () => {});
   // the moment two devices connect: frames start the instant B submits code
   await capture('connect', async (page) => {
     const ctxB = await mkContext(vp, theme);

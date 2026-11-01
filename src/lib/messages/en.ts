@@ -436,6 +436,7 @@ const en = {
 
   // ── nearby device discovery ───────────────────────────────────────
   'nearby.hint': 'Open ShareTexts on the other device',
+  'nearby.title': 'Nearby',
   'nearby.autoTitle': 'Auto-connect',
   'nearby.autoHint': 'Asks to connect when another device is available',
   'nearby.sectionTitle': 'Available devices',

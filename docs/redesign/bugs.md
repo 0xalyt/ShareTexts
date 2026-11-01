@@ -46,3 +46,10 @@ B1, B2, B4, B13, B14, B15 were found during STEP 3–5 verification.
 | --- | --- | --- | --- | --- | --- | --- |
 | B18 | S3 | landing, ≤430px | The hero's device demo overflows the right edge: the phone frame and the laptop's right side are cropped at 390×844, so the composition reads as a mistake rather than a bleed. | src/components/HeroDeviceDemo.tsx, the `max-w-[420px]` wrapper in SingleScreenViews landing hero (`div.st-hide-landscape`) | logged | Either scale the scene to the container width or crop it deliberately with a fade. |
 | B19 | S2 | landing, both themes | The primary Send CTA is the AA-deepened ember (#c04b09 gradient), which measures 3.21:1 with its white label in light and 2.65:1 in dark — it reads brown next to the bright ember logo, and the contrast sweeps carry it as an accepted exception. | src/index.css `--st-btn-primary-grad`; verify-quality BRAND_CTA_SEL | logged | Decide with the owner: brand ember + dark label, or the deepened tone as fills only. |
+
+## Found during P2 (not fixed — out of the step's scope, per the rule)
+
+| ID | Sev | Screen | What is wrong | Where | State | Next |
+| --- | --- | --- | --- | --- | --- | --- |
+| B20 | S3 | footer, all widths | Footer navigation links miss the 40px tap floor on one axis: the word itself is the target, so "Docs" is 34×40 on desktop and the compact footer row measures 40×36 on a phone portrait. `verify-f18` reports them, and they are unchanged by P2 (the footer was not touched). | src/components/marketing/SiteFooter.tsx (the `min-h-[40px]` link has no `min-w`), and the compact footer row in the same file | logged | Give each link `min-w-[40px]` (or 6px inline padding) and raise the compact row to 40px. |
+| B21 | S3 | Home, `es` locale | The Spanish intent-field placeholder ("Texto, enlace o código") measures 170px in a 166px slot at the narrowest phone width, so it truncates. English fits. P1a's field, not a P2 surface. | src/lib/messages/es.ts `intent.placeholder`; `verify-intent-placeholder` | logged | Shorten the Spanish string ("Texto, enlace o código" → "Texto, enlace, código") or let the field shrink the placeholder font at ≤360px. |

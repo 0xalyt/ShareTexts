@@ -8,5 +8,6 @@ typecheck is satisfied and nothing falls back silently.
 |---|---|---|
 | `nav.more` | More | the phone header's overflow control (§18: at most 3 controls) |
 | `nav.search` | Search | the command/search entry, named where More lists it |
+| `nearby.title` | Nearby | the Home row's noun (the status word "Available" is a state, not a name) · P2 |
 
-Translate these two, then delete this table's rows.
+Translate these three, then delete this table's rows.

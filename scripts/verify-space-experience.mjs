@@ -142,9 +142,13 @@ try {
   // The row is identified by the space's own name (it appears in h1 and in
   // the recent row); the action label itself is `space.reopen` ("Open").
   const spaceName = (await A.page.locator('h1').first().textContent() || '').trim();
+  // §18 moved the Temporary Space block off the hero: the recents now live
+  // inside the Space sheet, one level down behind the Home row. Same check,
+  // one extra tap — the sheet is the new "landing offers the space".
   await A.page.goto(URL + '/', { waitUntil: 'domcontentloaded' });
-  await A.page.waitForSelector('[data-testid="space-entry"]', { timeout: 15000 });
-  const reopenBtn = A.page.locator('[data-testid="space-entry"] button').filter({ hasText: spaceName }).first();
+  await A.page.getByTestId('home-space').click();
+  await A.page.waitForSelector('[data-testid="space-sheet"]', { timeout: 15000 });
+  const reopenBtn = A.page.locator('[data-testid="space-sheet"] button').filter({ hasText: spaceName }).first();
   ok('landing offers the recent space', await reopenBtn.isVisible());
   await reopenBtn.click();
   await A.page.waitForURL(/\/space\/[0-9a-f-]{36}/, { timeout: 15000 });

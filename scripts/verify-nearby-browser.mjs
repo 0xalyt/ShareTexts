@@ -30,9 +30,19 @@ try {
     p.on('console', m => { if (m.type() === 'error') pageErrors.push(`[${tag}:console] ${m.text().slice(0, 160)}`); });
   }
 
+  // §18 moved the Nearby list off the hero into a sheet behind the Nearby
+  // row. The list, the rows and the invite flow are the same components; the
+  // gate now opens the sheet the way a person does before reading it.
+  const openNearby = async (p) => {
+    await p.getByTestId('home-nearby').click();
+    try { await p.getByTestId('nearby-sheet').waitFor({ timeout: 8000 }); return true; } catch { return false; }
+  };
+
   /* ---- 0. searching row with no peers (the single instruction) ---- */
   await A.goto(URL, { waitUntil: 'domcontentloaded' });
   await A.waitForTimeout(1500);
+  const openedA0 = await openNearby(A);
+  out('Nearby row opens the Nearby sheet', openedA0);
   // The instruction lives as the searching row's title; the Wi-Fi hint and
   // the "waiting" subtitle appear after the grace / immediately respectively.
   const hintText = await A.getByText('Open ShareTexts on the other device').count();
@@ -46,6 +56,7 @@ try {
   /* ---- 1. second device announces; rows appear both ways ---- */
   await B.goto(URL, { waitUntil: 'domcontentloaded' });
   await B.waitForTimeout(1800);
+  await openNearby(B);
   const rowOnA = A.getByTestId('nearby-device-row');
   const rowOnB = B.getByTestId('nearby-device-row');
   let seenA = false, seenB = false;
@@ -115,6 +126,7 @@ try {
   await C.goto(URL, { waitUntil: 'domcontentloaded' });
   await D.goto(URL, { waitUntil: 'domcontentloaded' });
   await C.waitForTimeout(1800);
+  await openNearby(C);
   let seenC = false;
   try { await C.getByTestId('nearby-device-row').first().waitFor({ timeout: 8000 }); seenC = true; } catch {}
   out('C sees D\'s device row (fresh pair)', seenC);

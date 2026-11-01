@@ -71,7 +71,7 @@ import {
   RefreshCw as RotateCcw, Settings as SettingsIcon, Clock as Clock3,
   Plus, ChevronRight, File as FileIcon, Bookmark, MoreHorizontal,
 } from 'lucide-react';
-import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon } from 'lucide-react';
+import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages } from 'lucide-react';
 import { SpaceCreateSheet, SpaceJoinSheet } from './SpaceView';
 import { recentSpaces } from '../lib/space/api';
 import { Bar } from '../components/SkeletonScreen';
@@ -163,7 +163,20 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [showMore, setShowMore] = useState(false);
   // /space/create and /space/join land here with the right sheet already
   // open — the code entry point IS the app, not a dead end.
-  const [spaceSheet, setSpaceSheet] = useState<null | 'create' | 'join'>(initialSpaceSheet ?? null);
+  const [spaceSheet, setSpaceSheet] = useState<null | 'create' | 'join' | 'choose'>(initialSpaceSheet ?? null);
+  // Nearby moved into a sheet (§18): discovery keeps running underneath, the
+  // list is the same component, and Home stays two rows instead of a panel.
+  const [nearbySheet, setNearbySheet] = useState(false);
+  // One device on a phone (§18): the two-device scene needs ~520px to read;
+  // below 640 it only ever clipped the laptop, so the phone stands alone.
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const on = () => setIsNarrow(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const [recent, setRecent] = useState(() => { try { return recentSpaces(); } catch { return []; } });
   // Rows tick with a shared clock so the countdowns stay truthful while the
   // landing stays open, and a row whose space has expired prunes itself (§9-B):
@@ -885,8 +898,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             {panelMode !== 'connected' && <ThemeToggle />}
           </div>
           <div className="flex items-center gap-2 sm:hidden">
+            {/* One control, not two: the phone capsule is More alone, and
+                language now lives inside More. A phone header competes with
+                the hero, so it spends exactly one tap on settings, one on
+                the theme, and nothing else. */}
             <GlassCapsule label={t('nav.more')}>
-              <LanguageMenu />
               <IconButton3D label={t('nav.more')} onClick={() => setShowMore(true)} testId="header-more">
                 <MoreHorizontal className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
               </IconButton3D>
@@ -937,7 +953,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="st-chip order-2 mt-4 gap-2 w-fit mx-auto lg:mx-0 px-3"
+                className="order-2 mt-4 flex items-center gap-2 w-fit mx-auto lg:mx-0"
               >
                 {/* Halo dot: two slow radar rings drift outward from a solid
                     glowing core — layered, staggered, so it reads as breath,
@@ -978,7 +994,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/60 dark:text-white/30">{t('home.or')}</span>
                 <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
               </div>
-              <div className="order-5 mt-3 grid grid-cols-2 gap-x-3 gap-y-1 max-w-[400px] mx-auto sm:mx-0">
+              {/* Two doors, one geometry. Side by side from 420px (where both
+                  52px targets still sit at a comfortable thumb width); on a
+                  narrower phone they stack, because at 390 two 175px halves
+                  read as a segmented control instead of two separate choices. */}
+              <div className="order-5 mt-3 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 min-[420px]:gap-y-1 sm:mx-0">
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
                   <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
@@ -1021,7 +1041,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 4 }}
                       transition={{ type: 'spring', bounce: 0, duration: 0.32 }}
-                      className="order-6 mt-5 w-full"
+                      className="order-8 mt-5 w-full"
                     >
                       <button
                         type="button"
@@ -1065,85 +1085,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   );
                 })()}
               </AnimatePresence>
-              {/* Temporary Space — a SECTION now, not two stray links. The
-                  label row carries the promise ("up to 7 days"), the buttons
-                  carry the two verbs, and a space that is nearly over says so
-                  on its own row. One heading level below the hero: quiet
-                  caps + a hairline, so the eye can skip it entirely when it
-                  only came here to send a file. */}
-              <div className="order-6 mt-6 w-full flex flex-col gap-2.5" data-testid="space-entry">
-                {/* One sentence, not a section divider. The old treatment —
-                    an ALL-CAPS label, a hairline running to the right edge,
-                    and a trailing hint — is the single most templated thing
-                    on this page: it announces a section instead of saying
-                    something. Same words, same order, no rule, sentence case,
-                    so the line reads as a thought rather than a heading. */}
-                <p className="flex items-center gap-1.5 text-[12px] text-apple-ink-muted/70 dark:text-white/40">
-                  <Clock3 className="w-3.5 h-3.5 shrink-0" aria-hidden />
-                  <span className="font-medium text-apple-ink-muted dark:text-white/55">{t('space.entryTitle')}</span>
-                  <span aria-hidden className="opacity-40">·</span>
-                  <span>{t('space.entryHint')}</span>
-                </p>
-                {recent.map(r => {
-                  const msLeft = r.expiresAt - nowTick;
-                  // Under an hour left, the row says so in ember — the one
-                  // moment a temporary shelf deserves your attention.
-                  const urgent = msLeft < 3_600_000;
-                  return (
-                    <button
-                      key={r.spaceId}
-                      type="button"
-                      onClick={() => { window.location.href = `/space/${r.spaceId}`; }}
-                      className="group w-full flex items-center gap-3 pl-3 pr-3 py-2.5 min-h-[52px] rounded-[16px] st-card hover:border-ember/45 dark:hover:border-azure-400/50 active:scale-[0.99] transition-all text-left"
-                    >
-                      <span className={cn(
-                        'shrink-0 w-8 h-8 rounded-[10px] flex items-center justify-center',
-                        urgent
-                          ? 'bg-ember/12 dark:bg-ember/18 text-ember dark:text-azure-400'
-                          : 'bg-black/[0.045] dark:bg-white/[0.07] text-apple-ink-muted dark:text-white/50'
-                      )} aria-hidden>
-                        <Clock3 className="w-4 h-4" />
-                      </span>
-                      <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-                        <span className="text-[13px] font-semibold text-apple-ink dark:text-white/85 truncate">{r.name}</span>
-                        <span className={cn(
-                          'text-[12px] font-medium tabular-nums',
-                          urgent ? 'text-ember dark:text-azure-400 font-semibold' : 'text-apple-ink-muted/80 dark:text-white/40'
-                        )}>
-                          {t('space.closesIn', { time: remainingShortOf(msLeft) })}
-                        </span>
-                      </span>
-                      <span className="shrink-0 inline-flex items-center gap-0.5 text-[12px] font-semibold text-azure-600 dark:text-azure-400">
-                        {t('space.reopen')}
-                        <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
-                      </span>
-                    </button>
-                  );
-                })}
-                {/* One pill, two verbs — each half keeps a real 40px floor so
-                    the segmented control honours the same touch contract as
-                    every other control (it shipped at 36px; audit caught it). */}
-                <div className="flex w-full sm:w-fit items-stretch rounded-full st-card p-1">
-                  <button
-                    type="button"
-                    onClick={() => setSpaceSheet('create')}
-                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 min-h-[40px] rounded-full text-[13px] font-semibold text-apple-ink/75 dark:text-white/65 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.97] transition-all"
-                    data-testid="space-create-entry"
-                  >
-                    <Plus className="w-4 h-4 text-ember dark:text-azure-400" aria-hidden />
-                    {t('space.createCta')}
-                  </button>
-                  <span className="w-px my-1.5 bg-apple-divider dark:bg-white/10" aria-hidden />
-                  <button
-                    type="button"
-                    onClick={() => setSpaceSheet('join')}
-                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 min-h-[40px] rounded-full text-[13px] font-semibold text-apple-ink/75 dark:text-white/65 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.97] transition-all"
-                    data-testid="space-join-entry"
-                  >
-                    <Link2 className="w-4 h-4 text-apple-ink-muted dark:text-white/45" aria-hidden />
-                    {t('space.joinTitle')}
-                  </button>                </div>
-              </div>
               {/* The rating moved OFF the landing (slop inventory #12):
                   feedback now lives in Settings, reachable but never
                   mid-marketing-page. */}
@@ -1157,24 +1098,38 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   story needs both ends; a phone-only crop hid the other half).
                   order-4 lg:hidden keeps it out of the desktop DOM — display:
                   none hides it from the eye, not from the tree. */}
-              <div className="st-hide-landscape order-4 lg:hidden mt-5 sm:mt-7 mb-6 flex justify-center">
+              <div className="st-hide-landscape order-7 lg:hidden mt-6 sm:mt-7 mb-6 flex justify-center">
                 <div className="w-full max-w-[420px] sm:max-w-[520px] px-1">
                   {/* Only mounted when the layout is actually the phone one.
                       `lg:hidden` alone would leave a second, invisible copy
                       of the whole demo in the desktop DOM. */}
-                  {!isDesktopLayout && <HeroDeviceDemo />}
+                  {!isDesktopLayout && <HeroDeviceDemo variant={isNarrow ? 'phone' : 'full'} />}
                 </div>
               </div>
-              {/* Nearby device discovery — the PRIMARY path (§1), and now
-                  the first thing under the actions on BOTH layouts: it IS
-                  "how devices connect". The old standalone hint line is
-                  gone: the nearby block's own searching row says "Looking
-                  for nearby devices…" in the same words, right where the
-                  action is. One instruction on screen, never two. */}
-              <div className="order-5 mt-6 w-full flex flex-col items-center lg:items-start">
-                <div className="w-full max-w-md lg:max-w-none">
-                  <NearbyDevices onStatus={setNearbyStatus} />
-                </div>
+              {/* The two quiet doors (§18): lists, not cards. Nearby says what
+                  it is doing in the subtitle (same words the discovery row
+                  used), Temporary Space opens a chooser instead of putting two
+                  buttons and a recents rail in the hero. */}
+              <div className="order-6 mt-6 flex w-full flex-col" data-testid="home-rows">
+                <ListRow
+                  title={t('nearby.title')}
+                  subtitle={nearbyStatus || t('nearby.hint')}
+                  leading={(
+                    <span className="relative flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
+                      <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/35" />
+                      <span className="relative h-1.5 w-1.5 rounded-full bg-status-success" />
+                    </span>
+                  )}
+                  onClick={() => setNearbySheet(true)}
+                  testId="home-nearby"
+                />
+                <ListRow
+                  title={t('space.entryTitle')}
+                  subtitle={t('space.entryHint')}
+                  leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
+                  onClick={() => setSpaceSheet('choose')}
+                  testId="home-space"
+                />
               </div>
               {createError && (
                 <SystemAlert
@@ -1965,7 +1920,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       {/* Sunrise horizon: warm light rising from the floor of the hero band.
           Pointer-transparent and behind the content — it gives the paper
           canvas a direction to the light instead of an even wash. */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] st-horizon opacity-60" />
       {homeDropVeil}
       {headerNode}
       <main
@@ -2066,7 +2020,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             <div className="flex flex-col min-h-full">
               <div className="relative isolate flex flex-1 flex-col bg-apple-canvas dark:bg-night-900 st-landing">
                 {ambientGlow}
-                <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] st-horizon opacity-55" />
                 {!isTaskScreen && headerNode}
                 {taskChrome}
                 {/* TOP-ANCHORED like the desktop pane: justify-center with
@@ -2189,6 +2142,40 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <ListRow title={t('nav.about')} href="/about" />
           <ListRow title={t('nav.privacy')} href="/privacy" />
           <ListRow title={t('nav.terms')} href="/terms" />
+          {/* Language lives here on a phone (§18 header budget): the row keeps
+              the same 52px rhythm as its neighbours and the menu opens into
+              the sheet. */}
+          <div className="flex min-h-[52px] items-center gap-3 border-b border-apple-divider/70 px-1 py-2.5 dark:border-white/[0.08]" data-testid="more-language">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center text-apple-ink-muted dark:text-white/55">
+              <Languages className="h-4 w-4" strokeWidth={1.6} aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1 text-[16px] font-medium text-apple-ink dark:text-white">{t('settings.language')}</span>
+            <LanguageMenu align="right" />
+          </div>
+        </div>
+      </OverlaySheet>
+      {/* Nearby — keepMounted, because NearbyDevices IS the discovery engine:
+          unmounting it when the list closes would stop presence, auto-connect
+          and the AirDrop-style detect popup (which portals out on its own and
+          keeps working while the sheet is shut). Closed = hidden, not gone. */}
+      <OverlaySheet open={nearbySheet} onClose={() => setNearbySheet(false)} label={t('nearby.title')} maxWidth={460} testId="nearby-sheet" keepMounted>
+        <NearbyDevices onStatus={setNearbyStatus} />
+      </OverlaySheet>
+      {/* Temporary Space chooser — the two verbs and the recents that used to
+          live in the hero, one level down. */}
+      <OverlaySheet open={spaceSheet === 'choose'} onClose={() => setSpaceSheet(null)} label={t('space.entryTitle')} maxWidth={420} testId="space-sheet">
+        <div className="flex flex-col">
+          <ListRow title={t('space.createCta')} subtitle={t('space.entryHint')} leading={<Plus className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => setSpaceSheet('create')} testId="space-sheet-create" />
+          <ListRow title={t('space.joinTitle')} leading={<Link2 className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => setSpaceSheet('join')} testId="space-sheet-join" />
+          {recent.map(r => (
+            <ListRow
+              key={r.spaceId}
+              title={r.name}
+              subtitle={t('space.closesIn', { time: remainingShortOf(r.expiresAt - nowTick) })}
+              leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
+              onClick={() => { window.location.href = `/space/${r.spaceId}`; }}
+            />
+          ))}
         </div>
       </OverlaySheet>
       <SpaceCreateSheet open={spaceSheet === 'create'} onClose={() => setSpaceSheet(null)} />

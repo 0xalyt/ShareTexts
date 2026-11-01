@@ -15,10 +15,9 @@ try {
   // Dark is where the bug lived (white-on-white), so emulate it explicitly.
   const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
   await p.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await p.waitForSelector('[data-testid="demo-send"]', { timeout: 20000 });
-  // The visitor's walk: one tap moves the machine open → … → done on fixed
-  // beats, ending at the closed state the stamp check needs.
-  await p.evaluate(() => { document.querySelector('[data-testid="demo-send"]')?.click(); });
+  await p.waitForSelector('[data-testid="hero-demo"]', { timeout: 20000 });
+  // §18 removed the demo's Send control, so the walk starts by itself on
+  // fixed beats and ends at the closed state this stamp check needs.
   await p.waitForFunction(
     () => document.querySelector('[data-testid="hero-demo"]')?.getAttribute('data-state') === 'done',
     null, { timeout: 12000 },

@@ -55,6 +55,10 @@ const CAPTIONS: Record<DemoPhase, { key: MsgKey; sub: MsgKey }> = {
 
 /** Where the machine walks on its own after the visitor's tap, and how fast. */
 const AUTO: Partial<Record<DemoPhase, { next: DemoPhase; ms: number }>> = {
+  // §18 removed the demo's own Send button (a second orange Send CTA under
+  // the picture, competing with the real one). The walk starts by itself;
+  // under reduced motion `running` is false, so the still simply rests.
+  open: { next: 'connecting', ms: 1400 },
   connecting: { next: 'sending', ms: 1700 },
   sending: { next: 'received', ms: 1600 },
   received: { next: 'done', ms: 2800 },
@@ -399,17 +403,11 @@ export function HeroDeviceDemo({
               the row stays reserved but quiet; at done, Restart takes over.
               size md (44px): the demo is real UI, so the repo's 40px
               tap-target floor applies to it like any other control. */}
-          {phase === 'open' && (
-            <TactileButton
-              variant="primary"
-              size="md"
-              onClick={runTransfer}
-              data-testid="demo-send"
-              className="min-w-[104px]"
-            >
-              {t('demo.send')}
-            </TactileButton>
-          )}
+          {/* §18: the walk plays itself — no Send button inside an
+              illustration. Restart is the one control the demo keeps, because
+              replaying the beat is the only thing a still cannot do.
+              size md (44px): the demo is real UI, so the repo's 40px
+              tap-target floor applies to it like any other control. */}
           {closed && (
             <TactileButton
               variant="secondary"

@@ -1,9 +1,10 @@
-// F22-B: the hero demo is a visitor-driven transfer machine. These checks
-// pin its contract: the demo OPENS at rest and never plays itself, one Send
-// tap walks open → connecting → sending → received → done on fixed beats,
-// the caption is always the same state as the picture, Restart returns to
-// the open rest, the hidden tab suspends the walk, reduced motion skips
-// straight to the arrived still, and the caption is live region output.
+// F22-B: the hero demo is a transfer machine. These checks pin its contract:
+// it walks open → connecting → sending → received → done on fixed beats by
+// ITSELF (§18 removed the demo's own Send button — a second hero CTA), rests
+// at done instead of looping, and offers Restart to replay it.
+// The caption is always the same state as the picture, Restart returns to
+// the open rest, the hidden tab suspends the walk, reduced motion rests on
+// one honest still, and the caption is live region output.
 // Run: node scripts/verify-demo-machine.mjs  (URL env var, e.g. http://localhost:3010)
 import { launchBrowser, URL, sleep } from './lib.mjs';
 
@@ -18,14 +19,13 @@ const captionHeadOf = (page) => page.evaluate(() =>
   document.querySelector('[data-testid="demo-caption"]')?.firstElementChild?.firstElementChild?.textContent?.trim() ?? '');
 const sendBtn = (page) => page.evaluate(() => !!document.querySelector('[data-testid="demo-send"]'));
 const restartBtn = (page) => page.evaluate(() => !!document.querySelector('[data-testid="demo-restart"]'));
-const tapSend = (page) => page.evaluate(() => { document.querySelector('[data-testid="demo-send"]')?.click(); });
 const tapRestart = (page) => page.evaluate(() => { document.querySelector('[data-testid="demo-restart"]')?.click(); });
 const waitState = (page, state, ms = 9000) =>
   page.waitForFunction((s) => document.querySelector('[data-testid="hero-demo"]')?.getAttribute('data-state') === s, state, { timeout: ms });
 
 const browser = await launchBrowser();
 
-// ── A. The machine: rest → tap → walk → done → restart ───────────────────
+// ── A. The machine: self-start → walk → done → restart ───────────────────
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage();
@@ -34,42 +34,41 @@ const browser = await launchBrowser();
   await sleep(600);
 
   console.log('A. state machine');
-  ok((await stateOf(p)) === 'open', 'opens at rest (open), nothing playing');
-  ok((await captionHeadOf(p)).length > 0, 'open state carries a caption');
+  // §18 removed the demo's own Send button (it was a second hero CTA). The
+  // walk starts by itself now. What this gate protects has NOT changed: every
+  // state in order, captions that track it, no loop, suspension while the tab
+  // is hidden, and a real Restart.
+  ok(!(await sendBtn(p)), 'no second Send control inside the demo');
 
-  // No autoplay: with no tap, the machine must stay at open.
-  await sleep(3000);
-  ok((await stateOf(p)) === 'open', 'no autoplay — the demo waits for the visitor');
-
-  // One tap walks every transit state, in order, on fixed beats.
-  await tapSend(p);
-  await waitState(p, 'connecting', 4000);
+  await waitState(p, 'connecting', 8000);
+  await sleep(450); // the caption crossfades in over 280 ms — read it settled
   const capConn = await captionHeadOf(p);
-  await waitState(p, 'sending', 5000);
+  await waitState(p, 'sending', 6000);
+  await sleep(450);
   const capSend = await captionHeadOf(p);
-  await waitState(p, 'received', 5000);
+  await waitState(p, 'received', 6000);
+  await sleep(450);
   const capRec = await captionHeadOf(p);
   await waitState(p, 'done', 6000);
+  await sleep(450);
   const capDone = await captionHeadOf(p);
-  ok(true, 'one tap walks connecting → sending → received → done');
+  ok(true, 'the walk plays connecting → sending → received → done');
   ok(capConn.length > 0 && capSend.length > 0 && capRec.length > 0 && capDone.length > 0
     && new Set([capConn, capSend, capRec, capDone]).size === 4,
     'caption changes because the state changed');
-  ok(!(await sendBtn(p)), 'Send steps aside while the transfer runs');
+
+  // No loop: done rests until somebody asks for it again.
+  await sleep(3500);
+  ok((await stateOf(p)) === 'done', 'the walk does not loop — done rests');
   ok(await restartBtn(p), 'done offers Restart');
 
-  // Restart: back to the open rest, Send returned.
+  // Restart: back to the open rest, and the walk leaves it again by itself.
   await tapRestart(p);
   await sleep(300);
-  ok((await stateOf(p)) === 'open' && (await sendBtn(p)), 'restart returns to the open rest');
+  ok((await stateOf(p)) === 'open', 'restart returns to the open rest');
+  await waitState(p, 'connecting', 6000);
 
-  // Keyboard: the Send and Restart are real buttons.
-  await p.keyboard.press('Tab'); // (order is DOM order; this is a smoke check)
-  ok(true, 'controls are real buttons (keyboard reachable)');
-
-  // Hidden tab suspends the walk: tap, hide, state holds; unhide → completes.
-  await tapSend(p);
-  await waitState(p, 'connecting', 4000);
+  // Hidden tab suspends the walk: hide mid-walk, state holds; unhide → completes.
   await p.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
@@ -83,15 +82,15 @@ const browser = await launchBrowser();
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await waitState(p, 'done', 9000);
+  await waitState(p, 'done', 12000);
   ok(true, 'visible tab resumes the walk to done');
 
-  // Restart at done again for cleanliness.
+  // Back to rest for cleanliness.
   await tapRestart(p);
   await ctx.close();
 }
 
-// ── B. Reduced motion: informative still, one tap lands the transfer ─────
+// ── B. Reduced motion: one informative still, no sequence ────────────────
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const p = await ctx.newPage();
@@ -104,13 +103,8 @@ const browser = await launchBrowser();
   ok(devices >= 2, 'devices render under reduced motion');
   await sleep(2500);
   ok((await stateOf(p)) === 'open', 'no motion sequence plays by itself');
-  // One tap: the transfer LANDS — no flight to watch, straight to arrived.
-  await tapSend(p);
-  await waitState(p, 'received', 3000);
-  const jumped = await stateOf(p);
-  ok(jumped === 'received', `one tap lands the transfer (got ${jumped})`);
-  ok(await restartBtn(p), 'reduced motion offers Restart from the landed still');
-  await tapRestart(p);
+  const stillCap = await captionHeadOf(p);
+  ok(stillCap.length > 0, 'the still explains what it shows');
   await ctx.close();
 }
 

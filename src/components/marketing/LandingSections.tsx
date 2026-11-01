@@ -148,7 +148,9 @@ export function LandingFaq() {
   ];
   return (
     <section aria-labelledby="faq-title" className="w-full py-10">
-      <SectionHead eyebrow={t('home.faq.eyebrow')} heading={t('home.faq.heading')} />
+      {/* id is what aria-labelledby above points at; without it the section
+          announced nothing and verify-landing-onescreen lost its landmark. */}
+      <SectionHead eyebrow={t('home.faq.eyebrow')} heading={t('home.faq.heading')} id="faq-title" />
       <FaqSection items={items} defaultOpen={null} hideLabel className="max-w-[720px]" />
       <a
         href="/docs"

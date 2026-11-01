@@ -65,7 +65,7 @@ const HELPERS = () => {
   // the sweep genuinely — the exemption is no longer what makes light
   // pass; their measured ratios are still printed below every run, and
   // the sweep stays strict (4.5/3.0) for every other text node.
-  const BRAND_CTA_SEL = '[data-testid="home-send"],[data-testid="home-receive"],[data-testid="demo-send"],[data-testid="space-create-cta"],[data-testid="space-join-cta"]';
+  const BRAND_CTA_SEL = '[data-testid="home-send"],[data-testid="home-receive"],[data-testid="space-create-cta"],[data-testid="space-join-cta"]';
   window.__sweepContrast = () => {
     const sels = 'h1,h2,h3,p,a,button,span,label,textarea,[role="status"],[role="button"]';
     const fails = [];
@@ -133,12 +133,26 @@ const HELPERS = () => {
     [...document.querySelectorAll('[aria-live], [role="status"], [role="alert"]')].map(e => (e.textContent || '').trim()).filter(Boolean).length);
   out('landing: live regions carry text', live > 0, `${live} non-empty`);
 
-  // INP: click → first visual mutation of the space sheet
-  const createBtn = page.locator('[data-testid="space-create-entry"], [data-testid="space-create-cta"]').first();
-  if (await createBtn.count()) {
+  // INP: tap → first visual mutation of the create-space sheet.
+  // Since §18 the entry is two steps: the Home row opens the Space chooser,
+  // then its Create row opens the create sheet. Both hops are user-visible,
+  // so both are measured against the same 300 ms budget.
+  const spaceRow = page.getByTestId('home-space');
+  if (await spaceRow.count()) {
+    const rowMs = await page.evaluate(() => new Promise(res => {
+      const t0 = performance.now();
+      const target = document.querySelector('[data-testid="home-space"]');
+      const obs = new MutationObserver(() => { if (document.querySelector('[data-testid="space-sheet"]')) { obs.disconnect(); res(performance.now() - t0); } });
+      obs.observe(document.body, { childList: true, subtree: true });
+      target.click();
+      setTimeout(() => { obs.disconnect(); res(-1); }, 3000);
+    }));
+    out('INP: Home Space row → chooser visible', rowMs >= 0 && rowMs < 300, `${Math.round(rowMs)}ms (target <300ms)`);
+    await page.getByTestId('space-sheet').waitFor({ timeout: 5000 }).catch(() => {});
     const ms = await page.evaluate(() => new Promise(res => {
       const t0 = performance.now();
-      const target = document.querySelector('[data-testid="space-create-entry"], [data-testid="space-create-cta"]');
+      const target = document.querySelector('[data-testid="space-sheet-create"]');
+      if (!target) return res(-1);
       const obs = new MutationObserver(() => { if (document.querySelector('[data-testid="space-create"]')) { obs.disconnect(); res(performance.now() - t0); } });
       obs.observe(document.body, { childList: true, subtree: true });
       target.click();
@@ -146,6 +160,8 @@ const HELPERS = () => {
     }));
     out('INP: create-space entry → sheet visible', ms >= 0 && ms < 300, `${Math.round(ms)}ms (target <300ms)`);
   } else out('INP: create-space entry → sheet visible', false, 'entry not found');
+  await page.keyboard.press('Escape');
+  await sleep(400);
   await page.keyboard.press('Escape');
   await sleep(400);
 

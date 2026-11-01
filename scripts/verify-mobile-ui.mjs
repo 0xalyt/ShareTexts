@@ -84,9 +84,9 @@ ok(`mobile header uniform (${headerHeights.join(',')})`, headerHeights.length >=
 const D = await browser.newPage();
 await D.goto(URL, { waitUntil: 'domcontentloaded' });
 await D.waitForTimeout(1200);
-// The landing has TWO buttons named "Send" since the visitor-driven demo:
-// the real hero CTA (home-send) and the demo's control (demo-send). This
-// suite drives the real app entry — pin it by testid.
+// The landing used to carry TWO buttons named "Send" (the hero CTA and the
+// demo's own control). §18 removed the demo's one, but the hero CTA is still
+// driven by testid so a copy change can never redirect this suite.
 await D.getByTestId('home-send').click();
 await D.getByRole('group', { name: 'Pairing code' }).waitFor({ timeout: 10000 });
 const code = await readLiveCode(D);

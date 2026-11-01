@@ -39,7 +39,10 @@ await sleep(1500);
 
 // step 0 — the setting is reachable through the real UI and persists.
 // (The toggle lives inside the expandable "Why isn't my device showing?"
-// helper, which renders exactly while no devices are around.)
+// helper; since §18 the Nearby list — and that helper with it — lives in the
+// Nearby sheet, so the gate opens the row first, exactly like a person).
+await A.getByTestId('home-nearby').click();
+await A.getByTestId('nearby-sheet').waitFor({ timeout: 10000 });
 await A.getByTestId('nearby-why-toggle').click();
 await A.getByTestId('auto-connect-toggle').click();
 await sleep(300);
