@@ -22,20 +22,44 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const OUT = 'audit/p2/contrast.md';
+/* Each surface carries its own viewport: the phone layout is a different
+   composition (door captions, the "or" divider, the intent hint), and a
+   1440px-only sweep scored none of it. */
 const SCREENS = [
   { name: 'landing', path: '/', ready: () => document.querySelector('h1') },
   { name: 'home', path: '/', ready: () => document.querySelector('[data-testid="home-send"]') },
+  { name: 'home@phone', path: '/', viewport: { width: 390, height: 844 }, ready: () => document.querySelector('[data-testid="home-send"]') },
   { name: 'settings', path: '/', open: 'settings' },
 ];
 
 // ── The probe, injected into the page ────────────────────────────────────
 /* eslint-disable no-undef */
 const PROBE = () => {
+  /* Any CSS colour → {r,g,b,a}. Tailwind v4 emits oklab() with a slash
+     alpha, so a plain rgba() regex silently skipped every translucent token —
+     the gate read "0 failing" while axe flagged five real ones. Painting the
+     colour onto a 1×1 canvas and reading that pixel resolves every syntax the
+     engine understands (oklab, lch, color(), hsl, rgb). */
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 1;
+  const cx = cv.getContext('2d', { willReadFrequently: true });
   const parse = (c) => {
-    const m = c.match(/rgba?\(([^)]+)\)/);
-    if (!m) return null;
-    const p = m[1].split(/[,\s/]+/).filter(Boolean).map(Number);
-    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+    if (!c) return null;
+    const m = c.match(/^rgba?(([^)]+))$/);
+    if (m) {
+      const p = m[1].split(/[,s/]+/).filter(Boolean).map(Number);
+      return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+    }
+    try {
+      cx.clearRect(0, 0, 1, 1);
+      cx.fillStyle = '#000';
+      cx.fillStyle = c; // an engine that rejects it leaves black above
+      cx.fillRect(0, 0, 1, 1);
+      const d = cx.getImageData(0, 0, 1, 1).data;
+      return { r: d[0], g: d[1], b: d[2], a: d[3] / 255 };
+    } catch {
+      return null;
+    }
   };
   const lum = ({ r, g, b }) => {
     const f = (v) => {
@@ -133,7 +157,7 @@ let hiddenTotal = 0;
 for (const theme of ['light', 'dark']) {
   for (const screen of SCREENS) {
     const ctx = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
+      viewport: screen.viewport || { width: 1440, height: 900 },
       colorScheme: theme,
       locale: 'en-US',
     });

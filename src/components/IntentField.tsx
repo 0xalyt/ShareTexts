@@ -206,7 +206,7 @@ export function IntentField({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.14 }}
             id={hintId}
-            className="text-[12px] font-medium text-apple-ink-muted/75 dark:text-white/40 text-center sm:text-left"
+            className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70 text-center sm:text-left"
           >
             {hint}
           </motion.span>

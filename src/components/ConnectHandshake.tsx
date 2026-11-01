@@ -252,7 +252,7 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
             </motion.p>
           </AnimatePresence>
           {!connected && (
-            <p className="mt-1 text-[13px] text-apple-ink-muted/70 dark:text-white/35">{t('connect.sub')}</p>
+            <p className="mt-1 text-[13px] text-apple-ink-muted dark:text-white/70">{t('connect.sub')}</p>
           )}
         </>
       )}

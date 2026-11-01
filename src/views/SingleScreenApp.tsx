@@ -979,7 +979,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 ) : roomsCreated != null ? (
                   <>
                     <span className="text-[16px] font-bold text-apple-ink/90 dark:text-white/90 tnum leading-none">{fmtNumber(lang, roomsCreated)}</span>
-                    <span className="text-[13px] font-medium text-apple-ink-muted/85 dark:text-white/50 leading-none">{t('home.roomsMade')}</span>
+                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.roomsMade')}</span>
                   </>
                 ) : null}
               </motion.div>)}
@@ -1002,7 +1002,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               </div>
               <div className="order-4 mt-4 flex w-full items-center gap-3" aria-hidden>
                 <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/60 dark:text-white/30">{t('home.or')}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted dark:text-white/70">{t('home.or')}</span>
                 <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
               </div>
               {/* Two doors, one geometry. Side by side from 420px (where both
@@ -1012,13 +1012,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <div className="order-5 mt-3 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 min-[420px]:gap-y-1 sm:mx-0">
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
-                  <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.sendHint')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70">{t('home.sendHint')}</span>
                 </div>
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   {/* One filled primary and one quiet surface keep the two
                       equally valid actions distinct at a glance. */}
                   <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
-                  <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/45">{t('home.receiveHint')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70">{t('home.receiveHint')}</span>
                 </div>
               </div>
               {/* Stay Connected re-entry: the room this device promised to
@@ -1477,7 +1477,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             <span className="text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 max-w-[34ch]">
               {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
             </span>
-            <span className="text-[12px] font-medium leading-none text-apple-ink-muted/90 dark:text-white/50">
+            <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
               © {new Date().getFullYear()} ShareTexts
             </span>
           </div>
@@ -1639,7 +1639,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       {/* Hero area — the H1 lives INSIDE the hero column (restored): one
           source of truth for the headline on desktop and mobile, sitting in
           the same max-w-md column as the subtitle and actions. */}
-      <div className="flex-1 flex flex-col px-6 lg:px-10 pt-3 sm:pt-6 lg:pt-12 pb-6 min-h-0 overflow-y-auto overscroll-contain room-scroll">
+      <div
+        className={`flex-1 flex flex-col px-6 lg:px-10 pb-6 min-h-0 overflow-y-auto overscroll-contain room-scroll ${isTaskScreen ? 'pt-[58px]' : 'pt-3 sm:pt-6 lg:pt-12'}`}
+      >
         {/* Vertically center the connected rail in the pane's real height —
             the column is shorter than the viewport on desktop, and top-
             anchoring it left a dead zone below. Idle/pairing content is
@@ -2037,7 +2039,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     overflowing content pushes the heading into dead space
                     above (and clips it) — start-anchoring keeps the title
                     right under the header on every phone height. */}
-                <div id="main-content" className="flex-1 flex flex-col justify-start px-6 lg:px-10 pt-3 sm:pt-6 pb-6 min-h-0">
+                <div
+                  id="main-content"
+                  className={`flex-1 flex flex-col justify-start px-6 lg:px-10 pb-6 min-h-0 ${isTaskScreen ? 'pt-[58px]' : 'pt-3 sm:pt-6'}`}
+                >
                   <ScreenStack screen={panelMode} mode={panelMode === 'connected' ? 'mode' : 'push'}>
                     {heroContent}
                   </ScreenStack>
