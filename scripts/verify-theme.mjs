@@ -57,13 +57,17 @@ const chipHover = await D.evaluate(() => {
 });
 ok(`search chip dark hover not white (${chipHover})`, chipHover !== 'chip-not-found' && chipHover !== 'rgb(255, 255, 255)');
 
-// 3. Header control heights on a consistent grid (all 40px slots).
+// 3. Header control heights on a consistent grid (§18 v1.3: 44px slots).
+// Only the controls that are actually painted count — the phone composition
+// (sm:hidden) is in the DOM with zero size and is not part of this header.
 const headerHeights = await D.evaluate(() => {
   const header = document.querySelector('header');
   const controls = header.querySelectorAll('a[href="/docs"], button[aria-haspopup="listbox"], [role="switch"]');
-  return Array.from(controls).map(c => Math.round(c.getBoundingClientRect().height));
+  return Array.from(controls)
+    .filter(c => c.getBoundingClientRect().height > 0)
+    .map(c => Math.round(c.getBoundingClientRect().height));
 });
-ok(`header controls uniform heights (${headerHeights.join(',')})`, headerHeights.length >= 3 && headerHeights.every(h => h === 40));
+ok(`header controls uniform heights (${headerHeights.join(',')})`, headerHeights.length >= 3 && headerHeights.every(h => h === 44));
 
 // 4. Right-panel steps vertically centered: block center ≈ pane center.
 const stepsCentered = await D.evaluate(() => {

@@ -46,7 +46,10 @@ try {
       glyphs,
     };
   });
-  out('desktop-theme-control-40x40', !!tg && Math.abs(tg.w - 40) < 1.5 && Math.abs(tg.h - 40) < 1.5, JSON.stringify(tg && { w: tg.w, h: tg.h }));
+  // §18 (v1.3) set the header control at 44px — the same circle as the back
+  // button, up from the old 40. The contract this check protects is "one
+  // uniform square touch target", so the number follows the contract.
+  out('desktop-theme-control-44x44', !!tg && Math.abs(tg.w - 44) < 1.5 && Math.abs(tg.h - 44) < 1.5, JSON.stringify(tg && { w: tg.w, h: tg.h }));
   out('theme-control-holds-a-switch-role', !!tg && tg.role === 'switch' && /^(true|false)$/.test(tg.checked || ''), tg && `${tg.role}/${tg.checked}`);
   out('theme-glyphs-are-18x18-sun-and-moon', !!tg && tg.glyphs.length === 2 && tg.glyphs.every(g => Math.abs(g.w - 18) < 1.5 && Math.abs(g.h - 18) < 1.5), JSON.stringify(tg && tg.glyphs));
   // Exactly one glyph is visible in either state (the morph is a cross-fade).
@@ -78,33 +81,36 @@ try {
   // whites as oklab(0.99… / 0.5), opaque ones as rgb(255, 255, 255).
   out('desktop-tracker-label-white-in-dark', !!tk && /^(rgb\(255, 255, 255\)|oklab\(0\.99)/.test(tk?.labelColor || ''), tk?.labelColor);
 
-  // 3. Header rhythm: EVERY header control — search, language, saved, docs,
-  //    the hairline divider, and the theme glyph — lives inside ONE capsule,
-  //    on one tight grid. A theme control floating on its own left the right
-  //    edge ragged and read as two unrelated groups; the row is now a single
-  //    instrument cluster with the theme glyph last, after the divider.
+  // 3. Header rhythm (§18, v1.3): ONE glass capsule carries the instruments
+  //    (search, language, saved, docs) and the theme glyph is its own 44px
+  //    circle sitting beside it — outside the capsule on purpose, because the
+  //    theme changes the room rather than a setting, and §18 gives a phone
+  //    header exactly three controls. What this gate protects has not
+  //    changed: one tight instrument cluster at the right edge, the theme
+  //    control adjacent to it (never floating ragged), and no seam inside the
+  //    capsule that drifts off the grid.
   const gap = await page.evaluate(() => {
     const sw = document.querySelector('[data-testid="theme-toggle"]');
-    const capsule = sw?.parentElement;
-    if (!capsule) return null;
-    const kids = [...capsule.children];
+    const capsule = [...document.querySelectorAll('header .glass-capsule')]
+      .find(c => c.getBoundingClientRect().width > 0);
+    if (!sw || !capsule) return null;
+    const kids = [...capsule.children].filter(k => k.getBoundingClientRect().width > 0);
     const items = kids.map(k => { const r = k.getBoundingClientRect(); return { x: r.x, r: r.x + r.width }; });
     const gaps = [];
     for (let i = 1; i < items.length; i++) gaps.push(+(items[i].x - items[i - 1].r).toFixed(1));
+    const cr = capsule.getBoundingClientRect(), sr = sw.getBoundingClientRect();
     return {
       gaps,
       capsuleItems: kids.length,
       themeInCapsule: capsule.contains(sw),
-      themeIsLast: kids.at(-1) === sw,
-      hasDivider: kids.some(k => k.tagName === 'SPAN' && k.getAttribute('aria-hidden') === 'true'),
+      themeGap: +(sr.x - cr.right).toFixed(1),
     };
   });
-  out('desktop-header-single-control-capsule',
-    !!gap && gap.themeInCapsule && gap.themeIsLast && gap.hasDivider && gap.capsuleItems >= 5,
-    JSON.stringify(gap && { items: gap.capsuleItems, inCapsule: gap.themeInCapsule, last: gap.themeIsLast, divider: gap.hasDivider }));
-  // Every seam in that capsule stays on the tight grid (0px between glyph
-  // slots, 4px either side of the hairline divider).
-  out('desktop-header-gaps-tight', !!gap && gap.gaps.length >= 4
+  out('desktop-header-one-capsule-plus-adjacent-theme',
+    !!gap && !gap.themeInCapsule && gap.capsuleItems >= 4 && gap.themeGap >= 0 && gap.themeGap <= 12,
+    JSON.stringify(gap && { items: gap.capsuleItems, inCapsule: gap.themeInCapsule, themeGap: gap.themeGap }));
+  // Every seam in that capsule stays on the tight grid (8px between 44px slots).
+  out('desktop-header-gaps-tight', !!gap && gap.gaps.length >= 3
     && gap.gaps.every(g => g <= 12), JSON.stringify(gap && gap.gaps));
 
   // 4. Hero heading + the shipped <title> (product decision: the landing tab
