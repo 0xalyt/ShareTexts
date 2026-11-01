@@ -139,8 +139,13 @@ html.dark .segmented-thumb {
   border-radius: 9999px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-apple-ink-muted);
+  /* One step darker than ink-muted: the 13px label sits on the control's own
+     tinted track, where ink-muted measured 4.3:1 — below AA (§17). */
+  color: #5c5c62;
   transition: color var(--st-t-mode) var(--st-ease-enter);
+}
+html.dark .segmented [role='tab'] {
+  color: rgb(255 255 255 / 0.72);
 }
 .segmented [role='tab'][aria-selected='true'] {
   color: var(--color-apple-ink);
@@ -386,4 +391,20 @@ html.dark .st-btn--destructive {
 .st-pill-brand:active {
   transform: translateY(2px);
   box-shadow: 0 1px 0 #c04b09;
+}
+
+
+/* ── Mode crossfade + the one loop allowed on a task screen ──────────── */
+@keyframes st-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* The waiting dot: a 1.4 s opacity pulse. It is the only repeating motion on
+   Send — a live signal, not decoration, so it stops under reduced motion. */
+@keyframes st-live-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.82); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="st-live-dot"], [style*="st-live-dot"] { animation: none !important; }
 }

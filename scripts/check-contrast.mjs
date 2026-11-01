@@ -30,6 +30,7 @@ const SCREENS = [
   { name: 'home', path: '/', ready: () => document.querySelector('[data-testid="home-send"]') },
   { name: 'home@phone', path: '/', viewport: { width: 390, height: 844 }, ready: () => document.querySelector('[data-testid="home-send"]') },
   { name: 'settings', path: '/', open: 'settings' },
+  { name: 'send@phone', path: '/', viewport: { width: 390, height: 844 }, open: 'send' },
 ];
 
 // ── The probe, injected into the page ────────────────────────────────────
@@ -168,6 +169,14 @@ for (const theme of ['light', 'dark']) {
     await page.goto(URL + screen.path, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('h1', { timeout: 20000 });
     await sleep(800);
+
+    if (screen.open === 'send') {
+      // P3's hand-over screen: created locally (the dev server hosts the
+      // socket), so it is always reachable — no worker needed.
+      await page.getByTestId('home-send').click({ timeout: 10000 });
+      await page.waitForSelector('[data-testid="send-code-card"]', { timeout: 20000 });
+      await sleep(600);
+    }
 
     if (screen.open === 'settings') {
       // Settings is an overlay whose trigger only exists on a CONNECTED room

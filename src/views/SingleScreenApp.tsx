@@ -22,7 +22,7 @@ import { ShareTextsLogo } from '../components/ShareTextsLogo';
 import { BrandLockup } from '../components/BrandLockup';
 import { IconButton3D } from '../components/IconButton3D';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { LiveCodeDisplay } from '../components/LiveCodeDisplay';
+import { SendScreen } from '../components/send/SendScreen';
 import { LiveCodeInput } from '../components/LiveCodeInput';
 import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
@@ -1160,65 +1160,23 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           {/* ── IDLE ──────────────────────────────────────────────── */}
           {panelMode === 'idle' && idleHeroNode}
 
-          {/* ── SENDING: pair the other device ────────────────────── */}
+          {/* ── SENDING: the code hand-over (§18, P3) ─────────────── */}
           {panelMode === 'sending' && (
-            <motion.div key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="max-w-md w-full mx-auto overflow-hidden">
-              <h2 className="mb-4 text-[32px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [text-wrap:balance]">{t('create.title')}</h2>
-              {isCreating && !session.secret ? (
-                <div className="flex flex-col items-center py-8">
-                  <ShareTextsLogo size={20} motion="connecting" />
-                  <p className="text-[16px] font-medium text-apple-ink-muted dark:text-white/50">{t('create.creating')}</p>
-                </div>
-              ) : (
-                <>
-                  <p className="text-[13px] text-apple-ink-muted dark:text-white/50 font-medium mb-5">{t('create.hint')}</p>
-                  {/* The pairing screen keeps ONE two-device scene for its
-                      whole life: the same tiles the user will see in the
-                      room. Before a peer arrives it quietly searches; the
-                      moment the peer joins it starts the handshake — no
-                      component swap, no context switch — and when the
-                      channel opens it draws the link and check. The code
-                      stays below as the tool, never the story. */}
-                  <AnimatePresence mode="wait" initial={false}>
-                    {session.partnerConnecting && !session.partnerConnected ? (
-                      <motion.div key="handshake" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.25, ease: EASE }} className="py-3">
-                        <ConnectHandshake phase="connecting" localIcon={isMobileDevice ? 'phone' : 'monitor'} partnerName={session.partnerName} />
-                      </motion.div>
-                    ) : (
-                      <motion.div key="code" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-                        {/* Searching state — the pair visual holds the screen
-                            (spatial continuity with the room that follows);
-                            the copy says the one true thing. */}
-                        {!session.partnerConnecting && (
-                          <div className="mb-4">
-                            <ConnectHandshake phase="searching" localIcon={isMobileDevice ? 'phone' : 'monitor'} />
-                          </div>
-                        )}
-                        {session.secret && <LiveCodeDisplay secret={session.secret} createdAt={session.createdAt} onRefresh={refreshCode} />}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <AnimatePresence initial={false}>
-                    {!session.partnerConnecting && (
-                      <motion.div key="pairing-actions" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                      <div className="mt-5 space-y-2">
-                    {/* One action hierarchy across home and pairing: QR is
-                        primary; copy actions stay on the quiet surface. */}
-                    <TactileButton onClick={() => setShowQROverlay(true)} variant="primary" size="md" className="w-full" icon={<QrCode className="w-4 h-4" />} data-testid="show-qr">
-                      {t('create.showQr')}
-                    </TactileButton>
-                    <TactileButton onClick={shareLink} variant="secondary" size="md" className="w-full" icon={copiedLink ? <AnimatedIcon animate="check" active><Check className="w-4 h-4 text-status-success" /></AnimatedIcon> : <AnimatedIcon animate="link"><Link2 className="w-4 h-4 text-apple-ink-muted dark:text-white/50" /></AnimatedIcon>}>
-                      {copiedLink ? t('create.copied') : t('create.shareLink')}
-                    </TactileButton>
-                    <TactileButton onClick={copyCode} variant="secondary" size="md" className="w-full" icon={copiedCode ? <AnimatedIcon animate="check" active><Check className="w-3.5 h-3.5 text-status-success" /></AnimatedIcon> : <AnimatedIcon animate="copy"><Copy className="w-3.5 h-3.5 text-apple-ink-muted dark:text-white/50" /></AnimatedIcon>}>
-                      {copiedCode ? t('create.codeCopied') : t('create.copyCode')}
-                    </TactileButton>
-                      </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </>
-              )}
+            <motion.div key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full">
+              <SendScreen
+                secret={session.secret}
+                createdAt={session.createdAt}
+                isCreating={isCreating}
+                error={createError}
+                partnerConnecting={session.partnerConnecting}
+                onRefreshCode={refreshCode}
+                onRetry={handleSend}
+                onNewCode={handleSend}
+                onCopyCode={copyCode}
+                shareUrl={shareUrl}
+                onShareLink={shareLink}
+                linkCopied={copiedLink}
+              />
             </motion.div>
           )}
 
@@ -1646,7 +1604,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             the column is shorter than the viewport on desktop, and top-
             anchoring it left a dead zone below. Idle/pairing content is
             tall enough to top-anchor; only the room rail benefits. */}
-        <div className={panelMode === 'connected' ? "my-auto w-full" : "w-full"}>
+        <div className={panelMode === 'connected' ? "my-auto w-full" : isTaskScreen ? "w-full flex-1 flex flex-col min-h-0" : "w-full"}>
           {/* Hierarchy pushes (§18): Send/Receive slide in over Home; the
               room entry crossfades because it is a mode, not a level. */}
           <ScreenStack screen={panelMode} mode={panelMode === 'connected' ? 'mode' : 'push'}>
@@ -2005,10 +1963,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           /* Active: two panes. Balanced 50/50 at 1024–1279; from 1280 the
               room gets the wider share (≈44/56) so the active pane never feels
               like an afterthought next to an airy brand half. */
-          <div className="flex h-full">
-            <div className="w-1/2 xl:w-[44%] h-full overflow-y-auto border-r border-black/[0.06] dark:border-white/[0.06]">{leftPanel}</div>
-            <div className="flex-1 h-full min-w-0">{roomPanel}</div>
-          </div>
+          /* Task screens (§18): ONE centred column of 480px. The room panel
+             belongs to the room; an empty half beside a code is exactly the
+             duplicate layout P3 removed. */
+          isTaskScreen ? (
+            <div className="h-full overflow-y-auto overscroll-contain room-scroll">{leftPanel}</div>
+          ) : (
+            <div className="flex h-full">
+              <div className="w-1/2 xl:w-[44%] h-full overflow-y-auto border-r border-black/[0.06] dark:border-white/[0.06]">{leftPanel}</div>
+              <div className="flex-1 h-full min-w-0">{roomPanel}</div>
+            </div>
+          )
         )
       ) : (
         /* Mobile: exactly ONE section on screen at a time.
