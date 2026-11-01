@@ -52,7 +52,8 @@ Rules:
 - Toggle ON = success green, like iOS.
 
 ## 4. Type
-- Apple devices: the system font (SF) through -apple-system. Never add SF files to the repo: Apple's licence does not allow SF on websites.
+- Apple devices: the system font (SF) through -apple-system, restored by `html.apple-type` (`src/lib/device.ts` sets it only on a real Apple platform). Never add SF files to the repo: Apple's licence does not allow SF on websites.
+- The token lists Inter first, because `-apple-system` is NOT Apple-only: Blink resolves it on Windows too, and a stack that begins with it renders Arial there and never reaches Inter (P2 measurement, `audit/p2/fonts.txt`, bug B22). Order on the page: `html.apple-type` puts SF in front, everyone else gets Inter.
 - Everywhere else: Inter variable, self-hosted (SIL OFL), Latin subsets, font-display: swap, size-adjusted fallback. The system stack stays as the last fallback.
 - Hindi, Arabic, Japanese, Chinese, Korean and other scripts use system fonts through :lang(). Do not force Inter.
 - Scale (px): display 56/64 (650, -0.03em) · h2 32 · h3 22 (600) · title 16 · body 16/1.5 · support 13 · meta 12. Tighten letter-spacing only at 20px and above.
@@ -140,7 +141,7 @@ Where the code and this contract disagreed, the owner chose. This table is the r
 | Dark values #181818/#141414/#262626/#e4e4e4/#888/#333 | code wins, but ink-2 #888888 is only 4.27:1 on raised #262626: lighten it to at least 4.5:1 (about #949494) | P1c |
 | Warning text #c77a00 (3.4:1) | contract wins: #9a5a00 | P1c |
 | Toggle ON #5CCB67 | contract wins: success green | P1c |
-| Font order (Inter first) | contract wins: -apple-system, BlinkMacSystemFont, Inter, … | P1b |
+| Font order (Inter first) | contract intent wins, order corrected in P2: Inter leads the token; SF is restored first only on Apple via `html.apple-type`, because Blink resolves `-apple-system` on Windows too and the stack never reached Inter there (B22) | P2 |
 | size-adjust fallback, :lang() rules, text-wrap: pretty | contract wins | P1b |
 | Tracking below 20px | contract wins: none | P1b |
 | Five names for orange, six for white | merge identical values only | P1b |
