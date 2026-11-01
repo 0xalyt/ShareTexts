@@ -23,7 +23,7 @@ import { BrandLockup } from '../components/BrandLockup';
 import { IconButton3D } from '../components/IconButton3D';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { SendScreen } from '../components/send/SendScreen';
-import { LiveCodeInput } from '../components/LiveCodeInput';
+import { ReceiveScreen, type ReceiveError } from '../components/receive/ReceiveScreen';
 import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
@@ -1155,6 +1155,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </motion.div>
   );
 
+  const receiveError: ReceiveError | null = joinError
+    ? {
+        text: joinError,
+        kind: /has expired|code expired|no longer valid|no longer active|too old/i.test(joinError)
+          ? 'expired'
+          : /reach|connection|internet|network|offline|timed out/i.test(joinError)
+            ? 'offline'
+            : 'code',
+      }
+    : null;
+
   const heroContent = (
     <AnimatePresence mode="sync">
           {/* ── IDLE ──────────────────────────────────────────────── */}
@@ -1180,27 +1191,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </motion.div>
           )}
 
-          {/* ── RECEIVING: enter code ────────────────────────────── */}
+          {/* ── RECEIVING: flat code entry (§18, P3) ─────────────── */}
           {panelMode === 'receiving' && (
-            <motion.div key="receiving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="max-w-md mx-auto">
-              <h2 className="mb-4 text-[32px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [text-wrap:balance]">{t('receive.title')}</h2>
-              <p className="text-[13px] text-apple-ink-muted dark:text-white/50 font-medium mb-5">{t('receive.hint')}</p>
-              {/* The capsule stays mounted through the whole attempt — that
-                  is what makes the interaction beats visible: verifying
-                  locks it, a rejection shakes+wipes+refocuses it IN PLACE,
-                  and an acceptance turns it green before the connecting
-                  panel (the handshake scene both devices share) takes over. */}
-              <motion.div key="code-entry" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-                <div className="p-6 bg-white dark:bg-surface-dark border border-apple-divider dark:border-white/10 rounded-[20px] shadow-card">
-                  <LiveCodeInput onComplete={handleCodeComplete} isJoining={isJoining} error={joinError} accepted={codeAccepted} />
-                </div>
-                <p className="mt-4 text-[12px] text-apple-ink-muted/60 dark:text-white/35 text-center">{t('receive.note')}</p>
-                {/* Scan QR — the alternative path, parked at the BOTTOM
-                    of the code screen: type first, scan as fallback. */}
-                <button onClick={() => setShowQRScan(true)} className="mt-5 w-full flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 hover:bg-apple-parchment dark:hover:bg-white/[0.08] rounded-full text-[16px] font-semibold text-apple-ink dark:text-white min-h-[48px] transition-colors active:scale-[0.97]">
-                  <QrCode className="w-4 h-4 text-apple-ink-muted dark:text-white/60" /> {t('receive.scan')}
-                </button>
-              </motion.div>
+            <motion.div key="receiving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full">
+              <ReceiveScreen
+                onComplete={handleCodeComplete}
+                isJoining={isJoining}
+                error={receiveError}
+                accepted={codeAccepted}
+                onScan={() => setShowQRScan(true)}
+              />
             </motion.div>
           )}
 

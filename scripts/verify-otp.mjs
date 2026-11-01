@@ -1,8 +1,8 @@
 /**
- * verify-otp.mjs — the Metalforge "code" capsule contract.
+ * verify-otp.mjs — the join-code contract (P3: six flat cells).
  *
- * "One key splits into cells, digits roll in; a wrong code shakes and
- * clears, a right one turns green."
+ * "Flat cells on the canvas; a wrong code shakes, clears and refocuses; a
+ * right one turns green."
  *
  * Static checks (source contracts) + browser E2E against the real signaling
  * worker: expansion beat, rolling digits, active outline, typing, backspace,
@@ -31,21 +31,30 @@ const ok = (name, cond, detail = '') => {
 /* ─────────────────────────── static contracts ─────────────────────────── */
 console.log('\n── static contracts ──');
 const ssa = readFileSync('src/views/SingleScreenApp.tsx', 'utf8');
-const lci = readFileSync('src/components/LiveCodeInput.tsx', 'utf8');
+const lci = readFileSync('src/components/receive/ReceiveScreen.tsx', 'utf8');
 const otp = readFileSync('src/components/spaceui/OtpInput.tsx', 'utf8');
 
-ok('capsule mounted in the live join flow (SingleScreenApp → LiveCodeInput)',
-  /<LiveCodeInput[^>]*accepted=\{codeAccepted\}/.test(ssa) && ssa.includes('onComplete={handleCodeComplete}'));
-ok('LiveCodeInput renders the real OtpInput', lci.includes('<OtpInput') && lci.includes('status={status}'));
+ok('flat entry mounted in the live join flow (SingleScreenApp → ReceiveScreen)',
+  /<ReceiveScreen[\s\S]{0,200}accepted=\{codeAccepted\}/.test(ssa) && ssa.includes('onComplete={handleCodeComplete}'));
+ok('ReceiveScreen renders the real OtpInput in its flat variant',
+  lci.includes('<OtpInput') && lci.includes('variant="flat"'));
 ok('no old field left behind: tick strip removed', !lci.includes('h-[3px]'));
 ok('no old field left behind: Retry button removed', !lci.includes("'home.retry'"));
 ok('single real input surface: one real input per cell behind a shared row (paste/autofill intact)',
   otp.includes('autoComplete={index === 0 ? \'one-time-code\' : \'off\'}'));
-ok('expansion beat: pill width → 100%', /initial=\{reduceMotion \? false : \{ width: scale\.width/.test(otp));
+ok('flat cell geometry: 48×56 (44×52 under 360px), radius 12, 8px gap, wider after the third digit',
+  otp.includes('w-[44px] h-[52px] min-[360px]:w-12 min-[360px]:h-14')
+  && otp.includes('rounded-[12px]')
+  && otp.includes("'justify-center gap-2'")
+  && otp.includes("index === 3 ? 'ml-2'"));
+ok('flat cells wear the band, and the focus cell a 2px accent border',
+  otp.includes("return 'bg-apple-parchment dark:bg-white/[0.08]';")
+  && otp.includes('inset_0_0_0_2px_#f06413'));
+ok('the capsule is not used on Receive', !/variant="capsule"/.test(lci));
 ok('digit roll variants present', otp.includes('y: \'110%\'') && otp.includes('ROLL_SPRING'));
 ok('error beat: shake + clear + refocus', otp.includes('SHAKE') && otp.includes('focusAt(0)'));
 ok('success beat: green cells', otp.includes("status === 'success' &&") || otp.includes("if (status === 'success') return 'bg-status-success'"));
-ok('OtpInput is used by LiveCodeInput only (no second OTP field anywhere)',
+ok('OtpInput is used by ReceiveScreen only (no second OTP field anywhere)',
   !ssa.includes('<OtpInput') && !readFileSync('src/views/SpaceView.tsx', 'utf8').includes('<OtpInput'));
 
 /* ─────────────────────────── browser E2E ─────────────────────────── */
@@ -68,7 +77,7 @@ B.on('console', (m) => {
   if (/\broom\.join\b/.test(text)) { joins++; if (/✓ room\.join/.test(text)) joinsOk++; }
 });
 
-console.log('\n── capsule mount ──');
+console.log('\n── entry mount ──');
 await A.goto(URL, { waitUntil: 'domcontentloaded' });
 await A.waitForTimeout(1500);
 await A.getByTestId('home-send').click();
@@ -97,18 +106,25 @@ const capsule = B.getByTestId('join-code-input');
 await capsule.waitFor({ timeout: 8000 });
 await sleep(700); // let the expansion spring settle
 
-ok('capsule mounted in the receiving panel', true);
-ok('exactly ONE capsule in the DOM (old field not left active)',
+ok('flat entry mounted in the receiving panel', true);
+ok('exactly ONE entry in the DOM (old field not left active)',
   (await B.locator('[data-testid="join-code-input"]').count()) === 1);
 const inputs = B.locator('[data-slot="otp-input-slot"]');
 ok('six real inputs', (await inputs.count()) === 6);
-ok('capsule is idle on mount', (await capsule.getAttribute('data-status')) === 'idle');
+ok('entry is idle on mount', (await capsule.getAttribute('data-status')) === 'idle');
 const expWidths = await B.evaluate(() => window.__widths);
 const narrowFrame = expWidths.find((w) => /px$/.test(w) && parseFloat(w) < 250);
 const rowBox = await B.locator('[data-slot="otp-input-row"]').boundingBox();
-ok('EXPANSION BEAT: opens from a pill width into the full capsule',
-  Boolean(narrowFrame) && rowBox && rowBox.width > 300,
-  `observed ${expWidths.slice(0, 3).join(' → ')} → settled ${Math.round(rowBox?.width || 0)}px`);
+const cellBoxes = await B.locator('[data-slot="otp-input-slot"]').evaluateAll((els) =>
+  els.map((el) => { const r = el.getBoundingClientRect(); return { x: r.x, w: r.width, h: r.height }; }));
+const gap = Math.round(cellBoxes[1].x - (cellBoxes[0].x + cellBoxes[0].w));
+const groupGap = Math.round(cellBoxes[3].x - (cellBoxes[2].x + cellBoxes[2].w));
+const rowFlatBg = await B.locator('[data-slot="otp-input-row"]').evaluate((el) => getComputedStyle(el).backgroundColor);
+ok('GEOMETRY: cells are 48×56, the run is 8px apart with a wider gap after the third digit',
+  Math.round(cellBoxes[0].w) === 48 && Math.round(cellBoxes[0].h) === 56 && gap === 8 && groupGap === 16,
+  `cell ${Math.round(cellBoxes[0].w)}×${Math.round(cellBoxes[0].h)} gap ${gap} group ${groupGap}`);
+ok('GEOMETRY: no container behind the cells (the capsule is gone)',
+  rowFlatBg === 'rgba(0, 0, 0, 0)', rowFlatBg);
 ok('screen-reader label on first cell', (await inputs.nth(0).getAttribute('aria-label')) === 'Digit 1 of 6');
 ok('one-time-code autofill on the first input', (await inputs.nth(0).getAttribute('autocomplete')) === 'one-time-code');
 ok('caret rendered in the focused active cell',
@@ -148,7 +164,7 @@ ok('rejected → focus back on cell 1',
   await inputs.nth(0).evaluate((el) => el === document.activeElement));
 const alert = B.locator('[role="alert"]');
 ok('rejected → accessible error message', (await alert.count()) === 1 &&
-  (await alert.innerText()).includes('Invalid or expired'));
+  (await alert.innerText()).includes("That code didn't work"));
 ok('rejected → no leftover Retry button (typing IS the retry)',
   (await alert.locator('button').count()) === 0);
 const ticks = await B.evaluate(() =>
@@ -158,7 +174,7 @@ ok('rejected → no old tick strip anywhere', ticks === 0);
 console.log('\n── retry → pending → green ──');
 await B.keyboard.type('9');
 await sleep(150);
-ok('retry typing returns the capsule to ready (no sticky danger tint)',
+ok('retry typing returns the entry to ready (no sticky danger tint)',
   (await capsule.getAttribute('data-status')) === 'idle');
 ok('error message stays announced until the next attempt',
   (await alert.count()) === 1);
@@ -173,9 +189,9 @@ for (let i = 0; i < 20 && !disabled; i++) {
   if (!disabled) await sleep(50);
 }
 ok('pending → capsule locked (no duplicate submission possible)', disabled);
-const verifyingShown = await B.locator('[role="status"]').filter({ hasText: 'Verifying code…' })
-  .waitFor({ timeout: 3000 }).then(() => true).catch(() => false);
-ok('pending → verifying message shown', verifyingShown);
+const verifyingShown = await B.getByTestId('receive-join').innerText()
+  .then((t) => t.includes('Joining')).catch(() => false);
+ok('pending → "Joining…" replaces the Join label in place', verifyingShown);
 // Mid-flight invariant only. The accepted join's ack — and with it its
 // `room.join` diag line — can still be in flight when "Verifying" paints
 // (the ack lands whenever the worker answers), so an exact count here
@@ -184,11 +200,16 @@ ok('pending → verifying message shown', verifyingShown);
 // below, once the connecting panel proves the ack landed.
 ok('pending → no extra submission while the join is in flight', joins <= 2, `joins=${joins}`);
 
-await B.locator('[data-testid="connecting-panel"]').waitFor({ timeout: 15000 });
+await Promise.race([
+  B.locator('[data-testid="connecting-panel"]').waitFor({ timeout: 15000 }),
+  B.locator('[data-testid="send-screen"], [data-testid="room-panel"]').first()
+    .waitFor({ timeout: 15000 }).catch(() => null),
+  B.waitForFunction(() => /Everything here lands on|Connected to /.test(document.body.innerText), null, { timeout: 15000 }),
+]);
 const saw = await B.evaluate(() => ({ s: window.__sawSuccess, a: window.__sawAcceptedText }));
 ok('accepted → cells turned GREEN (observed via mutation watcher)', saw.s);
 ok('accepted → sr-only "Code accepted" announced', saw.a);
-ok('accepted → existing success transition took over (connecting panel)', true);
+ok('accepted → the success transition took over (connect moment or the room)', true);
 ok('exactly one submission per code (2 joins = 1 rejected + 1 accepted, exactly 1 accepted)',
   joins === 2 && joinsOk === 1, `joins=${joins} ok=${joinsOk}`);
 
@@ -202,8 +223,8 @@ await D.goto(URL, { waitUntil: 'domcontentloaded' });
 await D.waitForTimeout(1200);
 await D.getByTestId('home-receive').click();
 await D.getByTestId('join-code-input').waitFor({ timeout: 8000 });
-const darkRowBg = await D.locator('[data-slot="otp-input-row"]').evaluate((el) => getComputedStyle(el).backgroundColor);
-ok('dark theme: capsule row uses the dark surface', darkRowBg !== 'rgb(255, 255, 255)', darkRowBg);
+const darkRowBg = await D.locator('[data-slot="otp-input-slot"]').first().evaluate((el) => getComputedStyle(el).backgroundColor);
+ok('dark theme: the cells use the dark band, not the light one', darkRowBg !== 'rgb(255, 255, 255)', darkRowBg);
 await D.keyboard.type('1');
 await sleep(150);
 const darkDigit = await D.locator('[data-slot="otp-input-char"]').first().evaluate((el) => getComputedStyle(el).color);

@@ -33,6 +33,11 @@ above). Translate these, then delete the rows.
 | `send.qrCaption` | Scan this with your other device. | under the QR plate |
 | `send.waiting` | Waiting for your other device… | live status while the room waits |
 | `send.connecting` | Connecting… | live status once the other device joins |
+| `receive.titleShort` | Receive | the join screen's name (the step, not an instruction) |
+| `receive.subtitle` | Enter the code from your other device. | the ONE instruction on the screen |
+| `receive.join` | Join | the visible primary action, disabled until six digits |
+| `receive.joining` | Joining… | the same button, mid-attempt (no spinner, no layout change) |
+| `receive.wrongCode` | That code didn't work. Check the digits or ask for a new one. | the rejection sentence, replacing the server's "Invalid or expired" |
 
 Changed, not added: `receive.note` now says "Codes change every 90 seconds.
 If yours stops working, ask for a new one." — the old "every 30 seconds" was

@@ -81,6 +81,18 @@ const cellState = (
     : 'bg-apple-parchment/60 dark:bg-white/[0.04]';
 };
 
+const flatCellState = (
+  active: boolean,
+  status: 'idle' | 'success' | 'error',
+) => {
+  if (status === 'success') return 'bg-status-success';
+  if (status === 'error') return 'bg-status-danger-soft dark:bg-status-danger/[0.12]';
+  if (active)
+    return 'bg-white dark:bg-white/[0.12] shadow-[inset_0_0_0_2px_#f06413] dark:shadow-[inset_0_0_0_2px_#ff8a4c]';
+  // The band: one step off the canvas, no border, no shadow.
+  return 'bg-apple-parchment dark:bg-white/[0.08]';
+};
+
 const ROLL_SPRING = { type: 'spring', stiffness: 500, damping: 34 } as const;
 const BLINK = {
   duration: 1.1,
@@ -119,6 +131,14 @@ export type OtpInputProps = Omit<
   slotClassName?: string;
   /** Accessibility label for each slot (localized, e.g. "Digit 1 of 6"). */
   slotLabel?: (index: number, length: number) => string;
+  /**
+   * 'capsule' (default) is the pill: one container, adjoining cells.
+   * 'flat' is §18's Receive entry: six separate cells on the canvas — no
+   * container at all, 48×56 (44×52 under 360px), radius 12, an 8px gap with
+   * a wider one after the third digit, and a 2px accent border on the focus
+   * cell. Interaction (paste, backspace, autofill, shake, roll) is identical.
+   */
+  variant?: 'capsule' | 'flat';
 };
 
 export function OtpInput({
@@ -136,8 +156,10 @@ export function OtpInput({
   className,
   slotClassName,
   slotLabel,
+  variant = 'capsule',
   ...props
 }: OtpInputProps) {
+  const flat = variant === 'flat';
   const [uncontrolled, setUncontrolled] = useState(() =>
     toSlots(defaultValue, length),
   );
@@ -298,20 +320,20 @@ export function OtpInput({
            into the six-cell capsule — the reference's "one key splits into
            cells". Width animates px → 100% (motion measures the element);
            reduced motion skips straight to the open capsule. */
-        initial={reduceMotion ? false : { width: scale.width, opacity: 0 }}
+        initial={reduceMotion || flat ? false : { width: scale.width, opacity: 0 }}
         animate={{ width: '100%', opacity: 1 }}
         transition={{
           opacity: { duration: 0.18 },
-          width: reduceMotion
+          width: reduceMotion || flat
             ? { duration: 0 }
             : { type: 'spring', stiffness: 420, damping: 34 },
         }}
         data-slot="otp-input-row"
         className={cn(
-          'relative flex w-full items-center rounded-full',
-          scale.gap,
-          scale.pad,
-          'bg-white dark:bg-surface-dark border border-apple-divider/60 dark:border-white/10 shadow-card',
+          'relative flex w-full items-center',
+          flat
+            ? 'justify-center gap-2'
+            : cn('rounded-full', scale.gap, scale.pad, 'bg-white dark:bg-surface-dark border border-apple-divider/60 dark:border-white/10 shadow-card'),
         )}
         onFocus={(event) => {
           // React's autoFocus fires focus() during commit — BEFORE the ref
@@ -342,7 +364,10 @@ export function OtpInput({
               key={index}
               data-slot="otp-input-cell"
               data-filled={Boolean(slot)}
-              className="relative min-w-0 flex-1"
+              className={cn(
+                'relative',
+                flat ? (index === 3 ? 'ml-2' : 'shrink-0') : 'min-w-0 flex-1',
+              )}
             >
               <input
                 ref={(el) => {
@@ -369,15 +394,22 @@ export function OtpInput({
                     : `${numeric ? 'Digit' : 'Character'} ${index + 1} of ${length}`
                 }
                 className={cn(
-                  'w-full text-center font-semibold tabular-nums caret-transparent outline-none',
+                  flat
+                    ? 'text-center font-semibold tabular-nums caret-transparent outline-none transition-shadow duration-150 w-[44px] h-[52px] min-[360px]:w-12 min-[360px]:h-14 rounded-[12px] text-[24px]'
+                    : 'w-full text-center font-semibold tabular-nums caret-transparent outline-none',
                   'text-apple-ink dark:text-white',
-                  scale.box,
-                  scale.text,
-                  cellState(
-                    Boolean(slot),
-                    status === 'idle' && (focused === index || (focused === null && index === activeIndex)),
-                    status,
-                  ),
+                  !flat && cn(scale.box, scale.text),
+                  flat
+                    ? flatCellState(
+                        status === 'idle' &&
+                          (focused === index || (focused === null && index === activeIndex)),
+                        status,
+                      )
+                    : cellState(
+                        Boolean(slot),
+                        status === 'idle' && (focused === index || (focused === null && index === activeIndex)),
+                        status,
+                      ),
                   slotClassName,
                 )}
               />
@@ -399,7 +431,7 @@ export function OtpInput({
                         status === 'success'
                           ? 'text-white'
                           : 'text-apple-ink dark:text-white',
-                        scale.text,
+                        flat ? 'text-[24px]' : scale.text,
                       )}
                     >
                       {mask ? '•' : slot}
@@ -420,7 +452,7 @@ export function OtpInput({
                       transition={BLINK}
                       className={cn(
                         'absolute w-[2px] rounded-full bg-apple-ink dark:bg-white',
-                        scale.caret,
+                        flat ? 'h-6' : scale.caret,
                       )}
                     />
                   )}

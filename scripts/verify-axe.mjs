@@ -93,6 +93,14 @@ await page.waitForSelector('[data-testid="task-back"]', { timeout: 15000 });
 await page.waitForTimeout(1200);
 await audit('Send (sending)');
 
+// Receive — the flat entry (P3)
+await page.getByTestId('task-back').click();
+await page.waitForTimeout(900);
+await page.getByTestId('home-receive').click();
+await page.waitForSelector('[data-testid="receive-screen"]', { timeout: 15000 });
+await page.waitForTimeout(900);
+await audit('Receive (receiving)');
+
 const totalSerious = rows.reduce((n, r) => n + (r.serious?.length || 0), 0);
 const totalModerate = rows.reduce((n, r) => n + (r.moderate?.length || 0), 0);
 
