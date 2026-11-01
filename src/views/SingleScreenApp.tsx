@@ -735,11 +735,23 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
      inside the pane with a 12px canvas fade under it, so scrolling content
      never collides with the control. */
   const isTaskScreen = panelMode === 'sending' || panelMode === 'receiving' || panelMode === 'connecting';
+  /* The entry this screen pushed (see the history block below). */
+  const taskHistoryRef = useRef(false);
+  /* Cancel from the Back circle: leave the screen now, then CONSUME the entry
+     it pushed. Without the pop, the next browser/Android Back lands on a
+     phantom level of a screen that is already gone and appears to do nothing. */
+  const cancelTask = useCallback(() => {
+    const owned = taskHistoryRef.current;
+    handleCancel();
+    if (!owned) return;
+    taskHistoryRef.current = false;
+    try { history.back(); } catch { /* private mode */ }
+  }, [handleCancel]);
   const taskChrome = isTaskScreen ? (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20">
       <div aria-hidden className="h-[52px] w-full bg-gradient-to-b from-apple-canvas via-apple-canvas/80 to-transparent dark:from-night-950 dark:via-night-950/80" />
       <div className="absolute left-4 top-2 pointer-events-auto sm:left-6 lg:left-8">
-        <GlassCircleButton label={t('cancel')} onClick={handleCancel} testId="task-back">
+        <GlassCircleButton label={t('cancel')} onClick={cancelTask} testId="task-back">
           <ArrowLeft className="h-5 w-5" strokeWidth={1.8} aria-hidden />
         </GlassCircleButton>
       </div>
@@ -749,7 +761,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
      Android Back do exactly what the in-app Back circle does. The Room keeps
      its own entry (ChatView pushes and unwinds it with a generation tag), so
      this only manages the levels it creates — it never pops someone else's. */
-  const taskHistoryRef = useRef(false);
   useEffect(() => {
     if (isTaskScreen && !taskHistoryRef.current) {
       taskHistoryRef.current = true;
