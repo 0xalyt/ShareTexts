@@ -161,3 +161,23 @@ Command: `node scripts/smoke-live.mjs --expect e1959cae5c29`
 **[smoke-live] GREEN — 6/6.** Docs-only push (report + bug statuses); the
 runtime under it is the same code the previous marker proved, and pairing is
 back to ~7 s on live after the 12 s run on `fa0374a…`.
+
+## 2026-11-01 — P2 pushes `7f8a2ac`, `9145607`, `aeadf2d`
+
+Command: `node scripts/smoke-live.mjs` (no `--expect`: the live marker cannot
+move until Vercel deploys, and the failure below is not about the marker).
+
+| Check | Result |
+|---|---|
+| https://sharetexts.online answers 200 | PASS (200) |
+| build marker present | PASS (present, older build) |
+| share card (og/twitter, 1200×630 PNG) | PASS |
+| two devices paired | **FAIL** — `getByTestId("pairing-code")` never appeared; the page logged `WebSocket … wss://sharetext-signaling.garv29devra.workers.dev/lobby` closed before it opened |
+| message A → B arrived within 15 s | SKIPPED — pairing failed |
+| sender sees its own message | SKIPPED — pairing failed |
+| no console errors during smoke | PASS (5 warnings, all the same worker) |
+
+**[smoke-live] 4 FAILURE(S)** — every one downstream of the signaling worker,
+which answers `200` to a request with no `Origin` and `403` to every browser.
+Filed as question 3 in `F30-p2-report.md`; nothing in the repo can fix it.
+
