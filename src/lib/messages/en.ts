@@ -232,6 +232,9 @@ const en = {
   'connect.searching': 'Waiting for your other device…',
   'connect.establishing': 'Devices found — connecting…',
   'connect.linked': 'Connected',
+  'connect.linking': "Connecting…",
+  'connect.sameNetwork': "Same network",
+  'connect.throughShareTexts': "Through ShareTexts",
   'connect.thisDevice': 'This device',
   'connect.otherDevice': 'Other device',
 
@@ -531,6 +534,18 @@ const en = {
 
   // ── settings overlay ──────────────────────────────────────────────
   'settings.title': 'Settings',
+  'settings.device': "Device",
+  'settings.deviceName': "Device name",
+  'settings.themeMode': "Mode",
+  'settings.auto': "Auto",
+  'settings.reduceTransparency': "Reduce transparency",
+  'settings.languageAutomatic': "Automatic (device language)",
+  'settings.haptics': "Haptics",
+  'settings.hapticsHint': "Vibrates for connect and error. Android only.",
+  'settings.hapticsHintIos': "This device has no vibration API.",
+  'settings.nearby': "Nearby",
+  'settings.about': "About",
+  'settings.version': "Version",
   'settings.theme': 'Appearance',
   'settings.darkLight': 'Dark / Light',
   'settings.dark': 'Dark',

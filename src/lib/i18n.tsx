@@ -35,16 +35,9 @@ function normalize(code: string): Lang | null {
   return (known as string[]).includes(base) ? (base as Lang) : null;
 }
 
-/** First-match against the browser's language list; falls back to en. */
-function detectLang(): Lang {
+/** The device's own answer, ignoring any saved choice. */
+function deviceLang(): Lang {
   if (typeof window === 'undefined') return 'en';
-  try {
-    const saved = localStorage.getItem(LANG_STORE);
-    if (saved) {
-      const n = normalize(saved);
-      if (n) return n;
-    }
-  } catch { /* private mode */ }
   const candidates =
     typeof navigator !== 'undefined'
       ? (navigator.languages && navigator.languages.length > 0 ? navigator.languages : [navigator.language])
@@ -56,18 +49,43 @@ function detectLang(): Lang {
   return 'en';
 }
 
+/** A saved choice wins; otherwise the device answers. */
+function detectLang(): Lang {
+  if (typeof window === 'undefined') return 'en';
+  try {
+    const saved = localStorage.getItem(LANG_STORE);
+    if (saved) {
+      const n = normalize(saved);
+      if (n) return n;
+    }
+  } catch { /* private mode */ }
+  return deviceLang();
+}
+
 export interface I18nApi {
   lang: Lang;
   dir: 'ltr' | 'rtl';
+  /** True when the language follows the device (no stored choice). */
+  auto: boolean;
   /** Translate key → active locale, English fallback, then the key itself. */
   t: (key: MsgKey, params?: Record<string, string | number>) => string;
   setLang: (l: Lang) => void;
+  /** Drop the stored choice and follow the device again. */
+  useDeviceLanguage: () => void;
 }
 
 const I18nContext = createContext<I18nApi | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(detectLang);
+  // "Automatic" means exactly one thing: no key in storage.
+  const [auto, setAuto] = useState<boolean>(() => {
+    try {
+      return !localStorage.getItem(LANG_STORE);
+    } catch {
+      return true;
+    }
+  });
 
   // Keep <html lang/dir> in sync with the active locale — assistive tech,
   // RTL layout and any :lang() CSS all read it from here.
@@ -76,8 +94,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     const el = document.documentElement;
     el.lang = lang === 'zh' ? 'zh-Hans' : lang;
     if (el.dir !== dir) el.dir = dir;
-    try { localStorage.setItem(LANG_STORE, lang); } catch { /* private mode */ }
-  }, [lang]);
+    try {
+      if (auto) localStorage.removeItem(LANG_STORE);
+      else localStorage.setItem(LANG_STORE, lang);
+    } catch { /* private mode */ }
+  }, [lang, auto]);
 
   const api = useMemo<I18nApi>(() => {
     const t: I18nApi['t'] = (key, params) => {
@@ -89,8 +110,22 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
       return s;
     };
-    return { lang, dir: lang === 'ar' ? 'rtl' : 'ltr', t, setLang: setLangState };
-  }, [lang]);
+    return {
+      lang,
+      dir: lang === 'ar' ? 'rtl' : 'ltr',
+      auto,
+      t,
+      setLang: (l: Lang) => {
+        setAuto(false);
+        setLangState(l);
+      },
+      useDeviceLanguage: () => {
+        try { localStorage.removeItem(LANG_STORE); } catch { /* private mode */ }
+        setAuto(true);
+        setLangState(deviceLang());
+      },
+    };
+  }, [lang, auto]);
 
   return <I18nContext.Provider value={api}>{children}</I18nContext.Provider>;
 }
@@ -108,7 +143,9 @@ export function useI18n(): I18nApi {
         if (params) for (const [k, v] of Object.entries(params)) s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
         return s;
       },
+      auto: true,
       setLang: () => {},
+      useDeviceLanguage: () => {},
     };
   }
   return ctx;

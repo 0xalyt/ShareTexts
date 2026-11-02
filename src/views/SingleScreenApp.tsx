@@ -16,6 +16,7 @@
  */
 import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useSession } from '../lib/SessionContext';
+import { hapticSuccess } from '../lib/haptics';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
@@ -410,8 +411,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     if (celebratedRoomRef.current === session.roomId) return;
     celebratedRoomRef.current = session.roomId;
     if (!session.isCreator) return;
+    hapticSuccess();
     setCelebrateConnected(true);
-    const timer = setTimeout(() => setCelebrateConnected(false), 1600);
+    const timer = setTimeout(() => setCelebrateConnected(false), reduceMotion ? 0 : devBeat || 220);
     return () => clearTimeout(timer);
   }, [session.partnerConnected, session.roomId, session.isCreator]);
 
@@ -678,7 +680,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         // connecting panel with the handshake — takes over. isJoining stays
         // true through the beat so the capsule cannot fire a second join.
         setCodeAccepted(true);
-        const beat = reduceMotion ? 0 : 480;
+        const beat = reduceMotion ? 0 : devBeat || 220;
         acceptBeatRef.current = window.setTimeout(() => {
           acceptBeatRef.current = null;
           setCodeAccepted(false);
@@ -734,6 +736,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   /* ─ Task screens (§18): no header bar. A floating glass Back circle sits
      inside the pane with a 12px canvas fade under it, so scrolling content
      never collides with the control. */
+  /* Development-only: stretch the connect hold so the motion harness can
+     photograph a 600 ms draw that a localhost pair finishes in 200 ms. */
+  const devBeat = import.meta.env.DEV
+    ? Number(new URLSearchParams(window.location.search).get('beat') || 0) || 0
+    : 0;
+
   const isTaskScreen = panelMode === 'sending' || panelMode === 'receiving' || panelMode === 'connecting';
   /* The entry this screen pushed (see the history block below). */
   const taskHistoryRef = useRef(false);
@@ -1155,6 +1163,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </motion.div>
   );
 
+  /* The connect moment's success word says HOW the devices reached each
+     other — "Same network" when the link is direct/local, "Through
+     ShareTexts" when it had to be relayed. Undefined while unknown. */
+  const connectRoute: 'local' | 'direct' | 'relay' | undefined =
+    session.connectionType === 'relay'
+      ? 'relay'
+      : session.connectionType === 'direct' || session.connectionType === 'local'
+        ? 'direct'
+        : undefined;
+
   const receiveError: ReceiveError | null = joinError
     ? {
         text: joinError,
@@ -1212,7 +1230,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     beat of it is watched here on the joiner side, including
                     the moment the tiles settle into the room's own pair
                     visual (same tiles, same gap, same story). */}
-                <ConnectHandshake
+                <ConnectHandshake route={connectRoute}
                   phase={session.partnerConnected ? 'connected' : 'connecting'}
                   localIcon={isMobileDevice ? 'phone' : 'monitor'}
                   partnerName={session.partnerName}
@@ -1393,7 +1411,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               className="max-w-md mx-auto text-center"
             >
               <div className="flex flex-col items-center py-6">
-                <ConnectHandshake
+                <ConnectHandshake route={connectRoute}
                   phase="connected"
                   localIcon={isMobileDevice ? 'phone' : 'monitor'}
                   partnerName={session.partnerName}
@@ -1770,7 +1788,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   one story on both panes. */}
               {panelMode === 'connecting' ? (
                 <div className="mb-4">
-                  <ConnectHandshake phase="connecting" localIcon={isMobileDevice ? 'phone' : 'monitor'} />
+                  <ConnectHandshake route={connectRoute} phase="connecting" localIcon={isMobileDevice ? 'phone' : 'monitor'} />
                 </div>
               ) : panelMode === 'idle' ? (
                 /* Desktop idle: the three steps AND the product scene form
@@ -1811,7 +1829,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       never two. */}
                   {panelMode === 'receiving' && (
                     <div className="mb-5">
-                      <ConnectHandshake
+                      <ConnectHandshake route={connectRoute}
                         phase="searching"
                         localIcon={isMobileDevice ? 'phone' : 'monitor'}
                         quiet

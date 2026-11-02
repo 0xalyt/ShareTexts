@@ -1,261 +1,146 @@
 /**
- * ConnectHandshake — the pairing moment. One still, calm scene:
+ * ConnectHandshake — the connect moment (§18, P3).
  *
- *   searching   — two devices, a quiet dotted line between them
- *   connecting  — the same scene; a single ember dot crosses the straight
- *                 gap (one direction, then the other). The devices never
- *                 move — no glide, no slide, no "slope" feel.
- *   connected   — the dotted line becomes solid green and a check fades in
- *                 at its center, breathing ONE pair of green rings outward
- *                 (the completion beat — Duolingo celebrates the actual
- *                 success moment; Apple's HIG caps it at "proportionate").
- *                 One-shot, no repeat: the scene then holds perfectly
- *                 still, as before.
+ * Two devices, one line. That is the whole scene, reduced to what it means:
  *
- * Everything eases on the app's Apple-like curve and settles. Reduced-motion
- * flattens it via MotionConfig.
+ *   connecting — two 48px circles (24px Lucide glyphs: phone and screen) with
+ *                a hairline between them that DRAWS itself in 600 ms, linear.
+ *                Nothing moves, nothing pulses, nothing loops.
+ *   connected  — the same line settles SOLID and green, a check badge scales
+ *                in once (280 ms, one shot), and the status word changes from
+ *                "Connecting…" to the truth about the route: "Same network"
+ *                or "Through ShareTexts". No rings, no confetti, no second
+ *                flourish: the moment is the line arriving.
+ *
+ * The status word is ONE element with a fixed height and no crossfade — a
+ * label that flashes or re-lays-out while a connection settles reads as
+ * instability at exactly the wrong second. Reduced motion keeps every fact
+ * and drops the performance: the line is simply there, the badge fades in
+ * 120 ms instead of scaling.
  */
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Check, Smartphone, Monitor } from 'lucide-react';
+import { Check, Monitor, Smartphone } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
+import { cn } from '../lib/utils';
 
 export type HandshakePhase = 'searching' | 'connecting' | 'connected';
+export type LinkRoute = 'local' | 'direct' | 'relay';
 
 interface ConnectHandshakeProps {
   phase: HandshakePhase;
-  /** Icon for the local device tile. */
+  /** Glyph for THIS device. */
   localIcon?: 'phone' | 'monitor';
-  /** Name shown under the partner tile once known. */
+  /** Name shown under the partner circle once it is known. */
   partnerName?: string | null;
-  /** Hide the scene's own status/sub lines when the surrounding surface
-   *  already carries the single source of truth (no doubled copy). */
+  /** Hide the scene's own status line when the surface already states it. */
   quiet?: boolean;
+  /** How the two devices actually reach each other — decides the success
+   *  word. Omitted means "not known yet", and the copy stays generic. */
+  route?: LinkRoute;
 }
 
-const EASE = [0.22, 1, 0.36, 1] as const;
-const TILE = 64;
+const GLYPH_BOX = 48;
+const LINE = 88;
 
-function DeviceTile({ kindIcon, accent, lifted }: { kindIcon: 'phone' | 'monitor'; accent: string; lifted: boolean }) {
-  const Icon = kindIcon === 'phone' ? Smartphone : Monitor;
+export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quiet = false, route }: ConnectHandshakeProps) {
+  const { t } = useI18n();
+  const connected = phase === 'connected';
+  const LocalIcon = localIcon === 'phone' ? Smartphone : Monitor;
+  const PartnerIcon = localIcon === 'phone' ? Monitor : Smartphone;
+
+  const status = connected
+    ? route === 'relay'
+      ? t('connect.throughShareTexts')
+      : t('connect.sameNetwork')
+    : t('connect.linking');
+
   return (
     <div
-      className="relative flex items-center justify-center rounded-[20px] shrink-0 bg-white dark:bg-surface-dark border transition-shadow duration-300"
-      style={{
-        width: TILE,
-        height: TILE,
-        borderColor: accent,
-        boxShadow: lifted ? `0 10px 28px -14px ${accent}66` : '0 1px 2px rgba(0,0,0,0.05)',
-      }}
+      className="flex w-full select-none flex-col items-center"
+      data-testid="connect-handshake"
+      data-phase={phase}
+      data-route={route ?? 'unknown'}
     >
-      <Icon className="w-7 h-7" style={{ color: accent }} aria-hidden="true" />
-    </div>
-  );
-}
+      <div className="relative flex items-center justify-center">
+        <DeviceCircle icon={LocalIcon} tone={connected ? 'settled' : 'linking'} />
 
-/** The radar sweep while connecting: a rotating conic-gradient ring just
- *  outside the partner tile. Reads as "searching for the other device" —
- *  rotation only (compositor transform), no scale, no movement of the
- *  tiles themselves. Hidden under reduced motion via MotionConfig. */
-function SweepRing({ accent }: { accent: string }) {
-  return (
-    <motion.span
-      aria-hidden="true"
-      className="absolute -inset-[7px] rounded-[24px]"
-      style={{
-        background: `conic-gradient(from 0deg, transparent 0deg, transparent 300deg, ${accent}66 345deg, transparent 360deg)`,
-        WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 2.5px), black calc(100% - 2px))',
-        mask: 'radial-gradient(farthest-side, transparent calc(100% - 2.5px), black calc(100% - 2px))',
-        opacity: 0.8,
-      }}
-      animate={{ rotate: 360 }}
-      transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
-    />
-  );
-}
-
-export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quiet = false }: ConnectHandshakeProps) {
-  const { t } = useI18n();
-  const connecting = phase === 'connecting';
-  const connected = phase === 'connected';
-  const isPhone = localIcon === 'phone';
-
-  // One hue telling the truth: ember while linking, system green when live.
-  // Raw hex by design (SVG-const rule): these strings get "66" concatenated
-  // for alpha tints, which breaks var() — mirrors --color-status-success /
-  // --color-focus in @theme; update both together.
-  const accent = connected ? '#34c759' : 'var(--ht-accent, #f06413)';
-  // Fixed gap — the devices never move, so the scene is always level and
-  // still (the animated width read as a diagonal "slide").
-  const gap = 72;
-
-  const status = connected ? t('connect.linked') : connecting ? t('connect.establishing') : t('connect.searching');
-
-  return (
-    <div className="flex flex-col items-center w-full select-none" data-testid="connect-handshake" data-phase={phase}>
-      {/* The scene: local tile — link — partner tile */}
-      <div className="relative flex items-center" style={{ minHeight: TILE + 40 }}>
-        {/* Local tile — as the link draws, both tiles lean 4px toward each
-            other: the connection reads as two devices reaching one another,
-            not a line appearing between bystanders. */}
-        <motion.div
-          className="relative z-10 flex flex-col items-center gap-2"
-          animate={{ x: connected ? 4 : 0 }}
-          transition={{ duration: 0.4, ease: EASE }}
+        {/* The line. It draws from the left circle to the right one in 600 ms,
+            then holds — and simply turns solid when the link is live. */}
+        <svg
+          width={LINE}
+          height={GLYPH_BOX}
+          viewBox={`0 0 ${LINE} ${GLYPH_BOX}`}
+          aria-hidden="true"
+          className="shrink-0"
+          data-testid="connect-line"
         >
-          <DeviceTile kindIcon={localIcon} accent={accent} lifted={connecting || connected} />
-          <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45">{t('connect.thisDevice')}</span>
-        </motion.div>
-
-        {/* The middle: fixed width — a level bridge between the tiles */}
-        <div
-          className="relative flex items-center justify-center"
-          style={{ width: gap, height: TILE }}
-        >
-          {/* Dotted guide — present while searching AND connecting so the
-              gap always reads as "a line is forming here", never dead space. */}
-          {!connected && (
-            <div aria-hidden="true" className="absolute inset-x-1 top-1/2 -translate-y-1/2 border-t border-dashed border-apple-divider dark:border-white/15" />
-          )}
-
-          {/* Traveling packet — the heartbeat of the scene. A soft comet:
-              the ember dot with a fading tail trail (two lagged echoes),
-              gliding LEVEL left → right and back. Pure x-transform + opacity
-              (compositor-only), staggered echoes give it life without tilt,
-              bounce, or scale. */}
-          {connecting && (
-            <>
-              {[0, 0.5, 1].map((lag) => (
-                <motion.span
-                  key={lag}
-                  aria-hidden="true"
-                  className="absolute top-1/2 rounded-full"
-                  style={{
-                    left: '50%',
-                    background: accent,
-                    width: lag === 0 ? 7 : 5,
-                    height: lag === 0 ? 7 : 5,
-                    marginTop: lag === 0 ? -3.5 : -2.5,
-                    opacity: lag === 0 ? 1 : 0.4 - lag * 0.15,
-                    filter: lag === 0 ? 'drop-shadow(0 0 6px rgba(240,100,19,0.55))' : 'none',
-                  }}
-                  initial={{ x: -gap / 2 + 4 }}
-                  animate={{
-                    x: [-gap / 2 + 4, gap / 2 - 4, gap / 2 - 4, -gap / 2 + 4],
-                    opacity: [0, 1, 1, 0],
-                    transition: {
-                      duration: 1.7,
-                      times: [0, 0.42, 0.58, 1],
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: lag * 0.09,
-                    },
-                  }}
-                />
-              ))}
-            </>
-          )}
-          <AnimatePresence>
-            {connected && (
-              <motion.div
-                aria-hidden="true"
-                className="absolute top-1/2 -translate-y-1/2 rounded-full"
-                style={{ background: accent, height: 2.5 }}
-                initial={{ width: 0, opacity: 1 }}
-                animate={{ width: '100%', opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4, ease: EASE }}
-              />
+          <line
+            x1="0"
+            y1={GLYPH_BOX / 2}
+            x2={LINE}
+            y2={GLYPH_BOX / 2}
+            strokeDasharray={LINE}
+            strokeWidth={2}
+            strokeLinecap="round"
+            className={cn(
+              'st-connect-line',
+              connected ? 'stroke-status-success' : 'stroke-apple-ink/25 dark:stroke-white/30',
             )}
-          </AnimatePresence>
+            data-connected={connected ? 'true' : 'false'}
+          />
+        </svg>
 
-          {/* Check — fades up at the center of the drawn link. No scale pop
-              on the check itself; the CELEBRATION rides on top as two
-              one-shot green rings breathing outward (staggered — the same
-              radar-ping language the discovery scene uses, in success
-              green). Under reduced motion MotionConfig flattens the scale,
-              leaving one quiet opacity fade — the fact stays, the flourish
-              goes. */}
-          <AnimatePresence>
-            {connected && (
-              <motion.span
-                className="relative z-20 flex items-center justify-center w-8 h-8 rounded-full bg-status-success shadow-[0_4px_14px_-6px_rgba(52,199,89,0.55)]"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, ease: EASE, delay: 0.15 }}
-              >
-                {[0.25, 0.5].map((delay) => (
-                  <motion.span
-                    key={delay}
-                    aria-hidden="true"
-                    className="absolute inset-0 rounded-full border-2 border-status-success"
-                    initial={{ scale: 1, opacity: delay === 0.25 ? 0.55 : 0.4 }}
-                    animate={{ scale: 2.1, opacity: 0 }}
-                    transition={{ duration: 0.9, ease: 'easeOut', delay }}
-                  />
-                ))}
-                <Check className="w-4 h-4 text-white" strokeWidth={3} />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </div>
+        <DeviceCircle icon={PartnerIcon} tone={connected ? 'settled' : 'waiting'} />
 
-        {/* Partner tile — its accent ring pulses gently while linking
-            (a soft breath, alpha-only, never a scale change), wrapped in
-            the radar sweep ring that says "finding this device…". It meets
-            the local tile halfway as the link draws. */}
-        <motion.div
-          className="relative z-10 flex flex-col items-center gap-2"
-          animate={{ x: connected ? -4 : 0 }}
-          transition={{ duration: 0.4, ease: EASE }}
-        >
-          <motion.div
-            className="relative"
-            animate={connecting ? { boxShadow: [
-              `0 10px 28px -14px ${accent}66`,
-              `0 10px 34px -12px ${accent}99`,
-              `0 10px 28px -14px ${accent}66`,
-            ] } : undefined}
-            transition={connecting ? { duration: 1.7, repeat: Infinity, ease: 'easeInOut' } : undefined}
+        {/* The badge lands on the middle of the line, once. */}
+        {connected && (
+          <span
+            aria-hidden="true"
+            data-testid="connect-check"
+            className="st-connect-check absolute left-1/2 top-1/2 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-status-success shadow-[0_2px_8px_-2px_rgba(52,199,89,0.5)]"
           >
-            {connecting && <SweepRing accent={accent} />}
-            <DeviceTile kindIcon={isPhone ? 'monitor' : 'phone'} accent={connected ? 'rgba(52,199,89,0.45)' : accent} lifted={connecting} />
-          </motion.div>
-          <motion.span
-            key={partnerName || 'pair'}
-            initial={{ opacity: 0, y: 3 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: EASE }}
-            className="max-w-[110px] truncate text-[13px] font-medium text-apple-ink-muted dark:text-white/45"
-          >
-            {connected ? (partnerName || t('pair.paired')) : t('connect.otherDevice')}
-          </motion.span>
-        </motion.div>
+            <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+          </span>
+        )}
       </div>
 
-      {/* Status line — crossfades, never bounces. Suppressed in quiet mode:
-          one status per screen is the contract. */}
       {!quiet && (
-        <>
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={status}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="mt-2 text-[13px] font-semibold text-apple-ink dark:text-white/85"
-              aria-live="polite"
-            >
-              {status}
-            </motion.p>
-          </AnimatePresence>
-          {!connected && (
-            <p className="mt-1 text-[13px] text-apple-ink-muted dark:text-white/70">{t('connect.sub')}</p>
-          )}
-        </>
+        <div className="mt-4 flex flex-col items-center">
+          {/* Fixed height, no crossfade, no key swap: the word changes in
+              place, so the block never flashes or jumps. */}
+          <p
+            aria-live="polite"
+            className="min-h-[18px] min-w-[120px] text-center text-[13px] font-semibold text-apple-ink dark:text-white/85"
+            data-testid="connect-status"
+          >
+            {status}
+          </p>
+          {connected && partnerName ? (
+            <p className="mt-0.5 max-w-[220px] truncate text-center text-[13px] text-apple-ink-muted dark:text-white/70">
+              {partnerName}
+            </p>
+          ) : null}
+        </div>
       )}
     </div>
   );
 }
+
+function DeviceCircle({ icon: Icon, tone }: { icon: React.ComponentType<{ className?: string }>; tone: 'linking' | 'waiting' | 'settled' }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{ width: GLYPH_BOX, height: GLYPH_BOX }}
+      className={cn(
+        'relative z-10 flex shrink-0 items-center justify-center rounded-full border transition-colors duration-300',
+        tone === 'settled'
+          ? 'border-status-success/30 bg-status-success/[0.08] text-status-success'
+          : 'border-black/[0.08] bg-white text-apple-ink-muted dark:border-white/12 dark:bg-white/[0.06] dark:text-white/70',
+      )}
+    >
+      <Icon className="h-6 w-6" />
+    </span>
+  );
+}
+
+export default ConnectHandshake;

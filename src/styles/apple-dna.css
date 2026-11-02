@@ -141,7 +141,7 @@ html.dark .segmented-thumb {
   font-weight: 600;
   /* One step darker than ink-muted: the 13px label sits on the control's own
      tinted track, where ink-muted measured 4.3:1 — below AA (§17). */
-  color: #5c5c62;
+  color: #4f4f55;
   transition: color var(--st-t-mode) var(--st-ease-enter);
 }
 html.dark .segmented [role='tab'] {
@@ -151,7 +151,7 @@ html.dark .segmented [role='tab'] {
   color: var(--color-apple-ink);
 }
 html.dark .segmented [role='tab'] {
-  color: rgb(255 255 255 / 0.55);
+  color: rgb(255 255 255 / 0.72);
 }
 html.dark .segmented [role='tab'][aria-selected='true'] {
   color: #fff;
@@ -407,4 +407,37 @@ html.dark .st-btn--destructive {
 }
 @media (prefers-reduced-motion: reduce) {
   [class*="st-live-dot"], [style*="st-live-dot"] { animation: none !important; }
+}
+
+/* ── The connect moment: one line, drawn once ──────────────────────────
+   600 ms, linear, no easing on the draw — a line that accelerates reads as
+   an effect; a steady one reads as a link being established. The success
+   beat is the line settling solid plus a 280 ms check badge. Reduced motion
+   keeps both facts and drops the motion: the line is simply present and the
+   badge fades in 120 ms. */
+.st-connect-line {
+  stroke-dashoffset: 88;
+  animation: st-draw-line 600ms linear forwards;
+}
+.st-connect-line[data-connected='true'] {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+@keyframes st-draw-line {
+  to { stroke-dashoffset: 0; }
+}
+.st-connect-check {
+  animation: st-check-in 280ms var(--st-ease-enter) both;
+}
+@keyframes st-check-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes st-check-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-connect-line { animation: none; stroke-dashoffset: 0; }
+  .st-connect-check { animation: st-check-fade 120ms linear both; }
 }

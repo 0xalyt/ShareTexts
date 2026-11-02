@@ -67,7 +67,7 @@ const AUTO_KEY = 'sharetext.autoConnect.v1';
 export function isAutoConnectEnabled(): boolean {
   try { return localStorage.getItem(AUTO_KEY) === '1'; } catch { return false; }
 }
-function setAutoConnectEnabled(v: boolean) {
+export function setAutoConnectEnabled(v: boolean) {
   try { localStorage.setItem(AUTO_KEY, v ? '1' : '0'); } catch { /* private mode */ }
 }
 
