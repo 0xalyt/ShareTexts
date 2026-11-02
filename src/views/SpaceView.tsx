@@ -19,6 +19,7 @@ import {
   X, XCircle,
 } from 'lucide-react';
 import { SpinLoader } from '../components/SpinLoader';
+import { QrArt } from '../components/qr/QrArt';
 import { Bar } from '../components/SkeletonScreen';
 import { Inbox } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
@@ -38,7 +39,7 @@ import { closingTime, remainingShort, urgencyTier } from '../lib/space/time';
 import { isRunningOut } from '../lib/space/lifetime';
 import { reminderSupport, enableReminder } from '../lib/space/reminders';
 
-const QRCode = lazy(() => import('qrcode.react').then(m => ({ default: m.QRCodeSVG })));
+
 
 const HOUR = 3_600_000;
 const DURATIONS: Array<{ ms: number; label: string }> = [
@@ -721,7 +722,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
             {showQr && (
               <div className="mt-4 flex justify-center rounded-[16px] bg-white p-4">
                 <Suspense fallback={<span className="w-[208px] h-[208px] flex items-center justify-center"><SpinLoader size={24} className="text-apple-ink-muted" /></span>}>
-                  <QRCode value={`${window.location.origin}/space/join?code=${formatSpaceCode(code)}`} size={208} />
+                  <QrArt value={`${window.location.origin}/space/join?code=${formatSpaceCode(code)}`} size={208} label={t('qr.art.label')} />
                 </Suspense>
               </div>
             )}

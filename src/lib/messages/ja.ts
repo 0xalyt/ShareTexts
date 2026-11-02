@@ -199,6 +199,7 @@ const ja: Dict = {
   'room.step.3': '両方つながったら、すぐ送れます。',
   'qr.close': '閉じる',
   'qr.display.title': 'QRコード',
+  'qr.art.label': 'QR code to join this room',
   'qr.scan.title': 'QRコードをスキャン',
   'qr.scan.body': '相手のデバイスの QRコードにカメラを向けてください。',
   'qr.scan.loading': 'カメラを起動しています…',

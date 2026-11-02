@@ -199,6 +199,7 @@ const es: Dict = {
   'room.step.3': 'Conéctalos — y ya puedes enviar.',
   'qr.close': 'Cerrar',
   'qr.display.title': 'Código QR',
+  'qr.art.label': 'QR code to join this room',
   'qr.scan.title': 'Escanear código QR',
   'qr.scan.body': 'Apunta la cámara al código QR del otro dispositivo.',
   'qr.scan.loading': 'Iniciando cámara…',

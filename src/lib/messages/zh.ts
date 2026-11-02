@@ -199,6 +199,7 @@ const zh: Dict = {
   'room.step.3': '两台都连上，就可以发送了。',
   'qr.close': '关闭',
   'qr.display.title': '二维码',
+  'qr.art.label': 'QR code to join this room',
   'qr.scan.title': '扫描二维码',
   'qr.scan.body': '将相机对准另一台设备上的二维码。',
   'qr.scan.loading': '正在启动相机…',

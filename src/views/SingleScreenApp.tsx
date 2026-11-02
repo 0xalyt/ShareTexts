@@ -21,6 +21,7 @@ import { hapticSuccess } from '../lib/haptics';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
+import { QrArt } from '../components/qr/QrArt';
 import { BrandLockup } from '../components/BrandLockup';
 import { IconButton3D } from '../components/IconButton3D';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -264,7 +265,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     idle(() => {
       void import('./ChatView');
       void import('../components/QRScanner');
-      void import('qrcode.react');
     });
   }, []);
   // /s/<code> share links: opening one should JOIN the room, not show the
@@ -2084,14 +2084,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <p className="text-[13px] text-apple-ink-muted dark:text-white/60 mb-4 leading-relaxed">
                 {(() => { const parts = t('qr.display.body', { receive: '\u0000' }).split('\u0000'); return (<>{parts[0]}<strong className="text-apple-ink dark:text-white">{t('qr.display.receive')}</strong>{parts[1]}</>); })()}
               </p>
-              <div className="bg-white p-4 rounded-[16px] inline-flex items-center justify-center mb-4 shadow-sm border border-apple-divider/30 relative">
-                <QROverlayInner value={qrValue} />
-                {/* Scanner-frame corners in ember — the recognized visual
-                    grammar for "aim your camera here", quieter than a
-                    moving line and it never covers the code. */}
-                {['top-1.5 left-1.5 border-t-2 border-l-2 rounded-tl-[8px]', 'top-1.5 right-1.5 border-t-2 border-r-2 rounded-tr-[8px]', 'bottom-1.5 left-1.5 border-b-2 border-l-2 rounded-bl-[8px]', 'bottom-1.5 right-1.5 border-b-2 border-r-2 rounded-br-[8px]'].map(pos => (
-                  <span key={pos} aria-hidden className={`absolute w-5 h-5 border-ember ${pos}`} />
-                ))}
+              <div className="w-fit mx-auto mb-5 rounded-[28px] relative shadow-[0_22px_46px_-26px_rgba(11,11,12,0.6)] ring-1 ring-black/[0.06] dark:ring-white/10">
+                <QROverlayInner value={qrValue} label={t('qr.art.label')} />
               </div>
               {/* Copy + Share, side by side: the two things anyone actually
                   does with a displayed code. Copy is deliberately the quiet
@@ -2197,16 +2191,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
 /* ------------------------------------------------------------------ */
 /*  Sub-components                                                    */
 /* ------------------------------------------------------------------ */
-function QROverlayInner({ value }: { value: string }) {
-  const [Comp, setComp] = useState<React.ComponentType<any> | null>(null);
-  useEffect(() => { import('qrcode.react').then(m => setComp(() => m.QRCodeSVG)); }, []);
-  // Skeleton, not a sentence: the lazy chunk fills the QR's exact 220px
-  // stage (one shimmer) — the same loading language as the scan overlay's
-  // viewfinder shell, so both QR surfaces speak identically.
-  if (!Comp) return (
-    <div className="w-[220px] h-[220px] rounded-[10px] relative overflow-hidden" aria-hidden>
-      <Bar className="absolute inset-0 rounded-none bg-apple-ink/[0.05]" />
-    </div>
-  );
-  return <Comp value={value} size={220} level="M" />;
+function QROverlayInner({ value, label }: { value: string; label: string }) {
+  return <QrArt value={value} size={236} label={label} />;
 }

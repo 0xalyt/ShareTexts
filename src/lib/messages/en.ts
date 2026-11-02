@@ -257,6 +257,7 @@ const en = {
   // ── QR overlays ────────────────────────────────────────────────────
   'qr.close': 'Close',
   'qr.display.title': 'QR code',
+  'qr.art.label': 'QR code to join this room',
   'qr.scan.title': 'Scan QR code',
   'qr.scan.body': 'Point your camera at the QR code on the other device.',
   'qr.scan.loading': 'Starting camera…',

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { QrArt } from '../qr/QrArt';
 import { AnimatePresence } from 'motion/react';
 import { Check, Copy, Link2, QrCode, Share2, WifiOff } from 'lucide-react';
 import { Segmented } from '../ui/Segmented';
@@ -30,25 +31,14 @@ export type SendError = { text: string; icon: 'offline' | 'server' | 'time' | 'i
 type Segment = 'code' | 'qr' | 'link';
 const SEGMENT_KEY = 'sharetext.sendSegment';
 
-/** QR is a heavy chunk; it mounts only when the QR segment is actually shown. */
-function QrPlate({ value }: { value: string }) {
-  const [Comp, setComp] = useState<null | React.ComponentType<{ value: string; size?: number; marginSize?: number }>>(null);
-  useEffect(() => {
-    let alive = true;
-    void import('qrcode.react').then((m) => {
-      if (alive) setComp(() => m.QRCodeSVG as never);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
+/** The join code, drawn — dots, rounded finders, the mark in the middle. */
+function QrPlate({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex items-center justify-center rounded-2xl bg-white p-4 w-[252px] h-[252px] mx-auto">
-      {Comp ? (
-        <Comp value={value} size={220} marginSize={0} />
-      ) : (
-        <div aria-hidden className="w-[220px] h-[220px] rounded-lg bg-apple-parchment dark:bg-apple-tile-2 animate-pulse" />
-      )}
+    <div
+      className="mx-auto flex w-[252px] justify-center rounded-[30px] shadow-[0_22px_46px_-28px_rgba(11,11,12,0.55)] ring-1 ring-black/[0.06] dark:ring-white/10"
+      data-testid="qr-plate"
+    >
+      <QrArt value={value} size={252} label={label} />
     </div>
   );
 }
@@ -239,7 +229,7 @@ export function SendScreen({
       {/* ── QR ───────────────────────────────────────────────────────── */}
       {segment === 'qr' && (
         <div key="qr" className="animate-[st-fade-in_var(--st-t-mode)_var(--st-ease-enter)_both]">
-          <QrPlate value={shareUrl} />
+          <QrPlate value={shareUrl} label={t('qr.art.label')} />
           <p className="mt-3 text-center text-[13px] text-apple-ink-muted dark:text-white/70">{t('send.qrCaption')}</p>
         </div>
       )}

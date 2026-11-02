@@ -199,6 +199,7 @@ const hi: Dict = {
   'room.step.3': 'दोनों को कनेक्ट करें — और भेजने के लिए तैयार।',
   'qr.close': 'बंद करें',
   'qr.display.title': 'QR कोड',
+  'qr.art.label': 'QR code to join this room',
   'qr.scan.title': 'QR कोड स्कैन करें',
   'qr.scan.body': 'दूसरे डिवाइस के QR कोड पर कैमरा दिखाएँ।',
   'qr.scan.loading': 'कैमरा शुरू हो रहा है…',

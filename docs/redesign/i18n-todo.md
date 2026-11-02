@@ -68,6 +68,8 @@ wrong (see B27).
 | `settings.about` | About | group heading |
 | `settings.version` | Version | build marker row |
 
+| `qr.art.label` | QR code to join this room | `aria-label` on the drawn QR (Send tab, room overlay, Space join) |
+
 All eight locales carry the English placeholder; see the header rule — none of
 these are translated yet, and the language list itself shows each language in
 its own name, which needs no translation.
