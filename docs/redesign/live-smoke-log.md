@@ -181,3 +181,25 @@ move until Vercel deploys, and the failure below is not about the marker).
 which answers `200` to a request with no `Origin` and `403` to every browser.
 Filed as question 3 in `F30-p2-report.md`; nothing in the repo can fix it.
 
+## P3 — after `916f720` (connect) and `17df61e` (settings)
+
+Run: `node scripts/smoke-live.mjs` against https://sharetexts.online, twice,
+after both pushes. The live site still serves the pre-P3 build (nothing in P3
+has been deployed), so this records that the deployment is healthy, not that
+P3's screens are live.
+
+| check | run 1 | run 2 |
+| --- | --- | --- |
+| site answers 200 | PASS | PASS |
+| build marker present | PASS | PASS |
+| share card + 1200×630 og image | PASS | PASS |
+| two devices paired | PASS (…191, 7.9 s to connected) | PASS (…432, 6.6 s to connected) |
+| message A → B within 15 s | PASS (11 ms) | PASS |
+| sender sees its own message | PASS | PASS |
+| no console errors | **FAIL** — `/assets/QRScanner-BXrU1kO3.js` returned 404 | PASS |
+
+**[smoke-live] GREEN** on run 2. Run 1's single failure is a stale chunk in the
+current deployment: `curl` confirms `https://sharetexts.online/assets/QRScanner-BXrU1kO3.js`
+is a 404, so the deployed HTML references a scanner bundle that is not there —
+filed as B31, and it will be replaced by the next deploy. The signaling worker
+also logged its redirect warning three times per page (expected, harmless).
