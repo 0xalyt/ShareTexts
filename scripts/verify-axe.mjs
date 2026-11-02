@@ -101,6 +101,41 @@ await page.waitForSelector('[data-testid="receive-screen"]', { timeout: 15000 })
 await page.waitForTimeout(900);
 await audit('Receive (receiving)');
 
+// Settings + its language list (P3). The gear only exists in a ROOM, so pair
+// two real pages against the dev transport — the same path a person takes.
+{
+  const peerCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, bypassCSP: true });
+  const peer = await peerCtx.newPage();
+  await peer.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+  await peer.waitForSelector('[data-testid="home-send"]', { timeout: 20000 });
+  await peer.getByTestId('home-send').click();
+  await peer.waitForSelector('[data-testid="pairing-code"]', { timeout: 20000 });
+  await peer.waitForTimeout(700);
+  const code = await peer.evaluate(() =>
+    [...document.querySelectorAll('[data-testid="pairing-code"] span[aria-hidden]')].map((el) => el.textContent).join(''),
+  );
+  await page.keyboard.type(code);
+  const joined = await page
+    .waitForSelector('[data-testid="open-settings"]', { timeout: 25000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!joined) {
+    rows.push({ label: 'Settings overlay', skipped: true, detail: 'pairing did not reach the room' });
+  } else {
+    await page.waitForTimeout(600);
+    await page.getByTestId('open-settings').click();
+    await page.waitForSelector('[data-testid="settings-overlay"]', { timeout: 10000 });
+    await page.waitForTimeout(600);
+    await audit('Settings overlay');
+    await page.getByTestId('settings-language-row').click();
+    await page.waitForTimeout(500);
+    await audit('Settings — Language list');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+  }
+  await peerCtx.close();
+}
+
 const totalSerious = rows.reduce((n, r) => n + (r.serious?.length || 0), 0);
 const totalModerate = rows.reduce((n, r) => n + (r.moderate?.length || 0), 0);
 

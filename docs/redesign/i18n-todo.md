@@ -42,3 +42,32 @@ above). Translate these, then delete the rows.
 Changed, not added: `receive.note` now says "Codes change every 90 seconds.
 If yours stops working, ask for a new one." — the old "every 30 seconds" was
 wrong (see B27).
+
+### P3 Step 3–4 — connect moment and Settings
+
+| key | English placeholder | where |
+| --- | --- | --- |
+| `connect.linking` | Connecting… | the beat's label while the link is drawn |
+| `connect.sameNetwork` | Same network | resolved route, direct local link |
+| `connect.throughShareTexts` | Through ShareTexts | resolved route, relayed link |
+| `settings.title` | Settings | sheet heading and the gear's accessible name |
+| `settings.device` | Device | group heading |
+| `settings.deviceName` | Device name | inline edit row |
+| `settings.appearance` | Appearance | group heading |
+| `settings.themeLight` / `settings.themeAuto` / `settings.themeDark` | Light / Auto / Dark | the three segments |
+| `settings.reduceTransparency` | Reduce transparency | switch; sets `html.no-glass` + `sharetext.noGlass` |
+| `settings.language` | Language | group heading and the list's label |
+| `settings.languageAutomatic` | Automatic (device language) | first row; clears `sharetext.locale` |
+| `settings.feedback` | Feedback | group heading |
+| `settings.haptics` | Haptics | switch, `sharetext.haptics` |
+| `settings.hapticsHint` | Vibrates for connect and error. Android only. | helper under the switch |
+| `settings.nearby` | Nearby | group heading |
+| `settings.nearbyVisible` | Nearby visibility | switch, shares the Nearby sheet's state |
+| `settings.autoConnect` | Auto-connect | switch, `sharetext.autoConnect.v1` |
+| `settings.autoConnectHint` | Asks to connect when another device is available. | helper |
+| `settings.about` | About | group heading |
+| `settings.version` | Version | build marker row |
+
+All eight locales carry the English placeholder; see the header rule — none of
+these are translated yet, and the language list itself shows each language in
+its own name, which needs no translation.

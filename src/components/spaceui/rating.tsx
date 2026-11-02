@@ -225,14 +225,14 @@ export function RateCard({
           <button
             type="button"
             onClick={() => silence(false)}
-            className="px-2.5 min-h-[40px] rounded-full text-[12px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/45 dark:hover:text-white transition-colors"
+            className="px-2.5 min-h-[40px] rounded-full text-[12px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/55 dark:hover:text-white transition-colors"
           >
             {t('rate.dismiss')}
           </button>
           <button
             type="button"
             onClick={() => silence(true)}
-            className="px-2.5 min-h-[40px] rounded-full text-[12px] font-medium text-apple-ink-muted/70 hover:text-apple-ink dark:text-white/30 dark:hover:text-white/70 transition-colors"
+            className="px-2.5 min-h-[40px] rounded-full text-[12px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/55 dark:hover:text-white transition-colors transition-colors"
           >
             {t('install.never')}
           </button>

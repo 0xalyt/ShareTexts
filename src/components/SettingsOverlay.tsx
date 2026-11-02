@@ -1,37 +1,117 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Moon, Sun, RefreshCw, WifiOff, Languages, Bookmark, ChevronRight } from 'lucide-react';
-import { SegmentedToggleButton } from './spaceui/SegmentedToggleButton';
+import { AnimatePresence, motion } from 'motion/react';
+import { Check, ChevronRight, X } from 'lucide-react';
 import { RateCard } from './spaceui/rating';
-import { LanguageMenu } from './LanguageMenu';
-import { StayConnectedToggle } from './StayConnectedToggle';
-import { useI18n } from '../lib/i18n';
+import { useI18n, LANGS, type Lang } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { useSession } from '../lib/SessionContext';
 import { useFocusTrap } from '../lib/useFocusTrap';
-import { useSavedCount } from '../lib/savedItems';
+import { readNoGlassPreference, setNoGlass } from '../lib/device';
+import { HAPTICS_IOS, HAPTICS_STORE, haptic } from '../lib/haptics';
+import { isPresenceHidden, setPresenceHidden } from '../lib/nearby';
+import { isAutoConnectEnabled, setAutoConnectEnabled } from './NearbyDevices';
 import { cn } from '../lib/utils';
 
 /**
- * SettingsOverlay — ONE settings surface for desktop and mobile.
+ * SettingsOverlay — one grouped sheet (§18, P3).
  *
- * Opens from the room header's gear (and the landing header's, when wired).
- * Sections:
+ * Six groups, in the order a person actually asks: which device am I, how does
+ * it look, what language is it in, do I want feedback, who can find me, and
+ * what version is this. Every row is a 52px ListRow with an inset hairline —
+ * the same grammar the Home doors use, so Settings reads as the same product
+ * rather than a control panel bolted on.
  *
- *   · APPEARANCE  — the app's REAL theme toggle, untouched (its geometry,
- *     feel and look are the standard every other switch copies), with an
- *     explicit Dark/Light label that always states the CURRENT side.
- *   · LANGUAGE    — the existing language menu, embedded.
- *   · SAVED ITEMS — entry into the local library (same collection the
- *     landing header opens; renders only when the parent wires it).
- *   · STAY CONNECTED — the room's keep-alive promise (room sessions only).
- *   · RECONNECTION   — the live link state and an explicit Reconnect now
- *     action for the moments the automatic recovery needs a hand.
- *
- * Same sheet grammar as ConfirmSheet: bottom sheet on mobile, centered
- * card on ≥sm, focus-trapped, Escape/backdrop/✕ to close.
+ * Real controls only: switches are `role="switch"` buttons with names, the
+ * theme is the shared segmented control (Light | Auto | Dark), Language opens
+ * a second sheet listing "Automatic (device language)" first and then every
+ * language IN ITS OWN NAME, and the version comes from the build marker the
+ * deploy stamps into the page.
  */
+
+const APP_VERSION = (() => {
+  if (typeof document === 'undefined') return 'dev';
+  const meta = document.querySelector('meta[name="sharetexts-build"]');
+  const value = meta?.getAttribute('content') || '';
+  return value || 'dev';
+})();
+
+/** 52px row with an inset hairline above it (never under the last row). */
+function Row({
+  children,
+  onClick,
+  as = 'button',
+  first = false,
+  className,
+  testId,
+  ariaLabel,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  as?: 'button' | 'div' | 'a';
+  first?: boolean;
+  className?: string;
+  testId?: string;
+  ariaLabel?: string;
+  href?: string;
+}) {
+  const Tag = as as 'button';
+  const cls = cn(
+    'relative flex w-full min-h-[52px] items-center gap-3 px-4 text-left',
+    'text-[15px] text-apple-ink dark:text-white transition-colors',
+    onClick || as === 'a' ? 'active:bg-black/[0.04] dark:active:bg-white/[0.06]' : '',
+    className,
+  );
+  return (
+    <div className={cn('relative', !first && 'before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10')}>
+      <Tag type={as === 'button' ? 'button' : undefined} onClick={onClick} className={cls} data-testid={testId} aria-label={ariaLabel}>
+        {children}
+      </Tag>
+    </div>
+  );
+}
+
+function Switch({ checked, onChange, label, testId }: { checked: boolean; onChange: (v: boolean) => void; label: string; testId?: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      data-testid={testId}
+      onClick={() => {
+        onChange(!checked);
+        haptic('select');
+      }}
+      className={cn(
+        'relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200',
+        checked ? 'bg-status-success' : 'bg-black/[0.12] dark:bg-white/[0.18]',
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          'absolute top-[2px] h-[27px] w-[27px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] transition-transform duration-200',
+          checked ? 'translate-x-[20px]' : 'translate-x-[2px]',
+        )}
+      />
+    </button>
+  );
+}
+
+function Group({ title, children, testId }: { title: string; children: React.ReactNode; testId?: string }) {
+  return (
+    <section className="mt-5 first:mt-2" data-testid={testId}>
+      <h4 className="px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55">
+        {title}
+      </h4>
+      <div className="overflow-hidden rounded-[16px] bg-white/80 dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/10">
+        {children}
+      </div>
+    </section>
+  );
+}
+
 export function SettingsOverlay({
   open,
   onClose,
@@ -39,24 +119,62 @@ export function SettingsOverlay({
 }: {
   open: boolean;
   onClose: () => void;
-  /** Opens the ONE Saved Items library. Present only where the parent
-   *  mounts the library overlay — the row renders only when it can work. */
   onOpenSaved?: () => void;
 }) {
-  const { t } = useI18n();
-  const { resolved, choice, setChoice } = useTheme();
-  const isDark = resolved === 'dark';
-  // Light — System — Dark: system sits BETWEEN the two poles, because
-  // "follow the OS" is a real answer, not a position on the light/dark line.
-  const THEME_ORDER = ['light', 'system', 'dark'] as const;
-  const { session, requestReconnect } = useSession();
-  const inRoom = !!session.roomId;
+  const { t, lang, auto, setLang, useDeviceLanguage } = useI18n();
+  const { choice, setChoice } = useTheme();
+  const { session, setDeviceName } = useSession();
   const trapRef = useFocusTrap(open, onClose);
-  const savedCount = useSavedCount();
-  const [reconnecting, setReconnecting] = React.useState(false);
 
-  const linkState = session.connectionType;
-  const unhealthy = linkState === 'connecting' || linkState === 'disconnected';
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [draftName, setDraftName] = useState(session.deviceName || '');
+  const [noGlass, setNoGlassState] = useState(() => readNoGlassPreference());
+  const [hapticsOn, setHapticsOn] = useState(() => {
+    try {
+      return localStorage.getItem(HAPTICS_STORE) !== '0';
+    } catch {
+      return true;
+    }
+  });
+  const [visible, setVisible] = useState(() => !isPresenceHidden());
+  const [autoConnect, setAutoConnect] = useState(() => isAutoConnectEnabled());
+
+  // Drag-to-dismiss: the sheet follows the finger and closes past 88px.
+  const [dragY, setDragY] = useState(0);
+  const dragStart = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setLanguageOpen(false);
+      setEditingName(false);
+      setDragY(0);
+    }
+  }, [open]);
+
+  const commitName = useCallback(() => {
+    const next = draftName.trim().slice(0, 40);
+    if (next && next !== session.deviceName) setDeviceName(next);
+    setEditingName(false);
+  }, [draftName, session.deviceName, setDeviceName]);
+
+  const languageLabel = auto ? t('settings.languageAutomatic') : LANGS.find((l) => l.code === lang)?.native ?? 'English';
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragStart.current = e.clientY;
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (dragStart.current === null) return;
+    setDragY(Math.max(0, e.clientY - dragStart.current));
+  };
+  const onPointerUp = () => {
+    if (dragStart.current === null) return;
+    const travelled = dragY;
+    dragStart.current = null;
+    if (travelled > 88) onClose();
+    else setDragY(0);
+  };
 
   return createPortal(
     <AnimatePresence>
@@ -70,7 +188,9 @@ export function SettingsOverlay({
           role="dialog"
           aria-modal="true"
           aria-label={t('settings.title')}
-          onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
         >
           <motion.div
             ref={trapRef}
@@ -78,190 +198,287 @@ export function SettingsOverlay({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-            className="w-full sm:max-w-[400px]"
+            style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
+            className="w-full sm:max-w-[440px]"
             data-testid="settings-overlay"
           >
-            {/* A sheet is the canonical glass surface: it is a layer OVER the
-                room, so it shows the room tinted through itself (st-lens)
-                rather than switching to an opaque panel. */}
-            <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] st-lens pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0">
-              <div className="sm:hidden flex justify-center pt-2.5 pb-1" aria-hidden>
+            <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] st-lens pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-2 max-h-[88dvh] flex flex-col">
+              <div
+                className="sm:hidden flex shrink-0 justify-center pt-2.5 pb-1 cursor-grab touch-none"
+                aria-hidden
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+              >
                 <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label={t('common.close')}
-                className="absolute top-3 right-3 z-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-90 transition-all"
-              >
-                <X className="w-4 h-4" />
-              </button>
 
-              <div className="px-6 pt-5 sm:pt-6 pb-1">
-                <h3 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">
-                  {t('settings.title')}
-                </h3>
+              <div className="flex items-center justify-between px-4 pt-2 pb-1">
+                <h3 className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('settings.title')}</h3>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label={t('common.close')}
+                  className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full text-apple-ink-muted dark:text-white/70 active:scale-90 transition-transform"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <div className="px-4 sm:px-5 pt-2 pb-4 sm:pb-5 flex flex-col gap-1">
-                {/* ── Appearance ─────────────────────────────────── */}
-                <p className="st-eyebrow px-2 pt-1 pb-1">
-                  {t('settings.theme')}
-                </p>
-                <div className="flex items-center gap-3 px-2 py-2 rounded-[14px]">
-                  <span
-                    className={cn(
-                      'shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
-                      isDark
-                        ? 'bg-white/[0.07] text-white/70'
-                        : 'bg-status-warning/10 text-status-warning-ink'
-                    )}
-                    aria-hidden
+              {/* Language is a second COLUMN, not a dialog on top of a dialog:
+                  the sheet slides and the list is replaced, so Back (or this
+                  chevron) is one gesture, in the same surface. */}
+              {languageOpen ? (
+                <div className="min-h-0 overflow-y-auto px-3 pb-4" data-testid="settings-language-list">
+                  <button
+                    type="button"
+                    onClick={() => setLanguageOpen(false)}
+                    className="flex min-h-[44px] items-center gap-1 px-1 text-[15px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
                   >
-                    {isDark ? <Moon className="w-4 h-4" strokeWidth={2} /> : <Sun className="w-4 h-4" strokeWidth={2} />}
-                  </span>
-                  {/* The real OpenSourceUI SegmentedToggleButton. A switch can
-                      only say "the other side" — the theme has THREE honest
-                      answers, and System is the one most people actually want.
-                      The sliding thumb states which is live; nothing else on
-                      the row needs to repeat it. */}
-                  <SegmentedToggleButton
-                    className="flex-1 min-w-0"
-                    ariaLabel={t('settings.theme')}
-                    options={[t('settings.light'), t('settings.system'), t('settings.dark')]}
-                    value={Math.max(THEME_ORDER.indexOf(choice as typeof THEME_ORDER[number]), 0)}
-                    onChange={(i) => setChoice(THEME_ORDER[i] ?? 'system')}
-                    data-testid="settings-theme-segmented"
+                    <ChevronRight className="h-4 w-4 rotate-180" aria-hidden /> {t('settings.title')}
+                  </button>
+                  <div className="mb-3 rounded-[16px] bg-white/70 dark:bg-white/[0.06] ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
+                  <div role="radiogroup" aria-label={t('settings.language')} data-testid="settings-language-group">
+                  <LanguageRow
+                    label={t('settings.languageAutomatic')}
+                    selected={auto}
+                    onClick={() => {
+                      useDeviceLanguage();
+                      setLanguageOpen(false);
+                    }}
+                    testId="language-automatic"
                   />
-                </div>
-
-                {/* ── Language ───────────────────────────────────── */}
-                <p className="st-eyebrow px-2 pt-3 pb-1">
-                  {t('settings.language')}
-                </p>
-                <div className="flex items-center gap-3 px-2 py-1.5 rounded-[14px]">
-                  <span className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/50" aria-hidden>
-                    <Languages className="w-4 h-4" strokeWidth={2} />
-                  </span>
-                  <span className="flex-1 text-[13px] font-semibold text-apple-ink dark:text-white">
-                    {t('settings.language')}
-                  </span>
-                  {/* The existing menu, opening leftward inside the card. */}
-                  <LanguageMenu align="left" />
-                </div>
-
-                {/* ── Saved items — the SAME library the landing header
-                    opens (one collection, one store, one overlay). */}
-                {onOpenSaved && (
-                  <>
-                    <p className="st-eyebrow px-2 pt-3 pb-1">
-                      {t('saved.title')}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={onOpenSaved}
-                      data-testid="settings-open-saved"
-                      className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors text-left"
-                    >
-                      <span
-                        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-status-warning/10 text-status-warning-ink dark:bg-white/[0.07] dark:text-white/70"
-                        aria-hidden
-                      >
-                        <Bookmark className="w-4 h-4" strokeWidth={2} />
-                      </span>
-                      <span className="flex-1 min-w-0">
-                        <span className="block text-[13px] font-semibold text-apple-ink dark:text-white">
-                          {t('saved.title')}
-                        </span>
-                        {savedCount > 0 && (
-                          <span className="block text-[12px] font-medium text-apple-ink-muted dark:text-white/45 tnum">
-                            {savedCount === 1 ? t('saved.countOne') : t('saved.countMany', { n: savedCount })}
-                          </span>
-                        )}
-                      </span>
-                      <ChevronRight className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/40" aria-hidden />
-                    </button>
-                  </>
-                )}
-
-                {/* ── Stay Connected (room sessions only) ────────── */}
-                {inRoom && (
-                  <>
-                    <p className="st-eyebrow px-2 pt-3 pb-1">
-                      {t('settings.room')}
-                    </p>
-                    <StayConnectedToggle />
-                  </>
-                )}
-
-                {/* ── Reconnection (room sessions only) ──────────── */}
-                {inRoom && (
-                  <>
-                    <p className="st-eyebrow px-2 pt-3 pb-1">
-                      {t('settings.reconnect')}
-                    </p>
-                    <div className="flex items-center gap-3 px-2 py-2">
-                      <span
-                        className={cn(
-                          'shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
-                          unhealthy
-                            ? 'bg-status-warning/10 text-status-warning'
-                            : 'bg-status-success/10 text-status-success'
-                        )}
-                        aria-hidden
-                      >
-                        {unhealthy ? <WifiOff className="w-4 h-4" strokeWidth={2} /> : <span className="w-2 h-2 rounded-full bg-status-success shadow-[0_0_6px_rgba(52,199,89,0.7)]" />}
-                      </span>
-                      <span className="flex-1 flex flex-col min-w-0 leading-tight">
-                        <span className="text-[13px] font-semibold text-apple-ink dark:text-white">
-                          {linkState === 'disconnected'
-                            ? t('chat.disconnected')
-                            : linkState === 'connecting'
-                              ? t('chat.reconnecting')
-                              : t('common.connected')}
-                        </span>
-                        <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
-                          {t('settings.reconnectHint')}
-                        </span>
-                      </span>
-                      <button
-                        type="button"
-                        data-testid="settings-reconnect"
-                        disabled={reconnecting}
+                  {LANGS.map((l) => (
+                    <React.Fragment key={l.code}>
+                      <LanguageRow
+                        label={l.native}
+                        selected={!auto && lang === l.code}
                         onClick={() => {
-                          setReconnecting(true);
-                          void requestReconnect().finally(() => setReconnecting(false));
+                          setLang(l.code as Lang);
+                          setLanguageOpen(false);
                         }}
+                        testId={`language-${l.code}`}
+                      />
+                    </React.Fragment>
+                  ))}
+                  </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="min-h-0 overflow-y-auto px-3 pb-4 room-scroll">
+                  {/* ── Device ─────────────────────────────────────── */}
+                  <Group title={t('settings.device')} testId="settings-device">
+                    <Row first as="div" className="justify-between">
+                      <span className="text-apple-ink-muted dark:text-white/70">{t('settings.deviceName')}</span>
+                      {editingName ? (
+                        <input
+                          autoFocus
+                          value={draftName}
+                          onChange={(e) => setDraftName(e.target.value)}
+                          onBlur={commitName}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitName();
+                            if (e.key === 'Escape') setEditingName(false);
+                          }}
+                          maxLength={40}
+                          aria-label={t('settings.deviceName')}
+                          className="min-w-0 flex-1 bg-transparent text-right text-[15px] font-semibold text-apple-ink dark:text-white outline-none"
+                          data-testid="settings-device-input"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDraftName(session.deviceName || '');
+                            setEditingName(true);
+                          }}
+                          className="min-w-0 flex-1 truncate text-right text-[15px] font-semibold text-apple-ink dark:text-white"
+                          data-testid="settings-device-name"
+                        >
+                          {session.deviceName || t('common.connected')}
+                        </button>
+                      )}
+                    </Row>
+                  </Group>
+
+                  {/* ── Appearance ─────────────────────────────────── */}
+                  <Group title={t('settings.theme')} testId="settings-appearance">
+                    <Row first as="div" className="justify-between pr-3">
+                      <span className="text-apple-ink-muted dark:text-white/70">{t('settings.themeMode')}</span>
+                      <div className="flex rounded-full bg-black/[0.05] dark:bg-white/[0.09] p-[3px]" role="tablist" aria-label={t('settings.theme')}>
+                        {(
+                          [
+                            ['light', t('settings.light')],
+                            ['system', t('settings.auto')],
+                            ['dark', t('settings.dark')],
+                          ] as const
+                        ).map(([value, label]) => (
+                          <button
+                            key={value}
+                            role="tab"
+                            type="button"
+                            aria-selected={choice === value}
+                            onClick={() => setChoice(value)}
+                            data-testid={`theme-${value}`}
+                            className={cn(
+                              'min-h-[32px] rounded-full px-3 text-[13px] font-semibold transition-colors',
+                              choice === value
+                                ? 'bg-white text-apple-ink shadow-[0_1px_2px_rgba(0,0,0,0.12)] dark:bg-white/[0.9] dark:text-[#1d1d1f]'
+                                : 'text-apple-ink-muted dark:text-white/70',
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </Row>
+                    <Row as="div" className="justify-between">
+                      <span className="text-apple-ink-muted dark:text-white/70">{t('settings.reduceTransparency')}</span>
+                      <Switch
+                        checked={noGlass === '1'}
+                        label={t('settings.reduceTransparency')}
+                        testId="settings-no-glass"
+                        onChange={(v) => {
+                          setNoGlass(v ? true : null);
+                          setNoGlassState(v ? '1' : null);
+                        }}
+                      />
+                    </Row>
+                  </Group>
+
+                  {/* ── Language ───────────────────────────────────── */}
+                  <Group title={t('settings.language')} testId="settings-language">
+                    <Row first onClick={() => setLanguageOpen(true)} testId="settings-language-row">
+                      <span className="flex-1">{t('settings.language')}</span>
+                      <span className="truncate text-[14px] text-apple-ink-muted dark:text-white/70">{languageLabel}</span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                    </Row>
+                  </Group>
+
+                  {/* ── Feedback ───────────────────────────────────── */}
+                  <Group title={t('settings.feedback')} testId="settings-feedback">
+                    <Row first as="div" className="justify-between">
+                      <span className="flex flex-col">
+                        <span>{t('settings.haptics')}</span>
+                        <span className="mt-0.5 text-[12px] text-apple-ink-muted dark:text-white/60">
+                          {HAPTICS_IOS ? t('settings.hapticsHintIos') : t('settings.hapticsHint')}
+                        </span>
+                      </span>
+                      <Switch
+                        checked={hapticsOn}
+                        label={t('settings.haptics')}
+                        testId="settings-haptics"
+                        onChange={(v) => {
+                          setHapticsOn(v);
+                          try {
+                            localStorage.setItem(HAPTICS_STORE, v ? '1' : '0');
+                          } catch {
+                            /* private mode */
+                          }
+                        }}
+                      />
+                    </Row>
+                    <Row as="div" className="block py-1">
+                      <RateCard />
+                    </Row>
+                  </Group>
+
+                  {/* ── Nearby ─────────────────────────────────────── */}
+                  <Group title={t('settings.nearby')} testId="settings-nearby">
+                    <Row first as="div" className="justify-between">
+                      <span>{t('nearby.visibleTitle')}</span>
+                      <Switch
+                        checked={visible}
+                        label={t('nearby.visibleTitle')}
+                        testId="settings-nearby-visible"
+                        onChange={(v) => {
+                          setVisible(v);
+                          setPresenceHidden(!v);
+                        }}
+                      />
+                    </Row>
+                    <Row as="div" className="justify-between">
+                      <span className="flex flex-col">
+                        <span>{t('nearby.autoTitle')}</span>
+                        <span className="mt-0.5 text-[12px] text-apple-ink-muted dark:text-white/60">{t('nearby.autoHint')}</span>
+                      </span>
+                      <Switch
+                        checked={autoConnect}
+                        label={t('nearby.autoTitle')}
+                        testId="settings-auto-connect"
+                        onChange={(v) => {
+                          setAutoConnect(v);
+                          setAutoConnectEnabled(v);
+                        }}
+                      />
+                    </Row>
+                  </Group>
+
+                  {/* ── About ──────────────────────────────────────── */}
+                  <Group title={t('settings.about')} testId="settings-about">
+                    {[
+                      [t('nav.docs'), '/docs'],
+                      [t('nav.guides'), '/guides'],
+                      [t('nav.privacy'), '/privacy'],
+                      [t('nav.terms'), '/terms'],
+                    ].map(([label, href], i) => (
+                      <a
+                        key={href}
+                        href={href}
                         className={cn(
-                          'shrink-0 flex items-center gap-1.5 px-3.5 min-h-[36px] rounded-full text-[13px] font-semibold active:scale-[0.97] transition-all',
-                          unhealthy
-                            ? 'bg-ember hover:bg-brand-strong text-white'
-                            : 'bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-apple-ink dark:text-white'
+                          'relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[15px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06]',
+                          i > 0 && 'before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10',
                         )}
                       >
-                        <RefreshCw className={cn('w-3.5 h-3.5', reconnecting && 'animate-spin')} aria-hidden />
-                        {t('settings.reconnectNow')}
-                      </button>
-                    </div>
-                  </>
-                )}
+                        <span className="flex-1">{label}</span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                      </a>
+                    ))}
+                    <Row as="div" className="justify-between">
+                      <span>{t('settings.version')}</span>
+                      <span className="text-[14px] tabular-nums text-apple-ink-muted dark:text-white/70" data-testid="settings-version">
+                        {APP_VERSION}
+                      </span>
+                    </Row>
+                  </Group>
 
-                {/* ── Feedback ────────────────────────────── */}
-                {/* Moved here from the landing (slop inventory #12): feedback
-                    stays reachable but never sits mid-marketing-page. Plain
-                    (no autoShow): opening settings IS the intent. */}
-                <p className="st-eyebrow px-2 pt-3 pb-1">
-                  {t('settings.feedback')}
-                </p>
-                <div className="px-2">
-                  <RateCard />
+                  {onOpenSaved && (
+                    <Group title={t('saved.title')} testId="settings-saved">
+                      <Row first onClick={onOpenSaved} testId="settings-open-saved">
+                        <span className="flex-1">{t('saved.title')}</span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                      </Row>
+                    </Group>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>,
-    typeof document !== 'undefined' ? document.body : null
+    typeof document !== 'undefined' ? document.body : null,
   );
 }
+
+function LanguageRow({ label, selected, onClick, testId }: { label: string; selected: boolean; onClick: () => void; testId: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      role="radio"
+      aria-checked={selected}
+      data-testid={testId}
+      className={cn(
+        'flex min-h-[52px] w-full items-center gap-3 rounded-[12px] px-3 text-left text-[15px] transition-colors',
+        selected ? 'font-semibold text-apple-ink dark:text-white' : 'text-apple-ink dark:text-white/85',
+        'active:bg-black/[0.04] dark:active:bg-white/[0.06]',
+      )}
+    >
+      <span className="flex-1">{label}</span>
+      {selected && <Check className="h-4 w-4 text-[#f06413]" aria-hidden />}
+    </button>
+  );
+}
+
+export default SettingsOverlay;
