@@ -16,6 +16,7 @@
  */
 import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useSession } from '../lib/SessionContext';
+import { hasOpenLayer } from '../lib/layers';
 import { hapticSuccess } from '../lib/haptics';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
@@ -645,7 +646,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       // Any open layer owns this Escape — including non-dialog popovers
       // (role=menu/listbox). Missing them here opened the destructive
       // disconnect sheet while a user was merely dismissing a menu.
-      if (document.querySelector('[role="dialog"], [aria-modal="true"], [role="menu"], [role="listbox"]')) return;
+      if (hasOpenLayer()) return;
       setConfirmDisconnect(true);
     };
     window.addEventListener('keydown', onKey);

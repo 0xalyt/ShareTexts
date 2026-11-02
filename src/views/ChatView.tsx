@@ -31,6 +31,7 @@ import { Settings as SettingsIcon } from 'lucide-react';
 import { generateTOTP, getTOTPRemainingSeconds } from '../lib/totp';
 import { saveDraft, loadDraft, clearDraft, ComposerDraft } from '../lib/draftStore';
 import { useFocusTrap } from '../lib/useFocusTrap';
+import { hasOpenLayer } from '../lib/layers';
 import { useI18n } from '../lib/i18n';
 import { fmtDayHeading, fmtShortDate, fmtTime } from '../lib/format';
 import { applyFormat, type FormatKind } from '../lib/richText';
@@ -459,7 +460,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         // simultaneously open the disconnect confirmation (that punished a
         // simple dismissal with a destructive dialog).
         const ivOpen = !!(window as Window & { __stImageViewerOpen?: boolean }).__stImageViewerOpen;
-        const hadLayer = showAttachmentMenu || showConnectionDetails || showSettings || selectMode || ivOpen;
+        const hadLayer =
+          showAttachmentMenu || showConnectionDetails || showSettings || selectMode || ivOpen ||
+          // A sheet owned by a sibling view is open; this view's state cannot
+          // see it, the DOM can (src/lib/layers.ts).
+          hasOpenLayer();
         setShowAttachmentMenu(false);
         setShowConnectionDetails(false);
         setShowSettings(false);

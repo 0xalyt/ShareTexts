@@ -6,11 +6,12 @@
  *   <div ref={trapRef} role="dialog" aria-modal="true">...</div>
  *
  * Behavior:
- * - When isOpen becomes true, focuses the first focusable element
- * - Tab cycles within the container
- * - Shift+Tab cycles within the container
+ * - When isOpen becomes true, remembers what had focus ("the trigger") and
+ *   focuses the first focusable element in the container
+ * - Tab cycles within the container; Shift+Tab cycles backwards
  * - Escape calls onClose (if provided)
- * - When isOpen becomes false, restores focus to the previously focused element
+ * - When isOpen becomes false, focus returns to the trigger — the control the
+ *   person used to open the surface (DESIGN.md §18, APPLE-DNA §6.4)
  */
 import React, { useEffect, useRef } from 'react';
 
@@ -22,12 +23,33 @@ export function useFocusTrap(
 ): React.RefObject<HTMLDivElement | null> {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const wasOpen = useRef(false);
 
-  // Save the element that had focus before the dialog opened
+  // Open: remember the trigger. Close: give focus back to it.
+  //
+  // This has to happen in one effect that survives the transition. The old
+  // version restored focus from inside a cleanup, where `isOpen` was still the
+  // value from the render that created it, so the `!isOpen` branch was never
+  // reachable and focus stayed on <body> (B30).
   useEffect(() => {
     if (isOpen) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
+      if (!wasOpen.current) {
+        previousFocusRef.current = document.activeElement as HTMLElement | null;
+        wasOpen.current = true;
+      }
+      return;
     }
+    if (!wasOpen.current) return;
+    wasOpen.current = false;
+    const trigger = previousFocusRef.current;
+    previousFocusRef.current = null;
+    if (!trigger || !document.contains(trigger)) return;
+    // Deferred one frame: the trigger can be inside a surface that is still
+    // animating out, and focusing it mid-exit scrolls the page back.
+    const raf = requestAnimationFrame(() => {
+      if (document.contains(trigger)) trigger.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(raf);
   }, [isOpen]);
 
   // Focus management
@@ -79,16 +101,6 @@ export function useFocusTrap(
       container.removeEventListener('keydown', onKeyDown);
     };
   }, [isOpen, onClose]);
-
-  // Restore focus when dialog closes
-  useEffect(() => {
-    return () => {
-      if (!isOpen && previousFocusRef.current) {
-        previousFocusRef.current.focus();
-        previousFocusRef.current = null;
-      }
-    };
-  }, [isOpen]);
 
   return containerRef;
 }

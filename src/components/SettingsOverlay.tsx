@@ -140,17 +140,48 @@ export function SettingsOverlay({
   const [visible, setVisible] = useState(() => !isPresenceHidden());
   const [autoConnect, setAutoConnect] = useState(() => isAutoConnectEnabled());
 
-  // Drag-to-dismiss: the sheet follows the finger and closes past 88px.
+  // Drag-to-dismiss (INTERACTION-MOTION §D). The grabber owns the gesture and
+  // moves the panel 1:1 with the pointer; on release a decisive drag or a flick
+  // dismisses from where the sheet already is, and anything less springs back.
+  // The enter/exit animation lives on the outer element, so dragging and
+  // dismissing never fight over the same transform.
   const [dragY, setDragY] = useState(0);
-  const dragStart = useRef<number | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const dragFrom = useRef<{ y: number; t: number; vy: number } | null>(null);
 
   useEffect(() => {
     if (!open) {
       setLanguageOpen(false);
       setEditingName(false);
       setDragY(0);
+      setDragging(false);
     }
   }, [open]);
+
+  // Swapping the column unmounts whatever had focus, which would drop focus to
+  // <body> — outside the trap, so the next Tab would restart at the top of the
+  // document. Move focus with the change and give it back on the way out
+  // (APPLE-DNA §6.4: a back path restores focus, not just state).
+  const wasLanguageOpen = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      wasLanguageOpen.current = false;
+      return;
+    }
+    if (languageOpen) {
+      wasLanguageOpen.current = true;
+      const raf = requestAnimationFrame(() => {
+        trapRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-back"]')?.focus();
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+    if (!wasLanguageOpen.current) return;
+    wasLanguageOpen.current = false;
+    const raf = requestAnimationFrame(() => {
+      trapRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-row"]')?.focus();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [languageOpen, open]);
 
   const commitName = useCallback(() => {
     const next = draftName.trim().slice(0, 40);
@@ -160,19 +191,33 @@ export function SettingsOverlay({
 
   const languageLabel = auto ? t('settings.languageAutomatic') : LANGS.find((l) => l.code === lang)?.native ?? 'English';
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    dragStart.current = e.clientY;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  const onGrabStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    dragFrom.current = { y: e.clientY, t: performance.now(), vy: 0 };
+    setDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (dragStart.current === null) return;
-    setDragY(Math.max(0, e.clientY - dragStart.current));
+
+  const onGrabMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const from = dragFrom.current;
+    if (!from) return;
+    const next = Math.max(0, e.clientY - from.y);
+    const now = performance.now();
+    const dt = now - from.t;
+    if (dt > 0) {
+      // Smoothed so one jittery sample cannot fake a flick.
+      const vy = (e.clientY - from.y - dragY) / dt * 1000;
+      from.vy = from.vy * 0.7 + vy * 0.3;
+      from.t = now;
+    }
+    setDragY(next);
   };
-  const onPointerUp = () => {
-    if (dragStart.current === null) return;
-    const travelled = dragY;
-    dragStart.current = null;
-    if (travelled > 88) onClose();
+
+  const onGrabEnd = () => {
+    const from = dragFrom.current;
+    dragFrom.current = null;
+    setDragging(false);
+    // 88px is a third of the grabber's travel; 500px/s is a flick.
+    if (from && (dragY > 88 || from.vy > 500)) onClose();
     else setDragY(0);
   };
 
@@ -196,19 +241,25 @@ export function SettingsOverlay({
             ref={trapRef}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-            style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
+            transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+            exit={{ y: '100%', transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] } }}
             className="w-full sm:max-w-[440px]"
             data-testid="settings-overlay"
           >
-            <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] st-lens pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-2 max-h-[88dvh] flex flex-col">
+            <div
+              className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] st-lens pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-2 max-h-[88dvh] flex flex-col"
+              style={{
+                transform: dragY ? `translate3d(0, ${dragY}px, 0)` : undefined,
+                transition: dragging ? 'none' : 'transform 220ms cubic-bezier(0.32, 0.72, 0, 1)',
+              }}
+            >
               <div
                 className="sm:hidden flex shrink-0 justify-center pt-2.5 pb-1 cursor-grab touch-none"
                 aria-hidden
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
+                onPointerDown={onGrabStart}
+                onPointerMove={onGrabMove}
+                onPointerUp={onGrabEnd}
+                onPointerCancel={onGrabEnd}
               >
                 <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
               </div>
@@ -233,6 +284,7 @@ export function SettingsOverlay({
                   <button
                     type="button"
                     onClick={() => setLanguageOpen(false)}
+                    data-testid="settings-language-back"
                     className="flex min-h-[44px] items-center gap-1 px-1 text-[15px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
                   >
                     <ChevronRight className="h-4 w-4 rotate-180" aria-hidden /> {t('settings.title')}

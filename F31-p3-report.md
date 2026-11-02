@@ -264,3 +264,52 @@ without saying so is worse.
 5. **Scan the QR code.** This is the one path the gates cannot prove (B31):
    point the other phone's camera at the plate and confirm it lands in the same
    room as the six digits do.
+
+## Follow-up — DNA behaviour pass
+
+The remaining Apple-DNA material (behaviour layer) was applied after P3 shipped.
+Its token values were already in `apple-dna.css` (press 95/155 ms, thumb 240 ms,
+push 280 ms, sheet 320 ms, `ease-sheet`); what was missing was behaviour a still
+screenshot cannot show. Four things changed, all of them contracts the DNA states
+explicitly.
+
+**1. Focus comes back to the trigger (B30).** `useFocusTrap` restored focus from
+inside an effect cleanup that still saw `isOpen === true`, so the restore branch
+never ran and a closed sheet left focus on `<body>`. It now remembers the trigger
+on open and returns focus one frame after close, with `preventScroll`. This is
+the §6.4 "focus restoration after modal close" contract, and it applies to all
+seven dialogs, not just Settings.
+
+**2. A sheet drag is honest (INTERACTION-MOTION §D).** The grabber tracked the
+finger but the release snapped back through a competing transform and a slow
+drag under the threshold could still dismiss. The panel now translates 1:1 with
+the pointer, a drag past 88 px **or** a flick above 500 px/s dismisses from where
+the sheet already is, and anything less springs back over 220 ms. Enter stays at
+320 ms, close is 220 ms — closing is quicker than opening, as the brief asks.
+
+**3. Escape peels one layer, on both layouts (B32).** Pressing Escape inside
+Settings closed the sheet *and* opened the Disconnect confirmation. Two separate
+bugs: the room's handler judged "is a layer open?" from its own state (false when
+a sibling view owns the sheet), and the other layout asked the DOM for any
+`[role="dialog"]` — always true, because the Nearby sheet is deliberately kept
+mounted. A shared `hasOpenLayer()` now asks for a layer that is actually visible
+and not inside an `aria-hidden` host. Finding this also fixed the opposite bug:
+on desktop, Escape in a quiet room could never open Disconnect at all.
+
+**4. Focus follows the Language column (B33).** Swapping the sheet body for the
+language list unmounted the focused row, leaving focus outside the trap. Focus now
+moves to the column's Back control and returns to the Language row on the way out.
+
+| gate | result |
+| --- | --- |
+| `tsc --noEmit` | 0 |
+| `npm run build` (+ `pin-csp`) | 0 |
+| `verify-dna` (new) | **11/11** — focus in/back, 1:1 drag, snap-back, threshold dismiss, language column focus, all again under reduced motion |
+| `verify-axe` | 0 serious/critical, 0 moderate across 8 surfaces |
+| `verify-primitives` | 6/6 |
+| `verify-nav` | 13/13 |
+| `verify-a11y-p3` | unchanged: dialog role/label, tab order, 30-Tab trap |
+
+Not verified: a real finger. The drag was exercised with synthetic pointer events
+at 16 ms steps, which measures the numbers but not how the sheet feels in hand;
+threshold and flick velocity are the two values to tune on a phone.
