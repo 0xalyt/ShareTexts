@@ -165,7 +165,7 @@ needs the dev-only gallery or the live site.
 | `verify-otp` | **47 passed, 0 failed, 0 page errors** |
 | `verify-primitives` (dev `/__kit`) | **6/6** (18 controls ≥ 44×44) |
 | `measure-frames` | **FAIL — noise-limited, see above** (8.6 / 8.8 / 11.5% on an unchanged phase) |
-| `smoke-live` | **GREEN, 12/12** — paired in 5 878 ms, message delivered in **5 ms**, 0 console errors |
+| `smoke-live` | **GREEN, 12/12**, twice — markers `fac3629c0b1e` (5 878 ms to connected, delivery **5 ms**) and `e65f94fb1066` (delivery **8 ms**), 0 console errors both times |
 
 Note on `verify-primitives`: pointed at the dist server it reports "1 control"
 and fails, because `/__kit` is dev-only. That is a wrong-target artifact; against

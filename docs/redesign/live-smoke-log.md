@@ -231,3 +231,20 @@ The three console *warnings* are the expected `VITE_SIGNALING_URL` override
 (the Vercel env var still names the retired host; the client uses the
 canonical worker and says so once per page — B37).
 
+
+## 2026-11-03 — marker `e65f94fb1066` (P4 report commit)
+
+Command: `node scripts/smoke-live.mjs`
+
+| Check | Result |
+|---|---|
+| site answers 200 / marker present | PASS (e65f94fb1066) |
+| share card + 1200×630 og image | PASS (117 KB PNG) |
+| two devices paired | PASS (code …358) — 8 051 ms to connected |
+| message A → B arrived within 15 s | PASS (8 ms) |
+| sender sees its own message | PASS |
+| no console errors during smoke | PASS |
+
+**[smoke-live] GREEN** again after the report push, so the two runs that bracket
+this phase (`fac3629c0b1e`, `e65f94fb1066`) both deliver in single-digit
+milliseconds. Docs-only commits after this one change no runtime code.
