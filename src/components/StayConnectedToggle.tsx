@@ -41,7 +41,7 @@ export function StayConnectedToggle({ className }: { className?: string }) {
       </span>
       <span className="flex-1 flex flex-col min-w-0 leading-tight">
         <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{t('stay.title')}</span>
-        <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/60">{t('stay.hint')}</span>
+        <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45">{t('stay.hint')}</span>
       </span>
       {/* THE standard switch — ThemeToggle's geometry, one silhouette app-wide. */}
       <StandardSwitch

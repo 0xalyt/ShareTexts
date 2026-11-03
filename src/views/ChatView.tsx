@@ -39,9 +39,6 @@ import { applyFormat, type FormatKind } from '../lib/richText';
 /** Shortcut hint glyph for tooltips and kbd chips — ⌘ on Apple platforms,
  *  Ctrl everywhere else (the handlers accept either). */
 const modKey = /Mac|iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '⌘' : 'Ctrl';
-/** A coarse pointer means a phone keyboard: Return makes a new line there and
- *  the orange circle sends (DESIGN §19). Desktop keeps Enter-to-send. */
-const isTouchDevice = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
 import { DevicePicker, RecipientSummary } from '../components/DevicePicker';
 import { hapticArrive } from '../lib/haptics';
 import { RecipientStrip } from '../components/RecipientStrip';
@@ -187,10 +184,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // Composer teaching: once the user has interacted with the composer in any
   // way (typed, pasted, dropped, attached), the hint row never returns.
   const [composerTouched, setComposerTouched] = useState(false);
-  // Formatting is not chrome any more: it lives in the Add sheet and appears
-  // only when it was asked for (DESIGN §19 — no toolbar in the default view).
-  const [showFormat, setShowFormat] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
 
   /**
    * Formatting buttons operate on the textarea's OWN value and selection —
@@ -1068,7 +1061,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <span className={cn(
               "flex items-center gap-1 text-[12px] font-medium",
               disconnected || session.connectionType === 'connecting'
-                ? "text-status-warning-ink dark:text-status-warning-ink-dark"
+                ? "text-status-warning"
                 : "text-apple-ink-muted dark:text-white/45"
             )}>
               {disconnected ? (
@@ -1276,7 +1269,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 <span
                   data-testid="banner-rejoin-code"
                   title={t('details.rejoinNote')}
-                  className="hidden sm:flex shrink-0 items-center gap-1.5 font-mono tnum text-[13px] font-bold tracking-widest whitespace-nowrap text-apple-ink dark:text-white bg-status-warning/15 rounded-full px-2.5 py-1"
+                  className="hidden sm:flex shrink-0 items-center gap-1.5 font-mono tnum text-[13px] font-bold tracking-widest whitespace-nowrap text-status-warning-ink dark:text-status-warning-ink-dark bg-status-warning/15 rounded-full px-2.5 py-1"
                 >
                   <LiveRejoinCode secret={session.secret} createdAt={session.createdAt} />
                 </span>
@@ -1285,7 +1278,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 data-testid="reconnect"
                 onPointerDown={startReconnectFeedback}
                 disabled={reconnecting}
-                className="min-h-[40px] px-3 py-1.5 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-95 shrink-0 flex items-center gap-1.5"
+                className="min-h-[40px] px-3 py-1.5 rounded-full text-[13px] font-semibold bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-95 shrink-0 flex items-center gap-1.5"
               >
                 {/* In-flight acknowledgment: the arrow spins while the
                     handshake runs and the label says so — a tap always
@@ -1556,10 +1549,17 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           thumbs and browser chrome crowd it. */}
       <div className="p-3 sm:p-5 bg-white/85 dark:bg-night-900/92 border-t border-black/[0.06] dark:border-white/[0.04] shadow-[0_-12px_28px_-20px_rgba(31,27,21,0.45)] dark:shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.75)] z-10 pb-[max(env(safe-area-inset-bottom),10px)] sm:pb-5 relative">
         <form onSubmit={handleSend} className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col gap-2">
+          <div className="hidden sm:flex items-center justify-end gap-1.5 text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/40 px-1">
+            <kbd className="px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 font-sans">{t('composer.enter')}</kbd>
+            <span>{t('composer.toSend')}</span>
+            <span className="opacity-50">·</span>
+            <kbd className="px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 font-sans">{t('composer.shiftEnter')}</kbd>
+            <span>{t('composer.newLine')}</span>
+          </div>
           {/* Multi-device recipient row — visible the moment the room has
               more than one other device. The user always knows WHERE content
               will go BEFORE pressing send; one-recipient rooms never see it. */}
-          {others.length >= 2 && (
+          {others.length > 0 && (
             <div className="relative" data-testid="recipient-row">
               <RecipientSummary
                 peers={peers}
@@ -1647,7 +1647,33 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 rim, specular and graded fill cost a single paint and read
                 the same at this size; the blur stays on static chrome. */}
             <motion.div className="relative flex-1 min-w-0 rounded-[24px] st-lens st-lens-quiet overflow-visible focus-within:ring-2 focus-within:ring-ember/25 transition-shadow">
-
+            {/* Composer teaching row — visible only while the composer is
+                empty AND untouched, it names the four real input paths in
+                product vocabulary (Type · Paste · Drop · Pick a file) so the
+                empty composer teaches instead of waiting. It dissolves on
+                first interaction and never returns: by then the user knows. */}
+            <AnimatePresence>
+              {inputText.length === 0 && attachments.length === 0 && !composerTouched && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.25 }}
+                  aria-hidden="true"
+                  className="absolute left-3 right-12 -top-[26px] flex items-center gap-3 pointer-events-none select-none"
+                >
+                  {([
+                    [FileText, 'composer.teach.type'],
+                    [ClipboardPaste, 'composer.teach.paste'],
+                    [Download, 'composer.teach.drop'],
+                  ] as const).map(([Icon, key]) => (
+                    <span key={key} className="flex items-center gap-1 text-[12px] font-medium text-apple-ink-muted/60 dark:text-white/30 whitespace-nowrap">
+                      <Icon className="w-3 h-3" /> {t(key)}
+                    </span>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
             {/* Multi-attachment preview strip — up to 20 files, each with a
                 circular remove button that's always visible and tappable. */}
             <AnimatePresence>
@@ -1739,7 +1765,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 with its own accessible name; the same four glyphs the demo's
                 laptop screen shows, because it IS this editor. */}
             <AnimatePresence>
-              {showFormat && (
+              {(inputText.length > 0 || composerTouched) && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
@@ -1783,8 +1809,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 rows={1}
                 onChange={(e) => { setComposerTouched(true); setInputText(e.target.value); }}
                 onPaste={(e) => { setComposerTouched(true); handlePaste(e); }}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
                 onKeyDown={(e) => {
                   // Formatting shortcuts, the ones every editor shares.
                   if ((e.metaKey || e.ctrlKey) && !e.altKey) {
@@ -1797,7 +1821,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   // Never send while an IME composition is active (Hindi,
                   // Chinese, Japanese, Korean…): Enter there commits the
                   // candidate, it doesn't submit the message.
-                  if (e.key === 'Enter' && !e.shiftKey && !isTouchDevice && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
                     e.preventDefault();
                     handleSend(e);
                   }
@@ -1850,20 +1874,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               </button>
 
             </div>
-            {/* Desktop-only, and only while typing: the one shortcut worth
-                teaching after the hints row was removed (DESIGN §19). */}
-            {inputFocused && inputText.length > 0 && (
-              <div className="hidden sm:flex items-center gap-1 px-3 pb-1.5 text-[12px] font-medium text-apple-ink-muted dark:text-white/45" aria-hidden="true">
-                <kbd className="px-1 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 font-sans">{t('composer.enter')}</kbd>
-                <span>{t('composer.toSend')}</span>
-              </div>
-            )}
             </motion.div>
           {/* Anchored to this row (absolute, above the +) — mounts instantly
               with isOpen, immune to the open/close race. */}
           <AttachmentPanel
             isOpen={showAttachmentMenu}
-            onFormatting={() => setShowFormat(true)}
             onClose={() => setShowAttachmentMenu(false)}
             onSelectType={(type) => {
               // Trigger the matching hidden input in ChatView

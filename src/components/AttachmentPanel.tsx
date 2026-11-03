@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Image as ImageIcon, File as FileIcon, Video as VideoIcon, Music, Type as TypeIcon } from 'lucide-react';
+import { Image as ImageIcon, File as FileIcon, Video as VideoIcon, Music } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 
@@ -25,9 +25,6 @@ interface AttachmentPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectType: (type: 'image' | 'file' | 'video' | 'audio') => void;
-  /** Optional: reveal the formatting row. It lives here now, not in the
-   *  composer, so the default view stays one quiet field (DESIGN §19). */
-  onFormatting?: () => void;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
 }
 
@@ -53,7 +50,7 @@ interface AttachmentPanelProps {
  *     mounted backdrop in several mobile browsers — an un-armed backdrop
  *     swallowed the menu 16ms after it opened.
  */
-export function AttachmentPanel({ isOpen, onClose, onSelectType, onFormatting, buttonRef }: AttachmentPanelProps) {
+export function AttachmentPanel({ isOpen, onClose, onSelectType, buttonRef }: AttachmentPanelProps) {
   const { t } = useI18n();
   useEscapeToClose(isOpen, onClose, buttonRef);
 
@@ -129,14 +126,6 @@ export function AttachmentPanel({ isOpen, onClose, onSelectType, onFormatting, b
               onClick={() => handleSelect('file')}
               delay={0.06}
             />
-            {onFormatting && (
-              <MenuItem
-                icon={<TypeIcon className="w-[18px] h-[18px]" />}
-                label={t('edit.group')}
-                onClick={() => { onFormatting(); onClose(); }}
-                delay={0.08}
-              />
-            )}
           </motion.div>
         )}
       </AnimatePresence>

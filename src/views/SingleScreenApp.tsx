@@ -1376,7 +1376,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 >
                   <span className="flex flex-col min-w-0">
                     <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{copiedLink ? t('conn.inviteCopied') : t('conn.invite')}</span>
-                    <span className="text-[12px] text-apple-ink-muted dark:text-white/60 truncate">{t('conn.inviteHint')}</span>
+                    <span className="text-[12px] text-apple-ink-muted dark:text-white/45 truncate">{t('conn.inviteHint')}</span>
                   </span>
                   <Link2 className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/50" />
                 </button>
@@ -1703,7 +1703,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     })()}
                   </span>
                 ) : (
-                <span className={cn("text-[12px] font-medium", session.connectionType === 'disconnected' ? "text-status-warning-ink dark:text-status-warning-ink-dark" : session.connectionType === 'connecting' ? "text-status-warning-ink dark:text-status-warning-ink-dark" : "text-status-success")}>
+                <span className={cn("text-[12px] font-medium", session.connectionType === 'disconnected' ? "text-status-warning" : session.connectionType === 'connecting' ? "text-status-warning" : "text-status-success")}>
                   {session.connectionType === 'disconnected'
                     ? t('chat.offline')
                     : session.connectionType === 'connecting'
