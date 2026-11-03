@@ -26,12 +26,54 @@ applyGlassPreference();
 // SF first on Apple, Inter everywhere else (§2e) — decided before first paint.
 applyPlatformType();
 
+// ── Stale-chunk recovery (B31) ────────────────────────────────────────────
+// Every deploy replaces the hashed chunks. A tab that was opened before the
+// deploy still holds the old HTML, so its first lazy import (Scan QR, the
+// Room, Settings) asks for a file the server no longer has and the dynamic
+// import rejects — the screen dies with a console error and no way back.
+// One reload fixes it, because the reload fetches the new HTML and its asset
+// map. The sessionStorage stamp keeps a genuinely broken build from looping:
+// at most one automatic reload per 10 s.
+const CHUNK_RELOAD_KEY = 'sharetext.chunkReloadAt';
+const CHUNK_ERROR = /dynamically imported module|Importing a module script failed|Unable to preload|Failed to fetch/i;
+
+function reloadForFreshChunks(): boolean {
+  try {
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
+    if (Number.isFinite(last) && Date.now() - last < 10_000) return false;
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    // Private mode or storage disabled: reload anyway. The worst case is a
+    // loop only if the new build is broken too, which a person can see.
+  }
+  window.location.reload();
+  return true;
+}
+
+// Vite's own event: fires exactly when a preloaded/imported chunk 404s.
+window.addEventListener('vite:preloadError', (e) => {
+  (e as Event & { preventDefault(): void }).preventDefault();
+  diag('ui.stale_chunk', false, 'reloading for a fresh asset map');
+  reloadForFreshChunks();
+});
+
 // Toughness net: unhandled promise rejections and window errors are logged
 // into the same diag ring the diagnostics panel reads. The app keeps working
 // (React boundaries cover render crashes); this makes the failure visible
 // and debuggable instead of silently swallowed — zero-error means SEEING
 // every error, not pretending none happen.
+// A rejected dynamic import that Vite did not wrap (some browsers, some
+// import shapes) takes the same recovery path as vite:preloadError.
 window.addEventListener('unhandledrejection', (e) => {
+  const reason = e.reason as { message?: string } | string | undefined;
+  const message = typeof reason === 'string' ? reason : reason?.message ?? '';
+  if (CHUNK_ERROR.test(message)) {
+    diag('ui.stale_chunk', false, message.slice(0, 200));
+    if (reloadForFreshChunks()) {
+      e.preventDefault();
+      return;
+    }
+  }
   diag('ui.unhandled_rejection', false, String(e.reason).slice(0, 300));
 });
 window.addEventListener('error', (e) => {
