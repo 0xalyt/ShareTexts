@@ -60,14 +60,16 @@ const check = (name, cond) => checks.push([name, cond]);
 // Sampled from the path the meta tags actually serve, so this check cannot
 // pass against a retired file while the real one is broken.
 //
-// Artwork contract (2026-10, scripts/gen-og-card.mjs): a DESIGNED card —
-// ember lockup top-left, the brand headline in ink on the LEFT half, the
-// live room/phone scene on the RIGHT half, warm cream field. The previous
-// card was the bare icon centered on white, which read as an empty
-// rectangle in an X/Slack preview; a centered-glyph check would now pass a
-// blank card, so the assertions below measure the real composition.
+// Artwork contract (owner, 2026-11): the card is the owner's app tile —
+// the orange gradient rounded square with the white signal mark, centred on a
+// white field, with NOTHING added. An earlier phase replaced it with a
+// designed card (headline, room sketch, lockup); the owner rejected that and
+// the card was restored. These assertions therefore check for exactly the
+// owner's artwork: a white field, one saturated tile in the middle, a light
+// glyph inside it, and no ink anywhere — the moment a headline or a UI sketch
+// reappears, this fails.
 // ──
-const og = await sample('/og/sharetext-og-v11.png');
+const og = await sample('/og/sharetext-og-icon-v1.png');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
   // The file checked above must be the file the head actually advertises —
@@ -75,25 +77,37 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   const { readFileSync } = await import('node:fs');
   const head = readFileSync('index.html', 'utf8');
   check('og:image and twitter:image point at this card',
-    head.includes('/og/sharetext-og-v11.png?v=22') &&
-    (head.match(/sharetext-og-v11\.png\?v=22/g) || []).length >= 4);
+    head.includes('/og/sharetext-og-icon-v1.png?v=23') &&
+    (head.match(/sharetext-og-icon-v1\.png\?v=23/g) || []).length >= 4);
 }
 {
-  const p = at(og.data, og.w, 40, 300);
-  check(`og background margin (40,300) light`, p[0] > 200 && p[1] > 200 && p[2] > 200);
-  const anyEmber = count(og.data, og.w, 0, 0, og.w, og.h, ember, 4);
-  check(`og ember brand glyph present (${anyEmber} px)`, anyEmber > 150);
-  // Dark ink (the headline + room chrome) must be substantial on BOTH halves:
-  // the card has to carry the words, not just a mark in the middle.
+  const light = (q) => q[0] > 200 && q[1] > 200 && q[2] > 200;
+  // White field, including the corners — the tile sits in the middle only.
+  check('og field is white at (4,4)', light(at(og.data, og.w, 4, 4)));
+  check('og field is white at (40,300)', light(at(og.data, og.w, 40, 300)));
+  check('og field is white at (1160,600)', light(at(og.data, og.w, 1160, 600)));
+  check('og field is white left of the tile (450,315)', light(at(og.data, og.w, 450, 315)));
+  check('og field is white right of the tile (750,315)', light(at(og.data, og.w, 750, 315)));
+
+  // The tile: saturated brand orange at its centre, and enough of it to be the
+  // subject of the card rather than a dot.
+  const c = at(og.data, og.w, 520, 400);
+  check(`og tile is the brand orange at centre (${c[0]},${c[1]},${c[2]})`, c[0] > 220 && c[1] > 70 && c[1] < 200 && c[2] < 90);
+  const tilePx = count(og.data, og.w, 460, 175, 740, 455, ember, 4);
+  check(`og tile covers its square (${tilePx} px)`, tilePx > 3000);
+
+  // The white mark inside the tile — the glyph, not a blank orange block.
+  let glyph = 0;
+  for (let y = 200; y < 430; y += 2) for (let x = 480; x < 720; x += 2) {
+    const p = at(og.data, og.w, x, y);
+    if (p[0] > 225 && p[1] > 215 && p[2] > 200) glyph++;
+  }
+  check(`og white mark inside the tile (${glyph} px)`, glyph > 600);
+
+  // No text: the card carries no headline, no lockup, no UI sketch.
   const ink = (q) => q[0] < 90 && q[1] < 90 && q[2] < 90;
-  const left = count(og.data, og.w, 0, 0, og.w / 2, og.h, ink, 3);
-  const right = count(og.data, og.w, og.w / 2, 0, og.w, og.h, ink, 3);
-  check(`og headline ink on the left half (${left} px)`, left > 800);
-  check(`og product scene on the right half (${right} px)`, right > 300);
-  // The headline must not touch the frame: a 1px unfilled border proves the
-  // layout is padded, which is what keeps it readable when cropped to 500px.
-  const bgPixel = at(og.data, og.w, 4, 4);
-  check('og card is padded (no ink at 4,4)', bgPixel[0] > 200 && bgPixel[1] > 200 && bgPixel[2] > 200);
+  const dark = count(og.data, og.w, 0, 0, og.w, og.h, ink, 3);
+  check(`og carries no added ink (${dark} px)`, dark < 200);
 }
 
 // ── Maskable icon: the glyph on an opaque near-white plate, inside the

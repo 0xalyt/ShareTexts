@@ -263,3 +263,19 @@ softened.
 - The Activity screen lists **this device's** events only, stored on this device
   (cap 200), with the line "Stored on this device only." and a Clear history
   action in Settings.
+
+### 20f. Share card (owner's artwork — do not redesign)
+
+The link preview is the owner's app tile: the orange gradient rounded square
+with the white signal mark, centred on a white field at 1200×630, and nothing
+else. No headline, no lockup, no UI sketch, no second colour.
+
+- Source: `public/brand/logo-tile-white-on-orange.jpg`, rendered by
+  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v1.png`.
+- Every surface that advertises the card names the same file and the same
+  `?v=`: `index.html` (og + Twitter + JSON-LD), `public/guides/*.html`,
+  `public/sw.js` (precache, with its `CACHE` bumped) and `scripts/seo-harden.mjs`.
+- `scripts/verify-brand-assets.mjs` fails if the card gains any ink, loses the
+  tile, or if the head advertises a different file.
+- This artwork is not a design decision for an agent to revisit. It changes
+  when the owner says it changes.
