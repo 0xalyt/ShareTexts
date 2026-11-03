@@ -166,16 +166,9 @@ const PROBE = () => {
 /* Pre-existing room chrome (P4's surface), measured only because the gate can
    now pair into a room for Settings. Each entry names the text it covers and
    why it is not this gate's to fix; they are printed as KNOWN, never as passes. */
-const KNOWN_PREEXISTING = [
-  { text: /^Offline$/, why: 'room header status chip — P4' },
-  { text: /^Disconnected$/, why: 'room header status chip — P4' },
-  { text: /^[0-9]+ [0-9]+$/, why: 'room header latency readout — P4' },
-  { text: /^Reconnect$/, why: 'connection banner button — P4' },
-  { text: /^(Enter|Shift\+Enter)$/, why: 'composer key hints (kbd on glass) — P4' },
-  { text: /^(to send|for a new line|·)$/, why: 'composer key hints — P4' },
-  { text: /^Keeps this room alive/, why: 'Temporary Space sheet copy — P4' },
-  { text: /^Handy if a device needs to reconnect\.$/, why: 'Temporary Space sheet copy — P4' },
-];
+// Empty by design: every room-chrome run that used to live here was fixed in
+// P4 STEP 3 (warning-ink chips, ink-muted readouts, darker stay hint).
+const KNOWN_PREEXISTING = [];
 const knownFor = (r) => KNOWN_PREEXISTING.find((k) => k.text.test(r.text));
 
 const browser = await launchBrowser();
