@@ -13,7 +13,7 @@
  *     the cache on first fetch. Cross-origin requests (the signaling
  *     Worker's /health, /lookup, /ws) are never intercepted.
  */
-const CACHE = 'sharetexts-v26';
+const CACHE = 'sharetexts-v27';
 const SHELL = [
   '/',
   '/index.html',
@@ -48,20 +48,56 @@ const SHELL = [
   '/emoji-apple/folded-hands_1f64f.png',
 ];
 
+// The build writes dist/precache.json from the Vite manifest: every dynamic
+// entry (Room, QR scanner, Settings, Space) with its hash. A deploy renames
+// those files, and a tab opened under the previous build would ask for a chunk
+// that no longer exists. Precaching them at install means the new worker can
+// answer that request from its own cache, and the carried-over cache below
+// covers the window before it activates.
+async function lazyChunks() {
+  try {
+    const res = await fetch('/precache.json', { cache: 'no-store' });
+    if (!res.ok) return [];
+    const list = await res.json();
+    return Array.isArray(list) ? list.filter((u) => typeof u === 'string' && u.startsWith('/')) : [];
+  } catch {
+    return []; // a missing manifest must never block the offline shell
+  }
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE)
-      .then((cache) => cache.addAll(SHELL))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await cache.addAll(SHELL);
+    const lazy = await lazyChunks();
+    if (lazy.length) {
+      // One failed chunk must not fail the whole install.
+      await Promise.allSettled(lazy.map((url) => cache.add(url)));
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    const stale = (await caches.keys()).filter((k) => k !== CACHE);
+    for (const key of stale) {
+      const old = await caches.open(key);
+      // Carry the previous build's hashed assets forward before dropping its
+      // cache: a page that is still open under that build asks for exactly
+      // those URLs, and the server no longer has them.
+      for (const request of await old.keys()) {
+        const pathname = new URL(request.url).pathname;
+        if (!pathname.startsWith('/assets/')) continue;
+        if (await cache.match(request)) continue;
+        const response = await old.match(request);
+        if (response) await cache.put(request, response);
+      }
+      await caches.delete(key);
+    }
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
@@ -115,6 +151,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Hashed assets: cache-first, but a miss must not leave a dead page. A
+  // failed fetch falls back to any copy another build left behind, then to
+  // the network error (the app's reload guard takes over from there).
   event.respondWith(
     caches.match(request).then(
       (cached) =>
