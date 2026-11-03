@@ -203,3 +203,31 @@ current deployment: `curl` confirms `https://sharetexts.online/assets/QRScanner-
 is a 404, so the deployed HTML references a scanner bundle that is not there —
 filed as B31, and it will be replaced by the next deploy. The signaling worker
 also logged its redirect warning three times per page (expected, harmless).
+
+## 2026-11-03 — marker `fac3629c0b1e` (P4 final: fix B36, then GREEN)
+
+Command: `node scripts/smoke-live.mjs` (auto-detects the served marker)
+
+| Check | Result |
+|---|---|
+| https://sharetexts.online answers 200 | PASS (200) |
+| build marker present | PASS (fac3629c0b1e) |
+| share title is the brand line | PASS — AirDrop for everyone — ShareTexts |
+| og:title is the brand line | PASS |
+| og:image is absolute | PASS — https://sharetexts.online/og/sharetext-og-v11.png?v=22 |
+| og:image carries a cache-buster | PASS |
+| twitter card is summary_large_image | PASS |
+| og:image declares 1200x630 | PASS |
+| og:image serves as a real 1200x630 PNG | PASS — 200 image/png 1200x630 117KB |
+| two devices paired | PASS (code …600) — 5 878 ms to connected, room up in 8 444 ms |
+| message A → B arrived within 15 s | PASS (5 ms) |
+| sender sees its own message | PASS |
+| no console errors during smoke | PASS |
+
+**[smoke-live] GREEN.** The two runs before this one failed the message check
+(B36): the composer grew ~20px the moment the field gained text, so the send
+tap landed beside the button. With that caption removed, delivery is 5 ms.
+The three console *warnings* are the expected `VITE_SIGNALING_URL` override
+(the Vercel env var still names the retired host; the client uses the
+canonical worker and says so once per page — B37).
+
