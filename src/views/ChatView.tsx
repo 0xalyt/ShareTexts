@@ -190,7 +190,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // Formatting is not chrome any more: it lives in the Add sheet and appears
   // only when it was asked for (DESIGN §19 — no toolbar in the default view).
   const [showFormat, setShowFormat] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
 
   /**
    * Formatting buttons operate on the textarea's OWN value and selection —
@@ -1783,8 +1782,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 rows={1}
                 onChange={(e) => { setComposerTouched(true); setInputText(e.target.value); }}
                 onPaste={(e) => { setComposerTouched(true); handlePaste(e); }}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
                 onKeyDown={(e) => {
                   // Formatting shortcuts, the ones every editor shares.
                   if ((e.metaKey || e.ctrlKey) && !e.altKey) {
@@ -1850,14 +1847,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               </button>
 
             </div>
-            {/* Desktop-only, and only while typing: the one shortcut worth
-                teaching after the hints row was removed (DESIGN §19). */}
-            {inputFocused && inputText.length > 0 && (
-              <div className="hidden sm:flex items-center gap-1 px-3 pb-1.5 text-[12px] font-medium text-apple-ink-muted dark:text-white/45" aria-hidden="true">
-                <kbd className="px-1 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 font-sans">{t('composer.enter')}</kbd>
-                <span>{t('composer.toSend')}</span>
-              </div>
-            )}
+
             </motion.div>
           {/* Anchored to this row (absolute, above the +) — mounts instantly
               with isOpen, immune to the open/close race. */}
