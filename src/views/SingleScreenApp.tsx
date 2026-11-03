@@ -1558,11 +1558,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
         </a>
         <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center justify-between sm:justify-start gap-4 sm:gap-7 pt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
-          <a href="/docs" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
-          <a href="/about" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
-          <a href="/privacy" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
-          <a href="/terms" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.terms')}</a>
-          <a href="/guides" className="inline-flex items-center justify-center min-h-[36px] min-w-[40px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.guides')}</a>
+          <a href="/docs" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
+          <a href="/about" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
+          <a href="/privacy" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
+          <a href="/terms" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.terms')}</a>
+          <a href="/guides" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.guides')}</a>
         </nav>
       </div>
     </footer>

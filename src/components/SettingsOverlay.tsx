@@ -344,7 +344,7 @@ export function SettingsOverlay({
                             setDraftName(session.deviceName || '');
                             setEditingName(true);
                           }}
-                          className="min-w-0 flex-1 truncate text-right text-[15px] font-semibold text-apple-ink dark:text-white"
+                          className="min-w-0 flex-1 truncate text-right min-h-[44px] text-[15px] font-semibold text-apple-ink dark:text-white"
                           data-testid="settings-device-name"
                         >
                           {session.deviceName || t('common.connected')}
@@ -373,7 +373,7 @@ export function SettingsOverlay({
                             onClick={() => setChoice(value)}
                             data-testid={`theme-${value}`}
                             className={cn(
-                              'min-h-[32px] rounded-full px-3 text-[13px] font-semibold transition-colors',
+                              'min-h-[44px] rounded-full px-3 text-[13px] font-semibold transition-colors',
                               choice === value
                                 ? 'bg-white text-apple-ink shadow-[0_1px_2px_rgba(0,0,0,0.12)] dark:bg-white/[0.9] dark:text-[#1d1d1f]'
                                 : 'text-apple-ink-muted dark:text-white/70',

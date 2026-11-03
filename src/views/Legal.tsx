@@ -206,7 +206,7 @@ export function Legal({ page }: { page: LegalPage }) {
             </a>
             {' '}and the <a href="/docs" className="text-apple-blue dark:text-azure-400 hover:underline">documentation</a>.
           </p>
-          <a href="/" className="text-[13px] font-semibold text-apple-blue dark:text-azure-400 hover:underline">
+          <a href="/" className="inline-flex items-center min-h-[44px] text-[13px] font-semibold text-apple-blue dark:text-azure-400 hover:underline">
             Back to ShareTexts
           </a>
         </div>

@@ -1424,7 +1424,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                         data-testid={s.key}
                         onClick={s.run}
                         style={{ ['--st-tap-grow' as string]: '4px' }}
-                        className="st-tap inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-apple-divider dark:border-white/[0.12] bg-white/70 dark:bg-white/[0.05] text-[12px] font-semibold text-apple-ink/80 dark:text-white/70 hover:border-ember/40 hover:text-ember dark:hover:text-azure-400 active:scale-[0.97] transition-all"
+                        className="st-tap inline-flex items-center min-h-[44px] px-3.5 rounded-full border border-apple-divider dark:border-white/[0.12] bg-white/70 dark:bg-white/[0.05] text-[12px] font-semibold text-apple-ink/80 dark:text-white/70 hover:border-ember/40 hover:text-ember dark:hover:text-azure-400 active:scale-[0.97] transition-all"
                       >
                         {t(s.key)}
                       </button>

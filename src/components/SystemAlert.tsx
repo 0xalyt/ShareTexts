@@ -92,7 +92,7 @@ export function SystemAlert({ tone = 'danger', icon = 'info', title, children, a
             data-testid={action.testId}
             onClick={action.onClick}
             className={cn(
-              'mt-2 min-h-[36px] px-4 py-1.5 rounded-full text-[13px] font-semibold transition-colors active:scale-95',
+              'mt-2 min-h-[44px] px-4 rounded-full text-[13px] font-semibold transition-colors active:scale-95',
               tone === 'danger'
                 ? 'bg-status-danger/10 text-status-danger hover:bg-status-danger/20'
                 : 'bg-black/[0.05] text-apple-ink hover:bg-black/[0.09] dark:bg-white/10 dark:text-white dark:hover:bg-white/[0.16]'

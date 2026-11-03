@@ -787,7 +787,7 @@ export function Docs() {
                   key={item.id}
                   data-section-pill={item.id}
                   onClick={() => showSection(item.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${
                     activeSection === item.id
                       ? 'bg-ember text-white shadow-sm'
                       : 'bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink-muted dark:text-white/60'

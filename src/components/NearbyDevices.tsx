@@ -795,7 +795,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                         type="button"
                         data-testid="nearby-fail-retry"
                         onClick={() => { void handleInvite(failedDevice); }}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-all min-h-[36px]"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-all min-h-[44px]"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> {t('nearby.failRetry')}
                       </button>

@@ -48,7 +48,7 @@ export function PageHeader({
         <div className="flex items-center gap-2 shrink-0">
           <a
             href="/"
-            className="flex items-center justify-center min-w-[40px] min-h-[40px] -ml-2 rounded-full text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+            className="flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 rounded-full text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
             aria-label="ShareTexts, back to home"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />

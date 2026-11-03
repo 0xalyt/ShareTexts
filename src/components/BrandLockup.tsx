@@ -49,7 +49,7 @@ export function BrandLockup({
     <a
       href={href}
       aria-label="ShareTexts — home"
-      className={cn('group flex items-center gap-0 shrink-0 min-h-[40px] -my-2 w-fit', className)}
+      className={cn('group flex items-center gap-0 shrink-0 min-h-[44px] -my-2 w-fit', className)}
     >
       {/* The box steps with the wordmark so both halves read as one object.
           One mark in the DOM — CSS sizes it, not a second copy. */}

@@ -94,7 +94,7 @@ export function SiteFooter({ className }: { className?: string }) {
                     <a
                       href={link.href}
                       {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      className="group inline-flex min-h-[40px] items-center text-[14px] font-medium text-apple-ink/80 hover:text-ember dark:text-white/70 dark:hover:text-azure-400 transition-colors"
+                      className="group inline-flex min-h-[44px] items-center text-[14px] font-medium text-apple-ink/80 hover:text-ember dark:text-white/70 dark:hover:text-azure-400 transition-colors"
                     >
                       {/* The underline grows from the left on hover — the
                           quiet affordance an Apple footer uses instead of
@@ -121,7 +121,7 @@ export function SiteFooter({ className }: { className?: string }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={t('footer.followAria')}
-            className="inline-flex min-h-[40px] w-fit items-center gap-1.5 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/55 dark:hover:text-white"
+            className="inline-flex min-h-[44px] w-fit items-center gap-1.5 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/55 dark:hover:text-white"
           >
             <AtSign className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
             0xalyt

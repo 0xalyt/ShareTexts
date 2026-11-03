@@ -929,7 +929,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           )}
           <button
             onClick={() => setShareOpen(true)}
-            className="shrink-0 inline-flex items-center gap-1.5 min-h-[36px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-transform"
+            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-transform"
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5" />
