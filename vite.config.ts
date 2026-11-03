@@ -24,43 +24,15 @@ const guidesHub = () => ({
   },
 });
 
-/** Emit the lazy-chunk list for the service worker (P4 STEP 1a).
- *  `dist/precache.json` lists every dynamic-entry file the build produced; the
- *  worker precaches them at install so a tab that was opened under the previous
- *  build can still import its own chunk after a deploy. Without this the chunk
- *  is a 404 and the page can only recover by reloading. */
-const precacheManifest = () => ({
-  name: 'precache-manifest',
-  apply: 'build' as const,
-  closeBundle() {
-    const manifestPath = path.resolve(__dirname, 'dist/.vite/manifest.json');
-    if (!fs.existsSync(manifestPath)) return;
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as Record<string, {
-      file: string;
-      css?: string[];
-      isDynamicEntry?: boolean;
-    }>;
-    const lazy = new Set<string>();
-    for (const entry of Object.values(manifest)) {
-      if (!entry.isDynamicEntry) continue;
-      lazy.add('/' + entry.file);
-      for (const css of entry.css ?? []) lazy.add('/' + css);
-    }
-    fs.writeFileSync(path.resolve(__dirname, 'dist/precache.json'), JSON.stringify([...lazy], null, 2));
-  },
-});
-
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss(), guidesHub(), precacheManifest()],
+    plugins: [react(), tailwindcss(), guidesHub()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
     },
     build: {
-      // .vite/manifest.json is the input for dist/precache.json (below).
-      manifest: true,
       rollupOptions: {
         output: {
           manualChunks: {
