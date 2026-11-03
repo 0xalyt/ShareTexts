@@ -338,7 +338,7 @@ export function HeroDeviceDemo({
             }
           >
             <div className="-translate-x-1/2 -translate-y-1/2">
-              <div className="flex items-center gap-[5px] rounded-[8px] border border-apple-divider/70 bg-white/95 py-[4px] pl-[4px] pr-[7px] shadow-[0_8px_20px_-8px_rgba(20,16,10,0.5)] backdrop-blur-[2px] dark:border-white/[0.09] dark:bg-night-800/95">
+              <div className="flex items-center gap-[5px] rounded-[8px] border border-apple-divider/70 bg-white/95 py-[4px] pl-[4px] pr-[7px] shadow-[0_8px_20px_-8px_rgba(20,16,10,0.5)] dark:border-white/[0.09] dark:bg-night-800/95">
                 <span className="flex h-[15px] w-[15px] items-center justify-center rounded-[4px] bg-ember text-[6.5px] font-bold text-white">PDF</span>
                 <span className="text-[8.5px] font-semibold leading-none text-apple-ink dark:text-white">plan.pdf</span>
                 <SpinLoader size={9} className="text-ember" />

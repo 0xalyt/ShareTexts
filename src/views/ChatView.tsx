@@ -1704,7 +1704,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                             <div className="relative w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[14px] overflow-hidden bg-black border border-apple-divider dark:border-apple-tile-3 shadow-sm">
                               <video src={previewUrls.get(a.id)} muted playsInline preload="metadata" className="w-full h-full object-cover" />
                               <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <span className="w-6 h-6 rounded-full bg-black/55 backdrop-blur flex items-center justify-center">
+                                <span className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center">
                                   <Play className="w-3 h-3 text-white ml-0.5" />
                                 </span>
                               </span>
@@ -1915,7 +1915,7 @@ function RemoveAttachmentButton({ onClick }: { onClick: () => void }) {
       type="button"
       onPointerDown={onClick}
       aria-label={t('attach.remove')}
-      className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-black/75 dark:bg-black/75 text-white border border-white/25 shadow-md backdrop-blur flex items-center justify-center z-10 transition-transform active:scale-90 hover:bg-black/90"
+      className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-black/75 dark:bg-black/75 text-white border border-white/25 shadow-md flex items-center justify-center z-10 transition-transform active:scale-90 hover:bg-black/90"
     >
       <X className="w-4 h-4" />
     </button>

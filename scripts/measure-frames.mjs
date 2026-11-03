@@ -1,26 +1,33 @@
 #!/usr/bin/env node
 /**
- * measure-frames.mjs — DESIGN.md §18 motion budget.
+ * measure-frames.mjs — the RELATIVE motion gate (P4 STEP 2, replaces the
+ * absolute P2 budget).
  *
- * Contract: at most 5% of frames may take longer than 33 ms (>2 frames at
- * 60 Hz) while the app is doing the things P2 added — scrolling Home, pushing
- * a screen and coming back, opening and closing a sheet. A painted transition
- * that cannot hold 60 fps on a mid phone is worse than no transition, so this
- * measures with the CPU throttled 4x, which is the usual stand-in for a
- * mid-range Android phone.
+ * Why relative: these numbers come from headless Chromium rasterising on the
+ * CPU in software. The same phase moves by 8+ points between runs on this host
+ * (F31 records 5.6% → 16.4% → 18.6% overall across phases), so an absolute
+ * "≤5% of frames over 33 ms" gate only measures the machine's mood. What this
+ * gate can prove is that a change did not make a phase worse: every phase runs
+ * RUNS times, the median is used, and the gate fails only when a phase is more
+ * than TOLERANCE worse than the committed baseline. The real check is the
+ * owner's phone.
  *
- * Method: a requestAnimationFrame sampler records timestamps; the deltas are
- * frame times. p50/p95/p99 plus the over-33 ms share are printed per phase and
- * overall. Numbers land in audit/p2/frames.md.
- *
- *   node scripts/measure-frames.mjs
+ *   node scripts/measure-frames.mjs                 # compare to the baseline
+ *   node scripts/measure-frames.mjs --write-baseline # record this host
  *   URL=http://localhost:3022 node scripts/measure-frames.mjs
+ *
+ * audit/frames-baseline.json is committed WITH host info, because a baseline
+ * from another machine is not a baseline.
  */
 import { chromium } from 'playwright';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import os from 'node:os';
 
 const URL_BASE = process.env.URL || 'http://localhost:3010';
-const BUDGET_PCT = 5;
+const RUNS = Number(process.env.RUNS || 5);
+const TOLERANCE = 1.25; // a phase may be up to 25% worse than its baseline
+const BASELINE = 'audit/frames-baseline.json';
+const WRITE = process.argv.includes('--write-baseline');
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: false });
@@ -56,8 +63,14 @@ const pct = (arr, p) => {
   return sorted[idx];
 };
 const round = (n) => Math.round(n * 10) / 10;
+const median = (arr) => {
+  const s = [...arr].sort((a, b) => a - b);
+  if (!s.length) return 0;
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+};
 
-const phases = [];
+let phases = [];
 async function phase(name, run, ms = 1300) {
   await startSampling();
   await run();
@@ -82,78 +95,112 @@ const home = async () => {
   await page.waitForTimeout(900);
 };
 
-await home();
+async function sequence() {
+  phases = [];
 
-// ── 1. Scrolling Home ────────────────────────────────────────────────────
-await phase('scroll Home', async () => {
-  for (let i = 0; i < 14; i++) {
-    await page.mouse.wheel(0, 120);
-    await page.waitForTimeout(35);
+  await home();
+  await phase('scroll Home', async () => {
+    for (let i = 0; i < 14; i++) {
+      await page.mouse.wheel(0, 120);
+      await page.waitForTimeout(35);
+    }
+    await page.mouse.wheel(0, -400);
+  });
+
+  await home();
+  await phase('push Send', async () => {
+    await page.getByTestId('home-send').click();
+  });
+  await page.waitForSelector('[data-testid="task-back"]');
+  await phase('Back to Home', async () => {
+    await page.getByTestId('task-back').click();
+  });
+
+  await home();
+  await phase('push Receive', async () => {
+    await page.getByTestId('home-receive').click();
+  });
+  await page.waitForSelector('[data-testid="task-back"]');
+  await phase('Back from Receive', async () => {
+    await page.goBack();
+  });
+
+  await home();
+  await phase('open Nearby sheet', async () => {
+    await page.getByTestId('home-nearby').click();
+  });
+  await page.waitForTimeout(400);
+  await phase('close Nearby sheet', async () => {
+    await page.keyboard.press('Escape');
+  });
+
+  return phases;
+}
+
+const samples = new Map(); // name -> [pctOver per run]
+for (let run = 0; run < RUNS; run++) {
+  const result = await sequence();
+  for (const p of result) {
+    if (!samples.has(p.name)) samples.set(p.name, []);
+    samples.get(p.name).push(p.pctOver);
   }
-  await page.mouse.wheel(0, -400);
-});
+  process.stdout.write(`run ${run + 1}/${RUNS}\r`);
+}
+console.log('');
 
-// ── 2. Push a screen and come back ───────────────────────────────────────
-await home();
-await phase('push Send', async () => {
-  await page.getByTestId('home-send').click();
-});
-await page.waitForSelector('[data-testid="task-back"]');
-await phase('Back to Home', async () => {
-  await page.getByTestId('task-back').click();
-});
+const medians = [...samples.entries()].map(([name, values]) => ({
+  name,
+  median: round(median(values)),
+  runs: values,
+  spread: round(Math.max(...values) - Math.min(...values)),
+}));
+const overallMedian = round(median(medians.map((m) => m.median)));
 
-// ── 3. Receive, the same way ─────────────────────────────────────────────
-await home();
-await phase('push Receive', async () => {
-  await page.getByTestId('home-receive').click();
-});
-await page.waitForSelector('[data-testid="task-back"]');
-await phase('Back from Receive', async () => {
-  await page.goBack();
-});
+const hostInfo = {
+  chromium: browser.version(),
+  platform: `${os.platform()} ${os.release()}`,
+  cpu: os.cpus()?.[0]?.model?.trim() ?? 'unknown',
+  cores: os.cpus()?.length ?? 0,
+  viewport: '390x844',
+  throttle: '4x CPU',
+};
 
-// ── 4. Sheet open and close ──────────────────────────────────────────────
-await home();
-await phase('open Nearby sheet', async () => {
-  await page.getByTestId('home-nearby').click();
-});
-await page.waitForTimeout(400);
-await phase('close Nearby sheet', async () => {
-  await page.keyboard.press('Escape');
-});
+if (WRITE) {
+  const baseline = { writtenAt: new Date().toISOString(), url: URL_BASE, host: hostInfo, tolerance: TOLERANCE, runs: RUNS, phases: medians, overall: overallMedian };
+  mkdirSync('audit', { recursive: true });
+  writeFileSync(BASELINE, JSON.stringify(baseline, null, 2) + '\n');
+  console.log(`baseline written: ${BASELINE}`);
+}
 
-const totals = phases.flatMap((p) => [p]);
-const allFrames = phases.reduce((n, p) => n + p.frames, 0);
-const allOver = phases.reduce((n, p) => n + p.over, 0);
-const overallPct = allFrames ? round((allOver / allFrames) * 100) : 0;
-const failing = phases.filter((p) => p.pctOver > BUDGET_PCT);
+let baseline = null;
+if (existsSync(BASELINE)) {
+  try { baseline = JSON.parse(readFileSync(BASELINE, 'utf8')); } catch { baseline = null; }
+}
 
-const header = ['phase', 'frames', 'p50', 'p95', 'p99', 'max', '>33ms', '%>33ms'];
-const rows = totals.map((p) => [p.name, p.frames, p.p50, p.p95, p.p99, p.max, p.over, `${p.pctOver}%`]);
+const header = ['phase', 'median %>33ms', 'runs', 'spread', 'baseline', 'verdict'];
+const rows = medians.map((m) => {
+  const base = baseline?.phases?.find((p) => p.name === m.name)?.median ?? null;
+  let verdict = baseline ? '— (new phase)' : 'no baseline';
+  if (base !== null && base !== undefined) {
+    // A zero baseline cannot be scaled; treat any regression above 2 points as
+    // a fail only when the baseline was non-zero, otherwise print the delta.
+    const limit = base > 0 ? base * TOLERANCE : base + 2;
+    verdict = m.median <= limit ? 'ok' : `FAIL (>${Math.round(limit * 10) / 10})`;
+  }
+  return [m.name, `${m.median}%`, m.runs.join('/'), `${m.spread}pt`, base === null ? '—' : `${base}%`, verdict];
+});
 const widths = header.map((h, i) => Math.max(h.length, ...rows.map((r) => String(r[i]).length)));
 const fmt = (r) => r.map((c, i) => String(c).padEnd(widths[i])).join('  ');
+console.log(fmt(header));
+console.log(fmt(widths.map((w) => '-'.repeat(w))));
+for (const r of rows) console.log(fmt(r));
+console.log(`\nabsolute overall median: ${overallMedian}% of frames above 33 ms — information only (software rasterisation).`);
+console.log(`baseline: ${baseline ? `${baseline.writtenAt} on ${baseline.host?.cpu} (${baseline.host?.platform})` : 'none — run --write-baseline once'}`);
+if (baseline && (baseline.host?.cpu !== hostInfo.cpu || baseline.host?.platform !== hostInfo.platform)) {
+  console.log('WARNING: baseline was recorded on a different host; the comparison is informational.');
+}
 
-const lines = [
-  '# Frame budget — P2 §18 (CPU throttle 4x, 390×844)',
-  '',
-  `URL: ${URL_BASE}  ·  Chromium ${browser.version()}  ·  budget: ≤${BUDGET_PCT}% of frames above 33 ms`,
-  '',
-  fmt(header),
-  fmt(widths.map((w) => '-'.repeat(w))),
-  ...rows.map(fmt),
-  '',
-  `overall: ${allFrames} frames, ${allOver} above 33 ms → ${overallPct}%  (budget ${BUDGET_PCT}%)`,
-  `verdict: ${failing.length ? `FAIL — ${failing.map((p) => p.name).join(', ')}` : 'PASS — every phase inside budget'}`,
-  '',
-  'Note: 4x CPU throttle is a stand-in for a mid-range Android phone, not a',
-  'measurement of one. Real-device numbers need a real device.',
-  errors.length ? `\npage errors: ${errors.join(' · ')}` : '',
-].filter(Boolean);
-
-mkdirSync('audit/p2', { recursive: true });
-writeFileSync('audit/p2/frames.md', lines.join('\n'));
-console.log(lines.join('\n'));
-
+const failing = rows.filter((r) => r[5].startsWith('FAIL'));
+if (errors.length) console.log(`\npage errors: ${errors.join(' · ')}`);
 await browser.close();
 process.exit(failing.length === 0 && errors.length === 0 ? 0 : 1);

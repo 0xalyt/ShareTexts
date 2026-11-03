@@ -101,9 +101,9 @@ export function InstallNudge() {
           exit={reduced ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
           transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           className={cn(
-            'fixed z-[80] flex items-start gap-3 rounded-[16px] border border-black/[0.08] bg-white/95 p-3.5 pr-2.5',
-            'shadow-[0_16px_44px_-16px_rgba(20,16,10,0.35)] backdrop-blur-md',
-            'dark:border-white/[0.1] dark:bg-apple-tile-2/95',
+            'fixed z-[80] flex items-start gap-3 rounded-[16px] border border-black/[0.08] bg-white p-3.5 pr-2.5',
+            'shadow-[0_16px_44px_-16px_rgba(20,16,10,0.35)]',
+            'dark:border-white/[0.1] dark:bg-apple-tile-2',
             'left-4 right-4 bottom-[max(env(safe-area-inset-bottom),16px)]',
             'sm:right-auto sm:bottom-16 sm:w-[330px]',
           )}

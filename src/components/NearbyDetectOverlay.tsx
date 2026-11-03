@@ -110,7 +110,7 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
         animate={{ y: [0, -5, 0] }}
         transition={{ duration: 3.6 + index * 0.4, repeat: Infinity, ease: 'easeInOut', delay: index * 0.5 }}
         className={cn(
-          'rounded-full flex items-center justify-center border backdrop-blur-md',
+          'rounded-full flex items-center justify-center border',
           target
             ? 'w-[68px] h-[68px] bg-white/85 dark:bg-white/[0.10] border-ember/35 dark:border-azure-400/35 shadow-[0_10px_28px_-8px_rgba(240,100,19,0.35)]'
             : 'w-[52px] h-[52px] bg-white/70 dark:bg-white/[0.07] border-black/[0.06] dark:border-white/10 shadow-[0_6px_18px_-8px_rgba(0,0,0,0.25)]'
@@ -119,7 +119,7 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
         <DeviceArt kind={device.kind} model={device.model} gpu={device.gpu} size={target ? 56 : 42} mark={target} />
       </motion.div>
       <span className={cn(
-        'max-w-[120px] truncate px-2 py-0.5 rounded-full backdrop-blur-md leading-tight',
+        'max-w-[120px] truncate px-2 py-0.5 rounded-full leading-tight',
         'bg-white/70 dark:bg-black/40 border border-black/[0.05] dark:border-white/10',
         target
           ? 'text-[12px] font-bold text-apple-ink dark:text-white'
@@ -260,7 +260,7 @@ export function NearbyDetectOverlay({
               className="w-full sm:max-w-[400px]"
               data-testid="nearby-detect-overlay"
             >
-              <div className="relative sm:rounded-[24px] rounded-t-[26px] bg-white/85 dark:bg-surface-dark/88 backdrop-blur-2xl border border-white/70 dark:border-white/[0.08] sm:shadow-[0_30px_80px_-16px_rgba(60,40,20,0.35)] shadow-[0_-10px_44px_-10px_rgba(60,40,20,0.30)] pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5">
+              <div className="relative sm:rounded-[24px] rounded-t-[26px] bg-white dark:bg-surface-dark border border-white/70 dark:border-white/[0.08] sm:shadow-[0_30px_80px_-16px_rgba(60,40,20,0.35)] shadow-[0_-10px_44px_-10px_rgba(60,40,20,0.30)] pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5">
                 {/* Grabber (mobile) + top cancel ✕ — the sheet grammar. */}
                 <div className="sm:hidden flex justify-center pt-2.5 pb-1" aria-hidden>
                   <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />

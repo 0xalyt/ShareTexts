@@ -884,7 +884,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       }}
     >
       {/* ── header ── */}
-      <header className="shrink-0 sticky top-0 z-40 h-14 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-b border-apple-divider/60 dark:border-white/[0.06]">
+      <header className="shrink-0 sticky top-0 z-40 h-14 bg-apple-canvas dark:bg-night-900 border-b border-apple-divider/60 dark:border-white/[0.06]">
         {/* Lifetime hairline — time actually spent of the promised window.
             Renders only once the shelf is genuinely running out (≥60% spent
             or the last hour); calm metadata before that, no fake urgency. */}
@@ -1062,7 +1062,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       </main>
 
       {/* ── composer ── */}
-      <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-t border-apple-divider/50 dark:border-white/[0.06]">
+      <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas dark:bg-night-900 border-t border-apple-divider/50 dark:border-white/[0.06]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
           <button
             onClick={() => fileInput.current?.click()}

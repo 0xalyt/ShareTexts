@@ -53,7 +53,7 @@ function DisconnectToast({ reason, onDone }: { reason: string, onDone: () => voi
     <div
       role="status"
       data-testid="disconnect-toast"
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-[90] overflow-hidden max-w-[min(92vw,460px)] flex items-start gap-3 pl-3.5 pr-2 py-3 rounded-[16px] bg-white/95 dark:bg-apple-tile-2/95 backdrop-blur border border-black/[0.08] dark:border-white/[0.1] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] animate-[toast-in_0.28s_cubic-bezier(0.22,1,0.36,1)]"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-[90] overflow-hidden max-w-[min(92vw,460px)] flex items-start gap-3 pl-3.5 pr-2 py-3 rounded-[16px] bg-white dark:bg-apple-tile-2 border border-black/[0.08] dark:border-white/[0.1] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] animate-[toast-in_0.28s_cubic-bezier(0.22,1,0.36,1)]"
     >
       <span className="shrink-0 w-8 h-8 rounded-full bg-apple-parchment dark:bg-white/[0.07] flex items-center justify-center">
         <DoorOpen className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />
@@ -157,7 +157,7 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
           The theme switch is deliberately absent: the error can fire before
           the providers mount, and a control that cannot work is worse than
           no control. */}
-      <header className="shrink-0 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl border-b border-apple-divider dark:border-white/[0.06]">
+      <header className="shrink-0 bg-apple-canvas dark:bg-night-900 border-b border-apple-divider dark:border-white/[0.06]">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center">
           <div className="flex items-center gap-2 shrink-0">
             <a

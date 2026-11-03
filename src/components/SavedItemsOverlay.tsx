@@ -107,7 +107,7 @@ function SavedImageViewer({ item, onClose }: { item: SavedItem; onClose: () => v
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: DUR.short / 1000 }} /* motion takes SECONDS; DUR is ms */
-      className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 sm:p-8"
+      className="fixed inset-0 z-[100] bg-black/88 flex flex-col items-center justify-center p-4 sm:p-8"
       role="dialog"
       aria-modal="true"
       aria-label={item.filename || t('saved.typeImage')}
@@ -585,7 +585,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
               className="w-full sm:max-w-[460px]"
               data-testid="saved-overlay"
             >
-              <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] bg-white/95 dark:bg-surface-dark/95 backdrop-blur-2xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.4)] shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.3)] flex flex-col max-h-[85dvh] pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0">
+              <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] bg-white dark:bg-surface-dark sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.4)] shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.3)] flex flex-col max-h-[85dvh] pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0">
                 <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0" aria-hidden>
                   <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
                 </div>

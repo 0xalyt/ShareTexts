@@ -79,7 +79,7 @@ export function OverlaySheet({
         <motion.div
           animate={{ opacity: open ? 1 : 0 }}
           transition={{ duration: DUR.short / 1000 }}
-          className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
+          className="absolute inset-0 bg-black/36"
           style={{ pointerEvents: open ? undefined : 'none' }}
           onClick={open ? onClose : undefined}
         />
@@ -118,7 +118,7 @@ export function OverlaySheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: DUR.short / 1000 }} /* motion takes SECONDS; DUR is ms */
-            className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-black/36"
             onClick={onClose}
           />
           <motion.div

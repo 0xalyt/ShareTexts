@@ -874,7 +874,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     ? t('nav.saved')
     : `${t('nav.saved')} · ${savedCount === 1 ? t('saved.countOne') : t('saved.countMany', { n: savedCount })}`;
   const headerNode = (
-    <header className="shrink-0 sticky top-0 z-30 h-14 sm:h-16 flex items-center justify-between gap-3 px-5 sm:px-6 lg:px-10 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06] relative">
+    <header className="shrink-0 sticky top-0 z-30 h-14 sm:h-16 flex items-center justify-between gap-3 px-5 sm:px-6 lg:px-10 bg-apple-canvas dark:bg-night-900 border-b border-black/[0.05] dark:border-white/[0.06] relative">
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
             equal-height object, display-face wordmark, minimal gap. */}
         <BrandLockup />
@@ -1582,7 +1582,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           aria-hidden
-          className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-[2px]"
+          className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none bg-apple-canvas/95 dark:bg-night-900/95"
         >
           <div className="flex flex-col items-center gap-3 px-10 py-8 rounded-[24px] border-2 border-dashed border-ember/50 dark:border-azure-400/50">
             <Upload className="w-8 h-8 text-ember dark:text-azure-400" />
@@ -1654,7 +1654,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           the two real devices (this ⇄ partner + live-status dot) instead of
           a generic wordmark, and the brand stays present at the right
           weight. Disconnect gets a calm two-press confirm, never a modal. */}
-      <div className="shrink-0 flex items-center justify-between gap-3 px-5 py-3 border-b border-black/[0.06] dark:border-white/[0.08] bg-apple-canvas/80 dark:bg-night-950/80 backdrop-blur-xl z-10">
+      <div className="shrink-0 flex items-center justify-between gap-3 px-5 py-3 border-b border-black/[0.06] dark:border-white/[0.08] bg-apple-canvas dark:bg-night-950 z-10">
         <div className="flex items-center gap-2.5 min-w-0">
           {panelMode === 'connected' ? (
             <>

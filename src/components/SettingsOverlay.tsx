@@ -247,7 +247,7 @@ export function SettingsOverlay({
             data-testid="settings-overlay"
           >
             <div
-              className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] st-lens pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-2 max-h-[88dvh] flex flex-col"
+              className="relative sm:rounded-[24px] rounded-t-[24px] bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-2 max-h-[88dvh] flex flex-col"
               style={{
                 transform: dragY ? `translate3d(0, ${dragY}px, 0)` : undefined,
                 transition: dragging ? 'none' : 'transform 220ms cubic-bezier(0.32, 0.72, 0, 1)',

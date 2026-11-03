@@ -338,7 +338,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: DUR.micro / 1000 }} /* motion takes SECONDS; DUR is ms */
-          className="fixed inset-0 z-[80] bg-black/25 dark:bg-black/55 flex items-start justify-center pt-[10vh] sm:pt-[12vh] px-4 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[80] bg-black/25 dark:bg-black/55 flex items-start justify-center pt-[10vh] sm:pt-[12vh] px-4"
           role="dialog"
           aria-modal="true"
           aria-label={t('command.title')}
@@ -351,7 +351,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={SPRING.panel}
-            className="w-full max-w-[560px] rounded-[20px] st-lens overflow-hidden"
+            className="w-full max-w-[560px] rounded-[20px] bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet overflow-hidden"
             onPointerDown={(e) => e.stopPropagation()}
           >
             {statsOpen ? (

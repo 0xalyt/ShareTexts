@@ -38,7 +38,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 bg-apple-canvas/90 dark:bg-night-900/90 backdrop-blur-xl border-b border-apple-divider dark:border-white/[0.06]',
+        'sticky top-0 z-40 bg-apple-canvas dark:bg-night-900 border-b border-apple-divider dark:border-white/[0.06]',
         className,
       )}
     >

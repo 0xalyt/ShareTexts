@@ -722,7 +722,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                       onError={() => setDecodeFailed(true)}
                     />
                   </motion.div>
-                  <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/55 text-white text-[12px] font-semibold backdrop-blur opacity-90 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/60 text-white text-[12px] font-semibold opacity-90 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <ZoomIn className="w-3.5 h-3.5" /> View
                   </span>
                 </button>
@@ -1168,7 +1168,7 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/92 backdrop-blur-md flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black/92 flex items-center justify-center"
       onPointerDown={onClose}
       role="dialog"
       aria-modal="true"
@@ -1193,11 +1193,11 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
       <button
         onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
         aria-label={t('common.close')}
-        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/55 border border-white/20 text-white flex items-center justify-center backdrop-blur hover:bg-black/75 transition-colors active:scale-95"
+        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-95"
       >
         <X className="w-5 h-5" />
       </button>
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/55 border border-white/15 text-white/90 text-[13px] font-medium backdrop-blur max-w-[90vw]">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 border border-white/15 text-white/90 text-[13px] font-medium max-w-[90vw]">
         <span className="truncate max-w-[220px]">{name}</span>
         <span className="w-px h-3.5 bg-white/25" />
         <span className="flex items-center gap-1 whitespace-nowrap">
