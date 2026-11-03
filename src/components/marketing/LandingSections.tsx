@@ -102,11 +102,11 @@ export function ThreeThings() {
             key={key}
             {...revealItem}
             className={cn(
-              'grid gap-5 border-t border-black/[0.10] pt-5 dark:border-white/[0.14]',
-              hasLoop && 'sm:grid-cols-2 sm:items-center sm:gap-8',
+              'flex items-center border-t border-black/[0.10] pt-5 dark:border-white/[0.14]',
+              hasLoop ? 'gap-5 sm:gap-10' : 'gap-5',
             )}
           >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h3 className="text-[22px] font-semibold leading-tight text-apple-ink dark:text-white">
                   {t(`home.three.${key}.lead`)}
                 </h3>
@@ -114,7 +114,11 @@ export function ThreeThings() {
                   {t(`home.three.${key}.body`)}
                 </p>
               </div>
-              <ProductLoop name={loop} label={t(`home.three.${key}.lead`)} />
+              <ProductLoop
+                name={loop}
+                label={t(`home.three.${key}.lead`)}
+                className="w-[108px] sm:w-[148px]"
+              />
           </motion.li>
           );
         })}

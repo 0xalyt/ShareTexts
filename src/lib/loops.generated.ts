@@ -16,7 +16,25 @@ export interface LoopMedia {
 }
 
 export const LOOPS: Record<LoopName, LoopMedia | null> = {
-  pair: null,
-  send: null,
-  keep: null,
+  pair: {
+    poster: '/media/loops/pair.webp',
+    mp4: '/media/loops/pair.mp4',
+    webm: '/media/loops/pair.webm',
+    width: 390,
+    height: 844,
+  },
+  send: {
+    poster: '/media/loops/send.webp',
+    mp4: '/media/loops/send.mp4',
+    webm: '/media/loops/send.webm',
+    width: 390,
+    height: 844,
+  },
+  keep: {
+    poster: '/media/loops/keep.webp',
+    mp4: '/media/loops/keep.mp4',
+    webm: '/media/loops/keep.webm',
+    width: 390,
+    height: 844,
+  },
 };

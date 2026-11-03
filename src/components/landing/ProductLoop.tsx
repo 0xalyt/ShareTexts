@@ -33,7 +33,16 @@ function saveDataOn(): boolean {
   }
 }
 
-export function ProductLoop({ name, label }: { name: LoopName; label: string }) {
+export function ProductLoop({
+  name,
+  label,
+  className,
+}: {
+  name: LoopName;
+  label: string;
+  /** The recording is a phone screen; the row decides how much room it gets. */
+  className?: string;
+}) {
   const loop = LOOPS[name];
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [inView, setInView] = useState(false);
@@ -74,7 +83,10 @@ export function ProductLoop({ name, label }: { name: LoopName; label: string }) 
 
   return (
     <div
-      className="relative overflow-hidden rounded-[16px] border border-black/[0.08] bg-apple-parchment dark:border-white/[0.10] dark:bg-white/[0.04]"
+      className={
+        'relative shrink-0 overflow-hidden rounded-[14px] border border-black/[0.08] bg-apple-parchment dark:border-white/[0.10] dark:bg-white/[0.04] ' +
+        (className ?? '')
+      }
       style={{ aspectRatio: `${loop.width} / ${loop.height}` }}
     >
       <video
