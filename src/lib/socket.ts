@@ -24,14 +24,18 @@ export interface SignalingSocket {
 
 const isProd = !import.meta.env.DEV;
 
-/** Cloudflare endpoints a deployed build may fall back to when the baked-in
- *  worker is stale or unreachable. The current production worker — it speaks
- *  the newest protocol and exposes /stats roomsCreated. (Older workers are
- *  deliberately NOT listed: the capability probe requires roomsCreated, so a
- *  pre-stats worker can never be selected — listing one only wastes a probe.) */
-const CF_FALLBACKS = [
-  'https://sharetext-signaling.alighttt.workers.dev',
-];
+/** The ONE signaling worker (P4 STEP 1b).
+ *  `alighttt` is the Cloudflare account's workers.dev subdomain — a different
+ *  namespace from the GitHub/X handle (0xalyt). Verified 2026-11-03:
+ *  sharetext-signaling.alighttt.workers.dev answers /health and /stats;
+ *  sharetext-signaling.0xalyt.workers.dev is NXDOMAIN and
+ *  …0lighttt… / …garv29devra… were retired. Keep exactly one host here: the
+ *  boot probe can only pick a worker it can actually reach, and a dead
+ *  fallback costs a failed probe on every load. */
+export const SIGNALING_WORKER = 'https://sharetext-signaling.alighttt.workers.dev';
+
+/** Same host, kept as a list because the probe walks candidates. */
+const CF_FALLBACKS = [SIGNALING_WORKER];
 
 /**
  * Fetch the CURRENT worker's /stats — a cheap, CORS-enabled, version-bearing

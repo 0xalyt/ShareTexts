@@ -19,6 +19,9 @@
  */
 import crypto from 'node:crypto';
 
+/** The one signaling worker. `alighttt` is the Cloudflare account subdomain;
+ *  the GitHub account (0xalyt) is a different namespace —
+ *  sharetext-signaling.0xalyt.workers.dev is NXDOMAIN, verified 2026-11-03. */
 const BASE = (process.env.WORKER_URL || 'https://sharetext-signaling.alighttt.workers.dev').replace(/\/+$/, '');
 const ALPHA = 'ACDEFGHJKMNPQRTUVWXYZ234679';
 const freshCode = () => Array.from(crypto.randomBytes(8)).map(b => ALPHA[b % ALPHA.length]).join('');
@@ -115,6 +118,25 @@ const push = await probe('/api/push', { method: 'POST', body: {} });
 check('POST /api/push (bad body) → 400 (route present)', push.status === 400, `status=${push.status}`);
 const stats = await probe('/stats');
 check('GET /stats → 200 with roomsCreated number', stats.status === 200 && typeof stats.json?.roomsCreated === 'number', `status=${stats.status}`);
+
+/* 8. Origin policy (P4 STEP 1b): the site, any Vercel preview and any loopback
+ *    port are allowed; anything else is 403. Checked on /health with an Origin
+ *    header, which is the cheapest route that runs the gate. */
+async function originStatus(origin) {
+  const res = await fetch(BASE + '/health', { headers: { Origin: origin } }).catch(() => null);
+  return {
+    status: res?.status ?? 0,
+    allowOrigin: res?.headers.get('access-control-allow-origin') ?? null,
+  };
+}
+const site = await originStatus('https://sharetexts.online');
+check('Origin https://sharetexts.online → 200 + ACAO', site.status === 200 && site.allowOrigin === 'https://sharetexts.online', JSON.stringify(site));
+const preview = await originStatus('https://sharetexts-abc123-0xalyt.vercel.app');
+check('Origin https://*.vercel.app → 200 + ACAO', preview.status === 200 && preview.allowOrigin === 'https://sharetexts-abc123-0xalyt.vercel.app', JSON.stringify(preview));
+const loop = await originStatus('http://localhost:4321');
+check('Origin http://localhost:<any> → 200 + ACAO', loop.status === 200 && loop.allowOrigin === 'http://localhost:4321', JSON.stringify(loop));
+const foreign = await originStatus('https://evil.example');
+check('Origin https://evil.example → 403', foreign.status === 403, JSON.stringify(foreign));
 
 console.log(`\n${passed}/${passed + failed} checks passed`);
 if (failed > 0 && sawFallback) {

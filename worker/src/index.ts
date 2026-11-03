@@ -59,9 +59,25 @@ function allowedOrigins(env: Env): Set<string> {
  * an Origin that is on the allowlist — never `*`. Non-browser clients (no
  * Origin header) get no CORS headers and are allowed through as before.
  */
+/**
+ * One origin policy for both CORS and the request gate (P4 STEP 1b). The site
+ * lives on sharetexts.online, but every Vercel preview deploy and every local
+ * dev port is the same app; enumerating them by hand meant a new preview URL
+ * answered 403 with no clue why. Everything else stays 403.
+ */
+function originPermitted(origin: string, allowlist: Set<string>): boolean {
+  if (allowlist.has(origin)) return true;
+  // Vercel previews: <project>-<hash>-<team>.vercel.app, nested subdomains too.
+  if (/^https:\/\/[a-z0-9][a-z0-9-]*(\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin)) return true;
+  // Any loopback port: the dev server moves (3010/3012/3013/3311…) and gates
+  // invent their own.
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/i.test(origin)) return true;
+  return false;
+}
+
 function corsHeaders(origin: string | null, allowlist: Set<string>): Record<string, string> {
   if (!origin) return {};
-  if (!allowlist.has(origin)) return {};
+  if (!originPermitted(origin, allowlist)) return {};
   return {
     'Access-Control-Allow-Origin': origin,
     'Vary': 'Origin',
@@ -71,7 +87,7 @@ function corsHeaders(origin: string | null, allowlist: Set<string>): Record<stri
 function originAllowed(request: Request, env: Env): boolean {
   const origin = request.headers.get('Origin');
   if (!origin) return true; // non-browser clients (curl, agents, Node tests)
-  return allowedOrigins(env).has(origin);
+  return originPermitted(origin, allowedOrigins(env));
 }
 
 export default {
@@ -84,7 +100,7 @@ export default {
 
     // CORS preflight (browser sends this before POST /lookup).
     if (request.method === 'OPTIONS') {
-      if (origin && !allowlist.has(origin)) {
+      if (origin && !originPermitted(origin, allowlist)) {
         return json({ error: 'Origin not allowed' }, 403);
       }
       return new Response(null, {
@@ -99,10 +115,9 @@ export default {
       });
     }
 
-    if (path === '/health') {
-      return json({ ok: true, service: 'sharetext-signaling-cf' }, 200, cors);
-    }
-
+    // The origin gate runs before every route, /health included: a health
+    // probe is a canary for reachability, not a hole in the origin policy.
+    // Non-browser clients (no Origin) pass, which is what curl and the gates use.
     if (!originAllowed(request, env)) {
       // Reflect the requesting origin here (even though it's not allowlisted)
       // so the browser can read the status and the client can tell the user
@@ -111,6 +126,10 @@ export default {
         'Access-Control-Allow-Origin': origin,
         'Vary': 'Origin',
       } : {});
+    }
+
+    if (path === '/health') {
+      return json({ ok: true, service: 'sharetext-signaling-cf' }, 200, cors);
     }
 
     if (path === '/ws') {
