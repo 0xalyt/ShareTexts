@@ -183,3 +183,83 @@ Haptics: success and error moments only by default; taps off. Android uses navig
 - Composer: one floating group: "+" glass circle, a capsule field (grows 1–5 lines), a Send circle (orange, scales in when there is content). No formatting toolbar, no hint row, no recipient chip in the default view.
 - Tapbacks: long-press (500 ms), right-click, or a keyboard "React" button opens a reaction strip above the bubble and an action menu below (Copy, Save, Share, Delete). The chosen reaction is a small badge on the bubble corner.
 - Sheets: the scrim is plain rgb(0 0 0 / 36%) with NO backdrop-filter; the panel is solid (raised), radius 24, one floating shadow. Glass is only for the Back circle, the trailing capsule and the composer group (at most 3 on screen).
+## 20. Front door (owner approved, P5)
+
+The landing is the only surface a stranger sees. It has to be believed as well as
+liked: every sentence on it must be a row in `docs/redesign/claims.md` or be
+provable from the code. If a sentence cannot be proved, it is deleted, not
+softened.
+
+### 20a. Scroll
+
+- The landing scrolls the **window**, like a normal page. No inner scroll
+  container, no overscroll trap, no `h-dvh overflow-hidden` above it. The app
+  shell may be fixed; the front door may not.
+- The first viewport still has to compose: headline, two doors and the running
+  product all inside one screen at every desktop size the gate covers. Scrolling
+  down reveals the story; it never reveals the hero.
+- Sections in order, each at most one phone viewport high:
+  1. hero (headline, one subline, Send and Receive, the live product)
+  2. **Three things** — three stories. Each is one bold lead word, ONE plain
+     sentence, and a looping recording of the real product doing it. Pair, Send,
+     Keep.
+  3. **The small things** — six to eight items, icon plus four to seven words,
+     every one true.
+  4. **FAQ** — eight questions, answers quoted from `claims.md`, limits stated
+     plainly (file size, what a space stores, what the relay can and cannot see,
+     supported browsers).
+  5. **Final call** — the same two doors, plus the one trust line:
+     "Free. No account. Works in your browser."
+  6. **footer**.
+
+### 20b. Loops (product recordings)
+
+- A loop shows only behaviour the product has. No invented names, numbers,
+  notifications or devices.
+- Rules: poster first; muted, loop, playsinline; `preload="none"`; plays only
+  while at least 50% visible (IntersectionObserver) and pauses when hidden;
+  under `prefers-reduced-motion` or `Save-Data` the poster is the final state
+  and nothing downloads; width and height are always set, so the section never
+  shifts.
+- Budget: at most 6 s at 30 fps, MP4 (H.264, no audio) at most 350 KB, WebM
+  (VP9) at most 300 KB, poster WebP at most 40 KB, all landing media at most
+  1.2 MB, and nothing loads before the visitor scrolls near it.
+- Recorded by one command (`npm run record-loops`), re-recorded whenever the
+  room UI changes. A missing recording is a build failure, not a blank box.
+
+### 20c. Illustration
+
+- §10 stands. Additions: at most one scene per screen; a scene sits next to a
+  clear action, never in place of one; each SVG at most 4 KB; `aria-hidden`,
+  because the words carry the meaning.
+- The character is **Beacon**, built from the logo: a round body, two eyes, a
+  small smile, and the signal arcs above. Never trace or imitate another
+  company's character.
+- Palette comes from CSS variables that work in both themes (`--st-art-*`);
+  flat colour only, 2.5px `currentColor` outline, no gradients, no shadows.
+- Scenes: Waiting, Connected, EmptyRoom, Offline, CodeExpired, RoomEnded,
+  NotFound, Arrived. Reduced motion makes them static. Only Waiting may carry
+  one gentle loop.
+- `/__kit/art` (dev only) shows every scene in both themes.
+
+### 20d. Footer
+
+- Text links only: Docs, About, Privacy, Terms, Guides. No icon row, no social
+  buttons, no marketing band.
+- Every link is a 44px hit area even when the text is 13px.
+- A language row that names the current language and opens the Language sheet.
+- The wordmark, "Free. No account. Works in your browser.", a GitHub link, and
+  the maker signature "Made by Mr. Garv" linking to x.com/0xalyt.
+
+### 20e. Activity
+
+- Real numbers only, from counters for real events (§16). No floor, no
+  multiplier, no invented growth.
+- A number is shown only when it is **10 or more**; below that the line says
+  "Live" and nothing else. A number that would read "1 transfer" is worse than
+  no number.
+- `aria-live="polite"`, refreshed at most every 30 s, tweened 400 ms (instant
+  under reduced motion), and hidden entirely when `/stats` cannot be reached.
+- The Activity screen lists **this device's** events only, stored on this device
+  (cap 200), with the line "Stored on this device only." and a Clear history
+  action in Settings.
