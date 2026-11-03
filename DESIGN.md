@@ -176,6 +176,7 @@ Desktop
 - From 1024px use a master-detail layout (left column 320, detail beside it), never a stretched phone layout. Single-purpose screens (Send, Receive) use one centred column of 480px.
 Colour decision (owner): the primary fill is the brand orange #f06413 in both themes; the label is white 19px/700 (WCAG large text, 3.2:1). Never darken the brand colour to pass contrast; change the label size or use ink instead.
 Haptics: success and error moments only by default; taps off. Android uses navigator.vibrate; iOS stays off until the owner tests it. One Settings switch controls all of it.
+
 ## 19. Room grammar (owner approved)
 - Bar: floating Back circle, centred title = device name (17/600) with a status line (live dot + "Same network" or "Through ShareTexts"), trailing glass capsule with at most 2 actions: Devices (count) and More. More holds Settings, Saved, Leave room (destructive row behind ConfirmSheet).
 - Feed: mine = accent-soft fill, theirs = band fill, ink text on both, radius 18, max width 82%. Device name and time appear only when the sender changes or after 5 minutes of silence, never inside every bubble. Images radius 16 with a 1px inset outline. File cards show name (middle ellipsis), size, a real progress bar with percent, and a state (Waiting, Sending, Received, Failed + Retry).
