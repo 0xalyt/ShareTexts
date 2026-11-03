@@ -175,6 +175,16 @@ function resolveEndpoints(): { mode: 'cloudflare' | 'socketio'; url?: string } {
       console.error('[ShareTexts] VITE_SIGNALING_URL points at localhost in a production build — refusing. Deployed builds must use the real Cloudflare Worker (e.g. https://sharetext-signaling.<subdomain>.workers.dev).');
       return { mode: 'socketio', url: node };
     }
+    // ONE WORKER (P4 STEP 1b). A hosting dashboard env var outlives the code
+    // that set it: the deployed build kept baking a retired worker host, then
+    // redirected to the live one on every boot, which split a room across two
+    // Durable Object namespaces mid-handshake (messages stopped arriving while
+    // pairing still worked). The canonical host wins; anything else is logged
+    // once and ignored.
+    if (isProd && cf !== SIGNALING_WORKER) {
+      console.warn(`[ShareTexts] VITE_SIGNALING_URL (${cf}) is not the canonical signaling worker — using ${SIGNALING_WORKER}. Remove the env var or set it to the canonical host.`);
+      return { mode: 'cloudflare', url: SIGNALING_WORKER };
+    }
     return { mode: 'cloudflare', url: cf };
   }
 
