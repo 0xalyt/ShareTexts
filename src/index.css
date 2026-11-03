@@ -1059,54 +1059,49 @@ html.dark {
   background-color: inherit;
 }
 
+/* ── Illustration palette (DESIGN.md §20c) ────────────────────────────────
+   Four helpers plus the brand accent. Flat only: the scenes in
+   src/components/art/ fill with these and outline with currentColor, so a
+   drawing is the same drawing in both themes and carries no gradient or
+   shadow of its own. */
+:root {
+  --st-art-body: #ffffff;
+  --st-art-shade: #f7ece2;
+  --st-art-accent: #f06413;
+  --st-art-ink: #2a221c;
+}
+html.dark {
+  --st-art-body: #241d19;
+  --st-art-shade: #2e2620;
+  --st-art-accent: #fb9243;
+  --st-art-ink: #f3e9e1;
+}
+
+.st-art-body { fill: var(--st-art-body); }
+.st-art-shade { fill: var(--st-art-shade); }
+.st-art-accent { color: var(--st-art-accent); }
+.st-art-ink { color: var(--st-art-ink); fill: currentColor; }
+
+/* The one loop a scene may carry: the dashed line between two devices that
+   are still looking for each other. Motion is the grammar's, not decoration;
+   reduce turns it into a still line, which is the same drawing. */
+@keyframes st-wait-dash {
+  to { stroke-dashoffset: -22; }
+}
+.st-wait-dash { animation: st-wait-dash 2.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .st-wait-dash { animation: none; }
+}
+
 /* ── Background primitives ────────────────────────────────────────────────
    Depth without another card. Each one is pointer-transparent and
    layout-neutral, and each is used where a surface needs to feel like a
    MATERIAL rather than a box:
-     .st-dotgrid   printed-paper dots under the hero band
-     .st-softspot  light pooled behind one object (quote, tile)
-     .st-diag      diagonal hairline crosshatch, corner texture only
      .st-horizon   sunrise horizon — warm light rising from a bottom edge
      .st-spotlight a hairline bar of brand light under a sticky header
    All are tuned to whisper: nothing here is allowed to compete with type. */
-.st-dotgrid {
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-  background-size: 18px 18px;
-}
-html.dark .st-dotgrid {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 18px 18px;
-}
 
-.st-softspot {
-  background: radial-gradient(circle at 32% 32%, rgba(240, 100, 19, 0.11), transparent 66%);
-}
 
-/* Sunset bloom — honey meeting ember, pooled low and wide. The warmest of
-   the primitives, so it appears exactly once per page at most. */
-.st-bloom {
-  background:
-    radial-gradient(60% 70% at 12% 108%, rgba(254, 171, 48, 0.20), transparent 70%),
-    radial-gradient(52% 64% at 88% 100%, rgba(240, 100, 19, 0.16), transparent 72%);
-}
-html.dark .st-bloom {
-  background:
-    radial-gradient(60% 70% at 12% 108%, rgba(255, 194, 92, 0.14), transparent 70%),
-    radial-gradient(52% 64% at 88% 100%, rgba(251, 146, 67, 0.12), transparent 72%);
-}
-html.dark .st-softspot {
-  background: radial-gradient(circle at 32% 32%, rgba(251, 146, 67, 0.13), transparent 66%);
-}
-
-.st-diag {
-  background-image:    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 9px),
-  repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 9px);
-}
-html.dark .st-diag {
-  background-image:
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 9px),
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 9px);
-}
 
 .st-horizon {
   background: radial-gradient(120% 68% at 50% 118%, rgba(240, 100, 19, 0.18), rgba(254, 171, 48, 0.08) 42%, transparent 72%);

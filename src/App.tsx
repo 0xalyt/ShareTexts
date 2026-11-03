@@ -9,6 +9,7 @@ import { I18nProvider, useI18n } from './lib/i18n';
 // Gravity UI icons aliased onto the names this file already uses.
 import { X as X, ArrowLeft, SquareArrowOutUpRight as DoorOpen } from 'lucide-react';
 import { ShareTextsLogo } from './components/ShareTextsLogo';
+import { SceneNotFound } from './components/art/Scenes';
 import { PageHeader } from './components/PageHeader';
 import { BrandLockup } from './components/BrandLockup';
 import { TactileButton } from './components/TactileButton';
@@ -294,20 +295,10 @@ function AppContent() {
           ]}
         />
         <main className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-          {/* The missing-room tile: the mark in a mono tile with the page's
-              number — the state IS the visual, no illustration needed. */}
-          {/* The tile wraps a rounded clip so the horizon gradient can't
-              square off its corners; the badge sits OUTSIDE that clip in a
-              sibling wrapper, otherwise overflow-hidden ate its right half. */}
-          <div className="relative mb-7">
-            <div className="relative w-[76px] h-[76px] rounded-[24px] bg-white dark:bg-surface-dark overflow-hidden border border-apple-divider/70 dark:border-white/[0.08] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] flex items-center justify-center">
-              {/* Sunrise horizon inside the tile: light rising from the bottom
-                  edge — the same depth language as the landing and About. */}
-              <span aria-hidden className="st-horizon absolute inset-x-0 bottom-0 h-[56%] opacity-90" />
-              <ShareTextsLogo size={36} className="relative" />
-            </div>
-            <span className="absolute -top-1.5 -right-2.5 px-2 py-0.5 rounded-full bg-ember text-white text-[12px] font-bold shadow-sm">404</span>
-          </div>
+          {/* Beacon, not a tile: §20c gives every dead end one drawing, and the
+              number in the heading already says 404 — a second badge would be
+              the same fact twice. */}
+          <SceneNotFound size={140} className="mb-7 text-apple-ink dark:text-white" />
           <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-2.5">{t('app.404.title')}</h2>
           <p className="text-[16px] text-apple-ink-muted dark:text-white/60 max-w-sm mb-8 leading-relaxed">{t('app.404.body')}</p>
           <div className="flex items-center gap-3 flex-wrap justify-center">

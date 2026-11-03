@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { AttachmentPanel } from '../components/AttachmentPanel';
@@ -1382,7 +1383,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     the message: "your other device was here; the thread
                     is cut", not "you are somewhere else now". */
                 <div className="flex flex-col items-center">
-                  <DeviceLinkIllustration state="broken" className="opacity-90" />
+                  <SceneRoomEnded size={168} className="text-apple-ink dark:text-white" />
                   <p className="text-[16px] font-semibold text-apple-ink dark:text-white mt-4">{t('chat.peerOffline.title')}</p>
                   <p className="text-[13px] text-apple-ink-muted max-w-[260px] leading-relaxed mt-3">
                     {t('chat.peerOffline.body')}
@@ -1395,14 +1396,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     teaching row already names Type · Paste · Drop a few
                     hundred pixels below, and saying it twice is noise. */
                 <div className="flex flex-col items-center">
-                  {/* Packet train rides between the two devices — the shared
-                      primitive positions itself on the same grid as the SVG. */}
-                  <div className="relative">
-                    <DeviceLinkIllustration state="linked" />
-                    <div className="absolute top-0 left-0 pointer-events-none">
-                      <PacketTrain direction="right" width={208} />
-                    </div>
-                  </div>
+                  <SceneEmptyRoom size={168} className="text-apple-ink dark:text-white" />
                   {session.partnerName && (
                     <p className="text-[16px] font-semibold text-apple-ink dark:text-white mt-5 text-center max-w-[300px] leading-relaxed">
                       {t('chat.empty.dest', { name: session.partnerName })}

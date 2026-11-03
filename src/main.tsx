@@ -102,7 +102,11 @@ if (shell) {
 // import is inside `import.meta.env.DEV`, so a production build contains no
 // branch and no chunk for it.
 const kitRoot = document.getElementById('root')!;
-if (import.meta.env.DEV && window.location.pathname === '/__kit') {
+if (import.meta.env.DEV && window.location.pathname === '/__kit/art') {
+  void import('./dev/ArtPage').then(({ ArtPage }) => {
+    createRoot(kitRoot).render(<StrictMode><ArtPage /></StrictMode>);
+  });
+} else if (import.meta.env.DEV && window.location.pathname === '/__kit') {
   void import('./dev/KitPage').then(({ KitPage }) => {
     createRoot(kitRoot).render(<StrictMode><KitPage /></StrictMode>);
   });
