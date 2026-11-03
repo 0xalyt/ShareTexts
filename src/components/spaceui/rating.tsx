@@ -95,7 +95,7 @@ export function Rating({
               }
             }}
             className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-[10px]',
+              'flex h-11 w-11 items-center justify-center rounded-[10px]',
               'transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ember/40 outline-none',
               readOnly ? 'cursor-default' : 'cursor-pointer',
             )}
@@ -225,14 +225,14 @@ export function RateCard({
           <button
             type="button"
             onClick={() => silence(false)}
-            className="px-2.5 min-h-[40px] rounded-full text-[12px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/55 dark:hover:text-white transition-colors"
+            className="px-2.5 min-h-[44px] rounded-full text-[12px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/55 dark:hover:text-white transition-colors"
           >
             {t('rate.dismiss')}
           </button>
           <button
             type="button"
             onClick={() => silence(true)}
-            className="px-2.5 min-h-[40px] rounded-full text-[12px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/55 dark:hover:text-white transition-colors transition-colors"
+            className="px-2.5 min-h-[44px] rounded-full text-[12px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/55 dark:hover:text-white transition-colors transition-colors"
           >
             {t('install.never')}
           </button>

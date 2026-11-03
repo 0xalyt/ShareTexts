@@ -188,7 +188,7 @@ function RowAction({
   testId?: string;
 }) {
   const cls = cn(
-    'st-tap inline-flex items-center gap-1.5 px-3 min-h-[40px] rounded-full text-[12px] font-semibold transition-colors',
+    'st-tap inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-full text-[12px] font-semibold transition-colors',
     danger
       ? 'text-apple-ink-muted dark:text-white/55 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10'
       : 'bg-black/[0.045] text-apple-ink hover:bg-black/[0.08] dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.12]'

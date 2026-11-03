@@ -42,7 +42,8 @@ other surfaces; `verify-axe` is 0 serious/critical/moderate across 8 surfaces.
    - `.segmented` — the Send Code/QR/Link control and every other segmented
      control — was **38px** tall. Now 44.
    - Settings theme pills 32 → 44; the editable device-name row was a 23px
-     tall target. Now 44.
+     tall target. Now 44. Appearance rating stars 40 → 44, and the two
+     quiet Text buttons under them 40 → 44.
    - Docs section pills, the app-shell footer nav (36 → 44), `SiteFooter`
      links (40 → 44), the brand lockup link (40 → 44), back arrows on every
      non-room page (40 → 44), chat suggestion chips (36 → 44), the retry
