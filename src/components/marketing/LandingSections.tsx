@@ -1,32 +1,44 @@
 import type { Key, ReactNode } from 'react';
 import { motion } from 'motion/react';
 import {
-  Send,
-  QrCode,
-  ScanLine,
-  Archive,
   Radar,
-  Lock,
+  QrCode,
+  Globe,
+  Download,
+  Moon,
+  Languages,
+  Wallet,
+  Github,
   ArrowRight,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
+import { ProductLoop } from '../landing/ProductLoop';
+import { LOOPS } from '../../lib/loops.generated';
 
 /* ---------------------------------------------------------------------------
- * LandingSections — the scroll tail of the marketing landing.
+ * LandingSections — the scroll tail of the front door.
  *
- * Phase 5 order: Hero → live demo → How it works (01/02/03) → Features (6
- * cards) → FAQ → final CTA → footer. The demo IS the illustration, so these
- * sections carry no decorative artwork — numbers, one Lucide glyph per card,
- * and the real FAQ the Docs page already publishes (same verified claims).
+ * Phase 5 order (DESIGN.md §20a): hero → Three things → The small things →
+ * FAQ → final call → footer. Each section is at most one phone viewport high,
+ * and each story is one bold lead word, ONE plain sentence, and a recording of
+ * the real product doing it — no invented screens, no mock notifications.
  *
- * Copy rules (implementation brief): ≤12-word sentences, verbs, no marketing
- * slop words, no "!", every claim backed by docs/claims.md. Strings live in
- * messages/en.ts (i18n), never inline.
+ * Copy rules: short sentences, verbs, no marketing slop, no "!", every claim
+ * backed by docs/redesign/claims.md. Strings live in messages/en.ts.
  * ------------------------------------------------------------------------- */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+/** Motion on the list item itself: <ul> children must be <li> for screen
+ *  readers to announce a list, so a wrapper div is not an option here. */
+const revealItem = {
+  initial: { opacity: 0, y: 14 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: '-10% 0px' },
+  transition: { duration: 0.5, ease: EASE },
+} as const;
 
 /** Reveal-on-scroll: quiet, once. Reduced motion resolves to the same final
  *  state with no travel (motion/react honors prefers-reduced-motion via
@@ -61,81 +73,112 @@ function SectionHead({ eyebrow, heading, id }: { eyebrow: string; heading: strin
   );
 }
 
-/* ── How it works — three steps, 01/02/03 ─────────────────────────────────── */
+/* ── Three things — lead word, one sentence, one real recording ───────────── */
 
-export function HowItWorks() {
-  const { t } = useI18n();
-  const steps = [t('home.how.1'), t('home.how.2'), t('home.how.3')];
-  return (
-    <section aria-labelledby="how-title" className="w-full pt-12 pb-10">
-      <div className="mb-7 max-w-[560px]">
-        <span className="st-eyebrow">{t('home.how.eyebrow')}</span>
-        <h2 id="how-title" className="st-h2 mt-2 text-apple-ink dark:text-white">
-          {t('home.how.heading')}
-        </h2>
-      </div>
-      {/* Three rules, three steps. No boxes: a card with a number in it is
-          the most generic shape a landing page can draw. A hairline over
-          each step (Apple's own editorial rhythm) gives the sequence a
-          spine while leaving the words alone on the page. */}
-      <ol className="grid gap-x-8 gap-y-7 sm:grid-cols-3">
-        {steps.map((step, i) => (
-          <Reveal key={i}>
-            <li className="border-t border-black/[0.10] pt-4 dark:border-white/[0.14]">
-              <span className="block font-mono text-[12px] font-semibold tabular-nums tracking-[0.09em] text-ember dark:text-azure-400">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <p className="mt-2 text-[16px] font-medium leading-snug text-apple-ink dark:text-white">
-                {step}
-              </p>
-            </li>
-          </Reveal>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
-/* ── Features — six cards, one Lucide glyph each ──────────────────────────── */
-
-const FEATURES = [
-  { key: 'send', Icon: Send },
-  { key: 'code', Icon: QrCode },
-  { key: 'qr', Icon: ScanLine },
-  { key: 'space', Icon: Archive },
-  { key: 'nearby', Icon: Radar },
-  { key: 'private', Icon: Lock },
+const STORIES = [
+  { key: 'pair', loop: 'pair' },
+  { key: 'send', loop: 'send' },
+  { key: 'keep', loop: 'keep' },
 ] as const;
 
-export function FeatureGrid() {
+export function ThreeThings() {
   const { t } = useI18n();
   return (
-    <section aria-labelledby="features-title" className="w-full py-10">
-      <SectionHead id="features-title" eyebrow={t('home.features.eyebrow')} heading={t('home.features.heading')} />
-      {/* The same hairline grid as the steps, with the glyph sitting bare
-          above the title. The old version put every icon in a tinted circle
-          inside a bordered card — three competing containers for one small
-          idea, which is exactly what makes a page read as a template. */}
-      <ul className="grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map(({ key, Icon }) => (
-          <Reveal key={key}>
-            <li className="border-t border-black/[0.10] pt-4 dark:border-white/[0.14]">
-              <Icon className="h-[18px] w-[18px] text-ember dark:text-azure-400" strokeWidth={1.5} aria-hidden />
-              <h3 className="st-title mt-2.5 text-apple-ink dark:text-white">
-                {t(`home.features.${key}.title`)}
-              </h3>
-              <p className="mt-1.5 text-[15px] leading-relaxed text-apple-ink-muted dark:text-white/60">
-                {t(`home.features.${key}.body`)}
-              </p>
-            </li>
-          </Reveal>
-        ))}
+    <section aria-labelledby="how-title" className="w-full pt-14 pb-10">
+      <SectionHead
+        id="how-title"
+        eyebrow={t('home.three.eyebrow')}
+        heading={t('home.three.heading')}
+      />
+      {/* Three rows, not three cards: a hairline above each story holds the
+          sequence together without boxing the product recording in. */}
+      <ul className="flex flex-col gap-10">
+        {STORIES.map(({ key, loop }) => {
+          // A story with no recording yet is words on the page, one column:
+          // an empty frame would be decoration pretending to be the product.
+          const hasLoop = LOOPS[loop] !== null;
+          return (
+          <motion.li
+            key={key}
+            {...revealItem}
+            className={cn(
+              'grid gap-5 border-t border-black/[0.10] pt-5 dark:border-white/[0.14]',
+              hasLoop && 'sm:grid-cols-2 sm:items-center sm:gap-8',
+            )}
+          >
+              <div className="min-w-0">
+                <h3 className="text-[22px] font-semibold leading-tight text-apple-ink dark:text-white">
+                  {t(`home.three.${key}.lead`)}
+                </h3>
+                <p className="mt-2 max-w-[34ch] text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/60">
+                  {t(`home.three.${key}.body`)}
+                </p>
+              </div>
+              <ProductLoop name={loop} label={t(`home.three.${key}.lead`)} />
+          </motion.li>
+          );
+        })}
       </ul>
     </section>
   );
 }
 
-/* ── FAQ — the five questions that block a first transfer ─────────────────── */
+/* ── The small things — eight items, icon plus a few words ────────────────── */
+
+const SMALL = [
+  { key: 'nearby', Icon: Radar },
+  { key: 'pair', Icon: QrCode },
+  { key: 'browser', Icon: Globe },
+  { key: 'install', Icon: Download },
+  { key: 'dark', Icon: Moon },
+  { key: 'language', Icon: Languages },
+  { key: 'free', Icon: Wallet },
+] as const;
+
+export function SmallThings() {
+  const { t } = useI18n();
+  return (
+    <section aria-labelledby="features-title" className="w-full py-10">
+      <SectionHead
+        id="features-title"
+        eyebrow={t('home.small.eyebrow')}
+        heading={t('home.small.heading')}
+      />
+      <ul className="grid grid-cols-2 gap-x-6 gap-y-0 sm:grid-cols-4">
+        {SMALL.map(({ key, Icon }) => (
+          <motion.li key={key} {...revealItem} className="flex items-start gap-2.5 border-t border-black/[0.10] py-4 dark:border-white/[0.14]">
+              <Icon
+                className="mt-0.5 h-[17px] w-[17px] shrink-0 text-ember dark:text-azure-400"
+                strokeWidth={1.5}
+                aria-hidden
+              />
+              <span className="text-[14px] font-medium leading-snug text-apple-ink dark:text-white">
+                {t(`home.small.${key}`)}
+              </span>
+          </motion.li>
+        ))}
+        {/* The eighth is a link, because the claim has somewhere to go. */}
+        <motion.li {...revealItem} className="flex items-start gap-2.5 border-t border-black/[0.10] py-4 dark:border-white/[0.14]">
+            <Github
+              className="mt-0.5 h-[17px] w-[17px] shrink-0 text-ember dark:text-azure-400"
+              strokeWidth={1.5}
+              aria-hidden
+            />
+            <a
+              href="https://github.com/0xalyt/ShareTexts"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[14px] font-medium leading-snug text-apple-ink underline decoration-[1px] underline-offset-[5px] hover:text-ember dark:text-white dark:hover:text-azure-400"
+            >
+              {t('home.small.open')}
+            </a>
+        </motion.li>
+      </ul>
+    </section>
+  );
+}
+
+/* ── FAQ — the eight questions that block a first transfer ────────────────── */
 
 export function LandingFaq() {
   const { t } = useI18n();
@@ -145,11 +188,12 @@ export function LandingFaq() {
     { q: t('home.faq.q3'), a: t('home.faq.a3') },
     { q: t('home.faq.q4'), a: t('home.faq.a4') },
     { q: t('home.faq.q5'), a: t('home.faq.a5') },
+    { q: t('home.faq.q6'), a: t('home.faq.a6') },
+    { q: t('home.faq.q7'), a: t('home.faq.a7') },
+    { q: t('home.faq.q8'), a: t('home.faq.a8') },
   ];
   return (
     <section aria-labelledby="faq-title" className="w-full py-10">
-      {/* id is what aria-labelledby above points at; without it the section
-          announced nothing and verify-landing-onescreen lost its landmark. */}
       <SectionHead eyebrow={t('home.faq.eyebrow')} heading={t('home.faq.heading')} id="faq-title" />
       <FaqSection items={items} defaultOpen={null} hideLabel className="max-w-[720px]" />
       <a
@@ -163,7 +207,7 @@ export function LandingFaq() {
   );
 }
 
-/* ── Final CTA — bring the visitor back to the two actions ────────────────── */
+/* ── Final call — back to the two real actions ────────────────────────────── */
 
 export function LandingCta({
   onSend,
@@ -181,7 +225,7 @@ export function LandingCta({
     <section aria-labelledby="cta-title" className="w-full py-12">
       {/* A tone shift instead of a bordered card: the CTA is the last calm
           moment on the page, so it gets room, not a frame. */}
-      <Reveal className="rounded-[24px] bg-apple-parchment/70 dark:bg-white/[0.04] px-6 py-10 text-center sm:py-12">
+      <Reveal className="rounded-[24px] bg-apple-parchment/70 px-6 py-10 text-center dark:bg-white/[0.04] sm:py-12">
         <h2 id="cta-title" className="st-h2 text-apple-ink dark:text-white">
           {t('home.cta.heading')}
         </h2>
@@ -213,6 +257,10 @@ export function LandingCta({
             {receiveLabel}
           </button>
         </div>
+        {/* The one trust line the whole page earns. */}
+        <p className="mt-5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
+          {t('footer.trust')}
+        </p>
       </Reveal>
     </section>
   );

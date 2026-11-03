@@ -73,3 +73,44 @@ wrong (see B27).
 All eight locales carry the English placeholder; see the header rule — none of
 these are translated yet, and the language list itself shows each language in
 its own name, which needs no translation.
+
+## P5 — front door copy (English placeholder in all eight locales)
+
+These keys were added or corrected for the landing (DESIGN.md §20). English is
+the source; the other eight dictionaries carry the English sentence until a
+translator replaces it. `home.faq.a5` also lost an untrue sentence ("stores no
+files, text, or history" — a Temporary Space stores files for up to seven days).
+
+- `footer.github`
+- `footer.language`
+- `footer.madeBy`
+- `footer.trust`
+- `home.faq.a1`
+- `home.faq.a2`
+- `home.faq.a3`
+- `home.faq.a4`
+- `home.faq.a5`
+- `home.faq.a6`
+- `home.faq.a7`
+- `home.faq.a8`
+- `home.faq.q6`
+- `home.faq.q7`
+- `home.faq.q8`
+- `home.small.browser`
+- `home.small.dark`
+- `home.small.eyebrow`
+- `home.small.free`
+- `home.small.heading`
+- `home.small.install`
+- `home.small.language`
+- `home.small.nearby`
+- `home.small.open`
+- `home.small.pair`
+- `home.three.eyebrow`
+- `home.three.heading`
+- `home.three.keep.body`
+- `home.three.keep.lead`
+- `home.three.pair.body`
+- `home.three.pair.lead`
+- `home.three.send.body`
+- `home.three.send.lead`

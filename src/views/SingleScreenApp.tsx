@@ -49,7 +49,7 @@ import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroTransferScene } from '../components/HeroTransferScene';
 import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
-import { HowItWorks, FeatureGrid, LandingFaq, LandingCta } from '../components/marketing/LandingSections';
+import { ThreeThings, SmallThings, LandingFaq, LandingCta } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
 import { useSavedCount } from '../lib/savedItems';
 import { ConfirmSheet } from '../components/ConfirmSheet';
@@ -1429,109 +1429,67 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </motion.div>
           )}
     </AnimatePresence>
-  );  const footerNode = (
-    <footer className="shrink-0 px-6 lg:px-10 pt-10 pb-[max(env(safe-area-inset-bottom),28px)] sm:pb-10 border-t border-black/[0.05] dark:border-white/[0.06] bg-apple-parchment/80 dark:bg-white/[0.02]">
-        {/* A product footer for the LANDING only. It sits at the END of the
-            hero's scroll — below the fold, revealed by scrolling, never
-            pinned over the hero (the footer must not be always visible).
-            Two ranks: the brand states the deal once and signs it; three
-            groups answer "what next?" — use it, read it (guides included),
-            the legal words — and the project link closes the row. Groups
-            are INLINE on desktop and stack on mobile; every link keeps its
-            40px tap floor via -my-2. */}
-        <div className="max-w-6xl mx-auto grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-[minmax(230px,1.5fr)_repeat(3,minmax(0,0.75fr))_auto] md:items-start md:gap-x-10">
-          <div className="col-span-2 flex min-w-0 flex-col gap-3 md:col-span-1">
-            {/* The brand lockup — the footer's sign-off: ember mark +
-                themed wordmark, same voice as the header. self-start keeps
-                it off the column's stretch axis. */}
+  );
+  const footerNode = (
+    <footer className="shrink-0 mt-6 px-6 lg:px-10 pt-8 pb-[max(env(safe-area-inset-bottom),28px)] sm:pb-8 border-t border-black/[0.06] dark:border-white/[0.08]">
+      {/* The front door's footer (DESIGN.md §20d): text links only. No icon
+          row, no social buttons, no marketing band. Every link keeps a 44px
+          hit area even though the label is 13px — that is what closes B20. */}
+      <div className="max-w-6xl mx-auto flex flex-col gap-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-2">
             <BrandLockup className="self-start" />
-            {/* Both fine-print lines floor at WCAG AA (4.5:1) in BOTH themes.
-                Light: muted/75 measured 3.38:1 and muted/55 2.32:1 — bumped
-                to opaque (5.79:1) and /90 (~4.6:1). Dark: white/40 was
-                3.83:1 and white/30 2.69:1 — now /55 (6.18:1) and /50
-                (5.31:1). Hierarchy survives: the copyright stays one step
-                quieter than the promise line, by alpha AND size. */}
-            <span className="text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 max-w-[34ch]">
-              {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
-            </span>
-            <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
-              © {new Date().getFullYear()} ShareTexts
+            <span className="text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55">
+              {t('footer.trust')}
             </span>
           </div>
-          {/* Three tiny groups, one band tall: the label carries the
-              meaning, the links stay honest (each goes somewhere real or
-              does something real — the space entry opens the same sheet the
-              hero pill opens; no invented sitemap on a nine-page product). */}
-          {[
-            {
-              title: t('footer.useIt'),
-              items: [
-                { label: t('space.title'), onClick: () => setSpaceSheet('create') },
-                { label: t('nav.docs'), href: '/docs' },
-              ],
-            },
-            {
-              title: t('footer.read'),
-              items: [
-                { label: t('nav.guides'), href: '/guides' },
-                { label: t('nav.about'), href: '/about' },
-                { label: t('footer.devs'), href: '/llms.txt' },
-              ],
-            },
-            {
-              title: t('footer.legal'),
-              items: [
-                { label: t('nav.privacy'), href: '/privacy' },
-                { label: t('nav.terms'), href: '/terms' },
-              ],
-            },
-          ].map((group) => (
-            <div key={group.title} className="min-w-0 flex flex-col">
-              <h2 className="st-eyebrow mb-1">
-                {group.title}
-              </h2>
-              {/* One link per row, left-aligned: the old inline rows centred
-                  every label inside a 40px slot, which produced ragged, uneven
-                  gaps between links that were not words on a line. */}
-              <div className="flex flex-col items-start">
-                {group.items.map((item) =>
-                  item.onClick ? (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={item.onClick}
-                      className="inline-flex items-center min-h-[40px] -my-1 text-[14px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white decoration-[1px] underline-offset-[6px] hover:underline transition-colors"
-                    >
-                      {item.label}
-                    </button>
-                  ) : (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      className="inline-flex items-center min-h-[40px] -my-1 text-[14px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white decoration-[1px] underline-offset-[6px] hover:underline transition-colors"
-                    >
-                      {item.label}
-                    </a>
-                  )
-                )}
-              </div>
-            </div>
-          ))}
-          {/* X (Twitter) — glyph + handle on ≥sm so an isolated ✕ at the
-              pane's corner can't be misread as a dismiss control; the
-              anchor chip framing (pill border) says "external link". */}
-          <a
-            href="https://x.com/0xalyt"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t('footer.followAria')}
-            title="x.com/0xalyt"
-            className="col-span-2 inline-flex min-h-[40px] min-w-[40px] w-fit items-center justify-center gap-1.5 px-3 justify-self-start self-start rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors md:col-span-1 md:justify-self-end"
-          >
-            <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-            <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
-          </a>
+          <nav aria-label={t('footer.language')} className="flex flex-wrap items-center gap-x-1">
+            {[
+              { label: t('nav.docs'), href: '/docs' },
+              { label: t('nav.about'), href: '/about' },
+              { label: t('nav.privacy'), href: '/privacy' },
+              { label: t('nav.terms'), href: '/terms' },
+              { label: t('nav.guides'), href: '/guides' },
+            ].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="inline-flex min-h-[44px] items-center px-2.5 -mx-1 text-[13px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/60 dark:hover:text-white decoration-[1px] underline-offset-[5px] hover:underline transition-colors"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
         </div>
+        <div className="flex flex-col gap-2 border-t border-black/[0.05] pt-4 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-1">
+            {/* The current language, named, opening the same sheet the header
+                uses — so a visitor never has to hunt for the switcher. */}
+            <span className="inline-flex min-h-[44px] items-center">
+              <LanguageMenu />
+            </span>
+            <a
+              href="https://github.com/0xalyt/ShareTexts"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[44px] items-center px-2.5 text-[13px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/60 dark:hover:text-white decoration-[1px] underline-offset-[5px] hover:underline transition-colors"
+            >
+              {t('footer.github')}
+            </a>
+            <a
+              href="https://x.com/0xalyt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[44px] items-center px-2.5 text-[13px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/60 dark:hover:text-white decoration-[1px] underline-offset-[5px] hover:underline transition-colors"
+            >
+              {t('footer.madeBy')}
+            </a>
+          </div>
+          <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
+            © {new Date().getFullYear()} ShareTexts
+          </span>
+        </div>
+      </div>
     </footer>
   );
 
@@ -1904,7 +1862,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       onDragOver={onHomeDragOver}
       onDragLeave={onHomeDragLeave}
       onDrop={onHomeDrop}
-      className="relative isolate flex flex-col h-full overflow-hidden bg-apple-canvas dark:bg-night-900 st-landing"
+      className="relative isolate flex flex-col min-h-dvh bg-apple-canvas dark:bg-night-900 st-landing"
     >
       <div aria-hidden className="st-ambient" />
       {/* Sunrise horizon: warm light rising from the floor of the hero band.
@@ -1914,7 +1872,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       {headerNode}
       <main
         id="main-content"
-        className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain room-scroll flex flex-col"
+        className="relative z-10 flex flex-col"
       >
         {/* min-h-full (not h-full): the hero fills the first screen and the
             footer lives at the END of this scroll — below the fold, revealed
@@ -1924,7 +1882,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             is taller than the viewport, and the squeezed hero rows overflow
             ONTO the footer band — the footer then intercepts their clicks
             (caught by verify-autoconnect-trusted at 1100×800). */}
-        <div className="mx-auto w-full max-w-[1200px] min-h-full shrink-0 px-8 2xl:px-12 flex flex-col">
+        <div className="mx-auto w-full max-w-[1200px] min-h-[100dvh] shrink-0 px-8 2xl:px-12 flex flex-col">
           {/* Short laptops (≤820px inner height) hang BOTH columns from a
               shared top line instead of centering: centering a tall row on a
               short window pushes the demo's bottom past the fold (caught by
@@ -1950,8 +1908,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               sections carry numbers and copy only: how it works, the six
               feature cards, the five FAQ questions, and a final CTA that
               returns to the two real actions. */}
-          <HowItWorks />
-          <FeatureGrid />
+          <ThreeThings />
+          <SmallThings />
           <LandingFaq />
           <LandingCta
             onSend={handleSend}
@@ -1969,7 +1927,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   /*  RENDER                                                          */
   /* ---------------------------------------------------------------- */
   return (
-    <div className="h-dvh lg:h-dvh overflow-hidden bg-apple-canvas dark:bg-night-900 dot-bg">
+    <div
+      className={cn(
+        'bg-apple-canvas dark:bg-night-900 dot-bg',
+        // The front door is a page, so the window scrolls it (§20a). Every
+        // other mode is an app shell that owns its own height.
+        panelMode === 'idle' ? 'min-h-dvh' : 'h-dvh lg:h-dvh overflow-hidden',
+      )}
+    >
       <CommandBar open={cmdOpen} onOpenChange={setCmdOpen} onSpace={(which) => setSpaceSheet(which)} />
       {/* Only the ACTIVE layout is mounted — the other branch stays unmounted
           so components (ChatView, composer, pairing input) exist exactly once
@@ -2013,7 +1978,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </motion.div>
           </Suspense>
         ) : (
-          <div className="h-full overflow-y-auto overscroll-contain">
+          <div className={panelMode === 'idle' ? 'min-h-full' : 'h-full overflow-y-auto overscroll-contain'}>
             <div className="flex flex-col min-h-full">
               <div className="relative isolate flex flex-1 flex-col bg-apple-canvas dark:bg-night-900 st-landing">
                 {ambientGlow}
@@ -2030,9 +1995,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <ScreenStack screen={panelMode} mode={panelMode === 'connected' ? 'mode' : 'push'}>
                     {heroContent}
                   </ScreenStack>
+                  {panelMode === 'idle' && (
+                    <div className="w-full">
+                      <ThreeThings />
+                      <SmallThings />
+                      <LandingFaq />
+                      <LandingCta
+                        onSend={handleSend}
+                        onReceive={handleReceive}
+                        sendLabel={t('home.send')}
+                        receiveLabel={t('home.receive')}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-              {panelMode === 'idle' && compactFooterNode}
+              {panelMode === 'idle' && footerNode}
             </div>
           </div>
         )
