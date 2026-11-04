@@ -8,6 +8,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # P6: the core flow has to hold in all three engines. Chromium is the fast
+    # path people actually use; WebKit is iPhone Safari; Firefox is the one
+    # engine with different flexbox, focus and backdrop-filter behaviour.
+    strategy:
+      fail-fast: false
+      matrix:
+        browsers: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v4
 
@@ -31,8 +38,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browsers }}
 
       - name: Start server
         run: |
@@ -46,7 +53,19 @@ jobs:
           exit 1
 
       - name: Browser E2E (create → join → transfer → reconnect → rejoin)
-        run: URL=http://localhost:3311 node scripts/e2e.mjs
+        run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
+
+      - name: Screenshots (this engine)
+        run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs
+        continue-on-error: true
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-${{ matrix.browsers }}
+          path: audit/
+          if-no-files-found: ignore
 
       - name: Layout / accessibility audit
         run: URL=http://localhost:3311 node scripts/audit.mjs

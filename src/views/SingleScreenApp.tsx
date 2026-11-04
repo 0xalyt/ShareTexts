@@ -60,6 +60,7 @@ import { NearbyDevices } from '../components/NearbyDevices';
 import { SkeletonScreen } from '../components/SkeletonScreen';
 import { productEvent } from '../lib/telemetry';
 import { useI18n } from '../lib/i18n';
+import { detectInApp } from '../lib/inAppBrowser';
 import { fmtNumber, fmtShortDate } from '../lib/format';
 import { LanguageMenu } from '../components/LanguageMenu';
 import { cn, shortCodeOf, sanitizeDeviceName, formatBytes } from '../lib/utils';
@@ -937,10 +938,44 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     </header>
   );
 
+  // In-app browsers (WhatsApp, Instagram, LinkedIn…): one quiet line with a
+  // way out, shown only when the host's browser would actually get in the way.
+  // Everything that works stays quiet — this is a door, not a warning.
+  const [inAppDismissed, setInAppDismissed] = useState(false);
+  const inApp = React.useMemo(() => detectInApp(), []);
+  const showInAppNotice = inApp.inApp && !inAppDismissed && (inApp.limited || inApp.ios || inApp.android);
+
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
             <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
+              {showInAppNotice && (
+                <div
+                  data-testid="inapp-notice"
+                  className="order-0 mb-4 flex items-center gap-3 rounded-[14px] bg-apple-parchment dark:bg-white/[0.06] px-3.5 py-2.5"
+                >
+                  <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70">
+                    {inApp.ios ? t('inapp.ios') : t('inapp.line')}
+                  </span>
+                  {inApp.ios ? null : (
+                    <a
+                      href={inApp.intentUrl ?? '#'}
+                      className="ms-auto shrink-0 text-[13px] font-semibold text-[#f06413] underline decoration-[#f06413]/30 underline-offset-2"
+                      data-testid="inapp-open"
+                    >
+                      {t('inapp.cta')}
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setInAppDismissed(true)}
+                    aria-label={t('pair.dismiss')}
+                    className="ms-auto shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/45"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
               {/* Flex + order: H1 → subtitle → live tracker → actions. The
                   tracker is passive status, so it lives ABOVE the action
                   cluster — status never interrupts the Send/Receive flow

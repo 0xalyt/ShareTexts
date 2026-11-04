@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
 import fs from 'fs';
 
 export const URL = process.env.URL || 'http://localhost:3010';
@@ -49,9 +49,23 @@ export function resolveChrome() {
   return undefined; // let playwright find its own bundled browser
 }
 
+// Which engine the suites drive. Chromium is the default (it can use the
+// machine's own Chrome/Edge via CHROME); firefox and webkit come from
+// `npx playwright install firefox webkit` and are what CI runs for the P6
+// browser matrix. A suite must pass on all three, so nothing here may depend on
+// a Chromium-only API.
+export function resolveEngine() {
+  const want = (process.env.BROWSER || 'chromium').toLowerCase();
+  if (want === 'firefox') return { name: 'firefox', type: firefox };
+  if (want === 'webkit' || want === 'safari') return { name: 'webkit', type: webkit };
+  return { name: 'chromium', type: chromium };
+}
+
 export async function launchBrowser(extraArgs = []) {
-  const executablePath = resolveChrome();
+  const { name, type } = resolveEngine();
   const args = extraArgs;
+  if (name !== 'chromium') return type.launch({ headless: true });
+  const executablePath = resolveChrome();
   return chromium.launch(
     executablePath ? { headless: true, executablePath, args } : { headless: true, args }
   );
