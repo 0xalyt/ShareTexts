@@ -20,6 +20,7 @@
  */
 import React from 'react';
 import { cn } from '../lib/utils';
+import { useI18n } from '../lib/i18n';
 
 /** One quiet bar — the only primitive a skeleton needs. Exported so
  *  every loading surface (routes, space, cards) draws from ONE tone and
@@ -44,6 +45,7 @@ export function Bar(props: { className?: string; style?: React.CSSProperties; ke
 export type SkeletonVariant = 'room';
 
 export function SkeletonScreen({ variant = 'room' }: { variant?: SkeletonVariant }) {
+  const { t } = useI18n();
   // variant === 'room' — mirrors the transfer room: device bar, the
   // message column, and the composer pill at the bottom. FULL-BLEED:
   // the real room fills its pane edge to edge, so the skeleton must
@@ -53,7 +55,7 @@ export function SkeletonScreen({ variant = 'room' }: { variant?: SkeletonVariant
       <div
         role="status"
         aria-live="polite"
-        aria-label="Opening your room"
+        aria-label={t('skeleton.room')}
         className="h-full w-full flex flex-col select-none"
       >
         <div className="h-full w-full flex flex-col">

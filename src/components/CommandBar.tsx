@@ -526,7 +526,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
         <section aria-label="State history">
           <h4 className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-1.5">Recent transitions</h4>
           {history.length === 0 ? (
-            <p className="text-[12px] text-apple-ink-muted dark:text-white/35 px-3 py-2">No transitions yet — idle.</p>
+            <p className="text-[12px] text-apple-ink-muted dark:text-white/35 px-3 py-2">{t('diag.noTransitions')}</p>
           ) : (
             <div className="flex flex-col gap-0.5">
               {[...history].reverse().slice(0, 8).map((h, i) => (

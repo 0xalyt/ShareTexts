@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShareTextsLogo } from './ShareTextsLogo';
 import { cn } from '../lib/utils';
+import { useI18n } from '../lib/i18n';
 
 /**
  * BrandLockup — the one way the brand appears anywhere in the app:
@@ -45,10 +46,11 @@ export function BrandLockup({
   mono?: boolean;
   compact?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <a
       href={href}
-      aria-label="ShareTexts — home"
+      aria-label={t('app.homeLabel')}
       className={cn('group flex items-center gap-0 shrink-0 min-h-[44px] -my-2 w-fit', className)}
     >
       {/* The box steps with the wordmark so both halves read as one object.

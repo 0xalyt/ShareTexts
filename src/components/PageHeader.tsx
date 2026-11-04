@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { BrandLockup } from './BrandLockup';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '../lib/utils';
+import { useI18n } from '../lib/i18n';
 
 /**
  * PageHeader — the ONE header every screen outside the room uses: the
@@ -35,6 +36,7 @@ export function PageHeader({
   /** Extra controls rendered after the links, before the theme toggle. */
   children?: React.ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <header
       className={cn(
@@ -49,7 +51,7 @@ export function PageHeader({
           <a
             href="/"
             className="flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 rounded-full text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
-            aria-label="ShareTexts, back to home"
+            aria-label={t('app.backHome')}
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
           </a>

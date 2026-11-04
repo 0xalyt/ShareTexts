@@ -26,6 +26,16 @@ const en = {
   'nav.privacy': 'Privacy',
   'nav.terms': 'Terms',
 
+  'app.backHome': 'ShareTexts, back to home',
+
+  'app.homeLabel': 'ShareTexts, home',
+
+
+
+
+  'skeleton.room': 'Opening your room',
+
+  'diag.noTransitions': 'No transitions yet.',
   // ── multi-device room: device picker / recipients (F13) ──────────
   'picker.title': 'Devices in this room',
   'picker.oneDevice': '1 device in this room',
