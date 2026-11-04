@@ -29,7 +29,11 @@
     "test:format": "node scripts/verify-format.mjs",
     "test:csp": "node scripts/verify-csp.mjs",
     "test:resume": "node scripts/verify-resume.mjs",
-    "record-loops": "node scripts/record-loops.mjs"
+    "record-loops": "node scripts/record-loops.mjs",
+    "lh": "npx --yes lighthouse@12 http://localhost:3010 --only-categories=performance,best-practices --form-factor=mobile --screenEmulation.mobile --throttling-method=simulate --chrome-flags=\"--headless=new\" --output=html --output-path=audit/lighthouse.html",
+    "perf:landing": "node scripts/perf-landing.mjs",
+    "matrix": "node scripts/capture-matrix.mjs",
+    "pages": "node scripts/gen-search-pages.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",

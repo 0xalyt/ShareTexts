@@ -258,15 +258,53 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // completing a pairing (room) never waits on a network round-trip for
   // the chunk. Fire once, after first paint, completely off the hot path.
   useEffect(() => {
+    // Prewarming costs bandwidth, and bandwidth is exactly what the first
+    // paint is waiting for. On a slow connection or a data-saver phone the
+    // 450 KB these two chunks weigh would delay the words on screen to save a
+    // tap later. So: warm on a connection that can spare it, and otherwise
+    // wait for the first sign of intent (a press, a key, a scroll) — the tap
+    // that needs the chunk always starts with one of those.
+    const conn = (navigator as Navigator & {
+      connection?: { effectiveType?: string; saveData?: boolean; downlink?: number };
+    }).connection;
+    const slow =
+      !!conn?.saveData ||
+      /^(slow-)?2g$|^3g$/.test(conn?.effectiveType ?? '') ||
+      (typeof conn?.downlink === 'number' && conn.downlink < 2);
+
+    let cancelled = false;
+    const warm = () => {
+      if (cancelled) return;
+      void import('./ChatView');
+      void import('../components/QRScanner');
+    };
+    if (slow) {
+      const onIntent = () => {
+        window.removeEventListener('pointerdown', onIntent);
+        window.removeEventListener('keydown', onIntent);
+        window.removeEventListener('scroll', onIntent);
+        warm();
+      };
+      window.addEventListener('pointerdown', onIntent, { passive: true });
+      window.addEventListener('keydown', onIntent);
+      window.addEventListener('scroll', onIntent, { passive: true });
+      return () => {
+        cancelled = true;
+        window.removeEventListener('pointerdown', onIntent);
+        window.removeEventListener('keydown', onIntent);
+        window.removeEventListener('scroll', onIntent);
+      };
+    }
+
     const idle = (cb: () => void) => {
       const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
       if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(cb, { timeout: 3000 });
       else setTimeout(cb, 1200);
     };
-    idle(() => {
-      void import('./ChatView');
-      void import('../components/QRScanner');
-    });
+    idle(warm);
+    return () => {
+      cancelled = true;
+    };
   }, []);
   // /s/<code> share links: opening one should JOIN the room, not show the
   // landing page. The old multi-screen app handled this in JoinSession; the
