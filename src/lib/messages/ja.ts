@@ -314,6 +314,7 @@ const ja: Dict = {
   'msg.copyMessage': 'メッセージをコピー',
   'msg.react': 'リアクション',
   'msg.reactWith': '{emoji} でリアクション',
+  'msg.pickReaction': 'Pick a reaction',
   'msg.removeReaction': '{emoji} のリアクションを削除',
   'msg.copy': 'コピー',
   'action.copy': 'コピー',

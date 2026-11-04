@@ -776,7 +776,9 @@ export function Docs() {
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 pb-20 md:pb-8">
+        {/* Long-form content is English-only; lang="en" keeps a screen reader
+            from reading it with the voice of the surrounding app language. */}
+        <main lang="en" className="flex-1 min-w-0 pb-20 md:pb-8">
           {/* Mobile Navigation — horizontal scrollable pills at top of content.
               The edge mask makes a cut-off pill read as "more this way",
               not as a broken layout. */}

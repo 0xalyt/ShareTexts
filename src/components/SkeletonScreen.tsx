@@ -88,6 +88,6 @@ export function SkeletonScreen({ variant = 'room' }: { variant?: SkeletonVariant
   // Unreachable today (SkeletonVariant is 'room'-only); kept as an empty
   // status so an added variant fails visibly rather than rendering blank.
   return (
-    <div role="status" aria-live="polite" aria-label="Loading" className="h-full w-full" />
+    <div role="status" aria-live="polite" aria-label={t('common.loading')} className="h-full w-full" />
   );
 }

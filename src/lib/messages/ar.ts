@@ -314,6 +314,7 @@ const ar: Dict = {
   'msg.copyMessage': 'نسخ الرسالة',
   'msg.react': 'تفاعل',
   'msg.reactWith': 'تفاعل بـ {emoji}',
+  'msg.pickReaction': 'Pick a reaction',
   'msg.removeReaction': 'إزالة تفاعل {emoji}',
   'msg.copy': 'نسخ',
   'action.copy': 'نسخ',

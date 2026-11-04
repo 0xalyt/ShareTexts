@@ -314,6 +314,7 @@ const hi: Dict = {
   'msg.copyMessage': 'संदेश कॉपी करें',
   'msg.react': 'प्रतिक्रिया',
   'msg.reactWith': '{emoji} के साथ प्रतिक्रिया दें',
+  'msg.pickReaction': 'Pick a reaction',
   'msg.removeReaction': '{emoji} प्रतिक्रिया हटाएँ',
   'msg.copy': 'कॉपी करें',
   'action.copy': 'कॉपी करें',

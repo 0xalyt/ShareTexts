@@ -314,6 +314,7 @@ const es: Dict = {
   'msg.copyMessage': 'Copiar mensaje',
   'msg.react': 'Reaccionar',
   'msg.reactWith': 'Reaccionar con {emoji}',
+  'msg.pickReaction': 'Pick a reaction',
   'msg.removeReaction': 'Quitar la reacción {emoji}',
   'msg.copy': 'Copiar',
   'action.copy': 'Copiar',

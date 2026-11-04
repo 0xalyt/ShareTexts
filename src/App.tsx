@@ -83,6 +83,7 @@ function DisconnectToast({ reason, onDone }: { reason: string, onDone: () => voi
  * eagerly and never shows this.)
  */
 function RouteSkeleton({ wide }: { wide?: boolean }) {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen bg-apple-canvas dark:bg-night-900 font-sans">
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center gap-2" aria-hidden>
@@ -92,7 +93,7 @@ function RouteSkeleton({ wide }: { wide?: boolean }) {
       <div
         role="status"
         aria-live="polite"
-        aria-label="Loading"
+        aria-label={t('common.loading')}
         className={cnRoute(wide)}
       >
         <Bar className="h-8 w-[55%]" />

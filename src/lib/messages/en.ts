@@ -404,6 +404,7 @@ const en = {
   'msg.copyMessage': 'Copy message',
   'msg.react': 'React',
   'msg.reactWith': 'React with {emoji}',
+  'msg.pickReaction': 'Pick a reaction',
   'msg.removeReaction': 'Remove {emoji} reaction',
   'msg.copy': 'Copy',
   'action.copy': 'Copy',

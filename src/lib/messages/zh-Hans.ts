@@ -314,6 +314,7 @@ const zh: Dict = {
   'msg.copyMessage': '复制消息',
   'msg.react': '回应',
   'msg.reactWith': '用 {emoji} 回应',
+  'msg.pickReaction': 'Pick a reaction',
   'msg.removeReaction': '取消 {emoji} 回应',
   'msg.copy': '复制',
   'action.copy': '复制',

@@ -23,6 +23,7 @@
 // ---------------------------------------------------------------------------
 
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useI18n } from '../../lib/i18n';
 import type { ComponentProps, KeyboardEvent } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
@@ -252,6 +253,7 @@ export function EmojiReaction({
   optionLabel,
   ...props
 }: EmojiReactionProps) {
+  const { t } = useI18n();
   const s = SIZES[size];
   const reduced = useReducedMotion();
 
@@ -481,7 +483,7 @@ export function EmojiReaction({
               <div
                 ref={placeBar}
                 role="menu"
-                aria-label="Pick a reaction"
+                aria-label={t('msg.pickReaction')}
                 aria-orientation="horizontal"
                 onKeyDown={onMenuKeyDown}
                 className={cn(
