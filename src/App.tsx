@@ -15,7 +15,7 @@ import { BrandLockup } from './components/BrandLockup';
 import { TactileButton } from './components/TactileButton';
 import { markAppUsed } from './lib/rating';
 import { InstallNudge } from './components/InstallNudge';
-import { Bar } from './components/SkeletonScreen';
+import { Bar, SkeletonGate } from './components/SkeletonScreen';
 import { OfflineBanner } from './components/AnnouncementBar';
 
 // SingleScreenApp (the landing IS the app) loads eagerly — one less network
@@ -239,7 +239,7 @@ function AppContent() {
   }, [session.closedReason, leaveView]);
 
   if (typeof window !== 'undefined' && window.location.pathname === '/docs') {
-    return <Suspense fallback={<RouteSkeleton wide />}><Docs /></Suspense>;
+    return <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton wide /></SkeletonGate>}><Docs /></Suspense>;
   }
 
   // Temporary Space entry points (F21): the code IS the invitation, so
@@ -262,7 +262,7 @@ function AppContent() {
       const frag = window.location.hash.replace(/^#/, '');
       const km = frag.match(/^k=([A-Za-z0-9_-]+)$/);
       return (
-        <Suspense fallback={<RouteSkeleton />}>
+        <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton /></SkeletonGate>}>
           <SpaceView spaceId={m[1].toLowerCase()} token={km ? km[1] : ''} />
         </Suspense>
       );
@@ -270,11 +270,11 @@ function AppContent() {
   }
 
   if (typeof window !== 'undefined' && window.location.pathname === '/privacy') {
-    return <Suspense fallback={<RouteSkeleton />}><Legal page="privacy" /></Suspense>;
+    return <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton /></SkeletonGate>}><Legal page="privacy" /></Suspense>;
   }
 
   if (typeof window !== 'undefined' && window.location.pathname === '/terms') {
-    return <Suspense fallback={<RouteSkeleton />}><Legal page="terms" /></Suspense>;
+    return <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton /></SkeletonGate>}><Legal page="terms" /></Suspense>;
   }
 
   // /about is NOT an app route: the server (dev parity with production and

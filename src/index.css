@@ -734,37 +734,13 @@ html.dark .st-dotfield::after {
 
    Under prefers-reduced-motion the bars hold still — the shape alone still
    communicates the screen's structure. */
+/* A placeholder block is flat band colour and nothing else: no shimmer, no
+   pulse. Stillness is the point — a moving block draws the eye to the one
+   thing on screen that has nothing to say. */
 .st-skeleton {
-  position: relative;
-  overflow: hidden;
+  background-color: color-mix(in srgb, currentColor 7%, transparent);
 }
-.st-skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(240, 100, 19, 0.07) 50%,
-    transparent 100%
-  );
-  animation: st-shimmer 1.6s cubic-bezier(0.23, 1, 0.32, 1) infinite;
-}
-.dark .st-skeleton::after {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    transparent 100%
-  );
-}
-@keyframes st-shimmer {
-  to { transform: translateX(100%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .st-skeleton::after { animation: none; content: none; }
-}
+
 
 /* ── Platform marquee ────────────────────────────────────────────────────
    One transform-only loop on a duplicated track (half the distance, then

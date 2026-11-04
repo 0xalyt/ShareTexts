@@ -31,6 +31,7 @@ import { TriLineGlyph } from '../components/TriLineGlyph';
 import { ShareMenu } from '../components/ShareMenu';
 import { ConfirmSheet } from '../components/ConfirmSheet';
 import { useSpaceClient, type LocalUpload } from '../lib/space/useSpaceClient';
+import { SkeletonScreen, SkeletonGate } from '../components/SkeletonScreen';
 import { productEvent } from '../lib/telemetry';
 import { spaceShareLink, localCreds, localCode, joinSpace, parseSpaceShare, SpaceApiError } from '../lib/space/api';
 import { normalizeSpaceCode, formatSpaceCode, isValidSpaceCode, generateSpaceCode, CODE_LENGTH } from '../lib/space/spaceCode';
@@ -988,15 +989,13 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           </ul>
         )}
         {loadingFirst ? (
-          /* One loading language: the same skeleton grammar the QR overlays
-             use — shape first, words never. */
-          <div className="space-y-2.5" aria-label={t('space.contentLabel')} data-testid="space-loading">
-            {[64, 44, 52].map((h, i) => (
-              <div key={i} className="st-card p-3.5">
-                <Bar className="block rounded-[8px]" style={{ height: h / 2 + 8 }} />
-                <Bar className="mt-2 h-2.5 w-1/3" />
-              </div>
-            ))}
+          /* The space's own geometry, held for the reader: three item rows in
+             the order they will arrive. SkeletonGate waits 300 ms first, so a
+             fast space never flashes a placeholder at anyone. */
+          <div data-testid="space-loading">
+            <SkeletonGate min="16rem" delay={300}>
+              <SkeletonScreen variant="space" />
+            </SkeletonGate>
           </div>
         ) : items.length === 0 && uploads.length === 0 ? (
           /* The empty shelf is a REAL surface, not a card floating in a
