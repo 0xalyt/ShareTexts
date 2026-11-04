@@ -248,3 +248,19 @@ Command: `node scripts/smoke-live.mjs`
 **[smoke-live] GREEN** again after the report push, so the two runs that bracket
 this phase (`fac3629c0b1e`, `e65f94fb1066`) both deliver in single-digit
 milliseconds. Docs-only commits after this one change no runtime code.
+
+## P6 — reach and ship
+
+Every P6 push was bracketed by a live run. The two worth recording are the
+first deploy of the new homepage title and the one that fixed the smoke's own
+assertion of the old one:
+
+| push | result |
+| --- | --- |
+| `1760d852a71d` (P6 report) | GREEN except the title checks, which still asserted "AirDrop for everyone — ShareTexts". Real failure of the test, not the site: the live title was already the new product-first line. |
+| `3603e6b6bb4c` (smoke assertion) | **GREEN**, 13/13: marker match, `og:title` leads with the product, og image 1200×630 69 KB, two devices paired in 10.8 s, message in 198 ms, no console errors. |
+
+The three new search pages were checked against the live origin after that
+push: `/iphone-to-windows`, `/android-to-iphone` and `/airdrop-alternative` all
+return `200` with their own `<title>` and `<h1>`, and all three appear in the
+live `sitemap.xml`.
