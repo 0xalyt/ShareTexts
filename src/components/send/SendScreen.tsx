@@ -34,11 +34,15 @@ const SEGMENT_KEY = 'sharetext.sendSegment';
 /** The join code, drawn — dots, rounded finders, the mark in the middle. */
 function QrPlate({ value, label }: { value: string; label: string }) {
   return (
-    <div
-      className="mx-auto flex w-[252px] justify-center rounded-[30px] shadow-[0_22px_46px_-28px_rgba(11,11,12,0.55)] ring-1 ring-black/[0.06] dark:ring-white/10"
-      data-testid="qr-plate"
-    >
-      <QrArt value={value} size={252} label={label} />
+    <div className="mx-auto flex w-[252px] justify-center" data-testid="qr-plate">
+      {/* The shadow hangs off the SVG's own painted shape (a filter follows the
+          rounded card exactly), so there is no second radius to keep in sync. */}
+      <QrArt
+        value={value}
+        size={252}
+        label={label}
+        className="block h-auto w-full drop-shadow-[0_16px_28px_rgba(11,11,12,0.16)] dark:drop-shadow-[0_22px_38px_rgba(0,0,0,0.72)]"
+      />
     </div>
   );
 }

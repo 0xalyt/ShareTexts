@@ -37,24 +37,26 @@
     <meta name="apple-mobile-web-app-title" content="ShareTexts" />
 
     <!-- Open Graph — every social surface reads THIS block (X, WhatsApp,
-         LinkedIn, Slack, Discord, iMessage, Telegram). Title and image are
-         the brand line and a designed card, not a bare icon on white: the
-         old artwork read as an empty rectangle at card size, which is why
-         shared links looked broken.
-         ?v=22 + a NEW file name bust the caches: platforms key the preview
-         on the URL, so the same path would keep serving the retired card. -->
+         LinkedIn, Slack, Discord, iMessage, Telegram). The image is the
+         owner's app tile and nothing else, edge to edge: the artwork IS the
+         card. v1 floated that tile on a white field, which at feed size read
+         as an empty white rectangle — the "shared links look broken" report
+         again — so v2 fills the frame with the tile's own gradient and a large
+         mark. Still no headline, no lockup, no UI sketch.
+         ?v= + a NEW file name bust the caches: platforms key the preview on
+         the URL, so the same path would keep serving the retired card. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ShareTexts" />
     <meta property="og:title" content="ShareTexts — send files and text between any devices, in your browser" />
     <meta property="og:description" content="Send text, photos, and files between any two devices. No app. No account. No wires. Free, in the browser." />
     <meta property="og:url" content="https://sharetexts.online/" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23" />
-    <meta property="og:image:secure_url" content="https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23" />
+    <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-icon-v2.png?v=24" />
+    <meta property="og:image:secure_url" content="https://sharetexts.online/og/sharetext-og-icon-v2.png?v=24" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:alt" content="ShareTexts — the ShareTexts app icon: an orange rounded square with the white signal mark, on a white card." />
+    <meta property="og:image:alt" content="ShareTexts — the app icon: the white signal mark on an orange gradient tile, filling the card." />
 
     <!-- Twitter/X -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -62,9 +64,9 @@
     <meta name="twitter:creator" content="@0xalyt" />
     <meta name="twitter:title" content="ShareTexts — send files and text between any devices, in your browser" />
     <meta name="twitter:description" content="Send text, photos, and files between any two devices. No app. No account. No wires. Free, in the browser." />
-    <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23" />
-    <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23" />
-    <meta name="twitter:image:alt" content="ShareTexts — the ShareTexts app icon: an orange rounded square with the white signal mark, on a white card." />
+    <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v2.png?v=24" />
+    <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og-icon-v2.png?v=24" />
+    <meta name="twitter:image:alt" content="ShareTexts — the app icon: the white signal mark on an orange gradient tile, filling the card." />
 
     <link rel="canonical" href="https://sharetexts.online/" />
     <link rel="alternate" hreflang="x-default" href="https://sharetexts.online/" />
@@ -120,8 +122,8 @@
           "browserRequirements": "Requires a supported browser and an internet connection",
           "isAccessibleForFree": true,
           "inLanguage": "en",
-          "image": "https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23",
-          "screenshot": "https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23",
+          "image": "https://sharetexts.online/og/sharetext-og-icon-v2.png?v=24",
+          "screenshot": "https://sharetexts.online/og/sharetext-og-icon-v2.png?v=24",
           "featureList": [
             "Device discovery while ShareTexts is open on your other device",
             "Six-digit live pairing code",

@@ -60,16 +60,16 @@ const check = (name, cond) => checks.push([name, cond]);
 // Sampled from the path the meta tags actually serve, so this check cannot
 // pass against a retired file while the real one is broken.
 //
-// Artwork contract (owner, 2026-11): the card is the owner's app tile —
-// the orange gradient rounded square with the white signal mark, centred on a
-// white field, with NOTHING added. An earlier phase replaced it with a
-// designed card (headline, room sketch, lockup); the owner rejected that and
-// the card was restored. These assertions therefore check for exactly the
-// owner's artwork: a white field, one saturated tile in the middle, a light
-// glyph inside it, and no ink anywhere — the moment a headline or a UI sketch
-// reappears, this fails.
+// Artwork contract (owner, 2026-11): the card is the owner's app tile and
+// NOTHING else — no headline, no lockup, no UI sketch, no second colour. An
+// earlier phase replaced the tile with a designed card and the owner rejected
+// that. v1 then floated the tile on a white field, which at feed size read as
+// an empty white rectangle, so v2 fills the card with the artwork: the tile's
+// own gradient edge to edge and the mark large in the middle. These
+// assertions pin exactly that, so a white field, a small floating tile, or any
+// reappearing headline fails here.
 // ──
-const og = await sample('/og/sharetext-og-icon-v1.png');
+const og = await sample('/og/sharetext-og-icon-v2.png');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
   // The file checked above must be the file the head actually advertises —
@@ -77,32 +77,32 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   const { readFileSync } = await import('node:fs');
   const head = readFileSync('index.html', 'utf8');
   check('og:image and twitter:image point at this card',
-    head.includes('/og/sharetext-og-icon-v1.png?v=23') &&
-    (head.match(/sharetext-og-icon-v1\.png\?v=23/g) || []).length >= 4);
+    head.includes('/og/sharetext-og-icon-v2.png?v=24') &&
+    (head.match(/sharetext-og-icon-v2\.png\?v=24/g) || []).length >= 4);
 }
 {
-  const light = (q) => q[0] > 200 && q[1] > 200 && q[2] > 200;
-  // White field, including the corners — the tile sits in the middle only.
-  check('og field is white at (4,4)', light(at(og.data, og.w, 4, 4)));
-  check('og field is white at (40,300)', light(at(og.data, og.w, 40, 300)));
-  check('og field is white at (1160,600)', light(at(og.data, og.w, 1160, 600)));
-  check('og field is white left of the tile (450,315)', light(at(og.data, og.w, 450, 315)));
-  check('og field is white right of the tile (750,315)', light(at(og.data, og.w, 750, 315)));
+  const orange = (q) => q[0] > 200 && q[1] > 40 && q[1] < 200 && q[2] < 110;
+  // Edge to edge, corners included: the artwork IS the card.
+  for (const [x, y] of [[4, 4], [1195, 4], [4, 625], [1195, 625], [120, 315], [1080, 315]]) {
+    const p = at(og.data, og.w, x, y);
+    check(`og is the tile's orange at (${x},${y}) — ${p[0]},${p[1]},${p[2]}`, orange(p));
+  }
 
-  // The tile: saturated brand orange at its centre, and enough of it to be the
-  // subject of the card rather than a dot.
-  const c = at(og.data, og.w, 520, 400);
-  check(`og tile is the brand orange at centre (${c[0]},${c[1]},${c[2]})`, c[0] > 220 && c[1] > 70 && c[1] < 200 && c[2] < 90);
-  const tilePx = count(og.data, og.w, 460, 175, 740, 455, ember, 4);
-  check(`og tile covers its square (${tilePx} px)`, tilePx > 3000);
-
-  // The white mark inside the tile — the glyph, not a blank orange block.
+  // The mark, large and centred — the glyph, not a blank orange block.
   let glyph = 0;
-  for (let y = 200; y < 430; y += 2) for (let x = 480; x < 720; x += 2) {
+  for (let y = 160; y < 470; y += 2) for (let x = 430; x < 770; x += 2) {
     const p = at(og.data, og.w, x, y);
     if (p[0] > 225 && p[1] > 215 && p[2] > 200) glyph++;
   }
-  check(`og white mark inside the tile (${glyph} px)`, glyph > 600);
+  check(`og carries the white mark in the middle (${glyph} px)`, glyph > 1500);
+  const c = at(og.data, og.w, 600, 320);
+  check(`og mark sits at the centre — ${c[0]},${c[1]},${c[2]}`, c[0] > 200 && c[1] > 190);
+
+  // No white field left over: white belongs to the mark and nowhere else.
+  const light = (q) => q[0] > 200 && q[1] > 200 && q[2] > 200;
+  const field = count(og.data, og.w, 0, 0, og.w, 150, light, 6)
+    + count(og.data, og.w, 0, 480, og.w, og.h, light, 6);
+  check(`og has no white field outside the mark (${field} px)`, field < 200);
 
   // No text: the card carries no headline, no lockup, no UI sketch.
   const ink = (q) => q[0] < 90 && q[1] < 90 && q[2] < 90;
