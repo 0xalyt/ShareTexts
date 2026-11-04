@@ -1618,6 +1618,17 @@ async function start() {
     app.get('/guides', (_req, res) => {
       res.sendFile(path.join(process.cwd(), 'public', 'guides', 'index.html'));
     });
+    // Answer-first pages (P6 STEP 4): static guides at short URLs, so the
+    // canonical never carries an .html suffix.
+    app.get('/iphone-to-windows', (_req, res) => {
+      res.sendFile(path.join(process.cwd(), 'public', 'guides', 'iphone-to-windows.html'));
+    });
+    app.get('/android-to-iphone', (_req, res) => {
+      res.sendFile(path.join(process.cwd(), 'public', 'guides', 'android-to-iphone.html'));
+    });
+    app.get('/airdrop-alternative', (_req, res) => {
+      res.sendFile(path.join(process.cwd(), 'public', 'guides', 'airdrop-alternative.html'));
+    });
     // Dev parity note: /docs, /privacy and /terms fall through to Vite and
     // render the React views, exactly like production after hydration. The
     // prerendered shells (scripts/seo-routes.mjs → dist/seo/) matter only
@@ -1631,6 +1642,16 @@ async function start() {
     // falls through to the SPA shell.
     app.get('/guides', (_req, res) => {
       res.sendFile(path.join(distPath, 'guides', 'index.html'));
+    });
+    // Answer-first pages (P6 STEP 4) in production.
+    app.get('/iphone-to-windows', (_req, res) => {
+      res.sendFile(path.join(distPath, 'guides', 'iphone-to-windows.html'));
+    });
+    app.get('/android-to-iphone', (_req, res) => {
+      res.sendFile(path.join(distPath, 'guides', 'android-to-iphone.html'));
+    });
+    app.get('/airdrop-alternative', (_req, res) => {
+      res.sendFile(path.join(distPath, 'guides', 'airdrop-alternative.html'));
     });
     // Hashed build assets are immutable — cache them hard; everything else
     // (html, manifest, icons, guides, og images) revalidates cheaply.

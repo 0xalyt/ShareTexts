@@ -73,6 +73,18 @@
     {
       "source": "/space/:uuid",
       "destination": "/index.html"
+    },
+    {
+      "source": "/iphone-to-windows",
+      "destination": "/guides/iphone-to-windows.html"
+    },
+    {
+      "source": "/android-to-iphone",
+      "destination": "/guides/android-to-iphone.html"
+    },
+    {
+      "source": "/airdrop-alternative",
+      "destination": "/guides/airdrop-alternative.html"
     }
   ],
   "headers": [

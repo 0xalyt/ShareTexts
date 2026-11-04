@@ -1,8 +1,24 @@
+# ShareTexts — search and AI crawlers are welcome. Sessions are not.
+#
+# Allowed crawlers, named so the permission is explicit rather than implied by
+# the wildcard:
+#   Search: Googlebot, Bingbot, DuckDuckBot, Applebot, YandexBot, Baiduspider
+#   AI:     GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-Web,
+#           PerplexityBot, Google-Extended, Applebot-Extended, CCBot
+# Blocking any of them only hides the product from answers people are already
+# reading; the content here is public and already on the page.
+#
+# Never indexable: an open room is a private session, and /seo/ holds the same
+# pages at their canonical URLs.
+
 User-agent: *
 Allow: /
 Allow: /docs
 Allow: /about
 Allow: /guides/
+Allow: /iphone-to-windows
+Allow: /android-to-iphone
+Allow: /airdrop-alternative
 Allow: /privacy
 Allow: /terms
 Disallow: /api/
@@ -12,8 +28,26 @@ Disallow: /s/
 Disallow: /space/
 Disallow: /seo/
 
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-Web
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+User-agent: CCBot
+Allow: /
+
 Sitemap: https://sharetexts.online/sitemap.xml
 
-# AI assistants and search crawlers: welcome. llms.txt summarizes the
-# product; /docs carries the FAQ both as visible HTML and as matching
-# structured data. Session routes (/room, /s, /space) are never indexable.
+# llms.txt summarises the product for assistants; /docs carries the FAQ both as
+# visible HTML and as matching structured data.

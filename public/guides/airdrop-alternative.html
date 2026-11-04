@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>An AirDrop alternative for Windows, Android and the browser</title>
+  <meta name="description" content="AirDrop only talks to Apple devices. ShareTexts moves files between any two devices in the browser, including iPhone to Windows. An honest comparison of where each one wins." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://sharetexts.online/airdrop-alternative" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ShareTexts" />
+  <meta property="og:title" content="An AirDrop alternative for Windows, Android and the browser" />
+  <meta property="og:description" content="AirDrop only talks to Apple devices. ShareTexts moves files between any two devices in the browser, including iPhone to Windows. An honest comparison of where each one wins." />
+  <meta property="og:url" content="https://sharetexts.online/airdrop-alternative" />
+  <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="An AirDrop alternative for Windows, Android and the browser" />
+  <meta name="twitter:description" content="AirDrop only talks to Apple devices. ShareTexts moves files between any two devices in the browser, including iPhone to Windows. An honest comparison of where each one wins." />
+  <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v1.png?v=23" />
+  
+    <link rel="icon" href="/favicon.ico?v=22" sizes="32x32" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=21" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif; color: #1d1d1f; background: #ffffff; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @media (prefers-color-scheme: dark) { body { color: #e4e4e4; background: #181818; } .card { background: #262626 !important; border-color: rgba(228,228,228,.1) !important; } .muted { color: rgba(228,228,228,.55) !important; } .accent { color: #fb9243 !important; } .callout { background: rgba(240,100,19,.08) !important; border-color: rgba(251,146,67,.2) !important; } nav, header, .related-links a { border-color: rgba(228,228,228,.08) !important; } .related-links a { background: #262626; color: #e4e4e4; } }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+    header { border-bottom: 1px solid rgba(29,29,31,.08); padding: 16px 24px; position: sticky; top: 0; background: rgba(251,251,253,.92); backdrop-filter: blur(12px); z-index: 40; }
+    @media (prefers-color-scheme: dark) { header { background: rgba(24,24,24,.92); } }
+    .hdr-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+    .hdr-inner svg { width: 20px; height: 20px; }
+    .hdr-inner span { font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
+    .back { font-size: 13px; font-weight: 500; color: #6e6e73; text-decoration: none; margin-left: auto; }
+    .back:hover { color: #1d1d1f; }
+    article { padding: 48px 0 80px; }
+    h1 { font-size: 32px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 12px; }
+    .subtitle { font-size: 17px; color: #6e6e73; max-width: 560px; margin-bottom: 32px; }
+    h2 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin: 40px 0 16px; }
+    p { margin-bottom: 16px; font-size: 16px; }
+    .muted { color: #6e6e73; }
+    .accent { color: #f06413; }
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li { counter-increment: step; display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start; }
+    .steps li::before { content: counter(step); min-width: 36px; height: 36px; border-radius: 50%; background: rgba(240,100,19,.08); color: #f06413; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .steps li h3 { margin: 0 0 4px; font-size: 16px; }
+    .steps li p { margin: 0; font-size: 15px; color: #6e6e73; }
+    .callout { background: rgba(240,100,19,.04); border: 1px solid rgba(240,100,19,.12); border-radius: 12px; padding: 16px 20px; margin: 24px 0; }
+    .callout p { margin: 0; font-size: 15px; }
+    .cta { display: inline-flex; align-items: center; gap: 8px; background: #f06413; color: #fff; padding: 14px 28px; border-radius: 12px; font-size: 15px; font-weight: 600; text-decoration: none; transition: background .15s; margin: 16px 0; }
+    .cta:hover { background: #d9560e; }
+    ul { padding-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; font-size: 15px; }
+    .related { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(29,29,31,.08); }
+    .related h2 { margin-top: 0; }
+    .related-links { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .related-links a { display: block; padding: 14px 18px; background: #ffffff; border: 1px solid rgba(29,29,31,.06); border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 500; color: #1d1d1f; transition: all .15s; }
+    .related-links a:hover { border-color: #f06413; transform: translateY(-1px); }
+    footer { border-top: 1px solid rgba(29,29,31,.08); padding: 24px; text-align: center; font-size: 13px; color: #6e6e73; }
+    @media (max-width: 600px) { h1 { font-size: 26px; } h2 { font-size: 20px; } .related-links { grid-template-columns: 1fr; } }
+      /* ── Tap targets (40px, both axes) ────────────────────────────────────────────────────────
+       Every link clears 40px in BOTH dimensions, and no line moves:
+       · A link inside prose or a footer sentence grows its hit box with
+         vertical padding only. Vertical padding on an inline element expands
+         the clickable area but does NOT affect the line box, so the
+         paragraph keeps its rhythm and the page does not reflow.
+       · The header's back link is a flex item, so it takes min-height plus a
+         matching negative vertical margin: the target is 40px tall while the
+         row keeps the height it always had. */
+    .back { display: inline-flex; align-items: center; min-height: 40px; margin: -10px -6px -10px 0; }
+    article p a, article li a, article .callout a,
+    .steps a, footer p a, .footer p a { padding: 11px 0; }
+</style>
+<style>
+    /* st-crumb — injected by scripts/seo-harden.mjs (idempotent). */
+    .st-crumb { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; margin: 0 0 4px; }
+    .st-crumb a { display: inline-flex; align-items: center; min-height: 40px; color: var(--brand, #d9560e); text-decoration: none; font-weight: 500; }
+    .st-crumb a:hover { text-decoration: underline; }
+    .st-crumb [aria-current] { display: inline-flex; align-items: center; min-height: 40px; color: var(--text-secondary, #6e6e73); }
+    html.dark .st-crumb [aria-current] { color: #888888; }
+    @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #888888; } }
+  </style>
+  
+  
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "ShareTexts",
+          "item": "https://sharetexts.online/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://sharetexts.online/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "AirDrop alternative: what to use when the other device is not an Apple device",
+          "item": "https://sharetexts.online/airdrop-alternative"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is this as fast as AirDrop?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. AirDrop uses a direct local radio link. This uses the network both devices are on, so a large video takes longer."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it need internet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The two browsers need a route to each other, which today means both have a connection."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it private?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The transfer is encrypted between the two browsers and no copy is stored after it finishes. It has not been independently audited, and the code is public."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I send to more than one device?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A room connects one sender to one receiver at a time. Send to a second device by joining with the same code from that device."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it work on the same Wi-Fi only?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Devices on different networks work too, as long as both have internet."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head></head>
+<body>
+  <header>
+    <div class="hdr-inner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span>ShareTexts</span>
+      <a href="/" class="back">Home →</a>
+    </div>
+  </header>
+
+  
+  <main class="container">
+    <article>
+      <p class="muted" style="font-size:13px; margin-bottom:8px;">Guide</p>
+      <nav class="st-crumb" aria-label="Breadcrumb">
+        <a href="/">ShareTexts</a>
+        <span aria-hidden="true">›</span>
+        <a href="/guides">Guides</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">AirDrop alternative: what to use when the other device is not an Apple device</span>
+      </nav>
+      <h1>AirDrop alternative: what to use when the other device is not an Apple device</h1>
+      <p class="subtitle">AirDrop only connects Apple devices to Apple devices. For an iPhone to a Windows PC, or an Android phone to an iPhone, open sharetexts.online on both and pair them with a six-digit code. The file goes straight between the two browsers. Nothing is installed, and no account is created.</p>
+
+      <div class="callout">
+        <p><strong>Quick answer:</strong> open <a href="/" class="accent">sharetexts.online</a> on both devices, tap Send on one, type the six-digit code on the other, pick the file. It arrives with a Save button.</p>
+      </div>
+
+      <h2>Where AirDrop is simply better</h2>
+      <p>Between two Apple devices, AirDrop is the right answer. It is built into the system, it works with no network at all, and it moves a large video fast. If both devices are Apple and near each other, use AirDrop and ignore this page.</p>
+
+      <h2>Where a browser wins</h2>
+      <p>AirDrop does not exist on Windows or Android. There is no Apple-supported version of it for those platforms. A browser page runs on all of them, needs no install, and can also carry text and links, which AirDrop handles awkwardly.</p>
+
+      <h2>How the two compare</h2>
+      <table style="width:100%; border-collapse:collapse; font-size:15px; margin-bottom:16px;">
+        <thead><tr><th style="text-align:left; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:#6e6e73; padding-bottom:8px;">Case</th><th style="text-align:left; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:#6e6e73; padding-bottom:8px;">AirDrop</th><th style="text-align:left; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:#6e6e73; padding-bottom:8px;">ShareTexts</th></tr></thead>
+        <tbody>
+          <tr style="border-top:none"><th scope="row" style="text-align:left; font-weight:500; padding:10px 0;">iPhone → Windows PC</th><td style="padding:10px 12px; color:#6e6e73;">Not available</td><td style="padding:10px 12px;">Works in any browser</td></tr>
+          <tr><th scope="row" style="text-align:left; font-weight:500; padding:10px 0;">Android → iPhone</th><td style="padding:10px 12px; color:#6e6e73;">Not available</td><td style="padding:10px 12px;">Works in any browser</td></tr>
+          <tr><th scope="row" style="text-align:left; font-weight:500; padding:10px 0;">Apple → Apple, offline</th><td style="padding:10px 12px; color:#6e6e73;">Works, no network</td><td style="padding:10px 12px;">Needs internet</td></tr>
+          <tr><th scope="row" style="text-align:left; font-weight:500; padding:10px 0;">Install required</th><td style="padding:10px 12px; color:#6e6e73;">Built into iOS and macOS</td><td style="padding:10px 12px;">No install; optional Home Screen app</td></tr>
+          <tr><th scope="row" style="text-align:left; font-weight:500; padding:10px 0;">Text and links</th><td style="padding:10px 12px; color:#6e6e73;">Links only, via a shared app</td><td style="padding:10px 12px;">Text, links and code</td></tr>
+          <tr><th scope="row" style="text-align:left; font-weight:500; padding:10px 0;">Speed on a large video</th><td style="padding:10px 12px; color:#6e6e73;">Very fast, local radio</td><td style="padding:10px 12px;">As fast as the network allows</td></tr>
+        </tbody>
+      </table>
+
+      <h2>What it costs you</h2>
+      <p>Both devices need an internet connection, where AirDrop can work offline over its own radio. The first transfer needs a code typed on the second device. A browser tab has to stay open, and iOS pauses a backgrounded tab.</p>
+
+      <h2>Privacy, plainly</h2>
+      <p>Each transfer is encrypted in the browser and goes between the two devices, not through storage. Room codes are short-lived. This is not a claim that it is audited or certified — the protocol is open in the repository if you want to read it.</p>
+
+      <h2>Questions people ask</h2>
+      <h3 style="font-size:16px; margin:20px 0 6px;">Is this as fast as AirDrop?</h3>
+      <p>No. AirDrop uses a direct local radio link. This uses the network both devices are on, so a large video takes longer.</p>
+      <h3 style="font-size:16px; margin:20px 0 6px;">Does it need internet?</h3>
+      <p>Yes. The two browsers need a route to each other, which today means both have a connection.</p>
+      <h3 style="font-size:16px; margin:20px 0 6px;">Is it private?</h3>
+      <p>The transfer is encrypted between the two browsers and no copy is stored after it finishes. It has not been independently audited, and the code is public.</p>
+      <h3 style="font-size:16px; margin:20px 0 6px;">Can I send to more than one device?</h3>
+      <p>A room connects one sender to one receiver at a time. Send to a second device by joining with the same code from that device.</p>
+      <h3 style="font-size:16px; margin:20px 0 6px;">Does it work on the same Wi-Fi only?</h3>
+      <p>No. Devices on different networks work too, as long as both have internet.</p>
+
+      <div style="text-align:center; margin: 40px 0;">
+        <a href="/" class="cta">Try ShareTexts Free →</a>
+      </div>
+
+      <section class="related">
+        <h2>Related</h2>
+        <div class="related-links">
+          <a href="/iphone-to-windows">iPhone → Windows</a>
+          <a href="/android-to-iphone">Android → iPhone</a>
+          <a href="/guides/compare-airdrop.html">Full AirDrop comparison</a>
+          <a href="/guides/how-it-works.html">How it works</a>
+        </div>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
