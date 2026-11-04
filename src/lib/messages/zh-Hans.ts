@@ -1,5 +1,7 @@
 import type { Dict } from './types';
 
+export const STATUS = 'draft' as const;
+
 const zh: Dict = {
   'app.skip': '跳到主要内容',
   'app.404.title': '此页面不存在。',

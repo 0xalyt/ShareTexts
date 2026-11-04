@@ -134,6 +134,14 @@ export function LanguageMenu({ className, align = 'right' }: { className?: strin
                     )}
                   >
                     <span className="truncate">{l.native}</span>
+                    {l.status !== 'reviewed' && (
+                      <span
+                        data-testid={`language-${l.code}-badge`}
+                        className="ms-auto shrink-0 rounded-full bg-apple-divider/70 px-1.5 py-[2px] text-[9px] font-semibold uppercase tracking-wide text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
+                      >
+                        Beta
+                      </span>
+                    )}
                     {active && <Check className="w-3.5 h-3.5 shrink-0 text-ember dark:text-ember" />}
                   </button>
                 </li>

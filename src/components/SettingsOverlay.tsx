@@ -304,6 +304,7 @@ export function SettingsOverlay({
                     <React.Fragment key={l.code}>
                       <LanguageRow
                         label={l.native}
+                        badge={l.status === 'reviewed' ? undefined : 'Beta'}
                         selected={!auto && lang === l.code}
                         onClick={() => {
                           setLang(l.code as Lang);
@@ -513,7 +514,7 @@ export function SettingsOverlay({
   );
 }
 
-function LanguageRow({ label, selected, onClick, testId }: { label: string; selected: boolean; onClick: () => void; testId: string }) {
+function LanguageRow({ label, selected, onClick, testId, badge }: { label: string; selected: boolean; onClick: () => void; testId: string; badge?: string }) {
   return (
     <button
       type="button"
@@ -528,6 +529,14 @@ function LanguageRow({ label, selected, onClick, testId }: { label: string; sele
       )}
     >
       <span className="flex-1">{label}</span>
+      {badge && (
+        <span
+          data-testid={testId ? `${testId}-badge` : undefined}
+          className="shrink-0 rounded-full bg-apple-divider/70 px-2 py-[3px] text-[10px] font-semibold uppercase tracking-wide text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
+        >
+          {badge}
+        </span>
+      )}
       {selected && <Check className="h-4 w-4 text-[#f06413]" aria-hidden />}
     </button>
   );

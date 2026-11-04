@@ -1,5 +1,7 @@
 import type { Dict } from './types';
 
+export const STATUS = 'draft' as const;
+
 const ja: Dict = {
   'app.skip': 'メインコンテンツへスキップ',
   'app.404.title': 'このページは存在しません。',

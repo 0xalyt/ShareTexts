@@ -30,10 +30,12 @@ export const LOCALES: Record<Lang, string> = {
   es: 'es-ES',        // 24-hour
   fr: 'fr-FR',        // 24-hour
   de: 'de-DE',        // 24-hour
-  pt: 'pt-BR',        // 24-hour
+  'pt-BR': 'pt-BR',   // 24-hour
+  'pt-PT': 'pt-PT',   // 24-hour
   hi: 'hi-IN',        // 12-hour clock
   ja: 'ja-JP',        // 24-hour
-  zh: 'zh-Hans-CN',   // 24-hour
+  'zh-Hans': 'zh-Hans-CN', // 24-hour
+  'zh-Hant': 'zh-Hant-TW', // 12-hour clock
   ar: 'ar-EG',        // 12-hour clock, Arabic digits
 };
 

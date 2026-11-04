@@ -1,5 +1,7 @@
 import type { Dict } from './types';
 
+export const STATUS = 'draft' as const;
+
 const es: Dict = {
   'app.skip': 'Saltar al contenido principal',
   'app.404.title': 'Esta página no existe.',
