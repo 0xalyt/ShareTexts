@@ -734,7 +734,6 @@ const hi: Dict = {
   "home.faq.q8": "Which browsers work?",
   "home.faq.a8": "Chrome, Edge, Firefox, Safari and Samsung Internet, including in-app browsers.",
   'footer.trust': 'मुफ़्त। कोई खाता नहीं। आपके ब्राउज़र में।',
-  "footer.madeBy": "Made by Mr. Garv",
   'footer.language': 'भाषा',
   "home.cta.heading": "तैयार हैं भेजने के लिए?",
   "home.cta.sub": "दोनों डिवाइस पर ShareTexts खोलें और भेजें या प्राप्त करें से शुरू करें।",

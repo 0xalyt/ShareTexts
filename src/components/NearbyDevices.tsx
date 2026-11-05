@@ -547,10 +547,17 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                     key={d.id}
                     type="button"
                     data-testid="nearby-device-row"
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
-                    transition={{ type: 'spring', bounce: 0, duration: 0.34, delay: i * 0.04 }}
+                    /* Choreography (choreograph skill): these rows are one
+                       list, not a queue. They used to arrive on a uniform
+                       `i * 0.04` metronome, 340ms each with a scale, so the
+                       sheet finished animating ~1s after it opened — and it
+                       replayed every time mDNS found a device, which is
+                       every few seconds. Now the list arrives as one motion:
+                       220ms, 6px, opacity only, no stagger. */
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, transition: { duration: 0.14 } }}
+                    transition={{ type: 'spring', bounce: 0, duration: 0.22 }}
                     onClick={() => handleInvite(d)}
                     disabled={phase.kind !== 'idle'}
                     aria-label={t('nearby.connectAria', { name: d.name })}

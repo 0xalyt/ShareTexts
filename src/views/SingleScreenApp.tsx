@@ -682,6 +682,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       // the guard only ADDS the disconnect confirmation when nothing else
       // is open — any dialog mounting its own Esc handling must win.
       if (confirmDisconnect || showSettings) return;
+      // The room feed owns Escape while it is on screen. Both this view and
+      // ChatView used to answer the same keypress, and because React state
+      // had not committed yet, each opened its OWN disconnect sheet: two
+      // aria-modal dialogs at identical coordinates (docs/redesign/bugs.md B2,
+      // logged as an owner-visible bug since S2). One owner, one sheet.
+      if (document.querySelector('[data-testid="composer"]')) return;
       // Any open layer owns this Escape — including non-dialog popovers
       // (role=menu/listbox). Missing them here opened the destructive
       // disconnect sheet while a user was merely dismissing a menu.
@@ -1569,14 +1575,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             <span className="inline-flex min-h-[44px] items-center">
               <LanguageMenu />
             </span>
-            <a
-              href="https://x.com/0xalyt"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] items-center px-2.5 text-[13px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/60 dark:hover:text-white decoration-[1px] underline-offset-[5px] hover:underline transition-colors"
-            >
-              {t('footer.madeBy')}
-            </a>
           </div>
           <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
             © {new Date().getFullYear()} ShareTexts

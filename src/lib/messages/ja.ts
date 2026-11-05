@@ -734,7 +734,6 @@ const ja: Dict = {
   "home.faq.q8": "Which browsers work?",
   "home.faq.a8": "Chrome, Edge, Firefox, Safari and Samsung Internet, including in-app browsers.",
   'footer.trust': '無料。アカウント不要。ブラウザで動く。',
-  "footer.madeBy": "Made by Mr. Garv",
   'footer.language': '言語',
   "home.cta.heading": "移し終わりますか？",
   "home.cta.sub": "両方のデバイスで ShareTexts を開き、「送信」か「受信」から始めましょう。",

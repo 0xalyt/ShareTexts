@@ -735,7 +735,6 @@ const es: Dict = {
   "home.faq.q8": "Which browsers work?",
   "home.faq.a8": "Chrome, Edge, Firefox, Safari and Samsung Internet, including in-app browsers.",
   'footer.trust': 'Gratis. Sin cuenta. En tu navegador.',
-  "footer.madeBy": "Made by Mr. Garv",
   'footer.language': 'Idioma',
   "home.cta.heading": "¿Listo para pasarlo?",
   "home.cta.sub": "Abre ShareTexts en los dos dispositivos y empieza con Enviar o Recibir.",

@@ -160,7 +160,6 @@ const en = {
   'home.faq.q8': 'Which browsers work?',
   'home.faq.a8': 'Chrome, Edge, Firefox, Safari and Samsung Internet, including in-app browsers.',
   'footer.trust': 'Free. No account. Works in your browser.',
-  'footer.madeBy': 'Made by Mr. Garv',
   'footer.language': 'Language',
   'home.cta.heading': 'Ready to move it over?',
   'home.cta.sub': 'Open ShareTexts on both devices and start with Send or Receive.',

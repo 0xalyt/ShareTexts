@@ -734,7 +734,6 @@ const zh: Dict = {
   "home.faq.q8": "Which browsers work?",
   "home.faq.a8": "Chrome, Edge, Firefox, Safari and Samsung Internet, including in-app browsers.",
   'footer.trust': '免费。无需账号。在浏览器里运行。',
-  "footer.madeBy": "Made by Mr. Garv",
   'footer.language': '语言',
   "home.cta.heading": "准备好传过去了吗？",
   "home.cta.sub": "在两台设备上打开 ShareTexts，从发送或接收开始。",
