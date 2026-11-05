@@ -1575,14 +1575,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <LanguageMenu />
             </span>
             <a
-              href="https://github.com/0xalyt/ShareTexts"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] items-center px-2.5 text-[13px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/60 dark:hover:text-white decoration-[1px] underline-offset-[5px] hover:underline transition-colors"
-            >
-              {t('footer.github')}
-            </a>
-            <a
               href="https://x.com/0xalyt"
               target="_blank"
               rel="noopener noreferrer"

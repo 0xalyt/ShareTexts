@@ -8,7 +8,6 @@ import {
   Moon,
   Languages,
   Wallet,
-  Github,
   ArrowRight,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -127,7 +126,8 @@ export function ThreeThings() {
   );
 }
 
-/* ── The small things — eight items, icon plus a few words ────────────────── */
+/* ── The small things — seven claims, icon plus a few words (P7: the eighth
+   was the GitHub link and it is gone) ───────────────────────────────────── */
 
 const SMALL = [
   { key: 'nearby', Icon: Radar },
@@ -161,22 +161,9 @@ export function SmallThings() {
               </span>
           </motion.li>
         ))}
-        {/* The eighth is a link, because the claim has somewhere to go. */}
-        <motion.li {...revealItem} className="flex items-start gap-2.5 border-t border-black/[0.10] py-4 dark:border-white/[0.14]">
-            <Github
-              className="mt-0.5 h-[17px] w-[17px] shrink-0 text-ember dark:text-azure-400"
-              strokeWidth={1.5}
-              aria-hidden
-            />
-            <a
-              href="https://github.com/0xalyt/ShareTexts"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[14px] font-medium leading-snug text-apple-ink underline decoration-[1px] underline-offset-[5px] hover:text-ember dark:text-white dark:hover:text-azure-400"
-            >
-              {t('home.small.open')}
-            </a>
-        </motion.li>
+        {/* The eighth item used to be "Open source on GitHub". The owner
+            took the repository link out of the product in P7, so the list is
+            seven claims and no outbound link. */}
       </ul>
     </section>
   );

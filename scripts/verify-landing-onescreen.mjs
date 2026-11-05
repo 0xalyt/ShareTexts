@@ -11,7 +11,8 @@
 //   2. nothing scrolls inside the page (no inner scroll container), so the
 //      scrollbar the visitor sees belongs to the browser;
 //   3. the story is in §20a order with the right counts: three stories, eight
-//      small things, eight FAQ answers, a footer whose links keep a 44px target.
+//      small things (seven since the GitHub link came out), eight FAQ answers,
+//      a footer whose links keep a 44px target.
 import { launchBrowser, sleep } from './lib.mjs';
 
 const BASE = process.env.URL || 'http://localhost:3010';
@@ -104,7 +105,7 @@ for (const [w, h] of SIZES) {
   const order = ['hero', 'demo', 'how', 'features', 'faq', 'footer'];
   const present = order.every((k) => marks[k] !== null);
   const ascending = present && order.every((k, i) => i === 0 || marks[order[i]] >= marks[order[i - 1]]);
-  const countsOk = marks.howSteps === 3 && marks.smallItems === 8 && marks.faqItems === 8;
+  const countsOk = marks.howSteps === 3 && marks.smallItems === 7 && marks.faqItems === 8;
   const targetsOk = marks.smallTargets.length === 0;
   const noRepeatCta = (await p.locator('#cta-title').count()) === 0;
   const okStruct = present && ascending && countsOk && targetsOk && noRepeatCta;

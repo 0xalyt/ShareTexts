@@ -27,7 +27,9 @@
  *
  * Content rules (F20): every claim here is copied from the product's own
  * copy — Docs.tsx, Legal.tsx, llms.txt. No invented facts, no contact data,
- * no ratings, no profiles beyond the two verified ones (X @0xalyt, GitHub).
+ * no ratings, no profiles beyond the one verified one (X @0xalyt). The
+ * repository link came out of the product in P7 at the owner's request —
+ * nothing a user can see points at GitHub any more.
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -125,7 +127,6 @@ function shellBody({ overline, h1, subtitle, main, footerNote }) {
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
           <a href="https://x.com/0xalyt" rel="noopener">x.com/0xalyt</a>
-          <a href="https://github.com/0xalyt/ShareTexts" rel="noopener">GitHub</a>
           ${footerNote ? `<span class="muted">${footerNote}</span>` : ''}
         </footer>
       </div>

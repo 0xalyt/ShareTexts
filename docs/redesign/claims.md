@@ -65,3 +65,11 @@ Reality today:
 - **No bundled fallback.** On a platform without a color-emoji font the picker/chips degrade to monochrome or tofu. Owner report "Apple emoji reactions are missing" is **NOT REPRODUCED** on this Windows host (Segoe UI Emoji renders them full color — `audit/baseline/reaction-picker-open-390x844-light.png`, `reaction-added-390x844-light.png`); tracked as bugs.md **B5**, needs the owner's device to proceed.
 - **No emoji as icons in UI** (§7 rule): sweep of literal emoji outside reactions → only `chat.suggest.hi` "Say hi 👋" (en.ts:277 + all 9 locales) — that's copy, inventoried as slop #10 (**KILL**, P-copy).
 - Contract §7 text describing the PNG pipeline is **stale vs code**: owner decision — either amend §7 to match Unicode-glyph reality or restore an image set. Recorded as Differs in the F28 report §7 table.
+
+**P7 — the open-source claim came out of the product (owner decision).** Every
+GitHub URL a user could see is gone: the landing footer link, the eighth "small
+things" row ("Open source on GitHub"), the `<noscript>` footer on the landing,
+the footer on each prerendered SEO page, and the GitHub entry in JSON-LD
+`sameAs` (x.com/0xalyt stays). The locale keys `home.small.open` and
+`footer.github` were deleted from all nine dictionaries. The repository is
+still the source of truth for the code; it is simply not advertised in the app.
