@@ -4,6 +4,7 @@ import fs from 'fs';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'path';
 import {defineConfig, type Connect, type ViteDevServer} from 'vite';
+import {visualizer} from 'rollup-plugin-visualizer';
 
 /** Serve the static guides hub at its canonical extensionless URL in dev.
  *  Production does the same (server.ts app.get('/guides'), vercel.json
@@ -52,7 +53,22 @@ const precacheManifest = () => ({
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss(), guidesHub(), precacheManifest()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      guidesHub(),
+      precacheManifest(),
+      // Only with ANALYZE=1 (`npm run build:analyze`): a treemap of what is
+      // actually in each chunk. The size gate reads the real build instead.
+      ...(process.env.ANALYZE
+        ? [
+            visualizer({ filename: 'audit/bundle.html', template: 'treemap', gzipSize: true, brotliSize: false }),
+            // Same data, machine-readable, so a report can name the heaviest
+            // modules instead of pointing at a picture.
+            visualizer({ filename: 'audit/bundle.json', template: 'raw-data', gzipSize: true, brotliSize: false }),
+          ]
+        : []),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

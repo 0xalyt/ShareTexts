@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "node scripts/gen-favicon-ico.mjs && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && node scripts/seo-routes.mjs && node scripts/pin-csp.mjs --check",
+    "build": "node scripts/gen-favicon-ico.mjs && node scripts/gen-locale-status.mjs && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && node scripts/seo-routes.mjs && node scripts/pin-csp.mjs --check",
     "pin-csp": "npm run build && node scripts/pin-csp.mjs --write",
     "start": "node -e \"process.env.NODE_ENV=process.env.NODE_ENV||'production';require('./dist/server.cjs')\"",
     "preview": "vite preview",
@@ -35,7 +35,10 @@
     "matrix": "node scripts/capture-matrix.mjs",
     "pages": "node scripts/gen-search-pages.mjs",
     "smoke:local": "node scripts/smoke-local.mjs",
-    "verify:composer": "node scripts/verify-composer.mjs"
+    "verify:composer": "node scripts/verify-composer.mjs",
+    "build:analyze": "ANALYZE=1 vite build",
+    "verify:bundle": "node scripts/verify-bundle.mjs",
+    "verify:locale-boot": "node scripts/verify-locale-boot.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
@@ -65,6 +68,7 @@
     "jsqr": "^1.4.0",
     "playwright": "^1.62.1",
     "pngjs": "^7.0.0",
+    "rollup-plugin-visualizer": "^7.1.2",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

@@ -7,6 +7,7 @@ import { prewarmSignaling, signalingHttpBaseForTelemetry } from './lib/socket';
 import { productEvent } from './lib/telemetry';
 import { initInstallCapture } from './lib/pwaInstall';
 import { applyGlassPreference, applyPlatformType } from './lib/device';
+import { bootLocale, ensureLocale } from './lib/i18n';
 import './index.css';
 import './styles/apple-dna.css';
 
@@ -90,36 +91,50 @@ prewarmSignaling();
 // offer that arrives unattended is an offer we can never show again.
 initInstallCapture();
 
-// Remove the branded loading shell now that React is painting
-const shell = document.getElementById("loading-shell");
-if (shell) {
-  shell.classList.add("fade-out");
-  setTimeout(() => shell.remove(), 260);
+// ── First paint waits for the words ──────────────────────────────────────
+// English is in the entry chunk; the other ten dictionaries are chunks of
+// their own (P7 STEP 1b). Mounting before the right one lands would paint the
+// whole screen in English and then swap it — the flash this load exists to
+// prevent. The fetch starts here, at module evaluation, so it overlaps every
+// other boot task rather than following them.
+const bootDict = ensureLocale(bootLocale());
+
+function mount() {
+  // Dev-only primitive gallery (DESIGN.md §18, step 2g): /__kit renders every
+  // control in light and dark so a change can be looked at in one place. The
+  // import is inside `import.meta.env.DEV`, so a production build contains no
+  // branch and no chunk for it.
+  const kitRoot = document.getElementById('root')!;
+  if (import.meta.env.DEV && window.location.pathname === '/__kit/art') {
+    void import('./dev/ArtPage').then(({ ArtPage }) => {
+      createRoot(kitRoot).render(<StrictMode><ArtPage /></StrictMode>);
+    });
+  } else if (import.meta.env.DEV && window.location.pathname === '/__kit') {
+    void import('./dev/KitPage').then(({ KitPage }) => {
+      createRoot(kitRoot).render(<StrictMode><KitPage /></StrictMode>);
+    });
+  } else
+  createRoot(kitRoot).render(
+    <StrictMode>
+      {/* Respect prefers-reduced-motion: JS-driven animations (hero demo,
+          message cards, code digits) are disabled when the user asks for it. */}
+      <MotionConfig reducedMotion="user">
+        <App />
+      </MotionConfig>
+    </StrictMode>,
+  );
+
+  // Remove the branded loading shell now that React is painting in the right
+  // language. It stays up for the length of one chunk fetch at most, and the
+  // fetch is usually already warm by the time this runs.
+  const shell = document.getElementById("loading-shell");
+  if (shell) {
+    shell.classList.add("fade-out");
+    setTimeout(() => shell.remove(), 260);
+  }
 }
 
-// Dev-only primitive gallery (DESIGN.md §18, step 2g): /__kit renders every
-// control in light and dark so a change can be looked at in one place. The
-// import is inside `import.meta.env.DEV`, so a production build contains no
-// branch and no chunk for it.
-const kitRoot = document.getElementById('root')!;
-if (import.meta.env.DEV && window.location.pathname === '/__kit/art') {
-  void import('./dev/ArtPage').then(({ ArtPage }) => {
-    createRoot(kitRoot).render(<StrictMode><ArtPage /></StrictMode>);
-  });
-} else if (import.meta.env.DEV && window.location.pathname === '/__kit') {
-  void import('./dev/KitPage').then(({ KitPage }) => {
-    createRoot(kitRoot).render(<StrictMode><KitPage /></StrictMode>);
-  });
-} else
-createRoot(kitRoot).render(
-  <StrictMode>
-    {/* Respect prefers-reduced-motion: JS-driven animations (hero demo,
-        message cards, code digits) are disabled when the user asks for it. */}
-    <MotionConfig reducedMotion="user">
-      <App />
-    </MotionConfig>
-  </StrictMode>,
-);
+void bootDict.then(mount);
 
 // PWA: register the service worker in production builds only. Skipped in dev
 // so HMR and the local signaling server are never cached away.

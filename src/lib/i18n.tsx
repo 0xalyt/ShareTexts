@@ -1,15 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import en from './messages/en';
-import es from './messages/es';
-import fr from './messages/fr';
-import de from './messages/de';
-import ptBR from './messages/pt-BR';
-import ptPT from './messages/pt-PT';
-import hi from './messages/hi';
-import ja from './messages/ja';
-import zhHans from './messages/zh-Hans';
-import zhHant from './messages/zh-Hant';
-import ar from './messages/ar';
 import { LANGS, type Lang, type Dir } from './messages/registry';
 import type { MsgKey } from './messages/types';
 
@@ -30,19 +20,57 @@ import type { MsgKey } from './messages/types';
 export type { Lang, Dir } from './messages/registry';
 export { LANGS } from './messages/registry';
 
-const DICTS: Record<Lang, Partial<Record<MsgKey, string>>> = {
-  en,
-  es,
-  fr,
-  de,
-  'pt-BR': ptBR,
-  'pt-PT': ptPT,
-  hi,
-  ja,
-  'zh-Hans': zhHans,
-  'zh-Hant': zhHant,
-  ar,
+type Dict = Partial<Record<MsgKey, string>>;
+
+/**
+ * English is the fallback every lookup ends at, so it is the one dictionary in
+ * the entry chunk. The other ten are ~111 KB gzip of strings between them —
+ * downloaded by the handful of people who read those languages, and by nobody
+ * else. They load on demand (P7 STEP 1b).
+ *
+ * A dictionary is applied by mutating DICTS in place, so every `t` closure
+ * already in flight sees it on its next call; the provider re-renders because
+ * its own `lang` state only commits after the load resolves.
+ */
+const LOADERS: Record<Exclude<Lang, 'en'>, () => Promise<{ default: Dict }>> = {
+  es: () => import('./messages/es'),
+  fr: () => import('./messages/fr'),
+  de: () => import('./messages/de'),
+  'pt-BR': () => import('./messages/pt-BR'),
+  'pt-PT': () => import('./messages/pt-PT'),
+  hi: () => import('./messages/hi'),
+  ja: () => import('./messages/ja'),
+  'zh-Hans': () => import('./messages/zh-Hans'),
+  'zh-Hant': () => import('./messages/zh-Hant'),
+  ar: () => import('./messages/ar'),
 };
+
+const DICTS: Partial<Record<Lang, Dict>> = { en };
+const INFLIGHT = new Map<Lang, Promise<void>>();
+
+/**
+ * Load a locale and its variant parent (pt-PT reads pt-BR for the keys it has
+ * not translated yet; zh-Hant reads zh-Hans). Never rejects: a dictionary that
+ * fails to fetch leaves English in place, which is the same ladder a missing
+ * key already walks.
+ */
+export function ensureLocale(lang: Lang): Promise<void> {
+  const have = INFLIGHT.get(lang);
+  if (have) return have;
+  const loader = lang === 'en' ? undefined : LOADERS[lang as Exclude<Lang, 'en'>];
+  if (!loader) return Promise.resolve();
+  const next = loader()
+    .then((mod) => {
+      DICTS[lang] = (mod.default ?? mod) as Dict;
+      const base = BY_BASE.get(lang);
+      if (base) return ensureLocale(base as Lang);
+      return undefined;
+    })
+    .then(() => undefined)
+    .catch(() => undefined);
+  INFLIGHT.set(lang, next);
+  return next;
+}
 
 /** Every writing direction the engine can produce. Right-to-left today: Arabic;
  *  the code names the other three so a locale can never be added without a
@@ -64,12 +92,19 @@ const SCRIPT_OF_REGION: Record<string, 'Hans' | 'Hant'> = {
  * Resolve one BCP 47 tag to a shipped locale.
  * Exact tag → language + script → language + region → bare language.
  */
+/** Bare codes older builds stored before zh and pt were split by script and
+ *  standard. Kept as a named map so the ladder below stays one shape. */
+const ALIAS: Record<string, Lang> = { pt: 'pt-BR', zh: 'zh-Hans' };
+
 export function resolveLang(tag: string): Lang | null {
   const raw = tag.trim().toLowerCase().replace(/_/g, '-');
   if (!raw) return null;
 
   const exact = BY_CODE.get(raw);
   if (exact) return exact.code;
+
+  const alias = ALIAS[raw];
+  if (alias) return alias;
 
   const parts = raw.split('-');
   const lang = parts[0];
@@ -125,18 +160,27 @@ function metaOf(lang: Lang) {
   return BY_CODE.get(lang.toLowerCase()) ?? LANGS[0];
 }
 
-/** Locale → its variant bases → English. */
-function chain(lang: Lang): Partial<Record<MsgKey, string>>[] {
-  const out: Partial<Record<MsgKey, string>>[] = [];
+/** Locale → its variant bases → English. A dictionary that has not loaded yet
+ *  is simply not in the chain, so a lookup falls through to English instead of
+ *  throwing — the boot path awaits the load, so this is a safety net. */
+function chain(lang: Lang): Dict[] {
+  const out: Dict[] = [];
   const seen = new Set<string>();
   let cur: string | undefined = lang;
   while (cur && !seen.has(cur)) {
     seen.add(cur);
-    out.push(DICTS[cur as Lang]);
+    const dict = DICTS[cur as Lang];
+    if (dict) out.push(dict);
     cur = BY_BASE.get(cur);
   }
   out.push(en);
   return out;
+}
+
+/** The locale the first paint will use — resolved before React mounts, by the
+ *  same ladder every later call uses. */
+export function bootLocale(): Lang {
+  return detectLang();
 }
 
 export interface I18nApi {
@@ -221,7 +265,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       tCount,
       setLang: (l: Lang) => {
         setAuto(false);
-        setLangState(l);
+        // The switch lands when the words are here, not before: committing
+        // `lang` first would repaint the current screen in English for the
+        // length of a chunk fetch.
+        if (l === 'en' || DICTS[l]) {
+          setLangState(l);
+          return;
+        }
+        void ensureLocale(l).then(() => setLangState(l));
       },
       useDeviceLanguage: () => {
         try { localStorage.removeItem(LANG_STORE); } catch { /* private mode */ }
