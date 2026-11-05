@@ -1768,7 +1768,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 </motion.div>
               )}
             </AnimatePresence>
-            <div className="flex items-center gap-1.5 pl-2.5 pr-[5px] relative">
+            {/* items-end, not items-center: the input grows UPWARD, so the
+                send circle must hold the bottom edge it had at one line.
+                Centring it in a grown row walked it 65px up the screen the
+                longer the message got (verify-composer measures this). */}
+            <div className="flex items-end gap-1.5 pl-2.5 pr-[5px] relative">
               <textarea
                 ref={textareaRef}
                 data-testid="composer"

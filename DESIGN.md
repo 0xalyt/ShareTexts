@@ -1,4 +1,4 @@
-# ShareTexts — Design Contract v1.3
+# ShareTexts — Design Contract v1.7
 Read this before every task. If code and this file disagree, tell the owner; do not guess.
 
 ## 0. Working rules (every task)
@@ -14,6 +14,7 @@ Read this before every task. If code and this file disagree, tell the owner; do 
 10. Push rules. The owner approved working straight on main: no branches, no PRs, no waiting for approval. Safety net:
  a) At the start of each prompt: `git pull`, then `git tag before-<prompt-id>` and `git push origin before-<prompt-id>`.
  b) Push only finished steps that pass tsc, build and the relevant gates.
+ b2) Before every push that changes `src/` or `public/`, `npm run smoke:local` must be green. It builds, boots the real `dist` server on a free port, pairs two browsers, sends a text and a link, and checks the share card against its own origin. A green gate run is not a substitute: gates test pages, the smoke tests the product.
  c) One idea per commit. Push after each finished step, not at the end.
  d) After each push, wait until the live page shows your build marker (meta sharetexts-build — added in P0, stamped by scripts/seo-routes.mjs), then run `node scripts/smoke-live.mjs` and record the result.
  e) If a push breaks the live site: `git revert <sha>`, push at once, write it in the report. Do not debug on live.
@@ -293,3 +294,26 @@ second colour, no white field.
   tile, or if the head advertises a different file.
 - This artwork is not a design decision for an agent to revisit. It changes
   when the owner says it changes.
+
+## 21. Performance (v1.7)
+
+The budget in §13 is still the target. This section is what a gate can hold.
+
+- **Entry JavaScript hard gate: 180 KB gzip** (P7). The §13 target stays
+  110 KB and this number comes down as the work lands. The gate is
+  `node scripts/verify-bundle.mjs`, and it reads the real build, not a
+  source-level estimate.
+- **Never in the entry:** a non-English dictionary, the below-the-fold
+  landing, or an overlay that is not on screen. A locale loads when it is
+  the active language; the landing tail loads when the hero is idle or
+  600px away; Settings, Language, Docs and Legal load on first open.
+- **No modulepreload for anything non-critical.** A preload of a chunk the
+  first screen does not use is a fetch that competes with the one that
+  paints.
+- **The frame gate is advisory.** It prints the frame timings and never
+  fails a run: measured on this host the same build has read 78 ms and 678 ms
+  for the same click, which is more noise than signal. The real frame check
+  is the owner's phone.
+- **Every lazy chunk reserves its height.** Loading later is a bandwidth
+  decision; it must not become a layout shift (CLS stays ≤0.05, and the
+  landing measured 0.000 after §20a).

@@ -52,6 +52,11 @@ jobs:
           tail -40 /tmp/sharetext-server.log
           exit 1
 
+      # P7: the P4 composer incident, as a rectangle check. Text-level gates
+      # cannot see a Send circle that walks 65px up a grown row.
+      - name: Composer geometry gate
+        run: URL=http://localhost:3311 node scripts/verify-composer.mjs
+
       - name: Browser E2E (create → join → transfer → reconnect → rejoin)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
 
