@@ -35,7 +35,7 @@ const SHELL = [
   '/icon-maskable-192.png',
   '/icon-maskable-512.png',
   '/apple-touch-icon.png',
-  '/og/sharetext-og-icon-v2.png',
+  '/og/sharetext-og-icon-v3.jpg',
   '/demo/photo-4x3.jpg',
   // Apple-emoji reaction artwork (P1 STEP 1) — unhashed, so a re-paint of the
   // six faces follows the same network-first "unhashed" rule as the favicons

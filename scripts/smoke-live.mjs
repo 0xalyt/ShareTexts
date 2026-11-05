@@ -19,7 +19,7 @@
 //      through to stdout but don't fail the smoke).
 import { chromium } from 'playwright';
 import { pairDevices, sendMessage, waitForText, watchConsole, IDS } from './lib/flow.mjs';
-import { launchBrowser } from './lib.mjs';
+import { launchBrowser, imageInfo } from './lib.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (flag, def) => {
@@ -97,12 +97,13 @@ try {
       if (ogImage.startsWith('https://')) {
         const img = await fetch(ogImage, { signal: AbortSignal.timeout(15000) });
         const bytes = Buffer.from(await img.arrayBuffer());
-        const isPng = bytes.length > 24 && bytes.toString('ascii', 1, 4) === 'PNG';
-        const w = isPng ? bytes.readUInt32BE(16) : 0;
-        const h = isPng ? bytes.readUInt32BE(20) : 0;
-        out(img.ok && isPng && w === 1200 && h === 630,
-          'og:image serves as a real 1200x630 PNG',
-          `${img.status} ${img.headers.get('content-type')} ${w}x${h} ${Math.round(bytes.length / 1024)}KB`);
+        // PNG or JPEG — but a real image of the declared size, under the
+        // weight a phone's preview fetcher will actually take.
+        const info = imageInfo(bytes);
+        const kb = Math.round(bytes.length / 1024);
+        out(img.ok && info.w === 1200 && info.h === 630 && kb <= 150,
+          'og:image serves a real 1200x630 image under 150KB',
+          `${img.status} ${img.headers.get('content-type')} ${info.format} ${info.w}x${info.h} ${kb}KB`);
       } else {
         out(false, 'og:image serves as a real 1200x630 PNG', 'no absolute url');
       }

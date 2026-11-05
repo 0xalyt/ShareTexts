@@ -69,7 +69,7 @@ const check = (name, cond) => checks.push([name, cond]);
 // assertions pin exactly that, so a white field, a small floating tile, or any
 // reappearing headline fails here.
 // ──
-const og = await sample('/og/sharetext-og-icon-v2.png');
+const og = await sample('/og/sharetext-og-icon-v3.jpg');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
   // The file checked above must be the file the head actually advertises —
@@ -77,8 +77,8 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   const { readFileSync } = await import('node:fs');
   const head = readFileSync('index.html', 'utf8');
   check('og:image and twitter:image point at this card',
-    head.includes('/og/sharetext-og-icon-v2.png?v=24') &&
-    (head.match(/sharetext-og-icon-v2\.png\?v=24/g) || []).length >= 4);
+    head.includes('/og/sharetext-og-icon-v3.jpg?v=25') &&
+    (head.match(/sharetext-og-icon-v3\.jpg\?v=25/g) || []).length >= 4);
 }
 {
   const orange = (q) => q[0] > 200 && q[1] > 40 && q[1] < 200 && q[2] < 110;

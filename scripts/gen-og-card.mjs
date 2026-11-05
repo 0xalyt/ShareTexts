@@ -19,7 +19,7 @@
 //
 // Deterministic: same input, same pixels. Run:
 //   node scripts/gen-og-card.mjs
-// The file name carries a version (sharetext-og-icon-v2.png) so X and friends
+// The file name carries a version (sharetext-og-icon-v3.jpg) so X and friends
 // refetch it instead of serving a cached copy of the retired artwork; bump the
 // name and ?v= in index.html, public/guides/*.html, public/sw.js and
 // scripts/seo-harden.mjs together.
@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tilePath = path.join(root, 'public/brand/logo-tile-white-on-orange.jpg');
-const out = path.join(root, 'public/og/sharetext-og-icon-v2.png');
+const out = path.join(root, 'public/og/sharetext-og-icon-v3.jpg');
 
 const W = 1200;
 const H = 630;

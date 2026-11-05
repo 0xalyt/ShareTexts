@@ -286,7 +286,7 @@ second colour, no white field.
   orange square in a mostly-white rectangle, which is the "shared links look
   broken" report the owner kept seeing — the card must fill its frame.
 - Source: `public/brand/logo-tile-white-on-orange.jpg`, rendered by
-  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v2.png`.
+  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v3.jpg`.
 - Every surface that advertises the card names the same file and the same
   `?v=`: `index.html` (og + Twitter + JSON-LD), `public/guides/*.html`,
   `public/sw.js` (precache, with its `CACHE` bumped) and `scripts/seo-harden.mjs`.

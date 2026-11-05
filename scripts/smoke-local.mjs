@@ -27,7 +27,7 @@ import { createServer } from 'node:net';
 import { mkdirSync, openSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { pairDevices, sendMessage, waitForText, watchConsole } from './lib/flow.mjs';
-import { launchBrowser } from './lib.mjs';
+import { launchBrowser, imageInfo } from './lib.mjs';
 
 const argv = process.argv.slice(2);
 const has = (f) => argv.includes(f);
@@ -169,13 +169,16 @@ try {
     try {
       const img = await fetch(localUrl, { signal: AbortSignal.timeout(15000) });
       const bytes = Buffer.from(await img.arrayBuffer());
-      const isPng = bytes.length > 24 && bytes.toString('ascii', 1, 4) === 'PNG';
-      const w = isPng ? bytes.readUInt32BE(16) : 0;
-      const h = isPng ? bytes.readUInt32BE(20) : 0;
-      out(img.ok && isPng && w === 1200 && h === 630, 'og:image serves as a real 1200x630 PNG',
-        `${img.status} ${img.headers.get('content-type')} ${w}x${h} ${Math.round(bytes.length / 1024)}KB`);
+      // PNG or JPEG, but it has to be a real image of the declared size, and
+      // light enough for a phone's preview fetcher (scripts/optimize-og.mjs
+      // exists because the card once weighed 307 KB, the WhatsApp cliff).
+      const info = imageInfo(bytes);
+      const kb = Math.round(bytes.length / 1024);
+      out(img.ok && info.w === 1200 && info.h === 630 && kb <= 150,
+        'og:image serves a real 1200x630 image under 150KB',
+        `${img.status} ${img.headers.get('content-type')} ${info.format} ${info.w}x${info.h} ${kb}KB`);
     } catch (e) {
-      out(false, 'og:image serves as a real 1200x630 PNG', e.message);
+      out(false, 'og:image serves a real 1200x630 image under 150KB', e.message);
     }
     lap('share card');
   }

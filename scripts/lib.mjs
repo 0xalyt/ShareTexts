@@ -103,3 +103,29 @@ export async function waitForChat(page, label) {
   await page.getByTestId('composer').first().waitFor({ timeout: 20000 })
     .catch(() => console.log(`WARN: ${label} did not reach chat view in 20s`));
 }
+
+/**
+ * Width, height and format of an image buffer — PNG or JPEG, which is all the
+ * share card is ever allowed to be. A preview crawler cares about the bytes,
+ * not our intentions, so gates measure the real file.
+ */
+export function imageInfo(buf) {
+  if (buf.length > 24 && buf.toString('ascii', 1, 4) === 'PNG') {
+    return { format: 'png', w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  }
+  if (buf.length > 4 && buf[0] === 0xff && buf[1] === 0xd8) {
+    let i = 2;
+    while (i < buf.length - 9) {
+      if (buf[i] !== 0xff) { i++; continue; }
+      const marker = buf[i + 1];
+      const size = buf.readUInt16BE(i + 2);
+      // SOF0..SOF3, SOF5..SOF7, SOF9..SOF11, SOF13..SOF15 carry the dimensions.
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+        return { format: 'jpeg', h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+      }
+      i += 2 + size;
+    }
+    return { format: 'jpeg', w: 0, h: 0 };
+  }
+  return { format: 'unknown', w: 0, h: 0 };
+}
