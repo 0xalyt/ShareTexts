@@ -92,7 +92,11 @@ export function IntentField({
     ? t('intent.hintJoin', { code: `${intent.code.slice(0, 3)} ${intent.code.slice(3)}` })
     : intent.kind === 'create'
       ? t('intent.hintSend')
-      : t('intent.hintEmpty');
+      // P7: the empty state used to say "Open a room, then share the code.
+      // Nothing to configure." — a sentence about the product under a field
+      // that already carries its own placeholder. The placeholder does the
+      // teaching; this line was the third voice on one control.
+      : '';
 
   // The glyph and the button label both spring with the intent, so the field
   // tells you what it understood before you commit to it.

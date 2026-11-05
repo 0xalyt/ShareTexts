@@ -739,6 +739,7 @@ const ja: Dict = {
   "home.cta.heading": "移し終わりますか？",
   "home.cta.sub": "両方のデバイスで ShareTexts を開き、「送信」か「受信」から始めましょう。",
   "settings.feedback": "フィードバック",
+  'settings.messageMaker': 'Message the maker on X',
 
   // ── saved items ────────────────────────────────────
   "nav.saved": "保存した項目",

@@ -740,6 +740,7 @@ const fr: Dict = {
   "home.cta.heading": "Prêt à le transférer ?",
   "home.cta.sub": "Ouvrez ShareTexts sur les deux appareils et commencez par Envoyer ou Recevoir.",
   "settings.feedback": "Remarques",
+  'settings.messageMaker': 'Message the maker on X',
 
   // ── saved items ────────────────────────────────────
   "nav.saved": "Objets enregistrés",

@@ -1109,11 +1109,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   busy={isCreating || isJoining}
                 />
               </div>
-              <div className="order-4 mt-4 flex w-full items-center gap-3">
-                <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted dark:text-white/70">{t('home.or')}</span>
-                <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
-              </div>
               {/* Two doors, one geometry. Side by side from 420px (where both
                   52px targets still sit at a comfortable thumb width); on a
                   narrower phone they stack, because at 390 two 175px halves

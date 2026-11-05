@@ -114,3 +114,10 @@ files, text, or history" — a Temporary Space stores files for up to seven days
 - `home.three.pair.lead`
 - `home.three.send.body`
 - `home.three.send.lead`
+
+## P7 — new keys waiting for translators
+
+- `settings.messageMaker` ("Message the maker on X") — English only for now;
+  every other locale reads the English string through the normal fallback
+  ladder. Only the nine locales that already carry `settings.feedback` need
+  the row above it.

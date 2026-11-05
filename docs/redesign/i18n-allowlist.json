@@ -11,7 +11,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -35,6 +34,7 @@
     "settings.nearby",
     "settings.about",
     "settings.version",
+    "settings.messageMaker",
     "footer.legal"
   ],
   "fr": [
@@ -50,7 +50,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -79,6 +78,7 @@
     "settings.nearby",
     "settings.about",
     "settings.version",
+    "settings.messageMaker",
     "space.pause",
     "demo.placeholder",
     "edit.code",
@@ -99,7 +99,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -128,6 +127,7 @@
     "settings.version",
     "settings.system",
     "settings.feedback",
+    "settings.messageMaker",
     "space.nameLabel",
     "edit.code",
     "saved.typeText",
@@ -147,7 +147,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -173,6 +172,7 @@
     "settings.about",
     "settings.version",
     "settings.feedback",
+    "settings.messageMaker",
     "saved.countOne",
     "saved.typeLink"
   ],
@@ -190,7 +190,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -216,6 +215,7 @@
     "settings.about",
     "settings.version",
     "settings.feedback",
+    "settings.messageMaker",
     "saved.countOne",
     "saved.typeLink"
   ],
@@ -231,7 +231,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -253,7 +252,8 @@
     "settings.hapticsHintIos",
     "settings.nearby",
     "settings.about",
-    "settings.version"
+    "settings.version",
+    "settings.messageMaker"
   ],
   "ja": [
     "app.backHome",
@@ -267,7 +267,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -289,7 +288,8 @@
     "settings.hapticsHintIos",
     "settings.nearby",
     "settings.about",
-    "settings.version"
+    "settings.version",
+    "settings.messageMaker"
   ],
   "zh-Hans": [
     "app.backHome",
@@ -303,7 +303,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -323,7 +322,8 @@
     "settings.hapticsHintIos",
     "settings.nearby",
     "settings.about",
-    "settings.version"
+    "settings.version",
+    "settings.messageMaker"
   ],
   "zh-Hant": [
     "app.backHome",
@@ -337,7 +337,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -357,7 +356,8 @@
     "settings.hapticsHintIos",
     "settings.nearby",
     "settings.about",
-    "settings.version"
+    "settings.version",
+    "settings.messageMaker"
   ],
   "ar": [
     "app.backHome",
@@ -371,7 +371,6 @@
     "home.faq.q8",
     "home.faq.a8",
     "footer.madeBy",
-    "footer.github",
     "send.offline",
     "send.tabsLabel",
     "send.tab.code",
@@ -393,6 +392,7 @@
     "settings.hapticsHintIos",
     "settings.nearby",
     "settings.about",
-    "settings.version"
+    "settings.version",
+    "settings.messageMaker"
   ]
 }

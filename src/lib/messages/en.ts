@@ -593,6 +593,7 @@ const en = {
   'settings.system': 'System',
   'settings.language': 'Language',
   'settings.feedback': 'Feedback',
+  'settings.messageMaker': 'Message the maker on X',
   'settings.room': 'Room',
   'settings.reconnect': 'Reconnection',
   'settings.reconnectHint': 'The connection recovers on its own. This forces one now.',

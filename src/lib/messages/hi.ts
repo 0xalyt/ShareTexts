@@ -739,6 +739,7 @@ const hi: Dict = {
   "home.cta.heading": "तैयार हैं भेजने के लिए?",
   "home.cta.sub": "दोनों डिवाइस पर ShareTexts खोलें और भेजें या प्राप्त करें से शुरू करें।",
   "settings.feedback": "फ़ीडबैक",
+  'settings.messageMaker': 'Message the maker on X',
 
   // ── saved items ────────────────────────────────────
   "nav.saved": "सहेजी गई वस्तुएँ",

@@ -739,6 +739,7 @@ const ar: Dict = {
   "home.cta.heading": "جاهز لنقله؟",
   "home.cta.sub": "افتح ShareTexts على الجهازين وابدأ بالإرسال أو الاستلام.",
   "settings.feedback": "ملاحظات",
+  'settings.messageMaker': 'Message the maker on X',
 
   // ── saved items ────────────────────────────────────
   "nav.saved": "العناصر المحفوظة",

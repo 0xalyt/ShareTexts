@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, ChevronRight, X } from 'lucide-react';
-import { RateCard } from './spaceui/rating';
 import { useI18n, LANGS, type Lang } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { useSession } from '../lib/SessionContext';
@@ -431,9 +430,6 @@ export function SettingsOverlay({
                         }}
                       />
                     </Row>
-                    <Row as="div" className="block py-1">
-                      <RateCard />
-                    </Row>
                   </Group>
 
                   {/* ── Nearby ─────────────────────────────────────── */}
@@ -487,6 +483,18 @@ export function SettingsOverlay({
                         <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
                       </a>
                     ))}
+                    {/* P7: the maker's inbox. One row, X only — no repository
+                        link anywhere in the product (owner decision). */}
+                    <a
+                      href="https://x.com/0xalyt"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="settings-feedback-x"
+                      className="relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[15px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06] before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10"
+                    >
+                      <span className="flex-1">{t('settings.messageMaker')}</span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                    </a>
                     <Row as="div" className="justify-between">
                       <span>{t('settings.version')}</span>
                       <span className="text-[14px] tabular-nums text-apple-ink-muted dark:text-white/70" data-testid="settings-version">

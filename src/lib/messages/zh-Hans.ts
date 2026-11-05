@@ -739,6 +739,7 @@ const zh: Dict = {
   "home.cta.heading": "准备好传过去了吗？",
   "home.cta.sub": "在两台设备上打开 ShareTexts，从发送或接收开始。",
   "settings.feedback": "反馈",
+  'settings.messageMaker': 'Message the maker on X',
 
   // ── saved items ────────────────────────────────────
   "nav.saved": "收藏项",
