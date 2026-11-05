@@ -164,6 +164,20 @@ html.dark .segmented [role='tab'][aria-selected='true'] {
 .route-stack {
   position: relative;
 }
+
+/* .st-swap — one cell, many panels. During a screen change the outgoing and
+   the incoming panel are both mounted for the length of the crossfade; in
+   normal flow they stacked, so the page briefly grew to the sum of both and
+   then snapped back. Stacked in a single grid cell they instead occupy the
+   same rectangle and the layout below never moves. */
+.st-swap {
+  display: grid;
+  grid-template-areas: 'stack';
+}
+.st-swap > * {
+  grid-area: stack;
+  min-width: 0;
+}
 .route-screen {
   will-change: transform, opacity;
 }

@@ -61,8 +61,12 @@ for (const [w, h] of SIZES) {
   await ctx.close();
 }
 
-// ── structure: hero → three things → the small things → FAQ → final call →
-//    footer, in that order, with the counts §20a asks for.
+// ── structure: hero → three things → the small things → FAQ → footer, in that
+//    order, with the counts §20a asks for. There is deliberately NO second
+//    Send/Receive pair at the foot of the page: the hero already owns those
+//    two decisions, and repeating them at the end made people ask which pair
+//    was the real one. This assertion is inverted on purpose — a 'cta' section
+//    reappearing is now the regression.
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage();
@@ -76,7 +80,6 @@ for (const [w, h] of SIZES) {
       how: '#how-title',
       features: '#features-title',
       faq: '#faq-title',
-      cta: '#cta-title',
       footer: 'footer',
     };
     const out = {};
@@ -98,16 +101,18 @@ for (const [w, h] of SIZES) {
       .map((el) => `${(el.textContent || '').trim().slice(0, 18) || el.getAttribute('aria-label')}=${Math.round(el.getBoundingClientRect().height)}`);
     return out;
   });
-  const order = ['hero', 'demo', 'how', 'features', 'faq', 'cta', 'footer'];
+  const order = ['hero', 'demo', 'how', 'features', 'faq', 'footer'];
   const present = order.every((k) => marks[k] !== null);
   const ascending = present && order.every((k, i) => i === 0 || marks[order[i]] >= marks[order[i - 1]]);
   const countsOk = marks.howSteps === 3 && marks.smallItems === 8 && marks.faqItems === 8;
   const targetsOk = marks.smallTargets.length === 0;
-  const okStruct = present && ascending && countsOk && targetsOk;
+  const noRepeatCta = (await p.locator('#cta-title').count()) === 0;
+  const okStruct = present && ascending && countsOk && targetsOk && noRepeatCta;
   if (!okStruct) bad++;
   console.log(
     `${okStruct ? 'structure ok' : 'STRUCTURE PROBLEM'}: ${order.map((k) => `${k}=${marks[k]}`).join(' ')} ` +
-      `stories=${marks.howSteps} small=${marks.smallItems} faq=${marks.faqItems} footerLinks=${marks.footerLinks}` +
+      `stories=${marks.howSteps} small=${marks.smallItems} faq=${marks.faqItems} footerLinks=${marks.footerLinks} ` +
+      (noRepeatCta ? 'tail=one-cta' : 'TAIL: duplicate Send/Receive block is back') +
       (targetsOk ? '' : ` SMALL-TARGETS: ${marks.smallTargets.join(', ')}`),
   );
   await ctx.close();

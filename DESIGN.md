@@ -192,9 +192,19 @@ softened.
 
 ### 20a. Scroll
 
-- The landing scrolls the **window**, like a normal page. No inner scroll
-  container, no overscroll trap, no `h-dvh overflow-hidden` above it. The app
-  shell may be fixed; the front door may not.
+- **Revised (P7, owner request).** One frame for every mode: the shell is
+  always exactly the viewport (`h-dvh overflow-hidden`) and the landing scrolls
+  inside it, exactly like every other screen. §20a's earlier rule — "the front
+  door is a page, so the window scrolls it" — was the reason the first Send
+  collapsed the document from ~4200px to the viewport in one frame, re-centring
+  the hero and letting the new screen "fit" into the space the old one left.
+  The owner's instruction was that no screen may appear suddenly or refit the
+  page, so the frame is now constant and the screen inside it owns the scroll.
+- Consequences that are part of the rule now: `scrollbar-gutter: stable` on the
+  frame's scroll region (the landing grows as the demo plays; a scrollbar
+  appearing used to narrow every aspect-ratio device frame by 15px), and the
+  scroll offset is reset on every mode change so a screen never opens
+  mid-scroll.
 - The first viewport still has to compose: headline, two doors and the running
   product all inside one screen at every desktop size the gate covers. Scrolling
   down reveals the story; it never reveals the hero.

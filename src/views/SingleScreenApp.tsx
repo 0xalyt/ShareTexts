@@ -14,7 +14,7 @@
  *
  * The experience: DEVICE → CONNECT → TRANSFER → RECEIVED
  */
-import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useSession } from '../lib/SessionContext';
 import { hasOpenLayer } from '../lib/layers';
 import { hapticSuccess } from '../lib/haptics';
@@ -49,7 +49,7 @@ import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroTransferScene } from '../components/HeroTransferScene';
 import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
-import { ThreeThings, SmallThings, LandingFaq, LandingCta } from '../components/marketing/LandingSections';
+import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
 import { useSavedCount } from '../lib/savedItems';
 import { ConfirmSheet } from '../components/ConfirmSheet';
@@ -767,6 +767,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
     joinAbortRef.current++;
+    // Release the creation latch with the attempt. createSession() can still
+    // be in flight when the user cancels; the attempt's own `finally` only
+    // runs when that promise settles, so until then the NEXT Send was
+    // swallowed by the `creatingRef` guard — tap Send after Back and nothing
+    // happened (caught by verify-nav: Send → Back → Send). The abandoned
+    // attempt still closes its own room when it resolves (thisAttempt check).
+    creatingRef.current = false;
     clearAcceptBeat();
     setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); setIsJoining(false);
   }, [abandonSession, clearAcceptBeat]);
@@ -783,6 +790,15 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     : 0;
 
   const isTaskScreen = panelMode === 'sending' || panelMode === 'receiving' || panelMode === 'connecting';
+  /* The frame owns the height and the screen owns the scroll, so a mode
+     change has to hand the NEXT screen its own scroll origin. Without this
+     a screen entered from halfway down the landing kept the landing's
+     offset and opened mid-content. */
+  const shellScrollRef = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    const el = shellScrollRef.current;
+    if (el) el.scrollTop = 0;
+  }, [panelMode]);
   /* The entry this screen pushed (see the history block below). */
   const taskHistoryRef = useRef(false);
   /* Cancel from the Back circle: leave the screen now, then CONSUME the entry
@@ -983,6 +999,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const inApp = React.useMemo(() => detectInApp(), []);
   const showInAppNotice = inApp.inApp && !inAppDismissed && (inApp.limited || inApp.ios || inApp.android);
 
+  /* Whether the live-activity line has anything to say yet. Its space is
+     reserved either way (see the tracker below), so this only decides
+     opacity, never layout. */
+  const hasTracker = Boolean(nearbyStatus) || roomsCreated != null;
+
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
@@ -1042,11 +1063,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   rather than inventing longevity. QUIET by rank: it is
                   metadata, so it whispers — the Send/Receive pair owns this
                   screen. */}
-              {(nearbyStatus || roomsCreated != null) && (<motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="order-2 mt-4 flex items-center gap-2 w-fit mx-auto lg:mx-0"
+              {/* The row is ALWAYS in the flow, empty or not. It resolves a
+                  second after paint (a nearby device, then the real count),
+                  and inserting it then pushed the two doors and the whole
+                  demo down by ~28px — measured as the top CLS source on both
+                  layouts. Reserved height: the line fades in, nothing moves. */}
+              <motion.div
+                initial={false}
+                animate={{ opacity: hasTracker ? 1 : 0 }}
+                transition={{ duration: 0.5 }}
+                aria-hidden={!hasTracker}
+                className="order-2 mt-4 flex h-5 items-center gap-2 w-fit mx-auto lg:mx-0"
               >
                 {/* Halo dot: two slow radar rings drift outward from a solid
                     glowing core — layered, staggered, so it reads as breath,
@@ -1064,25 +1091,25 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.roomsMade')}</span>
                   </>
                 ) : null}
-              </motion.div>)}
+              </motion.div>
               {/* Equal-width grid: the two primary actions share ONE geometry
                   (audit #12 — Receive rendered wider than Send), and each
                   hint sits directly beneath its own button so the
                   label↔action mapping is unambiguous (audit #11). */}
-              {/* INTENT FIRST. The field leads: paste or type and the app
-                  works out whether to open a room or walk into one. The
-                  Send/Receive pair survives below it for the two cases that
-                  field can't infer — "I just need a channel" and "I only
-                  have a code" — but nobody has to answer that question
-                  before they have said what they are moving. */}
-              <div className="order-3 mt-5 w-full">
+              {/* RANK, SECOND PASS. The two doors lead, because Send and
+                  Receive are the only two things this product does; the
+                  field is a SHORTCUT for one of them, not a third verb. It
+                  used to sit above the pair, so the first screen opened with
+                  a text box and an "or" — three equally loud invitations and
+                  no stated primary. Now: doors, then "or paste to send". */}
+              <div className="order-5 mt-3 w-full">
                 <IntentField
                   onCreate={handleIntentCreate}
                   onJoin={handleIntentJoin}
                   busy={isCreating || isJoining}
                 />
               </div>
-              <div className="order-4 mt-4 flex w-full items-center gap-3" aria-hidden>
+              <div className="order-4 mt-4 flex w-full items-center gap-3">
                 <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
                 <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted dark:text-white/70">{t('home.or')}</span>
                 <span className="h-px flex-1 bg-apple-divider/60 dark:bg-white/[0.07]" />
@@ -1091,7 +1118,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   52px targets still sit at a comfortable thumb width); on a
                   narrower phone they stack, because at 390 two 175px halves
                   read as a segmented control instead of two separate choices. */}
-              <div className="order-5 mt-3 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 min-[420px]:gap-y-1 sm:mx-0">
+              <div className="order-3 mt-5 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 min-[420px]:gap-y-1 sm:mx-0">
                 <div className="flex flex-col items-center gap-1.5 min-w-0">
                   <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
                   <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70">{t('home.sendHint')}</span>
@@ -1191,7 +1218,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   story needs both ends; a phone-only crop hid the other half).
                   order-4 lg:hidden keeps it out of the desktop DOM — display:
                   none hides it from the eye, not from the tree. */}
-              <div className="st-hide-landscape order-7 lg:hidden mt-6 sm:mt-7 mb-6 flex justify-center">
+              <div className="st-hide-landscape order-6 lg:hidden mt-6 sm:mt-7 mb-6 flex justify-center">
                 <div className="w-full max-w-[420px] sm:max-w-[520px] px-1">
                   {/* Only mounted when the layout is actually the phone one.
                       `lg:hidden` alone would leave a second, invisible copy
@@ -1203,7 +1230,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   it is doing in the subtitle (same words the discovery row
                   used), Temporary Space opens a chooser instead of putting two
                   buttons and a recents rail in the hero. */}
-              <div className="order-6 mt-6 flex w-full flex-col" data-testid="home-rows">
+              <div className="order-7 mt-6 flex w-full flex-col" data-testid="home-rows">
                 <ListRow
                   title={t('nearby.title')}
                   subtitle={nearbyStatus || t('nearby.hint')}
@@ -1213,14 +1240,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       <span className="relative h-1.5 w-1.5 rounded-full bg-status-success" />
                     </span>
                   )}
-                  onClick={() => setNearbySheet(true)}
+                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }}
                   testId="home-nearby"
                 />
                 <ListRow
                   title={t('space.entryTitle')}
                   subtitle={t('space.entryHint')}
                   leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
-                  onClick={() => setSpaceSheet('choose')}
+                  onClick={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('choose'); }}
                   testId="home-space"
                 />
               </div>
@@ -1259,7 +1286,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     : null;
 
   const heroContent = (
-    <AnimatePresence mode="sync">
+    /* .st-swap stacks every panel in ONE grid cell: the outgoing and the
+       incoming screen occupy the same rectangle for the length of the
+       crossfade instead of both sitting in normal flow (which used to make
+       the screen double in height for 120 ms and then snap back). */
+    <div className="st-swap">
+    <AnimatePresence mode="sync" initial={false}>
           {/* ── IDLE ──────────────────────────────────────────────── */}
           {panelMode === 'idle' && idleHeroNode}
 
@@ -1291,7 +1323,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 isJoining={isJoining}
                 error={receiveError}
                 accepted={codeAccepted}
-                onScan={() => setShowQRScan(true)}
+                onScan={() => { setCmdOpen(false); setShowQRScan(true); }}
               />
             </motion.div>
           )}
@@ -1502,6 +1534,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </motion.div>
           )}
     </AnimatePresence>
+    </div>
   );
   const footerNode = (
     <footer className="shrink-0 mt-6 px-6 lg:px-10 pt-8 pb-[max(env(safe-area-inset-bottom),28px)] sm:pb-8 border-t border-black/[0.06] dark:border-white/[0.08]">
@@ -1935,7 +1968,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       onDragOver={onHomeDragOver}
       onDragLeave={onHomeDragLeave}
       onDrop={onHomeDrop}
-      className="relative isolate flex flex-col min-h-dvh bg-apple-canvas dark:bg-night-900 st-landing"
+      className="relative isolate flex flex-col min-h-full bg-apple-canvas dark:bg-night-900 st-landing"
     >
       <div aria-hidden className="st-ambient" />
       {/* Sunrise horizon: warm light rising from the floor of the hero band.
@@ -1984,12 +2017,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <ThreeThings />
           <SmallThings />
           <LandingFaq />
-          <LandingCta
-            onSend={handleSend}
-            onReceive={handleReceive}
-            sendLabel={t('home.send')}
-            receiveLabel={t('home.receive')}
-          />
+          {/* No repeat CTA down here. The hero already owns Send / Receive,
+              and a second pair at the foot of the page made the same two
+              decisions twice — the thing people kept asking was which one
+              was "the" button. */}
         </div>
         {footerNode}
       </main>
@@ -2003,19 +2034,43 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     <div
       className={cn(
         'bg-apple-canvas dark:bg-night-900 dot-bg',
-        // The front door is a page, so the window scrolls it (§20a). Every
-        // other mode is an app shell that owns its own height.
-        panelMode === 'idle' ? 'min-h-dvh' : 'h-dvh lg:h-dvh overflow-hidden',
+        // ONE frame for every mode. The shell is always exactly the viewport
+        // and the screen inside it owns the scroll. It used to be a document
+        // on the landing and a fixed app shell everywhere else, so the first
+        // Send collapsed the page from ~4200px to the viewport in a single
+        // frame — the window scrolled, every block re-measured, and the new
+        // screen "tried to fit" the space the old one left behind. Keeping
+        // the frame constant means a screen change never reflows the page.
+        'h-dvh lg:h-dvh overflow-hidden',
       )}
     >
-      <CommandBar open={cmdOpen} onOpenChange={setCmdOpen} onSpace={(which) => setSpaceSheet(which)} />
+      {/* ONE layer at a time. Every sheet in this view used to own its own
+          boolean, so the command palette could open on top of the Nearby
+          sheet (two live dialogs, two Escape handlers, an ambiguous tab
+          order). Opening any of them now closes the others. */}
+      <CommandBar
+        open={cmdOpen}
+        onOpenChange={(open) => {
+          if (open) { setSpaceSheet(null); setNearbySheet(false); setShowQRScan(false); }
+          setCmdOpen(open);
+        }}
+        onSpace={(which) => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet(which); }}
+      />
       {/* Only the ACTIVE layout is mounted — the other branch stays unmounted
           so components (ChatView, composer, pairing input) exist exactly once
           in the DOM instead of twice with one hidden copy. */}
       {isDesktopLayout ? (
         panelMode === 'idle' ? (
-          /* Idle: ONE landing screen (see landingNode). */
-          landingNode
+          /* Idle: ONE landing screen (see landingNode), scrolling inside the
+             shell instead of scrolling the window. */
+          /* scrollbar-gutter:stable — the landing gets taller as the demo's
+             story plays out, and the moment it crossed the fold the scrollbar
+             appeared and narrowed the content by 15px: every device frame
+             (aspect-ratio boxes) resized and the whole hero jumped. The
+             gutter is reserved from the first frame instead. */
+          <div ref={shellScrollRef} className="h-full overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
+            {landingNode}
+          </div>
         ) : (
           /* Active: two panes. Balanced 50/50 at 1024–1279; from 1280 the
               room gets the wider share (≈44/56) so the active pane never feels
@@ -2051,7 +2106,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </motion.div>
           </Suspense>
         ) : (
-          <div className={panelMode === 'idle' ? 'min-h-full' : 'h-full overflow-y-auto overscroll-contain'}>
+          <div ref={shellScrollRef} className="h-full overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
             <div className="flex flex-col min-h-full">
               <div className="relative isolate flex flex-1 flex-col bg-apple-canvas dark:bg-night-900 st-landing">
                 {ambientGlow}
@@ -2073,12 +2128,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       <ThreeThings />
                       <SmallThings />
                       <LandingFaq />
-                      <LandingCta
-                        onSend={handleSend}
-                        onReceive={handleReceive}
-                        sendLabel={t('home.send')}
-                        receiveLabel={t('home.receive')}
-                      />
                     </div>
                   )}
                 </div>
