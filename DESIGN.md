@@ -291,7 +291,7 @@ orange. This is the composition the owner supplied as the reference.
 - The owner has asked for this card to stay as it is: it changes when they say
   it changes, not when a pass decides it could be stronger.
 - Source: `public/brand/logo-tile-white-on-orange.jpg`, rendered by
-  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v4.jpg`.
+  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v5.jpg`.
 - Every surface that advertises the card names the same file: `index.html`
   (og + Twitter + JSON-LD), `public/guides/*.html`, `public/sw.js` (precache,
   with its `CACHE` bumped) and `scripts/seo-harden.mjs`.

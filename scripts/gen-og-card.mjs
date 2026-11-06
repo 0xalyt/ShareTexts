@@ -17,7 +17,7 @@
 //
 // Deterministic: same input, same pixels. Run:
 //   node scripts/gen-og-card.mjs
-// The file name carries the version (sharetext-og-icon-v4.jpg) and that name is
+// The file name carries the version (sharetext-og-icon-v5.jpg) and that name is
 // the ONLY cache-buster: the shipped URLs have no query string, because
 // WhatsApp's image scraper has a long history of dropping an og:image that
 // carries `?v=` — the link then previews with the old card while the URL itself
@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tilePath = path.join(root, 'public/brand/logo-tile-white-on-orange.jpg');
-const out = path.join(root, 'public/og/sharetext-og-icon-v4.jpg');
+const out = path.join(root, 'public/og/sharetext-og-icon-v5.jpg');
 
 const W = 1200;
 const H = 630;

@@ -71,7 +71,7 @@ const check = (name, cond) => checks.push([name, cond]);
 // existed to pin it. They now pin the opposite: a white field, a centred tile,
 // and no full-bleed orange. Filling the card again fails here.
 // ──
-const og = await sample('/og/sharetext-og-icon-v4.jpg');
+const og = await sample('/og/sharetext-og-icon-v5.jpg');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
   // The file checked above must be the file the head actually advertises —
@@ -79,9 +79,9 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   const { readFileSync } = await import('node:fs');
   const head = readFileSync('index.html', 'utf8');
   check('og:image and twitter:image point at this card',
-    head.includes('/og/sharetext-og-icon-v4.jpg') &&
+    head.includes('/og/sharetext-og-icon-v5.jpg') &&
     (head.match(/twitter:image/g) || []).length >= 2);
-  check('no page still advertises a retired og card', !/sharetext-og-icon-v[23]\.jpg/.test(head));
+  check('no page still advertises a retired og card', !/sharetext-og-icon-v[234]\.jpg/.test(head));
 }
 {
   const orange = (q) => q[0] > 200 && q[1] > 40 && q[1] < 200 && q[2] < 110;
@@ -170,8 +170,10 @@ check('favicon-16 ember glyph', count(f16.data, 16, 0, 0, 16, 16, ember, 1) > 0)
 const { readFileSync, readdirSync } = await import('node:fs');
 const badUrls = [];
 const crossRefs = [];
-const cardRe = /sharetext-og-icon-v4\.jpg/g;
-const retiredRe = /sharetext-og-icon-v[23]\.(?:jpg|png)/g;
+const cardRe = /sharetext-og-icon-v5\.jpg/g;
+// v2/v3 were full-bleed cards, v4 the first tile-on-white: all retired by name
+// so a page can never quietly point back at an artwork the owner replaced.
+const retiredRe = /sharetext-og-icon-v[234]\.(?:jpg|png)/g;
 const pages = ['index.html', ...readdirSync('public/guides')
   .filter((f) => f.endsWith('.html'))
   .map((f) => `public/guides/${f}`)];
@@ -180,7 +182,7 @@ for (const f of pages) {
   if (!html.includes('og:image')) continue;
   if (!cardRe.test(html)) crossRefs.push(f);
   cardRe.lastIndex = 0;
-  if (/sharetext-og-icon-v4\.jpg\?/.test(html)) badUrls.push(f);
+  if (/sharetext-og-icon-v5\.jpg\?/.test(html)) badUrls.push(f);
   if (retiredRe.test(html)) badUrls.push(`${f} (retired card)`);
   retiredRe.lastIndex = 0;
 }
