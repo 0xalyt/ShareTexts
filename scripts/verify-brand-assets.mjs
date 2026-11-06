@@ -60,16 +60,18 @@ const check = (name, cond) => checks.push([name, cond]);
 // Sampled from the path the meta tags actually serve, so this check cannot
 // pass against a retired file while the real one is broken.
 //
-// Artwork contract (owner, 2026-11): the card is the owner's app tile and
-// NOTHING else — no headline, no lockup, no UI sketch, no second colour. An
-// earlier phase replaced the tile with a designed card and the owner rejected
-// that. v1 then floated the tile on a white field, which at feed size read as
-// an empty white rectangle, so v2 fills the card with the artwork: the tile's
-// own gradient edge to edge and the mark large in the middle. These
-// assertions pin exactly that, so a white field, a small floating tile, or any
-// reappearing headline fails here.
+// Artwork contract (owner, 2026-11): the card is the owner's app tile mounted
+// on a white field — tile centred, 280px, rounded, nothing else. No headline,
+// no lockup, no UI sketch, no second colour, no shadow. The owner supplied
+// this composition as the reference and asked for it to stay put.
+//
+// History that must not repeat: v2/v3 blew the tile up to fill the whole card
+// (edge-to-edge orange, mark at 340px). That is a different picture, it shipped
+// while the owner kept reporting the preview as wrong, and these assertions
+// existed to pin it. They now pin the opposite: a white field, a centred tile,
+// and no full-bleed orange. Filling the card again fails here.
 // ──
-const og = await sample('/og/sharetext-og-icon-v3.jpg');
+const og = await sample('/og/sharetext-og-icon-v4.jpg');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
   // The file checked above must be the file the head actually advertises —
@@ -77,34 +79,39 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   const { readFileSync } = await import('node:fs');
   const head = readFileSync('index.html', 'utf8');
   check('og:image and twitter:image point at this card',
-    head.includes('/og/sharetext-og-icon-v3.jpg?v=25') &&
-    (head.match(/sharetext-og-icon-v3\.jpg\?v=25/g) || []).length >= 4);
+    head.includes('/og/sharetext-og-icon-v4.jpg?v=26') &&
+    (head.match(/twitter:image/g) || []).length >= 2);
+  check('no page still advertises a retired og card', !/sharetext-og-icon-v[23]\.jpg/.test(head));
 }
 {
   const orange = (q) => q[0] > 200 && q[1] > 40 && q[1] < 200 && q[2] < 110;
-  // Edge to edge, corners included: the artwork IS the card.
+  const white = (q) => q[0] > 244 && q[1] > 244 && q[2] > 244;
+
+  // The field: white, including all four corners. A full-bleed card fails here.
   for (const [x, y] of [[4, 4], [1195, 4], [4, 625], [1195, 625], [120, 315], [1080, 315]]) {
     const p = at(og.data, og.w, x, y);
-    check(`og is the tile's orange at (${x},${y}) — ${p[0]},${p[1]},${p[2]}`, orange(p));
+    check(`og field is white at (${x},${y}) — ${p[0]},${p[1]},${p[2]}`, white(p));
   }
 
-  // The mark, large and centred — the glyph, not a blank orange block.
+  // The tile: 280px, centred, so orange is inside 460..740 x 175..455 and not
+  // outside it. Both directions are asserted — a missing tile and a blown-up
+  // one are different failures and both have happened.
+  for (const [x, y] of [[500, 250], [700, 250], [600, 440]]) {
+    const p = at(og.data, og.w, x, y);
+    check(`og tile orange at (${x},${y}) — ${p[0]},${p[1]},${p[2]}`, orange(p));
+  }
+  check('og tile does not bleed to the edges',
+    !orange(at(og.data, og.w, 300, 315)) && !orange(at(og.data, og.w, 900, 315)));
+
+  // The mark, inside the tile: white pixels well beyond a bare tile.
   let glyph = 0;
-  for (let y = 160; y < 470; y += 2) for (let x = 430; x < 770; x += 2) {
+  for (let y = 190; y < 445; y += 2) for (let x = 465; x < 735; x += 2) {
     const p = at(og.data, og.w, x, y);
     if (p[0] > 225 && p[1] > 215 && p[2] > 200) glyph++;
   }
-  check(`og carries the white mark in the middle (${glyph} px)`, glyph > 1500);
-  const c = at(og.data, og.w, 600, 320);
-  check(`og mark sits at the centre — ${c[0]},${c[1]},${c[2]}`, c[0] > 200 && c[1] > 190);
+  check(`og carries the white mark inside the tile (${glyph} px)`, glyph > 1200);
 
-  // No white field left over: white belongs to the mark and nowhere else.
-  const light = (q) => q[0] > 200 && q[1] > 200 && q[2] > 200;
-  const field = count(og.data, og.w, 0, 0, og.w, 150, light, 6)
-    + count(og.data, og.w, 0, 480, og.w, og.h, light, 6);
-  check(`og has no white field outside the mark (${field} px)`, field < 200);
-
-  // No text: the card carries no headline, no lockup, no UI sketch.
+  // No text and no ink: the card carries no headline, no lockup, no sketch.
   const ink = (q) => q[0] < 90 && q[1] < 90 && q[2] < 90;
   const dark = count(og.data, og.w, 0, 0, og.w, og.h, ink, 3);
   check(`og carries no added ink (${dark} px)`, dark < 200);
@@ -157,7 +164,7 @@ check('favicon-16 ember glyph', count(f16.data, 16, 0, 0, 16, 16, ember, 1) > 0)
 //    platforms refetch instead of serving the retired card from cache. ──
 const { readFileSync, readdirSync } = await import('node:fs');
 const unversioned = [];
-const ogRe = /sharetext-og\.jpg(?!\?v=)/g;
+const ogRe = /sharetext-og-icon-v4\.jpg(?!\?v=)/g;
 for (const f of ['index.html']) {
   if (ogRe.test(readFileSync(f, 'utf8'))) unversioned.push(f);
   ogRe.lastIndex = 0;

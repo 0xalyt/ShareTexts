@@ -277,16 +277,19 @@ softened.
 
 ### 20f. Share card (owner's artwork — do not redesign)
 
-The link preview is the owner's app tile at 1200×630, edge to edge, and
-nothing else: the tile's own orange gradient fills the frame and the white
-signal mark sits large in the middle. No headline, no lockup, no UI sketch, no
-second colour, no white field.
+The link preview is the owner's app tile mounted on 1200×630 of white and
+nothing else: the tile at 280px, centred, rounded, on a plain white field. No
+headline, no lockup, no UI sketch, no second colour, no shadow, no full-bleed
+orange. This is the composition the owner supplied as the reference.
 
-- v1 centred a 280px tile on 1200×630 of white. At feed size that is a small
-  orange square in a mostly-white rectangle, which is the "shared links look
-  broken" report the owner kept seeing — the card must fill its frame.
+- v2/v3 filled the whole frame with the tile's gradient and blew the mark up to
+  340px. That is a *different* picture from the owner's reference, and it is
+  what shipped while they kept reporting the preview as wrong. Do not go back
+  to it, and do not "fix" a small-looking card by enlarging the tile.
+- The owner has asked for this card to stay as it is: it changes when they say
+  it changes, not when a pass decides it could be stronger.
 - Source: `public/brand/logo-tile-white-on-orange.jpg`, rendered by
-  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v3.jpg`.
+  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v4.jpg`.
 - Every surface that advertises the card names the same file and the same
   `?v=`: `index.html` (og + Twitter + JSON-LD), `public/guides/*.html`,
   `public/sw.js` (precache, with its `CACHE` bumped) and `scripts/seo-harden.mjs`.
