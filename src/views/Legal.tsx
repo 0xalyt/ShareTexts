@@ -45,9 +45,15 @@ function PrivacyContent() {
       <Section icon={<ShieldCheck className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="The short version">
         <p>
           ShareTexts moves text, photos, and files directly between <strong>your</strong> devices.
-          Your content is end-to-end encrypted, travels peer-to-peer, and is never stored on our
-          servers. When the room closes, everything in it is gone — unless you explicitly saved
-          an item, which stays on your device only (see below).
+          In a room, your content is end-to-end encrypted, travels peer-to-peer, and is never
+          stored on our servers. When the room closes, everything in it is gone — unless you
+          explicitly saved an item, which stays on your device only (see below).
+        </p>
+        <p>
+          <strong>Temporary Spaces are the one exception.</strong> A space exists so a device can
+          collect later, so what you add is held until the space closes or reaches its expiry
+          (6 hours to 7 days, whichever the creator chose), and it is deleted then. Closing a space
+          early deletes it early. There is no archive and nothing is kept past that point.
         </p>
       </Section>
 
