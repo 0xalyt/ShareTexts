@@ -935,7 +935,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     ? t('nav.saved')
     : `${t('nav.saved')} · ${savedCount === 1 ? t('saved.countOne') : t('saved.countMany', { n: savedCount })}`;
   const headerNode = (
-    <header className="shrink-0 sticky top-0 z-30 h-14 sm:h-16 flex items-center justify-between gap-3 px-5 sm:px-6 lg:px-10 bg-apple-canvas dark:bg-night-900 border-b border-black/[0.05] dark:border-white/[0.06] relative">
+    /* px-[20px], not px-5: rem padding doubles when a reader sets 200% text
+       (20 → 40 each side), but the header's controls are fixed 44px circles,
+       so the action cluster was pushed 7px past the right edge and the theme
+       toggle's edge was clipped. Padding is space, not type: it should not
+       scale with the reader's type size. Measured with
+       scripts/probe-p8-over-run.mjs at 390px, 100% vs 200% text. */
+    <header className="shrink-0 sticky top-0 z-30 h-14 sm:h-16 flex items-center justify-between gap-3 px-[20px] sm:px-6 lg:px-10 bg-apple-canvas dark:bg-night-900 border-b border-black/[0.05] dark:border-white/[0.06] relative">
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
             equal-height object, display-face wordmark, minimal gap. */}
         <BrandLockup />
