@@ -159,7 +159,11 @@ try {
       'og:title leads with the product', meta('property', 'og:title'));
     const ogImage = meta('property', 'og:image');
     out(ogImage.startsWith('https://'), 'og:image is absolute', ogImage || 'absent');
-    out(/\?v=\d+/.test(ogImage), 'og:image carries a cache-buster', ogImage || 'absent');
+    // Versioned by FILENAME, not by query string: WhatsApp's image scraper has
+    // been known to drop an og:image that carries `?v=`, which shows the old
+    // card while the URL itself still answers 200.
+    out(/\/og\/sharetext-og-icon-v\d+\.jpg$/.test(ogImage),
+      'og:image is the versioned card, no query string', ogImage || 'absent');
     out(meta('name', 'twitter:card') === 'summary_large_image', 'twitter card is summary_large_image');
     out(meta('property', 'og:image:width') === '1200' && meta('property', 'og:image:height') === '630',
       'og:image declares 1200x630');

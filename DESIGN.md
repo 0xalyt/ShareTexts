@@ -180,6 +180,8 @@ Haptics: success and error moments only by default; taps off. Android uses navig
 
 ## 19. Room grammar (owner approved)
 - Bar: floating Back circle, centred title = device name (17/600) with a status line (live dot + "Same network" or "Through ShareTexts"), trailing glass capsule with at most 2 actions: Devices (count) and More. More holds Settings, Saved, Leave room (destructive row behind ConfirmSheet).
+- Bar, as built (P8): ONE line — partner tile, name, one dot, one word. It used to stack name + readiness counts + state at 12px inside 56px, which on a phone read "4 devices / 1 connecting / Connected": three statements in space for one, two of them contradicting. The count survives as the same single suffix ("Room · 2 ready · 1 connecting"); the dot and its colour come from the count that is printed, never from the legacy 1:1 `connectionType` — so "4 ready" is never painted in the warning tone. At 320px the name truncates first and the state word never does ("Wi… · Disconnected" is readable; "Windows PC · Disconne…" is not). The centred-title/capsule arrangement above is still the target; the current bar is the same information in a left-aligned row.
+- Empty room: the thread's first entry, not a poster. Left-aligned, top-anchored: 112px drawing, one 18px sentence naming the destination, one 13px line, then the three starters as quiet underlined text actions (muted ink, ember on hover) — never three pill chips centred in a 400px void, which is the empty-state template every generated app ships. While the arrival toast is up, this block steps down 40px so the toast never cuts the drawing in half.
 - Feed: mine = accent-soft fill, theirs = band fill, ink text on both, radius 18, max width 82%. Device name and time appear only when the sender changes or after 5 minutes of silence, never inside every bubble. Images radius 16 with a 1px inset outline. File cards show name (middle ellipsis), size, a real progress bar with percent, and a state (Waiting, Sending, Received, Failed + Retry).
 - Composer: one floating group: "+" glass circle, a capsule field (grows 1–5 lines), a Send circle (orange, scales in when there is content). No formatting toolbar, no hint row, no recipient chip in the default view.
 - Tapbacks: long-press (500 ms), right-click, or a keyboard "React" button opens a reaction strip above the bubble and an action menu below (Copy, Save, Share, Delete). The chosen reaction is a small badge on the bubble corner.
@@ -290,9 +292,12 @@ orange. This is the composition the owner supplied as the reference.
   it changes, not when a pass decides it could be stronger.
 - Source: `public/brand/logo-tile-white-on-orange.jpg`, rendered by
   `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v4.jpg`.
-- Every surface that advertises the card names the same file and the same
-  `?v=`: `index.html` (og + Twitter + JSON-LD), `public/guides/*.html`,
-  `public/sw.js` (precache, with its `CACHE` bumped) and `scripts/seo-harden.mjs`.
+- Every surface that advertises the card names the same file: `index.html`
+  (og + Twitter + JSON-LD), `public/guides/*.html`, `public/sw.js` (precache,
+  with its `CACHE` bumped) and `scripts/seo-harden.mjs`.
+- Cache-busting is by FILENAME only — never `?v=`. WhatsApp's image scraper has
+  a history of dropping an og:image that carries a query string, which previews
+  the previous card while the URL itself still answers 200.
 - `scripts/verify-brand-assets.mjs` fails if the card gains any ink, loses the
   tile, or if the head advertises a different file.
 - This artwork is not a design decision for an agent to revisit. It changes

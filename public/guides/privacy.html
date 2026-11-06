@@ -12,14 +12,14 @@
   <meta property="og:title" content="Privacy and Security — ShareTexts" />
   <meta property="og:description" content="How ShareTexts protects your data. Encrypted transfers, no accounts, no storage, temporary connections." />
   <meta property="og:url" content="https://sharetexts.online/guides/privacy.html" />
-  <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-icon-v4.jpg?v=26" />
+  <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-icon-v4.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:type" content="image/png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Privacy and Security — ShareTexts" />
   <meta name="twitter:description" content="How ShareTexts protects your data. Encrypted transfers, no accounts, no storage." />
-  <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v4.jpg?v=26" />
+  <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v4.jpg" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -142,14 +142,17 @@
     <h1>How ShareTexts Protects Your Data</h1>
     <p class="subtitle">ShareTexts is designed around a simple principle: your data moves between your devices, not through ours. Here's exactly what that means.</p>
 
-    <div class="callout"><p><strong>In short:</strong> Transfers are encrypted between devices. ShareTexts stores no accounts, no chat history, and no copies of your content. Temporary rooms close automatically when you're done.</p></div>
+    <div class="callout"><p><strong>In short:</strong> Transfers are encrypted between devices. ShareTexts stores no accounts and no chat history, and a live room passes your files device to device without keeping a copy. The one exception is a <strong>Temporary Space</strong>: what you put in one is held until the space closes or expires, because that is what a space is for. Temporary rooms close automatically when you're done.</p></div>
 
     <h2>What Happens to Your Files</h2>
     <div class="green-card">
-      <p style="margin:0;"><strong>During transfer:</strong> Your file travels directly between the two connected devices using encrypted browser technology (WebRTC). It doesn't pass through ShareTexts's servers for storage.</p>
+      <p style="margin:0;"><strong>During a live transfer:</strong> Your file travels directly between the two connected devices using encrypted browser technology (WebRTC). It doesn't pass through ShareTexts's servers for storage.</p>
     </div>
     <div class="green-card">
-      <p style="margin:0;"><strong>After transfer:</strong> The file exists only on the two devices that participated. No copy is kept on any server. The temporary room closes and the connection ends.</p>
+      <p style="margin:0;"><strong>After a live transfer:</strong> The file exists only on the two devices that participated. No copy is kept on any server. The temporary room closes and the connection ends.</p>
+    </div>
+    <div class="green-card">
+      <p style="margin:0;"><strong>In a Temporary Space:</strong> This is the one place ShareTexts holds content, because people join later and still need to see what was added. What you add stays available to anyone with the space code until the space closes or reaches its expiry (6 hours to 7 days), and it is deleted then. Closing a space early deletes it early. Nothing is kept after that, and there is no archive.</p>
     </div>
 
     <h2>What the Server Stores</h2>
@@ -160,7 +163,8 @@
       <tr><td>Pairing code</td><td>Derived from secret</td><td>Rotates every 40 seconds</td><td>TOTP-based. Never stored separately.</td></tr>
       <tr><td>Peer socket IDs</td><td>In memory</td><td>While connected</td><td>Truncated identifiers for message routing.</td></tr>
       <tr><td>Device names</td><td>No</td><td>—</td><td>Exchanged directly between devices, not stored on server.</td></tr>
-      <tr><td>Files and messages</td><td>No</td><td>—</td><td>Transferred directly between devices via WebRTC.</td></tr>
+      <tr><td>Files and messages, live room</td><td>No</td><td>—</td><td>Transferred directly between devices via WebRTC.</td></tr>
+      <tr><td>Temporary Space content</td><td>Yes, until the space closes</td><td>6 hours to 7 days, whichever the creator chose; deleted at expiry or when closed early</td><td>Stored so people joining later can see what was added. No account, no archive, and nothing kept after the space ends.</td></tr>
       <tr><td>Accounts</td><td>No</td><td>—</td><td>No sign-up, no login, no user profiles.</td></tr>
       <tr><td>IP addresses</td><td>For rate limiting</td><td>Per-request</td><td>Read from x-forwarded-for header. Used to limit abuse (40 room creates/min, 10 joins/min). Not stored persistently.</td></tr>
       <tr><td>Aggregate metrics</td><td>In memory</td><td>Until restart</td><td>Anonymous counters (e.g., "rooms.created", "push.text"). No room IDs or content.</td></tr>
@@ -195,7 +199,8 @@
 
     <h2>What ShareTexts Does NOT Do</h2>
     <ul>
-      <li>Store files or messages on any server</li>
+      <li>Store files or messages from a <em>live room</em> on any server</li>
+      <li>Keep Temporary Space content after the space has closed (it is held only while the space is open, then deleted)</li>
       <li>Track usage across sessions (no persistent analytics)</li>
       <li>Sell or share data with third parties</li>
       <li>Use cookies for advertising or analytics</li>

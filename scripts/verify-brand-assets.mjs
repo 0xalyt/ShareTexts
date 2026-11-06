@@ -79,7 +79,7 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   const { readFileSync } = await import('node:fs');
   const head = readFileSync('index.html', 'utf8');
   check('og:image and twitter:image point at this card',
-    head.includes('/og/sharetext-og-icon-v4.jpg?v=26') &&
+    head.includes('/og/sharetext-og-icon-v4.jpg') &&
     (head.match(/twitter:image/g) || []).length >= 2);
   check('no page still advertises a retired og card', !/sharetext-og-icon-v[23]\.jpg/.test(head));
 }
@@ -160,23 +160,34 @@ check('favicon-16 is 16x16', f16.w === 16 && f16.h === 16);
 check('favicon-16 transparent field', at(f16.data, 16, 0, 0)[3] === 0);
 check('favicon-16 ember glyph', count(f16.data, 16, 0, 0, 16, 16, ember, 1) > 0);
 
-// ── OG cache-buster: every shipped og:image URL must carry ?v= so
-//    platforms refetch instead of serving the retired card from cache. ──
+// ── OG URL hygiene: the card is versioned by FILENAME (…-v4.jpg) and never by
+//    a query string. Filename versioning still busts every cache, and it is the
+//    form the pickiest fetchers handle: WhatsApp's image scraper has a long
+//    history of dropping an og:image that carries a `?v=` — the link then
+//    previews with the *previous* card, or with none at all, while our own
+//    curl of the same URL returns 200. So: version in the name, nothing after
+//    the extension. ──
 const { readFileSync, readdirSync } = await import('node:fs');
-const unversioned = [];
-const ogRe = /sharetext-og-icon-v4\.jpg(?!\?v=)/g;
-for (const f of ['index.html']) {
-  if (ogRe.test(readFileSync(f, 'utf8'))) unversioned.push(f);
-  ogRe.lastIndex = 0;
+const badUrls = [];
+const crossRefs = [];
+const cardRe = /sharetext-og-icon-v4\.jpg/g;
+const retiredRe = /sharetext-og-icon-v[23]\.(?:jpg|png)/g;
+const pages = ['index.html', ...readdirSync('public/guides')
+  .filter((f) => f.endsWith('.html'))
+  .map((f) => `public/guides/${f}`)];
+for (const f of pages) {
+  const html = readFileSync(f, 'utf8');
+  if (!html.includes('og:image')) continue;
+  if (!cardRe.test(html)) crossRefs.push(f);
+  cardRe.lastIndex = 0;
+  if (/sharetext-og-icon-v4\.jpg\?/.test(html)) badUrls.push(f);
+  if (retiredRe.test(html)) badUrls.push(`${f} (retired card)`);
+  retiredRe.lastIndex = 0;
 }
-for (const f of readdirSync('public/guides')) {
-  if (!f.endsWith('.html')) continue;
-  const html = readFileSync(`public/guides/${f}`, 'utf8');
-  if (html.includes('og:image') && ogRe.test(html)) unversioned.push(`public/guides/${f}`);
-  ogRe.lastIndex = 0;
-}
-check(`every og:image URL carries ?v= cache-buster`, unversioned.length === 0);
-if (unversioned.length) console.error('    unversioned:', unversioned.join(', '));
+check(`every page advertises the current card (${pages.length} checked)`, crossRefs.length === 0);
+if (crossRefs.length) console.error('    missing:', crossRefs.join(', '));
+check('no og card URL carries a query string', badUrls.length === 0);
+if (badUrls.length) console.error('    bad:', badUrls.join(', '));
 
 await b.close();
 

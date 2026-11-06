@@ -17,11 +17,13 @@
 //
 // Deterministic: same input, same pixels. Run:
 //   node scripts/gen-og-card.mjs
-// The file name carries a version (sharetext-og-icon-v4.jpg) so X, WhatsApp and
-// friends refetch instead of serving a cached copy. If this ever needs to
-// change, bump the name and the `?v=` in index.html, public/guides/*.html,
-// public/sw.js and scripts/seo-harden.mjs together, then re-pin
-// scripts/verify-brand-assets.mjs.
+// The file name carries the version (sharetext-og-icon-v4.jpg) and that name is
+// the ONLY cache-buster: the shipped URLs have no query string, because
+// WhatsApp's image scraper has a long history of dropping an og:image that
+// carries `?v=` — the link then previews with the old card while the URL itself
+// still answers 200. If this artwork ever needs to change, bump the number in
+// the name across index.html, public/guides/*.html, public/sw.js and
+// scripts/seo-harden.mjs together, then re-pin scripts/verify-brand-assets.mjs.
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
