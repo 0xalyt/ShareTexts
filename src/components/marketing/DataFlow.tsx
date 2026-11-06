@@ -51,7 +51,7 @@ export function DataFlow({ className }: { className?: string }) {
         <span className="h-px flex-1 bg-apple-divider/70 dark:bg-white/[0.07]" aria-hidden />
       </div>
 
-      <div className="relative">
+      <div className="relative overflow-x-auto overflow-y-hidden">
         {/* The wire. Non-scaling stroke keeps it 1.5px at any width; the
             second path is the packet riding it (transform-free, dashoffset
             only — one cheap paint per frame on a small area). */}
@@ -84,7 +84,13 @@ export function DataFlow({ className }: { className?: string }) {
         </svg>
 
         {/* The two ends, same weight, same shape. */}
-        <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+        {/* Tracks floor at 3.5rem — rem, not em: the tile's own font-size is a
+            fixed 13px, so an em floor would ignore the reader's text size. At
+            100% the floor is never reached (both 320px and 390px still fit on
+            one line); at 200% it keeps a readable column and this row scrolls
+            inside itself instead of pushing the page sideways. Measured before
+            the fix: +138px of page pan on /docs. */}
+        <div className="relative grid grid-cols-[minmax(3.5rem,1fr)_auto_minmax(3.5rem,1fr)] items-center gap-3 sm:gap-6">
           <DeviceTile icon="laptop" label="Your device" sub="the browser you already have" />
           <span className="flex flex-col items-center gap-1 px-1">
             <span className="rounded-full bg-ember/10 px-3 py-1.5 text-[12px] font-semibold text-ember dark:bg-ember/[0.16] dark:text-azure-400">
@@ -156,8 +162,8 @@ function DeviceTile({
           <span className="h-[3px] w-5 rounded-full bg-current opacity-40" />
         )}
       </span>
-      <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{label}</span>
-      <span className="text-[12px] leading-snug text-apple-ink-muted dark:text-white/50">{sub}</span>
+      <span className="max-w-full break-words text-[13px] font-semibold text-apple-ink dark:text-white">{label}</span>
+      <span className="max-w-full break-words text-[12px] leading-snug text-apple-ink-muted dark:text-white/50">{sub}</span>
       <span className="mt-0.5 flex items-center gap-1 text-[12px] font-medium text-status-success-ink dark:text-status-success-ink-dark">
         <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
         no account

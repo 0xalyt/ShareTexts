@@ -14,10 +14,12 @@
  * doubled at 200% text while its 44px controls stayed fixed, pushing the
  * theme toggle 7px out of reach. Fixed by pinning that padding to 20px.
  *
- * Deliberately NOT asserted here: /docs at 200% text still overflows by 138px
- * (logged in docs/redesign/bugs.md as B34). A gate that skipped it quietly
- * would be worse than no gate, so this script prints it as KNOWN-OPEN and
- * fails only on the surfaces that are actually green.
+ * Deliberately NOT asserted here: none. /docs at 200% text used to overflow by
+ * 138px (docs/redesign/bugs.md B38); that is now fixed and asserted below, the
+ * same way /about is — and the assertion is a real pan test, not a scrollWidth
+ * comparison, because body has `overflow-x: clip` and an inflated scrollWidth
+ * can be a number no reader can ever scroll to. B39 (/about "45px spill") was
+ * exactly that phantom and is recorded as retracted.
  *
  *   URL=http://localhost:3390 node scripts/verify-robust.mjs
  */
@@ -71,24 +73,27 @@ for (const c of CASES) {
   await ctx.close();
 }
 
-// Known open, printed so it cannot quietly disappear.
-{
+// The long-form pages, at 200% text — the case that produced B34. A reader can
+// only lose content if the page actually pans, so this measures window.scrollX
+// after a deliberate scroll attempt.
+for (const path of ['/docs', '/about']) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
-  await page.goto(BASE + '/docs', { waitUntil: 'domcontentloaded' });
+  await page.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
   await page.evaluate(() => {
     document.documentElement.style.fontSize = '32px';
   });
   await page.waitForTimeout(300);
-  const r = await page.evaluate(() => ({
-    vw: document.documentElement.clientWidth,
-    docScrollW: document.documentElement.scrollWidth,
-  }));
-  const over = r.docScrollW - r.vw;
-  console.log(over > 1
-    ? `KNOWN-OPEN  /docs + 200% text scrolls sideways by ${over}px (bugs.md B34)` 
-    : 'FIXED       /docs + 200% text no longer scrolls sideways — flip it into an assertion above');
+  const r = await page.evaluate(async () => {
+    window.scrollTo(600, 0);
+    await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+    const panned = window.scrollX;
+    window.scrollTo(0, 0);
+    return { vw: document.documentElement.clientWidth, panned };
+  });
+  out(r.panned === 0, `${path} + 200% text: page does not pan sideways`,
+    r.panned === 0 ? 'scrollX stays 0' : `panned ${r.panned}px of ${r.vw}`);
   await ctx.close();
 }
 

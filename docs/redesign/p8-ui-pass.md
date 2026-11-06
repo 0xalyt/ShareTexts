@@ -46,8 +46,40 @@ Checks performed: npm run verify:robust (6/6), smoke:local, verify-quality,
            tsc --noEmit, npm run build.
 Checks not performed: real-device iOS/Android at 200% text; Safari; a manual
            visual review of /docs at 200% text (measured only, not looked at).
-Tradeoff / remaining risk: B34 and B35 remain; enlarge-text users on /docs
-           still pan horizontally by 138px.
+Tradeoff / remaining risk: B38 was still open in this pass (fixed in P8.1
+           below); B39 was later retracted as a measurement error.
+Decision:  keep.
+```
+
+## P8.1 — the /docs reflow fix (follow-up)
+
+```
+Goal:      Close B38 rather than keep printing it as known-open.
+Observed:  /docs at 390px + 200% text panned 138px sideways (measured with a
+           real scroll attempt, not a scrollWidth read).
+First attempt, rejected: minmax(0,1fr) + break-words on the tiles. The page
+           stopped panning and the gate went green — and the diagram became one
+           letter per line. A green gate over destroyed content is worse than
+           the bug; thrown away. (The screenshots are why the gate is not the
+           only check.)
+Second attempt, also rejected: an em-based track floor. `em` resolves against
+           the tile's own fixed 13px font, so the floor never grew with the
+           reader's text size — 84px of overflow survived.
+Shipped:   minmax(3.5rem,1fr) — rem, so the floor follows the root text size —
+           plus overflow-x-auto on the row so any surplus scrolls inside the
+           diagram instead of moving the page. Text keeps whole words.
+Evidence:  390+200%: pagePan 138 -> 0, inner row scroll 186 -> 100.
+           390+100%: cells [114,90,114], row 342/342, no pan — identical to the
+           live build, compared against sharetexts.online with the same probe.
+           320+100%: pagePan 6 -> 0.
+Checks performed: verify:robust (8/8), the /docs probe at 320/390 x 100/200%,
+           visual review of /docs at 320+100% and 390+200% (screenshots).
+Checks not performed: a real device at 200% text; Safari; whether readers
+           discover the diagram's own horizontal scroll.
+Tradeoff / remaining risk: at 200% text the two device tiles sit one word per
+           line and the second tile is partly off-screen until swiped. B41 (the
+           page header at 320px + 200% text, 68px) is logged and not fixed: it
+           needs a decision about which header item gives way.
 Decision:  keep.
 ```
 
