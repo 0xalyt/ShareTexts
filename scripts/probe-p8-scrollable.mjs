@@ -5,12 +5,14 @@ import { launchBrowser } from './lib.mjs';
 
 const BASE = process.env.URL || 'http://localhost:3390';
 const PATHS = ['/docs', '/about', '/'];
+const WIDTHS = [320, 390];
 
 const browser = await launchBrowser();
 const rows = [];
 for (const path of PATHS) {
+  for (const width of WIDTHS) {
   for (const zoom of [1, 2]) {
-    const ctx = await browser.newContext({ viewport: { width: 320, height: 700 } });
+    const ctx = await browser.newContext({ viewport: { width, height: 800 } });
     const page = await ctx.newPage();
     await page.goto(BASE + path, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(400);
@@ -31,8 +33,9 @@ for (const path of PATHS) {
         bodyOverflowX: getComputedStyle(document.body).overflowX,
       };
     });
-    rows.push({ path, zoom, ...r });
+    rows.push({ path, width, zoom, ...r });
     await ctx.close();
+  }
   }
 }
 await browser.close();
@@ -41,7 +44,7 @@ for (const r of rows) {
   const slack = r.scrollW - r.clientW;
   const verdict = r.pannedTo > 0 ? 'PANS' : 'no pan (clipped)';
   console.log(
-    `${r.path} text=${r.zoom * 100}% scrollW=${r.scrollW} clientW=${r.clientW} slack=${slack} ` +
+    `${r.path} ${r.width}px text=${r.zoom * 100}% scrollW=${r.scrollW} clientW=${r.clientW} slack=${slack} ` +
     `pannedTo=${r.pannedTo} body-overflow-x=${r.bodyOverflowX} -> ${verdict}`
   );
 }
