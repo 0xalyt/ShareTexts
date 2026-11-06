@@ -265,6 +265,12 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // settles into 'connecting' while partnerConnected stays true; every green
   // "Connected" treatment must key off this, not the flag alone.
   const partnerLinkHealthy = session.partnerConnected && session.connectionType !== 'disconnected' && session.connectionType !== 'connecting';
+  // The header's one line must not contradict itself. In a 3+ device room the
+  // legacy 1:1 connectionType says nothing useful (it can sit at 'connecting'
+  // while every seat is live), so the seat counts decide the dot and its
+  // colour — never "4 ready" painted in the warning tone.
+  const headerReadyCount = others.filter(p => p.link === 'connected').length;
+  const headerHealthy = others.length > 1 ? headerReadyCount === others.length : partnerLinkHealthy;
   // The session's start, as people say it: "07:24 PM" today, else "Sep 19,
   // 07:24 PM" — shaped by the APP language via format.ts (B16). Computed
   // once per room — createdAt never changes mid-room, lang can.
@@ -1032,66 +1038,62 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             {!disconnected && session.connectionType !== 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[10px] bg-status-success/20 st-halo-ring" />}
             <PartnerDeviceIcon className="relative w-4 h-4" />
           </span>
-          <span className="flex flex-col items-start min-w-0 leading-tight">
-            {/* Name arrival: when the hello lands (partnerName appears), the
-                name slides up into place — the device "introduces itself"
-                instead of text silently mutating. key forces the spring on
-                the transition from placeholder to real name. */}
+          {/* One line of truth: who is on the other side, and one word about
+              the link. This bar used to stack three 12px lines — readiness
+              counts above a state line — inside 56px, so a room with a stale
+              seat read "4 devices / 1 connecting / Connected": three
+              statements, two of them contradicting each other, in space for
+              one. The count still exists, but as the same single suffix. */}
+          <span className="flex items-center gap-1.5 min-w-0">
             <motion.span
               key={session.partnerName || 'paired'}
-              initial={session.partnerName ? { opacity: 0, y: 4 } : false}
+              initial={session.partnerName ? { opacity: 0, y: 3 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-[38vw] sm:max-w-[160px]"
+              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 flex-1 max-w-[52vw] sm:max-w-[190px]"
             >
-              {/* Room-aware header (F13): a 3+ device room says how many
-                  devices are in it — never "Connected to Windows PC" for a
-                  whole room. The two-device room keeps the familiar name. */}
               {others.length > 1
                 ? t('room.deviceCount', { count: String(others.length + 1) })
                 : (session.partnerName || t('chat.pairedDevice'))}
             </motion.span>
-            {others.length > 1 && (
-              <span data-testid="room-device-count" className="text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
-                {(() => {
-                  const ready = others.filter(p => p.link === 'connected').length;
-                  const connecting = others.filter(p => p.link === 'connecting' || p.link === 'reconnecting').length;
-                  const offline = others.filter(p => p.link === 'offline').length;
-                  const parts: string[] = [];
-                  if (ready) parts.push(t('room.readyCount', { count: String(ready) }));
-                  if (connecting) parts.push(t('room.connectingCount', { count: String(connecting) }));
-                  if (offline) parts.push(t('room.offlineCount', { count: String(offline) }));
-                  return parts.join(' · ');
-                })()}
-              </span>
-            )}
-            <span className={cn(
-              "flex items-center gap-1 text-[12px] font-medium",
-              disconnected || session.connectionType === 'connecting'
-                ? "text-status-warning-ink dark:text-status-warning-ink-dark"
-                : "text-apple-ink-muted dark:text-white/45"
-            )}>
-              {disconnected ? (
-                <>
-                  <span className="sm:hidden w-1.5 h-1.5 rounded-full bg-status-warning" />
-                  {t('chat.disconnected')}
-                </>
-              ) : session.connectionType === 'connecting' ? (
-                <>
-                  <span className="sm:hidden w-1.5 h-1.5 rounded-full bg-status-warning animate-pulse" />
-                  {t('chat.reconnecting')}
-                </>
-              ) : session.connectionType === 'direct' || session.connectionType === 'local' ? (
-                <>
-                  <span className="sm:hidden w-1.5 h-1.5 rounded-full bg-status-success" />
-                  {t('chat.directBadge')}
-                </>
-              ) : (
-                <>
-                  <span className="sm:hidden w-1.5 h-1.5 rounded-full bg-status-success" />
-                  {t('common.connected')}
-                </>
+            <span
+              aria-hidden
+              className={cn(
+                'shrink-0 w-1 h-1 rounded-full',
+                headerHealthy ? 'bg-status-success' : 'bg-status-warning'
               )}
+            />
+            <span
+              data-testid="room-device-count"
+              className={cn(
+                // The state word never shrinks or breaks: at 320px the name
+                // yields first (an ellipsis on a device name is readable,
+                // "Disconne…" is not). Multi-device counts can truncate.
+                'text-[12px] font-medium',
+                others.length > 1 ? 'truncate min-w-0' : 'shrink-0 whitespace-nowrap',
+                headerHealthy
+                  ? 'text-apple-ink-muted dark:text-white/45'
+                  : 'text-status-warning-ink dark:text-status-warning-ink-dark'
+              )}
+            >
+              {others.length > 1
+                ? (() => {
+                    const ready = others.filter(p => p.link === 'connected').length;
+                    const connecting = others.filter(p => p.link === 'connecting' || p.link === 'reconnecting').length;
+                    const offline = others.filter(p => p.link === 'offline').length;
+                    const parts: string[] = [];
+                    if (ready) parts.push(t('room.readyCount', { count: String(ready) }));
+                    if (connecting) parts.push(t('room.connectingCount', { count: String(connecting) }));
+                    if (offline) parts.push(t('room.offlineCount', { count: String(offline) }));
+                    return parts.join(' · ');
+                  })()
+                : disconnected
+                  ? t('chat.disconnected')
+                  : session.connectionType === 'connecting'
+                    ? t('chat.reconnecting')
+                    : session.connectionType === 'direct' || session.connectionType === 'local'
+                      ? t('chat.directBadge')
+                      : t('common.connected')}
             </span>
           </span>
         </button>
@@ -1262,7 +1264,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             role="status"
             className="overflow-hidden bg-status-warning/10 border-b border-status-warning/20"
           >
-            <div data-testid="disconnect-banner" className="max-w-3xl 2xl:max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2 text-[16px] font-medium text-status-warning-ink dark:text-status-warning-ink-dark">
+            <div data-testid="disconnect-banner" className="max-w-3xl 2xl:max-w-4xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-2 text-[13px] font-medium text-status-warning-ink dark:text-status-warning-ink-dark">
               <span className="flex items-center gap-2 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-status-warning animate-pulse shrink-0" />
                 {/* min-w-0 lets the sentence wrap on narrow screens instead
@@ -1375,44 +1377,48 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       >
         <div className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col h-full">
           {session.messages.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center min-h-[40vh]">
+            // Empty room: the room's first real surface, and the one every
+            // session sees. It used to be a 168px drawing centred in a 400px
+            // void with three pill chips underneath — the empty-state template
+            // every generated app ships, identical in every room. Now it is a
+            // handover: a smaller drawing, the destination stated as a
+            // sentence, and three quiet text actions that read as things to do
+            // rather than buttons bolted to the middle of nothing.
+            // The arrival toast floats at top-[76px]; while it is up, the
+            // first line of the thread steps down instead of being cut in
+            // half by it. One 40px shift, once per room, then back.
+            <div
+              className={cn(
+                'flex-1 flex flex-col justify-start min-h-[40vh] pt-2 pb-6 transition-[padding] duration-300 ease-out',
+                showConnected && 'pt-[52px]'
+              )}
+            >
               {disconnected ? (
-                /* Peer offline: the SAME two-device composition as the
-                    connected state, but the link is severed — the partner
-                    tile dims and the line frays. The visual continuity is
-                    the message: "your other device was here; the thread
-                    is cut", not "you are somewhere else now". */
-                <div className="flex flex-col items-center">
-                  <SceneRoomEnded size={168} className="text-apple-ink dark:text-white" />
-                  <p className="text-[16px] font-semibold text-apple-ink dark:text-white mt-4">{t('chat.peerOffline.title')}</p>
-                  <p className="text-[13px] text-apple-ink-muted max-w-[260px] leading-relaxed mt-3">
+                <div className="flex flex-col items-start max-w-[420px]">
+                  <SceneRoomEnded size={112} className="text-apple-ink dark:text-white" />
+                  <p className="text-[18px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white mt-4">
+                    {t('chat.peerOffline.title')}
+                  </p>
+                  <p className="text-[13px] text-apple-ink-muted dark:text-white/60 max-w-[300px] leading-relaxed mt-1.5">
                     {t('chat.peerOffline.body')}
                   </p>
                 </div>
               ) : (
-                /* Connected empty room: the two linked devices, the
-                    destination named by its real name, then ONE sentence of
-                    honest instruction. No slogan row — the composer's own
-                    teaching row already names Type · Paste · Drop a few
-                    hundred pixels below, and saying it twice is noise. */
-                <div className="flex flex-col items-center">
-                  <SceneEmptyRoom size={168} className="text-apple-ink dark:text-white" />
+                <div className="flex flex-col items-start max-w-[440px]">
+                  <SceneEmptyRoom size={112} className="text-apple-ink dark:text-white" />
                   {session.partnerName && (
-                    <p className="text-[16px] font-semibold text-apple-ink dark:text-white mt-5 text-center max-w-[300px] leading-relaxed">
+                    <p className="text-[18px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white mt-4 max-w-[380px] leading-snug">
                       {t('chat.empty.dest', { name: session.partnerName })}
                     </p>
                   )}
-                  <p className="text-[13px] text-apple-ink-muted max-w-[280px] leading-relaxed mt-1.5 text-center">
+                  <p className="text-[13px] text-apple-ink-muted dark:text-white/60 max-w-[360px] leading-relaxed mt-1.5">
                     {t('chat.empty.body')}
                   </p>
-                  {/* Three one-tap starters. An empty room is the moment the
-                      user has nothing to do, so the room offers the three
-                      things people actually open it for — and each chip does
-                      exactly what it says: the greeting is TYPED into the
-                      composer for them to edit (never auto-sent), the photo
-                      chip opens the image picker, the link chip puts the
-                      caret in the field. No dead ends, no surprises. */}
-                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2 max-w-[320px]">
+                  {/* The same three starters, as text. Each still does exactly
+                      what it says: the greeting is TYPED for them to edit
+                      (never auto-sent), the photo starter opens the picker,
+                      the link starter puts the caret in the field. */}
+                  <div className="mt-2.5 flex flex-wrap items-center gap-x-5">
                     {([
                       { key: 'chat.suggest.hi', run: () => { setInputText(t('chat.suggest.hi')); requestAnimationFrame(() => textareaRef.current?.focus()); } },
                       { key: 'chat.suggest.photo', run: () => imageInputRef.current?.click() },
@@ -1424,7 +1430,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                         data-testid={s.key}
                         onClick={s.run}
                         style={{ ['--st-tap-grow' as string]: '4px' }}
-                        className="st-tap inline-flex items-center min-h-[44px] px-3.5 rounded-full border border-apple-divider dark:border-white/[0.12] bg-white/70 dark:bg-white/[0.05] text-[12px] font-semibold text-apple-ink/80 dark:text-white/70 hover:border-ember/40 hover:text-ember dark:hover:text-azure-400 active:scale-[0.97] transition-all"
+                        className="st-tap inline-flex items-center min-h-[44px] text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 underline decoration-apple-ink-muted/30 dark:decoration-white/25 underline-offset-[6px] hover:text-ember dark:hover:text-azure-400 hover:decoration-ember/60 dark:hover:decoration-azure-400/60 active:opacity-60 transition-colors"
                       >
                         {t(s.key)}
                       </button>

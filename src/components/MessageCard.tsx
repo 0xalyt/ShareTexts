@@ -310,7 +310,10 @@ function DeliveryTick({ delivered, seen, onBlue }: { delivered?: boolean; seen?:
         >
           <CheckCheck className="w-3.5 h-3.5" />
         </motion.span>
-        <span className="font-semibold">{t('msg.seen')}</span>
+        {/* The tick carries the state in colour; the word stays quiet ink.
+            A 12px label in full signal-green beside 16px message text made
+            the receipt shout louder than the thing it confirms. */}
+        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{t('msg.seen')}</span>
       </span>
     );
   }
@@ -327,7 +330,7 @@ function DeliveryTick({ delivered, seen, onBlue }: { delivered?: boolean; seen?:
         >
           <CheckCheck className="w-3.5 h-3.5" />
         </motion.span>
-        <span className="font-semibold">{t('msg.delivered')}</span>
+        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{t('msg.delivered')}</span>
       </span>
     );
   }
@@ -589,7 +592,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                         from a DEVICE — the name makes the bridge concrete. */
                     <span className="font-semibold">{session.partnerName ? t('msg.fromDevice', { name: session.partnerName }) : t('msg.received')}</span>
                   )}
-                  {' • '}<span data-testid="msg-time">{fmtTime(lang, msg.timestamp)}</span>
+                  {' • '}<span data-testid="msg-time" className="whitespace-nowrap">{fmtTime(lang, msg.timestamp)}</span>
                 </span>
                 <BookmarkButton msg={msg} />
                 <button
