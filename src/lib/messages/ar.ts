@@ -507,6 +507,7 @@ const ar: Dict = {
   'space.title': 'مساحة مؤقتة',
   'space.entryTitle': 'مساحة مؤقتة',
   'space.entryHint': 'احفظ الملفات والنصوص حتى 7 أيام',
+  'space.retention': '7 أيام',
   'space.joinTitle': 'الانضمام إلى مساحة',
   'space.reopen': 'فتح',
   'space.createTitle': 'مساحة جديدة',

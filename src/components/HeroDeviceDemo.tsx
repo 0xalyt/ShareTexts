@@ -44,13 +44,15 @@ import {
  */
 export type DemoPhase = 'open' | 'connecting' | 'sending' | 'received' | 'done';
 
-/** The caption per state — the same keys the screens derive from. */
-const CAPTIONS: Record<DemoPhase, { key: MsgKey; sub: MsgKey }> = {
-  open: { key: 'demo.h1', sub: 'demo.s1' },
-  connecting: { key: 'demo.h2', sub: 'demo.s2' },
-  sending: { key: 'demo.h5', sub: 'demo.s5' },
-  received: { key: 'demo.h6', sub: 'demo.s6' },
-  done: { key: 'demo.h7', sub: 'demo.s7' },
+/** The caption per state — the same key the screens derive from. One line:
+ *  the state word is the caption, and the sentence that used to sit under it
+ *  was a tagline the picture already said. */
+const CAPTIONS: Record<DemoPhase, MsgKey> = {
+  open: 'demo.h1',
+  connecting: 'demo.h2',
+  sending: 'demo.h5',
+  received: 'demo.h6',
+  done: 'demo.h7',
 };
 
 /** Where the machine walks on its own after the visitor's tap, and how fast. */
@@ -228,8 +230,7 @@ export function HeroDeviceDemo({
     return { start, over, land };
   }, [w, h]);
 
-  const caption = t(CAPTIONS[phase].key);
-  const captionSub = t(CAPTIONS[phase].sub);
+  const caption = t(CAPTIONS[phase]);
 
   /** The visitor's tap. Under reduced motion there is no flight to watch —
    *  one tap lands the transfer on the final informative still instead. */
@@ -256,7 +257,10 @@ export function HeroDeviceDemo({
           // Taller than the old 16/9.8: the phone now stands nearly full-
           // height beside the laptop, so the pair reads as ONE scene with
           // real presence instead of two objects parked on a strip.
-          variant === 'full' ? 'aspect-[16/10.4]' : 'aspect-[1/2.16] max-w-[178px] mx-auto',
+          // The stage is as tall as the taller object (the phone), not taller:
+          // the old 16/10.4 left a dead band of white under the laptop, which
+          // is the "empty corner" a hero must never have.
+          variant === 'full' ? 'aspect-[16/9.4]' : 'aspect-[1/2.16] max-w-[178px] mx-auto',
         )}
       >
         {variant === 'full' && (
@@ -377,7 +381,12 @@ export function HeroDeviceDemo({
             transfer the visitor caused is announced as it happens. The
             min-height reserves its two lines so phase changes never move
             the controls below. */}
-        <div className="relative min-h-[4em]" role="status" data-testid="demo-caption">
+        {/* One line, under the devices, centred on them. The second line
+            used to be a tagline ("It goes straight across. / Device to
+            device when it can be.") — it restated the picture, and it pushed
+            the pair up to make room for a sentence nobody needed. The state
+            word IS the caption. */}
+        <div className="relative min-h-[1.6em]" role="status" data-testid="demo-caption">
           <AnimatePresence initial={false} mode="wait">
             <motion.div
               key={phase}
@@ -387,11 +396,8 @@ export function HeroDeviceDemo({
               transition={{ duration: reduced ? 0 : 0.28, ease: EASE }}
               className="absolute inset-x-0 top-0"
             >
-              <p className="text-[16px] font-medium leading-snug text-apple-ink dark:text-white sm:text-[17px]">
+              <p className="text-center text-[13px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
                 {caption}
-              </p>
-              <p className="mt-0.5 text-[13px] leading-snug text-apple-ink-muted dark:text-white/50 sm:text-[16px]">
-                {captionSub}
               </p>
             </motion.div>
           </AnimatePresence>

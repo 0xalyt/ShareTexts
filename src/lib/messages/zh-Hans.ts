@@ -507,6 +507,7 @@ const zh: Dict = {
   'space.title': '临时空间',
   'space.entryTitle': '临时空间',
   'space.entryHint': '文件和文字最多保留 7 天',
+  'space.retention': '7 天',
   'space.joinTitle': '加入空间',
   'space.reopen': '打开',
   'space.createTitle': '新空间',

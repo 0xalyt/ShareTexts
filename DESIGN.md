@@ -277,6 +277,28 @@ softened.
   (cap 200), with the line "Stored on this device only." and a Clear history
   action in Settings.
 
+### 20e. Front door: one label per idea (2026-11)
+
+The landing is judged against Linear's site and Apple Notes: a screen that
+needs a subtitle to explain itself is a layout problem, not a copy problem.
+What that removed, and what to keep out:
+
+- **No eyebrows.** "What it does" sat above "Three things it does." — the same
+  sentence twice, in two sizes. A section heading is its own label.
+- **No hint pairs.** Every primary button used to carry a second line under it
+  (Send → "Create a room", Receive → "Join with a code"). The verb already
+  says it; if it doesn't, the empty room says it better, at the moment it
+  matters.
+- **No row subtitles that describe the row.** A list row states a fact, not a
+  sentence: Temporary Space carries `7 days` in its trailing slot, and Nearby
+  shows a live status or nothing at all.
+- **No tagline under a picture.** The hero demo's second caption line ("It goes
+  straight across. / Device to device when it can be.") restated the frame it
+  sat under. The state word is the caption.
+- The hero demo stage is as tall as its taller object: a stage taller than the
+  devices leaves a white band under the laptop, which is the empty corner the
+  framing rules forbid.
+
 ### 20f. Share card (owner's artwork — do not redesign)
 
 The link preview **is the owner's file**. They attached a 1200×630 JPEG — the

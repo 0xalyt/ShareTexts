@@ -508,6 +508,7 @@ const de: Dict = {
   'space.title': 'Temporärer Bereich',
   'space.entryTitle': 'Temporärer Bereich',
   'space.entryHint': 'Dateien und Texte bis zu 7 Tage aufbewahren',
+  'space.retention': '7 Tage',
   'space.joinTitle': 'Einem Space beitreten',
   'space.reopen': 'Öffnen',
   'space.createTitle': 'Neuer Bereich',

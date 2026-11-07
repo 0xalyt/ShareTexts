@@ -507,6 +507,7 @@ const ja: Dict = {
   'space.title': 'テンポラリースペース',
   'space.entryTitle': 'テンポラリースペース',
   'space.entryHint': 'ファイルやテキストを最大7日間保管',
+  'space.retention': '7日',
   'space.joinTitle': 'スペースに参加',
   'space.reopen': '開く',
   'space.createTitle': '新しいスペース',

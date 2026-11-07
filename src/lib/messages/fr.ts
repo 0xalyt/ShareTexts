@@ -508,6 +508,7 @@ const fr: Dict = {
   'space.title': 'Espace temporaire',
   'space.entryTitle': 'Espace temporaire',
   'space.entryHint': 'Gardez fichiers et textes jusqu’à 7 jours',
+  'space.retention': '7 jours',
   'space.joinTitle': 'Rejoindre un espace',
   'space.reopen': 'Ouvrir',
   'space.createTitle': 'Nouvel espace',

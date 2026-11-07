@@ -10,6 +10,7 @@ coverage/
 
 # AI agent skill tooling (installed per-dev via `npx skills add`)
 .agents/
+.claude/skills/
 skills-lock.json
 
 shots/

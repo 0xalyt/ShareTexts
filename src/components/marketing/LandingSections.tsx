@@ -61,11 +61,14 @@ function Reveal({ children, className }: {
   );
 }
 
-function SectionHead({ eyebrow, heading, id }: { eyebrow: string; heading: string; id?: string }) {
+/* No eyebrow. A section's heading is its own label; "What it does" over
+ * "Three things it does." said the same thing twice in two sizes, and it is
+ * the kind of second label that makes a page feel annotated rather than
+ * designed. The heading alone carries the rank. */
+function SectionHead({ heading, id }: { heading: string; id?: string }) {
   return (
     <div className="mb-7 max-w-[560px]">
-      <span className="st-eyebrow">{eyebrow}</span>
-      <h2 id={id} className="st-h2 mt-2 text-apple-ink dark:text-white">
+      <h2 id={id} className="st-h2 text-apple-ink dark:text-white">
         {heading}
       </h2>
     </div>
@@ -84,11 +87,7 @@ export function ThreeThings() {
   const { t } = useI18n();
   return (
     <section aria-labelledby="how-title" className="w-full pt-14 pb-10">
-      <SectionHead
-        id="how-title"
-        eyebrow={t('home.three.eyebrow')}
-        heading={t('home.three.heading')}
-      />
+      <SectionHead id="how-title" heading={t('home.three.heading')} />
       {/* Three rows, not three cards: a hairline above each story holds the
           sequence together without boxing the product recording in. */}
       <ul className="flex flex-col gap-10">
@@ -143,11 +142,7 @@ export function SmallThings() {
   const { t } = useI18n();
   return (
     <section aria-labelledby="features-title" className="w-full py-10">
-      <SectionHead
-        id="features-title"
-        eyebrow={t('home.small.eyebrow')}
-        heading={t('home.small.heading')}
-      />
+      <SectionHead id="features-title" heading={t('home.small.heading')} />
       <ul className="grid grid-cols-2 gap-x-6 gap-y-0 sm:grid-cols-4">
         {SMALL.map(({ key, Icon }) => (
           <motion.li key={key} {...revealItem} className="flex items-start gap-2.5 border-t border-black/[0.10] py-4 dark:border-white/[0.14]">
@@ -185,7 +180,7 @@ export function LandingFaq() {
   ];
   return (
     <section aria-labelledby="faq-title" className="w-full py-10">
-      <SectionHead eyebrow={t('home.faq.eyebrow')} heading={t('home.faq.heading')} id="faq-title" />
+      <SectionHead heading={t('home.faq.heading')} id="faq-title" />
       <FaqSection items={items} defaultOpen={null} hideLabel className="max-w-[720px]" />
       <a
         href="/docs"

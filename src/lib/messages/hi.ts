@@ -507,6 +507,7 @@ const hi: Dict = {
   'space.title': 'अस्थायी स्पेस',
   'space.entryTitle': 'अस्थायी स्पेस',
   'space.entryHint': 'फ़ाइलें और टेक्स्ट 7 दिन तक रखें',
+  'space.retention': '7 दिन',
   'space.joinTitle': 'स्पेस में शामिल हों',
   'space.reopen': 'खोलें',
   'space.createTitle': 'नया स्पेस',

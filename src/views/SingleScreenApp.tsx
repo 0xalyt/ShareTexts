@@ -1125,17 +1125,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   52px targets still sit at a comfortable thumb width); on a
                   narrower phone they stack, because at 390 two 175px halves
                   read as a segmented control instead of two separate choices. */}
-              <div className="order-3 mt-5 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 min-[420px]:gap-y-1 sm:mx-0">
-                <div className="flex flex-col items-center gap-1.5 min-w-0">
-                  <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
-                  <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70">{t('home.sendHint')}</span>
-                </div>
-                <div className="flex flex-col items-center gap-1.5 min-w-0">
-                  {/* One filled primary and one quiet surface keep the two
-                      equally valid actions distinct at a glance. */}
-                  <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
-                  <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70">{t('home.receiveHint')}</span>
-                </div>
+              <div className="order-3 mt-5 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 sm:mx-0">
+                <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
+                {/* One filled primary and one quiet surface keep the two
+                    equally valid actions distinct at a glance. */}
+                <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
               </div>
               {/* Stay Connected re-entry: the room this device promised to
                   keep alive is one tap away — history included. Only shown
@@ -1240,7 +1234,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <div className="order-7 mt-6 flex w-full flex-col" data-testid="home-rows">
                 <ListRow
                   title={t('nearby.title')}
-                  subtitle={nearbyStatus || t('nearby.hint')}
+                  subtitle={nearbyStatus || undefined}
                   leading={(
                     <span className="relative flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
                       <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/35" />
@@ -1250,9 +1244,15 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }}
                   testId="home-nearby"
                 />
+                {/* Retention is a fact, not a sentence: it sits in the
+                    trailing slot, so the row reads in one glance. */}
                 <ListRow
                   title={t('space.entryTitle')}
-                  subtitle={t('space.entryHint')}
+                  trailing={(
+                    <span className="text-[13px] font-medium tabular-nums text-apple-ink-muted dark:text-white/45">
+                      {t('space.retention')}
+                    </span>
+                  )}
                   leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
                   onClick={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('choose'); }}
                   testId="home-space"
