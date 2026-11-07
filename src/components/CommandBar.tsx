@@ -405,9 +405,9 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
                     role="combobox"
                     aria-expanded="true"
                     aria-controls="commandbar-list"
-                    className="w-full bg-transparent py-4 text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/50 dark:placeholder:text-white/25 outline-none"
+                    className="w-full bg-transparent py-4 text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/25 outline-none"
                   />
-                  <kbd className="shrink-0 px-1.5 py-0.5 rounded-[6px] border border-black/[0.08] dark:border-white/[0.09] text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/35">Esc</kbd>
+                  <kbd className="shrink-0 px-1.5 py-0.5 rounded-[8px] border border-black/[0.08] dark:border-white/[0.09] text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/35">Esc</kbd>
                 </div>
                 <div id="commandbar-list" role="listbox" ref={cmdListRef} className="st-scroll-fade-y max-h-[46vh] overflow-y-auto p-2">
                   {filtered.length === 0 && (
@@ -431,11 +431,11 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
                               'w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-[16px] text-left transition-colors duration-100',
                               active
                                 ? 'bg-ember/[0.08] dark:bg-ember/[0.13] text-apple-ink dark:text-white font-medium'
-                                : 'text-apple-ink/85 dark:text-white/80 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+                                : 'text-apple-ink/80 dark:text-white/80 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
                             )}
                           >
                             <span className={cn(
-                              'flex items-center justify-center w-8 h-8 rounded-[10px] shrink-0 transition-colors',
+                              'flex items-center justify-center w-8 h-8 rounded-[12px] shrink-0 transition-colors',
                               active
                                 ? 'bg-ember/[0.12] dark:bg-ember/[0.2] text-ember dark:text-azure-400'
                                 : 'bg-black/[0.045] dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/55'
@@ -446,7 +446,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
                             {cmd.hint && (
                               <span className="shrink-0 text-[12px] text-apple-ink-muted/60 dark:text-white/30">{cmd.hint}</span>
                             )}
-                            {cmd.opensSub && <ChevronLeft className="w-3.5 h-3.5 rotate-180 text-apple-ink-muted/50 dark:text-white/30" />}
+                            {cmd.opensSub && <ChevronLeft className="w-3.5 h-3.5 rotate-180 text-apple-ink-muted/60 dark:text-white/30" />}
                           </button>
                         );
                       })}
@@ -482,7 +482,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
   const inState = connMachine.msInState();
   const history = connMachine.transitions();
   const row = (k: string, v: React.ReactNode) => (
-    <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-[10px] bg-black/[0.02] dark:bg-white/[0.04]">
+    <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-[12px] bg-black/[0.02] dark:bg-white/[0.04]">
       <span className="text-[12px] text-apple-ink-muted dark:text-white/45">{k}</span>
       <span className="text-[12px] font-medium text-apple-ink dark:text-white/85 text-right tnum">{v}</span>
     </div>
@@ -595,7 +595,7 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
         ) : (
           <ul className="flex flex-col gap-1.5" aria-label={t('command.transferStats')}>
             {[...recent].reverse().slice(0, 12).map((r: TransferRecord) => (
-              <li key={r.transferId + r.startedAt} className="flex items-center gap-2.5 px-3 py-2 rounded-[10px] bg-black/[0.02] dark:bg-white/[0.04]">
+              <li key={r.transferId + r.startedAt} className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] bg-black/[0.02] dark:bg-white/[0.04]">
                 <span className={cn(
                   'w-1.5 h-1.5 rounded-full shrink-0',
                   r.outcome === 'ok' ? 'bg-status-success' : r.outcome === 'cancelled' ? 'bg-apple-ink-muted/50' : 'bg-status-danger'

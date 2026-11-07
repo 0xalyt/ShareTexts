@@ -44,7 +44,7 @@ export function DataFlow({ className }: { className?: string }) {
       <div className="flex items-baseline gap-3 mb-5">
         <h2
           id="flow-title"
-          className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
+          className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
         >
           How a transfer works
         </h2>
@@ -106,7 +106,7 @@ export function DataFlow({ className }: { className?: string }) {
 
       {/* The server, deliberately below the wire and visibly smaller. */}
       <div className="mt-4 flex items-center justify-center gap-3 text-center">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-black/[0.045] text-apple-ink-muted dark:bg-white/[0.06] dark:text-white/40">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-black/[0.045] text-apple-ink-muted dark:bg-white/[0.06] dark:text-white/40">
           <Server className="h-4 w-4" aria-hidden />
         </span>
         <p className="max-w-[420px] text-left text-[12px] leading-snug text-apple-ink-muted dark:text-white/50">

@@ -100,6 +100,7 @@ const ja: Dict = {
   'create.title': 'もう一方のデバイスを接続しましょう。',
   'send.title': '送信',
   'send.subtitle': 'もう一方の端末で ShareTexts を開き、受信をタップします。',
+  'link.dead': 'このリンクは無効になりました。新しいリンクを依頼してください。',
   'send.roomCode': 'ルームコード',
   'send.validFor': '残り {t}',
   'send.expired': 'コードの期限切れ',

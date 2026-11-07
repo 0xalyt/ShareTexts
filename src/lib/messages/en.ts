@@ -175,6 +175,7 @@ const en = {
   'create.title': 'Connect your other device.',
   'send.title': "Send",
   'send.subtitle': "Open ShareTexts on your other device and tap Receive.",
+  'link.dead': 'That link isn’t active anymore. Ask for a fresh one.',
   'send.roomCode': "Room code",
   'send.validFor': "Valid for {t}",
   'send.expired': "Code expired",

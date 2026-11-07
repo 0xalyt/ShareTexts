@@ -294,7 +294,7 @@ export function HeroDeviceDemo({
               stroke="currentColor"
               strokeWidth={1.5}
               strokeLinecap="round"
-              className="text-apple-ink/15 dark:text-white/20"
+              className="text-apple-ink/40 dark:text-white/20"
               initial={false}
               animate={{ pathLength: linked ? 1 : 0 }}
               transition={{ duration: 0.8, ease: EASE }}
@@ -343,7 +343,7 @@ export function HeroDeviceDemo({
           >
             <div className="-translate-x-1/2 -translate-y-1/2">
               <div className="flex items-center gap-[5px] rounded-[8px] border border-apple-divider/70 bg-white/95 py-[4px] pl-[4px] pr-[7px] shadow-[0_8px_20px_-8px_rgba(20,16,10,0.5)] dark:border-white/[0.09] dark:bg-night-800/95">
-                <span className="flex h-[15px] w-[15px] items-center justify-center rounded-[4px] bg-ember text-[6.5px] font-bold text-white">PDF</span>
+                <span className="flex h-[15px] w-[15px] items-center justify-center rounded-[8px] bg-ember text-[6.5px] font-bold text-white">PDF</span>
                 <span className="text-[8.5px] font-semibold leading-none text-apple-ink dark:text-white">plan.pdf</span>
                 <SpinLoader size={9} className="text-ember" />
               </div>
@@ -632,7 +632,7 @@ function LaptopScreen({
                   transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                   className="flex flex-col items-end gap-[4px]"
                 >
-                  <span className="max-w-[80%] rounded-[10px] rounded-br-[4px] bg-ember px-[9px] py-[6px] text-[12px] leading-snug text-white shadow-[0_2px_6px_-2px_rgba(240,100,19,0.5)]">
+                  <span className="max-w-[80%] rounded-[12px] rounded-br-[4px] bg-ember px-[9px] py-[6px] text-[12px] leading-snug text-white shadow-[0_2px_6px_-2px_rgba(240,100,19,0.5)]">
                     {note}
                   </span>
                   <FileChip arrived={arrived} />
@@ -767,7 +767,7 @@ function PhoneScreen({
                       initial={{ opacity: 0, y: 9, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                      className="max-w-[86%] self-start rounded-[10px] rounded-bl-[4px] bg-white px-[7px] py-[5px] text-[8.5px] leading-snug text-apple-ink shadow-[0_1px_3px_rgba(20,16,10,0.07)] dark:bg-white/[0.08] dark:text-white"
+                      className="max-w-[86%] self-start rounded-[12px] rounded-bl-[4px] bg-white px-[7px] py-[5px] text-[8.5px] leading-snug text-apple-ink shadow-[0_1px_3px_rgba(20,16,10,0.07)] dark:bg-white/[0.08] dark:text-white"
                     >
                       {t('demo.note')}
                     </motion.span>
@@ -830,13 +830,13 @@ function FileChip({
         'flex items-center gap-[5px] shadow-[0_2px_6px_-2px_rgba(20,16,10,0.28)]',
         out ? 'bg-ember text-white' : 'bg-white text-apple-ink dark:bg-white/[0.08] dark:text-white',
         compact
-          ? 'rounded-[10px] rounded-bl-[4px] px-[6px] py-[4px]'
-          : 'rounded-[10px] rounded-br-[4px] px-[8px] py-[5px]',
+          ? 'rounded-[12px] rounded-bl-[4px] px-[6px] py-[4px]'
+          : 'rounded-[12px] rounded-br-[4px] px-[8px] py-[5px]',
       )}
     >
       <span
         className={cn(
-          'flex items-center justify-center rounded-[4px] font-bold leading-none',
+          'flex items-center justify-center rounded-[8px] font-bold leading-none',
           compact ? 'h-[13px] w-[13px] text-[5.5px]' : 'h-[14px] w-[14px] text-[6px]',
           out ? 'bg-white/25' : 'bg-ember/12 text-ember',
         )}

@@ -73,7 +73,7 @@ export function SiteFooter({ className }: { className?: string }) {
             {/* The brand lockup, linked home — same ember mark + themed
                 wordmark as every other header, never a cream night swap. */}
             <BrandLockup className="w-fit" />
-            <p className="mt-4 max-w-[34ch] text-[14px] leading-[1.55] text-apple-ink-muted dark:text-white/60">
+            <p className="mt-4 max-w-[34ch] text-[13px] leading-[1.55] text-apple-ink-muted dark:text-white/60">
               {t('home.subtitle')}
             </p>
             {/* AA floors in BOTH themes: muted/80 (3.75:1) and white/40
@@ -94,7 +94,7 @@ export function SiteFooter({ className }: { className?: string }) {
                     <a
                       href={link.href}
                       {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      className="group inline-flex min-h-[44px] items-center text-[14px] font-medium text-apple-ink/80 hover:text-ember dark:text-white/70 dark:hover:text-azure-400 transition-colors"
+                      className="group inline-flex min-h-[44px] items-center text-[13px] font-medium text-apple-ink/80 hover:text-ember dark:text-white/70 dark:hover:text-azure-400 transition-colors"
                     >
                       {/* The underline grows from the left on hover — the
                           quiet affordance an Apple footer uses instead of

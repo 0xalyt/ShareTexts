@@ -93,10 +93,10 @@ export function ReceiveScreen({
       data-testid="receive-screen"
     >
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
-        <h2 className="text-[32px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
+        <h2 className="text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
           {t('receive.titleShort')}
         </h2>
-        <p className="mt-2 text-[15px] leading-snug text-apple-ink-muted dark:text-white/70 [@media(max-height:520px)]:mt-0.5 [@media(max-height:520px)]:text-[12px]">
+        <p className="mt-2 text-[16px] leading-snug text-apple-ink-muted dark:text-white/70 [@media(max-height:520px)]:mt-0.5 [@media(max-height:520px)]:text-[12px]">
           {t('receive.subtitle')}
         </p>
 

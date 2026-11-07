@@ -353,3 +353,70 @@ The budget in §13 is still the target. This section is what a gate can hold.
 - **Every lazy chunk reserves its height.** Loading later is a bandwidth
   decision; it must not become a layout shift (CLS stays ≤0.05, and the
   landing measured 0.000 after §20a).
+
+## 22. The ladder (v1.8) — tokens, not one-offs
+
+The system in `src/index.css` was already right; the components were not using
+it. A launch audit found 18 type sizes, 9 radii and 8 ink opacities in the app,
+most of them typed by hand. This section is the contract, and the audit number
+next to each line is the drift it closed.
+
+### Type — one ramp, eight steps
+
+| Step | Size | Used for |
+|---|---|---|
+| `st-display` | clamp 34→46 | the page headline, one per page |
+| title | 34 | section and route titles |
+| heading | 22 | sub-sections |
+| subhead | 17 | the hero's supporting line, docs lede |
+| body | 16 | body copy, row titles, controls |
+| ui | 13 | labels, meta, buttons in dense surfaces |
+| meta | 12 | uppercase group labels, captions |
+| micro | 9 | the floor for information that is not inside a device mock |
+
+15px and 14px were collapsed to 16 and 13; 32 to 34. Anything outside this
+table is a defect, with one exception below.
+
+### Radii — five shapes
+
+`8` chip/inline · `12` control/row · `16` card · `20` sheet · `24` display
+card · `full` pill. The 4px and 10px hand values are gone. `14` survives only
+as the device frame, because a phone's corner is drawn, not styled.
+
+### Elevation — three levels
+
+`--st-elev-flat` (border or tone only) · `--st-elev-raised` (a card you can act
+on) · `--st-elev-floating` (a surface above the page). A fourth level is not
+allowed and nothing rests at floating.
+
+### Ink — four opacities
+
+`/40` disabled · `/60` muted · `/70` secondary · `/80` near-ink. 50, 75, 85,
+90 and 15 were collapsed onto these. Tint alphas for *fills* (`/10`, `/25`,
+`/35`) are a separate scale and are not affected.
+
+### The mock exemption
+
+Text inside `HeroDeviceDemo` renders at 7–9px. It is a picture of a phone at
+1:1, not UI: it is `aria-hidden`, never zoomable, and a 9px label in a 1:1
+mockup is a texture, not a sentence. It is therefore exempt from the ramp and
+from the 4.5:1 floor — and it must stay faithful to the real CTA it depicts
+rather than being recoloured for a contrast number nobody reads at that size.
+
+### The rule
+
+If a number appears twice in a component, it belongs in `@theme`. If it appears
+once, ask whether it is a drawing.
+
+### States, one pass later
+
+- Every button sinks: `active:scale-[0.99]` on rows and links, the full key
+  press on the primaries. Press feedback is not opt-in per component.
+- The 404 is an `h1`: a document that starts at `h2` has no title in a screen
+  reader's heading list. `/docs`, `/privacy` and `/terms` already had theirs.
+- A dead `/s/<code>` says so. It used to fall through to the marketing page
+  with no explanation; it now states that the link is inactive and how to get a
+  new one, in the reader's language.
+- Menu rows all carry one leading glyph and one trailing affordance. The
+  language row used to show a leading icon *and* the menu's own globe.
+- `aria-expanded` follows the sheet it opens.

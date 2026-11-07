@@ -198,7 +198,7 @@ export function Legal({ page }: { page: LegalPage }) {
       {/* Long-form content is English-only; lang="en" keeps a screen reader
           from reading it with the voice of the surrounding app language. */}
       <div lang="en" className="max-w-2xl mx-auto px-6 py-10 sm:py-14">
-        <h1 className="st-display text-[32px] text-apple-ink dark:text-white mb-2">
+        <h1 className="st-display text-[34px] text-apple-ink dark:text-white mb-2">
           {title}
         </h1>
         <p className="text-[16px] text-apple-ink-muted/80 dark:text-white/40 mb-9">

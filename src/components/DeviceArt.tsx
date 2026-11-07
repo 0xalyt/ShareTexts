@@ -94,7 +94,7 @@ export function DeviceArt({ kind, model, gpu, size = 56, mark = true, pulse = fa
           style={{ borderColor: accent ? `${accent}66` : undefined }}
         />
       )}
-      <svg width={svg} height={svg} viewBox="0 0 48 48" fill="none" className="text-apple-ink/75 dark:text-white/75">
+      <svg width={svg} height={svg} viewBox="0 0 48 48" fill="none" className="text-apple-ink/70 dark:text-white/75">
         {kind === 'phone' && (
           <>
             <rect x="15" y="4" width="18" height="40" rx="5" stroke={stroke} strokeWidth="2.4" />
@@ -125,7 +125,7 @@ export function DeviceArt({ kind, model, gpu, size = 56, mark = true, pulse = fa
       {/* GPU vendor badge — desktops only, only when the browser TOLD us. */}
       {kind === 'desktop' && gpu && size >= 48 && (
         <span
-          className={`absolute -bottom-1.5 -right-1.5 px-1.5 h-[15px] min-w-[15px] rounded-[4px] flex items-center justify-center text-[8.5px] font-extrabold tracking-wide ${VENDOR_STYLE[gpu] ?? VENDOR_STYLE.Apple}`}
+          className={`absolute -bottom-1.5 -right-1.5 px-1.5 h-[15px] min-w-[15px] rounded-[8px] flex items-center justify-center text-[8.5px] font-extrabold tracking-wide ${VENDOR_STYLE[gpu] ?? VENDOR_STYLE.Apple}`}
         >
           {gpu === 'Intel' ? 'i' : gpu.charAt(0)}
         </span>

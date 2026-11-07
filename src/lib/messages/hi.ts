@@ -100,6 +100,7 @@ const hi: Dict = {
   'create.title': 'अपना दूसरा डिवाइस कनेक्ट करें।',
   'send.title': 'भेजें',
   'send.subtitle': 'दूसरे डिवाइस पर ShareTexts खोलें और प्राप्त करें दबाएँ।',
+  'link.dead': 'यह लिंक अब सक्रिय नहीं है। नया लिंक माँगें।',
   'send.roomCode': 'रूम कोड',
   'send.validFor': '{t} तक मान्य',
   'send.expired': 'कोड की समय-सीमा खत्म',

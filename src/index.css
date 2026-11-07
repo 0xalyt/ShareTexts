@@ -180,6 +180,17 @@
   --st-tone-raised: #ffffff;    /* light: card on grouped grey        */
   --st-tone-chrome: #f5f5f7;    /* light: page-level band             */
 
+  /* ── Type ramp (§22) — eight steps, nothing between them.
+     Components used to hand-type 26 sizes; this is the ladder they now
+     resolve to. `text-[15px]` and `text-[14px]` were the two busiest strays. */
+  --text-micro: 9px;   /* floor outside device mocks                    */
+  --text-meta: 12px;   /* uppercase group labels, captions             */
+  --text-ui: 13px;     /* dense labels, row meta                       */
+  --text-body: 16px;   /* body copy, row titles, controls              */
+  --text-subhead: 17px;/* hero support line, ledes                     */
+  --text-heading: 22px;/* sub-sections                                 */
+  --text-title: 34px;  /* route and section titles                     */
+
   --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 16px;

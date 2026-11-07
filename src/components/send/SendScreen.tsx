@@ -211,7 +211,7 @@ export function SendScreen({
           {expired ? (
             <button
               onClick={onNewCode}
-              className="press mt-3 w-full min-h-[44px] rounded-[14px] bg-[#f06413] text-white text-[16px] font-semibold [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:min-h-[34px] [@media(max-height:520px)]:text-[14px]"
+              className="press mt-3 w-full min-h-[44px] rounded-[14px] bg-[#f06413] text-white text-[16px] font-semibold [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:min-h-[34px] [@media(max-height:520px)]:text-[13px]"
               data-testid="new-code"
             >
               {t('send.newCode')}
@@ -220,7 +220,7 @@ export function SendScreen({
             <button
               onClick={handleCopy}
               disabled={!code}
-              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[14px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[15px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[14px]"
+              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[14px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[13px]"
               data-testid="copy-code"
             >
               {justCopied ? <Check className="w-4 h-4 text-status-success" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />}
@@ -243,13 +243,13 @@ export function SendScreen({
         <div key="link" className="animate-[st-fade-in_var(--st-t-mode)_var(--st-ease-enter)_both]">
           <div className="flex items-center gap-3 rounded-2xl bg-apple-parchment dark:bg-apple-tile-1 px-4 py-3.5 min-h-[52px]">
             <Link2 className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/70" aria-hidden />
-            <p className="min-w-0 flex-1 truncate text-[15px] text-apple-ink dark:text-white" title={shareUrl}>
+            <p className="min-w-0 flex-1 truncate text-[16px] text-apple-ink dark:text-white" title={shareUrl}>
               {shareUrl}
             </p>
           </div>
           <button
             onClick={onShareLink}
-            className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[14px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[15px] font-semibold text-apple-ink dark:text-white"
+            className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[14px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white"
             data-testid="share-link"
           >
             {linkCopied ? <Check className="w-4 h-4 text-status-success" aria-hidden /> : <Share2 className="w-4 h-4" aria-hidden />}
@@ -263,15 +263,19 @@ export function SendScreen({
   return (
     <div className="w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
-      <h2 className="text-[32px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
+      <h2 className="text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
         {t('send.title')}
       </h2>
-      <p className="mt-2 text-[15px] leading-snug text-apple-ink-muted dark:text-white/70 [@media(max-height:520px)]:mt-0.5 [@media(max-height:520px)]:text-[12px]">{t('send.subtitle')}</p>
+      {/* No helper sentence here. This screen used to open with "Open
+          ShareTexts on your other device and tap Receive." — a tutorial line
+          above a control that already says what to do. The room is complete
+          without it: the code IS the instruction, and the three tabs are the
+          three ways to hand it over. Empty states state, they don't teach. */}
 
       {isCreating && !secret ? (
         <div className="flex flex-col items-center py-12" aria-live="polite">
           <span aria-hidden className="w-2 h-2 rounded-full bg-ember animate-pulse" />
-          <p className="mt-3 text-[15px] font-medium text-apple-ink-muted dark:text-white/70">{t('create.creating')}</p>
+          <p className="mt-3 text-[16px] font-medium text-apple-ink-muted dark:text-white/70">{t('create.creating')}</p>
         </div>
       ) : (
         <>
@@ -303,10 +307,10 @@ export function SendScreen({
             >
               <WifiOff className="mt-0.5 w-4 h-4 shrink-0 text-status-danger-ink dark:text-status-danger-ink-dark" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="text-[14px] leading-snug text-apple-ink dark:text-white/85">{shownError.text}</p>
+                <p className="text-[13px] leading-snug text-apple-ink dark:text-white/85">{shownError.text}</p>
                 <button
                   onClick={onRetry}
-                  className="press mt-2 min-h-[36px] text-[14px] font-semibold text-[#c2410c] dark:text-[#ffb340] underline underline-offset-2"
+                  className="press mt-2 min-h-[36px] text-[13px] font-semibold text-[#c2410c] dark:text-[#ffb340] underline underline-offset-2"
                   data-testid="send-retry"
                 >
                   {t('common.tryAgain')}

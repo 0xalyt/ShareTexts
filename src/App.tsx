@@ -183,7 +183,7 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
         <div className="w-[76px] h-[76px] rounded-[24px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)] flex items-center justify-center mb-7">
           <ShareTextsLogo size={36} motion="connecting" className="opacity-90" />
         </div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-2.5">Something went wrong</h2>
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-2.5">Something went wrong</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 max-w-sm mb-8 leading-relaxed">
           ShareTexts couldn't load properly. Your data is safe — nothing was lost.
         </p>
@@ -300,7 +300,10 @@ function AppContent() {
               number in the heading already says 404 — a second badge would be
               the same fact twice. */}
           <SceneNotFound size={140} className="mb-7 text-apple-ink dark:text-white" />
-          <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-2.5">{t('app.404.title')}</h2>
+          {/* h1, not h2: this is the page's only heading, and a document that
+              starts at h2 has no accessible title for a screen reader's
+              heading list. Size is unchanged — the tag is the semantics. */}
+          <h1 className="st-display text-[34px] text-apple-ink dark:text-white mb-2.5">{t('app.404.title')}</h1>
           <p className="text-[16px] text-apple-ink-muted dark:text-white/60 max-w-sm mb-8 leading-relaxed">{t('app.404.body')}</p>
           <div className="flex items-center gap-3 flex-wrap justify-center">
             <TactileButton onClick={() => { window.location.href = '/'; }} variant="primary" size="lg">{t('app.404.cta')}</TactileButton>

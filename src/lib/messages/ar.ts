@@ -100,6 +100,7 @@ const ar: Dict = {
   'create.title': 'اربط جهازك الآخر.',
   'send.title': 'إرسال',
   'send.subtitle': 'افتح ShareTexts على الجهاز الآخر واضغط استقبال.',
+  'link.dead': 'هذا الرابط لم يعد صالحًا. اطلب رابطًا جديدًا.',
   'send.roomCode': 'رمز الغرفة',
   'send.validFor': 'صالح {t}',
   'send.expired': 'انتهت صلاحية الرمز',

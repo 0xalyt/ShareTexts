@@ -45,7 +45,7 @@ export function AnnotatedHint({ children, note, className, noteClassName }: Anno
         onBlur={() => setOpen(false)}
         onClick={() => setOpen(o => !o)}
         onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }}
-        className="inline-flex items-center underline decoration-dotted decoration-[1.5px] underline-offset-[3px] cursor-help outline-none focus-visible:ring-2 focus-visible:ring-azure-500/50 rounded-[4px]"
+        className="inline-flex items-center underline decoration-dotted decoration-[1.5px] underline-offset-[3px] cursor-help outline-none focus-visible:ring-2 focus-visible:ring-azure-500/50 rounded-[8px]"
       >
         {children}
       </span>

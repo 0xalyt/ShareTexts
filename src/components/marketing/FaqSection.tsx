@@ -56,7 +56,7 @@ export function FaqSection({
         <div className="mb-5 flex items-baseline gap-3">
           <h2
             id="faq-title"
-            className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/75 dark:text-white/40"
+            className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
           >
             Questions
           </h2>

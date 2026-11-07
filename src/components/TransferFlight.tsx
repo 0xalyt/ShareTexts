@@ -62,10 +62,10 @@ function ProgressRing({ progress }: { progress: number }) {
   const p = Math.min(1, Math.max(0, progress));
   const deg = Math.round(p * 360);
   return (
-    <span aria-hidden className="absolute -inset-[3px] rounded-[10px] pointer-events-none">
+    <span aria-hidden className="absolute -inset-[3px] rounded-[12px] pointer-events-none">
       {/* base: the not-yet-traveled remainder, whisper-faint */}
       <span
-        className="absolute inset-0 rounded-[10px]"
+        className="absolute inset-0 rounded-[12px]"
         style={{
           background: `conic-gradient(rgba(240,100,19,0.14) 0deg ${deg}deg, rgba(240,100,19,0.05) ${deg}deg 360deg)`,
           WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 2px), black calc(100% - 1.5px))',
@@ -74,7 +74,7 @@ function ProgressRing({ progress }: { progress: number }) {
       />
       {p >= 1 && (
         <span
-          className="absolute inset-0 rounded-[10px]"
+          className="absolute inset-0 rounded-[12px]"
           style={{
             background: 'conic-gradient(var(--color-status-success) 0deg 360deg)',
             WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 2px), black calc(100% - 1.5px))',
@@ -153,7 +153,7 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
           animate={{ opacity: 1, scale: swell }}
           exit={(custom: unknown) => (custom === 'settle' ? 'settle' : 'fade')}
           transition={{ duration: 0.2, ease: EASE_OUT }}
-          className="relative flex items-center gap-2 pl-1.5 pr-3 rounded-[10px] bg-white dark:bg-apple-tile-2 border border-apple-divider dark:border-white/10 shadow-[0_10px_28px_rgba(15,18,32,0.16)]"
+          className="relative flex items-center gap-2 pl-1.5 pr-3 rounded-[12px] bg-white dark:bg-apple-tile-2 border border-apple-divider dark:border-white/10 shadow-[0_10px_28px_rgba(15,18,32,0.16)]"
         >
           <span className="relative w-7 h-7 rounded-[8px] bg-ember/12 dark:bg-azure-400/14 flex items-center justify-center shrink-0">
             <ProgressRing progress={p} />

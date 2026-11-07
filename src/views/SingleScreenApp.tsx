@@ -74,6 +74,7 @@ import {
   ArrowLeft, Info, Pencil, FileUp as Upload,
   RefreshCw as RotateCcw, Settings as SettingsIcon, Clock as Clock3,
   Plus, ChevronRight, File as FileIcon, Bookmark, MoreHorizontal,
+  Search, Compass, ShieldCheck, FileText,
 } from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages } from 'lucide-react';
 import { SpaceCreateSheet, SpaceJoinSheet } from './SpaceView';
@@ -329,10 +330,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     setPanelMode('connecting');
     void joinWithShortCode(code).then((res) => {
       if (!res.success) {
-        // Dead link — back to the landing screen; the user can pair manually.
-        if (session.roomId === null) setPanelMode('idle');
+        // Dead link — say so, then let the landing stand. Silence here was the
+        // bug: the URL answered 404 and the page pretended nothing happened.
+        if (session.roomId === null) { setPanelMode('idle'); setDeadLinkNotice(true); }
       }
-    }).catch(() => { if (session.roomId === null) setPanelMode('idle'); });
+    }).catch(() => { if (session.roomId === null) { setPanelMode('idle'); setDeadLinkNotice(true); } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [window.location.pathname]);
   // Set when the creator deliberately backs out of the connecting screen.
@@ -990,7 +992,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 the hero, so it spends exactly one tap on settings, one on
                 the theme, and nothing else. */}
             <GlassCapsule label={t('nav.more')}>
-              <IconButton3D label={t('nav.more')} onClick={() => setShowMore(true)} testId="header-more">
+              <IconButton3D label={t('nav.more')} onClick={() => setShowMore(true)} testId="header-more" ariaExpanded={showMore} ariaHaspopup="dialog">
                 <MoreHorizontal className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
               </IconButton3D>
             </GlassCapsule>
@@ -1008,6 +1010,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // way out, shown only when the host's browser would actually get in the way.
   // Everything that works stays quiet — this is a door, not a warning.
   const [inAppDismissed, setInAppDismissed] = useState(false);
+  /** A /s/<code> link that resolved to nothing. Its own state, because the
+   *  alternative — silently landing on the marketing page — leaves the person
+   *  who tapped a dead link with no idea what happened. */
+  const [deadLinkNotice, setDeadLinkNotice] = useState(false);
+  /** Current path, for the menu's aria-current marker. Client-rendered, so
+   *  window exists by the time a sheet can open. */
+  const here = typeof window !== 'undefined' ? window.location.pathname : '';
   const inApp = React.useMemo(() => detectInApp(), []);
   const showInAppNotice = inApp.inApp && !inAppDismissed && (inApp.limited || inApp.ios || inApp.android);
 
@@ -1020,6 +1029,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
             <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
+              {deadLinkNotice && (
+                <div
+                  data-testid="dead-link"
+                  role="status"
+                  className="order-0 mb-4 flex items-start gap-3 rounded-[12px] bg-apple-parchment dark:bg-white/[0.06] px-3.5 py-3"
+                >
+                  <span className="text-[13px] font-medium leading-snug text-apple-ink-muted dark:text-white/70">{t('link.dead')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setDeadLinkNotice(false)}
+                    className="press ms-auto shrink-0 min-h-[44px] text-[13px] font-semibold text-ember-ink dark:text-azure-400 underline decoration-ember-ink/30 dark:decoration-azure-400/30 underline-offset-2 motion-reduce:transition-none"
+                  >
+                    {t('common.close')}
+                  </button>
+                </div>
+              )}
               {showInAppNotice && (
                 <div
                   data-testid="inapp-notice"
@@ -1099,7 +1124,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
                 ) : roomsCreated != null ? (
                   <>
-                    <span className="text-[16px] font-bold text-apple-ink/90 dark:text-white/90 tnum leading-none">{fmtNumber(lang, roomsCreated)}</span>
+                    <span className="text-[16px] font-bold text-apple-ink/80 dark:text-white/90 tnum leading-none">{fmtNumber(lang, roomsCreated)}</span>
                     <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.roomsMade')}</span>
                   </>
                 ) : null}
@@ -1113,14 +1138,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   field is a SHORTCUT for one of them, not a third verb. It
                   used to sit above the pair, so the first screen opened with
                   a text box and an "or" — three equally loud invitations and
-                  no stated primary. Now: doors, then "or paste to send". */}
-              <div className="order-5 mt-3 w-full">
-                <IntentField
-                  onCreate={handleIntentCreate}
-                  onJoin={handleIntentJoin}
-                  busy={isCreating || isJoining}
-                />
-              </div>
+                  no stated primary. Now: doors, then "or paste to send".
+                  DOM order matches reading order: this node sits AFTER the
+                  doors. It used to come first and was only pushed down with
+                  flex `order`, so Tab visited "Create room" before Send —
+                  focus order must follow the eye (WCAG 2.4.3). */}
               {/* Two doors, one geometry. Side by side from 420px (where both
                   52px targets still sit at a comfortable thumb width); on a
                   narrower phone they stack, because at 390 two 175px halves
@@ -1130,6 +1152,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* One filled primary and one quiet surface keep the two
                     equally valid actions distinct at a glance. */}
                 <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
+              </div>
+              <div className="order-5 mt-3 w-full">
+                <IntentField
+                  onCreate={handleIntentCreate}
+                  onJoin={handleIntentJoin}
+                  busy={isCreating || isJoining}
+                />
               </div>
               {/* Stay Connected re-entry: the room this device promised to
                   keep alive is one tap away — history included. Only shown
@@ -1393,7 +1422,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* Your device: name row (tap to rename) — the only identity
                   element here; the pair visual lives in the room header. */}
               <div className="flex items-center gap-2.5 mb-5">
-                <span className="flex items-center justify-center w-9 h-9 rounded-[10px] bg-ember/10 dark:bg-azure-400/10 border border-ember/15 dark:border-azure-400/15 shrink-0" aria-hidden>
+                <span className="flex items-center justify-center w-9 h-9 rounded-[12px] bg-ember/10 dark:bg-azure-400/10 border border-ember/15 dark:border-azure-400/15 shrink-0" aria-hidden>
                   <ThisDeviceIcon className="w-4.5 h-4.5 text-ember dark:text-azure-400" />
                 </span>
                 {editingName ? (
@@ -1418,7 +1447,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     className="group min-w-0 flex-1 min-h-[44px] flex items-center gap-1.5 text-left text-[16px] font-semibold text-apple-ink dark:text-white hover:text-apple-ink dark:hover:text-white transition-colors"
                   >
                     <span className="truncate">{session.deviceName}</span>
-                    <Pencil className="w-3 h-3 shrink-0 text-apple-ink-muted/50 dark:text-white/35 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity" />
+                    <Pencil className="w-3 h-3 shrink-0 text-apple-ink-muted/60 dark:text-white/35 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity" />
                   </button>
                 )}
               </div>
@@ -1717,11 +1746,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <ThisDeviceIcon className="w-4 h-4" />
               </span>
               <span className="text-[13px] font-semibold text-apple-ink dark:text-white truncate max-w-[110px]">{session.deviceName}</span>
-              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0 text-apple-ink-muted/50 dark:text-white/30" />
+              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0 text-apple-ink-muted/60 dark:text-white/30" />
               <span className={cn(
                 "relative flex items-center justify-center w-7 h-7 rounded-[8px] shrink-0 transition-colors",
                 session.connectionType === 'disconnected'
-                  ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted/50 dark:text-white/30"
+                  ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted/60 dark:text-white/30"
                   : session.connectionType === 'connecting'
                     ? "bg-status-warning/10 border border-status-warning/25 text-status-warning"
                     : "bg-status-success/10 border border-status-success/20 text-status-success"
@@ -1858,7 +1887,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {[t('room.step.1'), t('room.step.2'), t('room.step.3')].map((step, i) => (
                       <div key={i} className="flex items-center gap-3">
                         <span className="shrink-0 w-7 h-7 rounded-full bg-ember/[0.1] dark:bg-ember/[0.16] text-ember dark:text-azure-400 text-[13px] font-bold flex items-center justify-center">{i + 1}</span>
-                        <span className="text-[16px] font-medium text-apple-ink/85 dark:text-white/65 leading-snug">{step}</span>
+                        <span className="text-[16px] font-medium text-apple-ink/80 dark:text-white/65 leading-snug">{step}</span>
                       </div>
                     ))}
                   </div>
@@ -1908,7 +1937,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {[t('room.step.1'), t('room.step.2'), t('room.step.3')].map((step, i) => (
                       <li key={i} className="flex items-start gap-3">
                         <span className="shrink-0 w-6 h-6 rounded-full bg-ember/[0.12] dark:bg-azure-400/[0.16] text-ember dark:text-azure-400 text-[12px] font-bold flex items-center justify-center mt-px">{i + 1}</span>
-                        <span className="text-[13px] font-medium text-apple-ink/85 dark:text-white/70 leading-snug">{step}</span>
+                        <span className="text-[13px] font-medium text-apple-ink/80 dark:text-white/70 leading-snug">{step}</span>
                       </li>
                     ))}
                   </ol>
@@ -2134,7 +2163,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/50 dark:bg-black/70 flex items-center justify-center p-4" onClick={() => setShowQRScan(false)}>
             <motion.div ref={qrScanTrapRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ type: 'spring', bounce: 0, duration: 0.35 }} onClick={e => e.stopPropagation()} className="w-full max-w-[360px] bg-white dark:bg-surface-dark rounded-[24px] p-6 shadow-2xl relative" role="dialog" aria-modal="true" aria-label={t('receive.scan')}>
               <button onClick={() => setShowQRScan(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors z-10" aria-label={t('common.close')}><X className="w-4 h-4" /></button>
-              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
+              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
               <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.scan.title')}</h3>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/50 mb-4">{t('qr.scan.body')}</p>
               {/* Skeleton, not a text spinner: the lazy camera chunk loads in
@@ -2170,7 +2199,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   close/Esc controls — instruction text can never run under
                   them again. */}
               <button onClick={() => setShowQROverlay(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors" aria-label={t('common.close')}><X className="w-4 h-4" /></button>
-              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
+              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
               <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.display.title')}</p>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/60 mb-4 leading-relaxed">
                 {(() => { const parts = t('qr.display.body', { receive: '\u0000' }).split('\u0000'); return (<>{parts[0]}<strong className="text-apple-ink dark:text-white">{t('qr.display.receive')}</strong>{parts[1]}</>); })()}
@@ -2219,23 +2248,30 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           same rows on a desktop popover-sized sheet; every destination the
           capsule can't hold without becoming a toolbar. */}
       <OverlaySheet open={showMore} onClose={() => setShowMore(false)} label={t('nav.more')} maxWidth={400} testId="more-sheet">
-        <div className="flex flex-col">
+        {/* The sheet's close button floats at the top-right, over whatever the
+            first row puts there. A top inset on a phone gives it its own band
+            (desktop centres the dialog, where the button sits outside the list). */}
+        <div className="flex flex-col pt-9 sm:pt-0">
           <ListRow title={t('nav.saved')} leading={<Bookmark className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setShowSaved(true); }} testId="more-saved" />
-          <ListRow title={t('nav.search')} leading={<Info className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setCmdOpen(true); }} testId="more-search" />
-          <ListRow title={t('nav.docs')} href="/docs" leading={<BookOpen className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
-          <ListRow title={t('nav.guides')} href="/guides" />
-          <ListRow title={t('nav.about')} href="/about" />
-          <ListRow title={t('nav.privacy')} href="/privacy" />
-          <ListRow title={t('nav.terms')} href="/terms" />
+          <ListRow title={t('nav.search')} leading={<Search className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setCmdOpen(true); }} testId="more-search" />
+          {/* aria-current marks where you already are, so the menu answers
+              "which page is this?" without a visual badge. */}
+          <ListRow title={t('nav.docs')} href="/docs" current={here === '/docs'} leading={<BookOpen className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
+          <ListRow title={t('nav.guides')} href="/guides" current={here === '/guides'} leading={<Compass className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
+          <ListRow title={t('nav.about')} href="/about" current={here === '/about'} leading={<Info className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
+          <ListRow title={t('nav.privacy')} href="/privacy" current={here === '/privacy'} leading={<ShieldCheck className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
+          <ListRow title={t('nav.terms')} href="/terms" current={here === '/terms'} leading={<FileText className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
           {/* Language lives here on a phone (§18 header budget): the row keeps
               the same 52px rhythm as its neighbours and the menu opens into
-              the sheet. */}
-          <div className="flex min-h-[52px] items-center gap-3 border-b border-apple-divider/70 px-1 py-2.5 dark:border-white/[0.08]" data-testid="more-language">
+              the sheet. Every row carries ONE leading glyph and one trailing
+              affordance — this row used to show a leading icon AND the
+              menu's own globe, so it read as a different kind of row. */}
+          <div className="flex min-h-[52px] items-center gap-3 border-b border-apple-divider/70 px-1 py-1 dark:border-white/[0.08]" data-testid="more-language">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center text-apple-ink-muted dark:text-white/55">
               <Languages className="h-4 w-4" strokeWidth={1.6} aria-hidden />
             </span>
             <span className="min-w-0 flex-1 text-[16px] font-medium text-apple-ink dark:text-white">{t('settings.language')}</span>
-            <LanguageMenu align="right" />
+            <LanguageMenu align="right" inline />
           </div>
         </div>
       </OverlaySheet>

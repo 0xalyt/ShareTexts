@@ -671,7 +671,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                     type="button"
                     onClick={() => { forgetRecentDevice(r.token); setRecents(getRecentDevices()); }}
                     aria-label={t('nearby.forget')}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-apple-ink-muted/50 dark:text-white/30 hover:text-status-danger hover:bg-status-danger/10 active:scale-90 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-apple-ink-muted/60 dark:text-white/30 hover:text-status-danger hover:bg-status-danger/10 active:scale-90 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>

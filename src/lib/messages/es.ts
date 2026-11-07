@@ -100,6 +100,7 @@ const es: Dict = {
   'create.title': 'Conecta tu otro dispositivo.',
   'send.title': 'Enviar',
   'send.subtitle': 'Abre ShareTexts en el otro dispositivo y toca Recibir.',
+  'link.dead': 'Este enlace ya no está activo. Pide uno nuevo.',
   'send.roomCode': 'Código de sala',
   'send.validFor': 'Válido por {t}',
   'send.expired': 'Código caducado',

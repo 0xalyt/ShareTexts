@@ -12,7 +12,7 @@ import { cn } from '../lib/utils';
  * Keyboard: arrows + Enter, Escape closes. Reduced motion: MotionConfig
  * zeroes the springs globally.
  */
-export function LanguageMenu({ className, align = 'right' }: { className?: string; align?: 'left' | 'right' }) {
+export function LanguageMenu({ className, align = 'right', inline = false }: { className?: string; align?: 'left' | 'right'; inline?: boolean }) {
   const { lang, setLang, t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -72,13 +72,25 @@ export function LanguageMenu({ className, align = 'right' }: { className?: strin
         aria-expanded={open}
         aria-label={t('lang.menu')}
         title={t('lang.menu')}
-        className="press flex items-center justify-center w-11 h-11 rounded-full text-apple-ink/70 hover:text-apple-ink dark:text-white/70 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+        className={inline
+          ? 'press flex min-h-[44px] items-center gap-1.5 pr-2 pl-1 -mr-1 rounded-[12px] text-[13px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/70 dark:hover:text-white transition-colors'
+          : 'press flex items-center justify-center w-11 h-11 rounded-full text-apple-ink/70 hover:text-apple-ink dark:text-white/70 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors'}
       >
-        {/* A globe, drawn at the header's 18px/stroke-1.5 ladder. The lucide
-            `Languages` glyph stacks a CJK character under a Latin one — at
-            18px that collapses into an unreadable blob that looked like a
-            rendering bug in the toolbar. A globe with meridians reads as
-            "language" at a glance and stays crisp at any size. */}
+        {/* Two triggers, one control. Inline (used inside the phone "More"
+            sheet) shows the current language by name plus a chevron, so the
+            row reads as a value, not as a second icon. Standalone is the
+            44px globe for the header capsule. The globe is hand-drawn at the
+            header's 18px/stroke-1.5 ladder: lucide's `Languages` glyph stacks
+            a CJK character under a Latin one, which collapses into a blob at
+            18px and looked like a rendering bug. */}
+        {inline ? (
+          <>
+            <span className="truncate">{LANGS.find(l => l.code === lang)?.native ?? 'English'}</span>
+            <svg viewBox="0 0 24 24" aria-hidden className="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </>
+        ) : (
         <svg
           viewBox="0 0 24 24"
           aria-hidden
@@ -93,6 +105,7 @@ export function LanguageMenu({ className, align = 'right' }: { className?: strin
           <path d="M3.5 12h17" />
           <path d="M12 3.5c2.4 2.3 3.7 5.3 3.7 8.5s-1.3 6.2-3.7 8.5c-2.4-2.3-3.7-5.3-3.7-8.5S9.6 5.8 12 3.5Z" />
         </svg>
+        )}
       </button>
       <AnimatePresence>
         {open && (
@@ -125,7 +138,7 @@ export function LanguageMenu({ className, align = 'right' }: { className?: strin
                     onMouseEnter={() => setKbIdx(i)}
                     lang={l.code}
                     className={cn(
-                      "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-[10px] text-[13px] transition-colors",
+                      "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-[12px] text-[13px] transition-colors",
                       active
                         ? "bg-ember/[0.08] dark:bg-ember/[0.13] text-apple-ink dark:text-white font-semibold"
                         : hovered

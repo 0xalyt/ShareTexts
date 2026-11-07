@@ -153,7 +153,10 @@ export function IntentField({
           data-testid="intent-input"
           placeholder={t('intent.placeholder')}
           className={cn(
-            'min-w-0 flex-1 bg-transparent text-[16px] leading-[26px] font-normal',
+            // 44px floor on the input ITSELF: the surrounding pill was tall
+            // enough, but the field's own box was 26px, so a thumb landing on
+            // the top or bottom edge of the pill hit nothing.
+            'min-w-0 flex-1 self-stretch min-h-[44px] py-[9px] bg-transparent text-[16px] leading-[26px] font-normal',
             'text-apple-ink dark:text-white',
             'placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35',
             'focus:outline-none disabled:opacity-60',
@@ -173,7 +176,7 @@ export function IntentField({
           className={cn(
             'group relative flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-full',
             'sm:w-auto sm:px-4',
-            'text-[14px] font-semibold whitespace-nowrap',
+            'text-[13px] font-semibold whitespace-nowrap',
             'transition-all duration-200 active:scale-[0.96]',
             'disabled:opacity-60 disabled:active:scale-100',
             intent.kind === 'join'

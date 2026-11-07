@@ -84,7 +84,7 @@ function OverviewSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="st-display text-[32px] text-apple-ink dark:text-white mb-1">ShareTexts</h1>
+        <h1 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">ShareTexts</h1>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
           Like AirDrop, but it works between any two devices, even an iPhone and a Windows PC. Send text, photos, or files from a browser. Nothing is kept once the room closes.
         </p>
@@ -130,7 +130,7 @@ function TransferSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-1">How it works</h2>
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">How it works</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60">Three steps. Ten seconds.</p>
       </div>
 
@@ -165,7 +165,7 @@ function PairingSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Pairing & QR</h2>
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Pairing & QR</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           ShareTexts uses a 6-digit pairing code to connect two devices. The code refreshes automatically and expires after a short time for security.
         </p>
@@ -205,7 +205,7 @@ function NearbySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Nearby Devices</h2>
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Nearby Devices</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           Open ShareTexts on another device. If both devices are on the same supported local network, the other device can appear automatically — tap it to start a transfer.
         </p>
@@ -243,7 +243,7 @@ function NearbySection() {
 function TroubleshootingSection() {  return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Troubleshooting</h2>
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Troubleshooting</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           Most issues resolve by checking your internet connection and trying again.
         </p>
@@ -273,7 +273,7 @@ function PrivacySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-1">Privacy & Security</h2>
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">Privacy & Security</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
           Your data moves directly between devices. Nothing stored.
         </p>
@@ -303,7 +303,7 @@ function DevicesSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">Supported Devices</h2>
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Supported Devices</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
           ShareTexts works in any modern browser. No app installation required.
         </p>
@@ -346,7 +346,7 @@ function AgentSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">
           For AI Agents
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -427,7 +427,7 @@ function APISection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">
           API Reference
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -438,7 +438,7 @@ function APISection() {
       <div className="space-y-6">
         <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
-            <span className="px-2 py-0.5 rounded-[4px] bg-green-100 dark:bg-green-900/30 text-[12px] font-semibold text-green-700 dark:text-green-400">POST</span>
+            <span className="px-2 py-0.5 rounded-[8px] bg-green-100 dark:bg-green-900/30 text-[12px] font-semibold text-green-700 dark:text-green-400">POST</span>
             <code className="text-[16px] font-mono text-apple-ink dark:text-white">/api/push</code>
           </div>
           <p className="text-[16px] text-apple-ink-muted dark:text-white/60 mb-4">
@@ -465,7 +465,7 @@ function APISection() {
 
         <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
-            <span className="px-2 py-0.5 rounded-[4px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
+            <span className="px-2 py-0.5 rounded-[8px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
             <code className="text-[16px] font-mono text-apple-ink dark:text-white">/health</code>
           </div>
           <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
@@ -475,7 +475,7 @@ function APISection() {
 
         <div className="p-5 rounded-[16px] st-card">
           <div className="flex items-center gap-3 mb-3">
-            <span className="px-2 py-0.5 rounded-[4px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
+            <span className="px-2 py-0.5 rounded-[8px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
             <code className="text-[16px] font-mono text-apple-ink dark:text-white">/stats</code>
           </div>
           <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
@@ -495,7 +495,7 @@ function APISection() {
             { code: '500', message: 'Server error' },
           ].map((err) => (
             <div key={err.code} className="flex items-center gap-3 text-[16px]">
-              <code className="px-2 py-0.5 rounded-[4px] bg-red-100 dark:bg-red-900/30 text-[12px] font-mono text-red-700 dark:text-red-400">{err.code}</code>
+              <code className="px-2 py-0.5 rounded-[8px] bg-red-100 dark:bg-red-900/30 text-[12px] font-mono text-red-700 dark:text-red-400">{err.code}</code>
               <span className="text-apple-ink-muted dark:text-white/60">{err.message}</span>
             </div>
           ))}
@@ -509,7 +509,7 @@ function SecuritySection() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="st-display text-[32px] text-apple-ink dark:text-white mb-4">
+        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">
           Security
         </h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
@@ -734,15 +734,15 @@ export function Docs() {
           <div className="sticky top-24 space-y-4">
             {/* User Documentation */}
             <div>
-              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/50 dark:text-white/30">User Guide</p>
+              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/60 dark:text-white/30">User Guide</p>
               <div className="space-y-0.5">
                 {NAV_ITEMS.filter(i => i.group === 'user').map((item) => (
                   <button
                     key={item.id}
                     onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[16px] font-medium transition-colors ${
+                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.99] motion-reduce:active:scale-100 ${
                       activeSection === item.id
-                        ? 'bg-azure-600/10 text-ember dark:text-azure-400'
+                        ? 'bg-ember/10 text-ember dark:bg-azure-400/10 dark:text-azure-400'
                         : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'
                     }`}
                   >
@@ -754,15 +754,15 @@ export function Docs() {
             </div>
             {/* Developer Documentation */}
             <div>
-              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/50 dark:text-white/30">Developer</p>
+              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/60 dark:text-white/30">Developer</p>
               <div className="space-y-0.5">
                 {NAV_ITEMS.filter(i => i.group === 'developer').map((item) => (
                   <button
                     key={item.id}
                     onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[16px] font-medium transition-colors ${
+                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.99] motion-reduce:active:scale-100 ${
                       activeSection === item.id
-                        ? 'bg-azure-600/10 text-ember dark:text-azure-400'
+                        ? 'bg-ember/10 text-ember dark:bg-azure-400/10 dark:text-azure-400'
                         : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'
                     }`}
                   >

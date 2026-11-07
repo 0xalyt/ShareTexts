@@ -23,7 +23,7 @@ export function ArtPage() {
     <div className="mx-auto flex w-full max-w-[860px] flex-col gap-8 px-5 py-12">
       <header className="flex flex-col gap-1">
         <h1 className="text-[28px] font-semibold tracking-tight text-apple-ink dark:text-white">Beacon</h1>
-        <p className="text-[15px] text-apple-ink-muted dark:text-white/60">
+        <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
           Eight scenes, one character, four colours. Dev only.
         </p>
       </header>

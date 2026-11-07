@@ -151,7 +151,7 @@ export function SmallThings() {
                 strokeWidth={1.5}
                 aria-hidden
               />
-              <span className="text-[14px] font-medium leading-snug text-apple-ink dark:text-white">
+              <span className="text-[13px] font-medium leading-snug text-apple-ink dark:text-white">
                 {t(`home.small.${key}`)}
               </span>
           </motion.li>
@@ -184,7 +184,7 @@ export function LandingFaq() {
       <FaqSection items={items} defaultOpen={null} hideLabel className="max-w-[720px]" />
       <a
         href="/docs"
-        className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-ember hover:underline dark:text-azure-400"
+        className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 py-3 text-[13px] font-semibold text-ember-ink hover:underline dark:text-azure-400"
       >
         {t('home.faq.more')}
         <ArrowRight className="h-3.5 w-3.5" aria-hidden />

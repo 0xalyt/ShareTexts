@@ -21,9 +21,12 @@ export interface IconButton3DProps {
   active?: boolean;
   className?: string;
   testId?: string;
+  /** For a control that opens a panel: reflects its open state to AT. */
+  ariaExpanded?: boolean;
+  ariaHaspopup?: 'dialog' | 'menu' | 'listbox';
 }
 
-export function IconButton3D({ label, children, onClick, href, active = false, className, testId }: IconButton3DProps) {
+export function IconButton3D({ label, children, onClick, href, active = false, className, testId, ariaExpanded, ariaHaspopup }: IconButton3DProps) {
   // 44px (§5, §18): the header's controls are thumbs-first, and a 40px
   // glyph in a capsule reads as smaller than the Back circle beside it.
   const classes = cn(
@@ -42,7 +45,16 @@ export function IconButton3D({ label, children, onClick, href, active = false, c
     );
   }
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} data-testid={testId} className={classes}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      data-testid={testId}
+      aria-expanded={ariaExpanded}
+      aria-haspopup={ariaHaspopup}
+      className={classes}
+    >
       {children}
     </button>
   );

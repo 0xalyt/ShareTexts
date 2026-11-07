@@ -26,6 +26,7 @@ export function ListRow({
   className,
   ariaLabel,
   disabled,
+  current,
 }: {
   /** React key is accepted here because rows are rendered from lists; React
    *  strips it before the component body, so it never reaches the DOM. */
@@ -41,6 +42,8 @@ export function ListRow({
   className?: string;
   ariaLabel?: string;
   disabled?: boolean;
+  /** True when this row is the page already open (sets aria-current). */
+  current?: boolean;
 }) {
   return (
     <Pressable
@@ -49,6 +52,7 @@ export function ListRow({
       disabled={disabled}
       testId={testId}
       label={ariaLabel}
+      current={current}
       className={cn(
         'group flex min-h-[52px] items-center gap-3 px-1 py-2.5',
         // Inset hairline: the line belongs to the row, not to a box.
@@ -66,7 +70,7 @@ export function ListRow({
       {trailing ? <span className="shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/50">{trailing}</span> : null}
       {chevron ? (
         <ChevronRight
-          className="h-4 w-4 shrink-0 text-apple-ink-muted/50 transition-transform duration-200 group-hover:translate-x-0.5 dark:text-white/30 motion-reduce:transition-none"
+          className="h-4 w-4 shrink-0 text-apple-ink-muted/60 transition-transform duration-200 group-hover:translate-x-0.5 dark:text-white/30 motion-reduce:transition-none"
           strokeWidth={1.8}
           aria-hidden
         />

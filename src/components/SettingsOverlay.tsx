@@ -57,7 +57,7 @@ function Row({
   const Tag = as as 'button';
   const cls = cn(
     'relative flex w-full min-h-[52px] items-center gap-3 px-4 text-left',
-    'text-[15px] text-apple-ink dark:text-white transition-colors',
+    'text-[16px] text-apple-ink dark:text-white transition-colors',
     onClick || as === 'a' ? 'active:bg-black/[0.04] dark:active:bg-white/[0.06]' : '',
     className,
   );
@@ -284,7 +284,7 @@ export function SettingsOverlay({
                     type="button"
                     onClick={() => setLanguageOpen(false)}
                     data-testid="settings-language-back"
-                    className="flex min-h-[44px] items-center gap-1 px-1 text-[15px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
+                    className="flex min-h-[44px] items-center gap-1 px-1 text-[16px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
                   >
                     <ChevronRight className="h-4 w-4 rotate-180" aria-hidden /> {t('settings.title')}
                   </button>
@@ -334,7 +334,7 @@ export function SettingsOverlay({
                           }}
                           maxLength={40}
                           aria-label={t('settings.deviceName')}
-                          className="min-w-0 flex-1 bg-transparent text-right text-[15px] font-semibold text-apple-ink dark:text-white outline-none"
+                          className="min-w-0 flex-1 bg-transparent text-right text-[16px] font-semibold text-apple-ink dark:text-white outline-none"
                           data-testid="settings-device-input"
                         />
                       ) : (
@@ -344,7 +344,7 @@ export function SettingsOverlay({
                             setDraftName(session.deviceName || '');
                             setEditingName(true);
                           }}
-                          className="min-w-0 flex-1 truncate text-right min-h-[44px] text-[15px] font-semibold text-apple-ink dark:text-white"
+                          className="min-w-0 flex-1 truncate text-right min-h-[44px] text-[16px] font-semibold text-apple-ink dark:text-white"
                           data-testid="settings-device-name"
                         >
                           {session.deviceName || t('common.connected')}
@@ -402,7 +402,7 @@ export function SettingsOverlay({
                   <Group title={t('settings.language')} testId="settings-language">
                     <Row first onClick={() => setLanguageOpen(true)} testId="settings-language-row">
                       <span className="flex-1">{t('settings.language')}</span>
-                      <span className="truncate text-[14px] text-apple-ink-muted dark:text-white/70">{languageLabel}</span>
+                      <span className="truncate text-[13px] text-apple-ink-muted dark:text-white/70">{languageLabel}</span>
                       <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
                     </Row>
                   </Group>
@@ -475,7 +475,7 @@ export function SettingsOverlay({
                         key={href}
                         href={href}
                         className={cn(
-                          'relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[15px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06]',
+                          'relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[16px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06]',
                           i > 0 && 'before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10',
                         )}
                       >
@@ -490,14 +490,14 @@ export function SettingsOverlay({
                       target="_blank"
                       rel="noopener noreferrer"
                       data-testid="settings-feedback-x"
-                      className="relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[15px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06] before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10"
+                      className="relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[16px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06] before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10"
                     >
                       <span className="flex-1">{t('settings.messageMaker')}</span>
                       <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
                     </a>
                     <Row as="div" className="justify-between">
                       <span>{t('settings.version')}</span>
-                      <span className="text-[14px] tabular-nums text-apple-ink-muted dark:text-white/70" data-testid="settings-version">
+                      <span className="text-[13px] tabular-nums text-apple-ink-muted dark:text-white/70" data-testid="settings-version">
                         {APP_VERSION}
                       </span>
                     </Row>
@@ -531,7 +531,7 @@ function LanguageRow({ label, selected, onClick, testId, badge }: { label: strin
       aria-checked={selected}
       data-testid={testId}
       className={cn(
-        'flex min-h-[52px] w-full items-center gap-3 rounded-[12px] px-3 text-left text-[15px] transition-colors',
+        'flex min-h-[52px] w-full items-center gap-3 rounded-[12px] px-3 text-left text-[16px] transition-colors',
         selected ? 'font-semibold text-apple-ink dark:text-white' : 'text-apple-ink dark:text-white/85',
         'active:bg-black/[0.04] dark:active:bg-white/[0.06]',
       )}

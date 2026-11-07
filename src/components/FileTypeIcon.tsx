@@ -117,7 +117,7 @@ export function FileTypeIcon({ name, mimeType, size = 20, className }: {
   return (
     <span
       className={cn(
-        'flex items-center justify-center rounded-[10px] shrink-0',
+        'flex items-center justify-center rounded-[12px] shrink-0',
         def.bg, def.bgDark, className
       )}
       style={{ width: size * 1.9, height: size * 1.9 }}

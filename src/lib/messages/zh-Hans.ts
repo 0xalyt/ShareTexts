@@ -100,6 +100,7 @@ const zh: Dict = {
   'create.title': '连接你的另一台设备。',
   'send.title': '发送',
   'send.subtitle': '在另一台设备上打开 ShareTexts，点接收。',
+  'link.dead': '此链接已失效，请让对方发一个新的。',
   'send.roomCode': '房间代码',
   'send.validFor': '剩余 {t}',
   'send.expired': '代码已过期',

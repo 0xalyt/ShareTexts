@@ -1001,7 +1001,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               identity, and two truncated names + icons cannot share 375px
               with the header controls (they collided before). Your own name
               lives one tap away in the details sheet; sm+ shows the pair. */}
-          <span className="hidden sm:shrink-0 sm:flex sm:items-center sm:justify-center w-8 h-8 rounded-[10px] bg-ember/10 border border-ember/20 text-ember">
+          <span className="hidden sm:shrink-0 sm:flex sm:items-center sm:justify-center w-8 h-8 rounded-[12px] bg-ember/10 border border-ember/20 text-ember">
             <ThisDeviceIcon className="w-4 h-4" />
           </span>
           <span className="hidden sm:flex flex-col items-start min-w-0 leading-tight">
@@ -1022,20 +1022,20 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   : t('chat.online')}
             </span>
           </span>
-          <ArrowRightLeft className="hidden sm:block w-3.5 h-3.5 shrink-0 text-apple-ink-muted/50 dark:text-white/30" />
+          <ArrowRightLeft className="hidden sm:block w-3.5 h-3.5 shrink-0 text-apple-ink-muted/60 dark:text-white/30" />
           {/* The partner tile breathes while the link is live — one slow
               alpha ring, the same "alive" grammar as the tracker dot. It
               halts with the link (dimmed, no ring when disconnected). */}
           <span className={cn(
-            "relative shrink-0 flex items-center justify-center w-8 h-8 rounded-[10px] transition-colors",
+            "relative shrink-0 flex items-center justify-center w-8 h-8 rounded-[12px] transition-colors",
             disconnected
-              ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted/50 dark:text-white/30"
+              ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted/60 dark:text-white/30"
               : session.connectionType === 'connecting'
                 ? "bg-status-warning/10 border border-status-warning/25 text-status-warning"
                 : "bg-status-success/10 border border-status-success/20 text-status-success"
           )}>
-            {session.connectionType === 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[10px] bg-status-warning/20 st-halo-ring" />}
-            {!disconnected && session.connectionType !== 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[10px] bg-status-success/20 st-halo-ring" />}
+            {session.connectionType === 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[12px] bg-status-warning/20 st-halo-ring" />}
+            {!disconnected && session.connectionType !== 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[12px] bg-status-success/20 st-halo-ring" />}
             <PartnerDeviceIcon className="relative w-4 h-4" />
           </span>
           {/* One line of truth: who is on the other side, and one word about
@@ -1142,7 +1142,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   {t('details.secure')}
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <kbd aria-hidden="true" className="hidden sm:inline px-1.5 py-0.5 rounded-[4px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
+                  <kbd aria-hidden="true" className="hidden sm:inline px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
                   <button
                     onPointerDown={() => setShowConnectionDetails(false)}
                     aria-label={t('details.close')}
@@ -1764,7 +1764,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                           aria-label={label}
                           data-testid={`format-${kind}`}
                           onClick={() => applyFormatting(kind)}
-                          className="w-10 h-10 rounded-[10px] flex items-center justify-center text-apple-ink-muted dark:text-white/50 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-95 transition-all"
+                          className="w-10 h-10 rounded-[12px] flex items-center justify-center text-apple-ink-muted dark:text-white/50 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-95 transition-all"
                         >
                           {glyph}
                         </button>
@@ -1817,7 +1817,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 onClick={handleSend}
                 disabled={(!inputText.trim() && attachments.length === 0) || (!session.partnerConnected && !(recipients.length > 0) && !isMultiRoom)}
                 aria-label={t('composer.send')}
-                className="w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 transition-all duration-200 active:scale-90 text-white bg-ember hover:bg-brand-strong disabled:bg-apple-hairline dark:disabled:bg-white/15 disabled:shadow-none disabled:text-apple-ink-muted/50 dark:disabled:text-white/30 shadow-[0_1px_3px_rgba(240,100,19,0.35)]"
+                className="w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 transition-all duration-200 active:scale-90 text-white bg-ember hover:bg-brand-strong disabled:bg-apple-hairline dark:disabled:bg-white/15 disabled:shadow-none disabled:text-apple-ink-muted/60 dark:disabled:text-white/30 shadow-[0_1px_3px_rgba(240,100,19,0.35)]"
               >
                 {/* Arrow ↔ check morph: the arrow lifts away, a check springs
                     in — a real shape transition, not a crossfade. */}

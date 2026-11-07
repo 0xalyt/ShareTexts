@@ -482,7 +482,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void create(); } }}
           placeholder={t('space.namePlaceholder')}
           maxLength={80}
-          className="mt-1.5 w-full rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/50 dark:placeholder:text-white/30 outline-none focus:ring-2 focus:ring-azure-500/40"
+          className="mt-1.5 w-full rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:ring-2 focus:ring-azure-500/40"
         />
 
         <p className="mt-5 text-[13px] font-medium text-apple-ink dark:text-white/80">{t('space.durationLabel')}</p>
@@ -1093,7 +1093,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             }}
             rows={1}
             placeholder={t('space.composerPlaceholder')}
-            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[20px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/50 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25"
+            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[20px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25"
             data-testid="space-composer"
           />
           {/* Composer share is a convenience duplicate of the header share —

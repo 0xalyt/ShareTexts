@@ -81,7 +81,7 @@ function Rows({ count = 3, wide = false }: { count?: number; wide?: boolean }) {
     <div className="flex flex-col gap-2.5" aria-hidden="true">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="flex items-center gap-3 px-1 py-1.5">
-          <Bar className="h-9 w-9 shrink-0 !rounded-[10px]" />
+          <Bar className="h-9 w-9 shrink-0 !rounded-[12px]" />
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <Bar className={cn('h-3', wide ? 'w-[62%]' : 'w-[48%]')} />
             <Bar className="h-2 w-[30%]" />
@@ -110,7 +110,7 @@ export function SkeletonScreen({ variant = 'room' }: { variant?: SkeletonVariant
         <div className="h-full w-full flex flex-col">
           {/* Device bar */}
           <div className="flex items-center gap-2.5 px-4 py-3">
-            <Bar className="h-8 w-8 !rounded-[10px]" />
+            <Bar className="h-8 w-8 !rounded-[12px]" />
             <div className="flex flex-col gap-1.5">
               <Bar className="h-3 w-24" />
               <Bar className="h-2 w-16" />

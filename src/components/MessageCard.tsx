@@ -1263,7 +1263,7 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
         </span>
       )}
       <span className="flex items-start gap-2.5 px-3 py-2.5">
-        <span className="shrink-0 w-8 h-8 rounded-[10px] bg-apple-blue/10 text-apple-blue flex items-center justify-center" aria-hidden>
+        <span className="shrink-0 w-8 h-8 rounded-[12px] bg-apple-blue/10 text-apple-blue flex items-center justify-center" aria-hidden>
           <Link2 className="w-4 h-4" />
         </span>
         <span className="flex-1 min-w-0 flex flex-col leading-tight">

@@ -18,6 +18,7 @@ export function Pressable({
   testId,
   type = 'button',
   as = 'button',
+  current,
 }: {
   children: React.ReactNode;
   onClick?: React.MouseEventHandler<HTMLElement>;
@@ -29,6 +30,8 @@ export function Pressable({
   testId?: string;
   type?: 'button' | 'submit' | 'reset';
   as?: 'button' | 'a';
+  /** Marks the row that points at the page you are already on. */
+  current?: boolean;
 }) {
   const classes = cn(
     'press block w-full text-left',
@@ -38,13 +41,13 @@ export function Pressable({
   );
   if (as === 'a' || href) {
     return (
-      <a href={href} aria-label={label} data-testid={testId} className={classes} onClick={onClick}>
+      <a href={href} aria-label={label} aria-current={current ? 'page' : undefined} data-testid={testId} className={classes} onClick={onClick}>
         {children}
       </a>
     );
   }
   return (
-    <button type={type} onClick={onClick} disabled={disabled} aria-label={label} data-testid={testId} className={classes}>
+    <button type={type} onClick={onClick} disabled={disabled} aria-label={label} aria-current={current ? 'page' : undefined} data-testid={testId} className={classes}>
       {children}
     </button>
   );

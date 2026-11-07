@@ -38,7 +38,7 @@ const PATTERNS = {
 
 const SIZES = {
   sm: {
-    box: 'h-10 rounded-[10px]',
+    box: 'h-10 rounded-[12px]',
     text: 'text-base',
     caret: 'h-5',
     gap: 'gap-1',

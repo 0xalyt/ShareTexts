@@ -142,25 +142,25 @@ function KindThumb({ item }: { item: SavedItem }) {
   const url = useBlobUrl(item.kind === 'image' ? item.blob : undefined);
   if (item.kind === 'image') {
     return url ? (
-      <span className="shrink-0 w-12 h-12 rounded-[10px] overflow-hidden bg-black/[0.05] dark:bg-white/[0.06]">
+      <span className="shrink-0 w-12 h-12 rounded-[12px] overflow-hidden bg-black/[0.05] dark:bg-white/[0.06]">
         <img src={url} alt="" className="w-full h-full object-cover st-img-edge" />
       </span>
     ) : (
-      <span className="shrink-0 w-12 h-12 rounded-[10px] bg-apple-parchment dark:bg-apple-tile-2 flex items-center justify-center text-apple-ink-muted" aria-hidden>
+      <span className="shrink-0 w-12 h-12 rounded-[12px] bg-apple-parchment dark:bg-apple-tile-2 flex items-center justify-center text-apple-ink-muted" aria-hidden>
         <FileText className="w-5 h-5" />
       </span>
     );
   }
   if (item.kind === 'link') {
     return (
-      <span className="shrink-0 w-12 h-12 rounded-[10px] bg-apple-blue/10 dark:bg-azure-400/10 text-apple-blue dark:text-azure-400 flex items-center justify-center" aria-hidden>
+      <span className="shrink-0 w-12 h-12 rounded-[12px] bg-apple-blue/10 dark:bg-azure-400/10 text-apple-blue dark:text-azure-400 flex items-center justify-center" aria-hidden>
         <Link2 className="w-5 h-5" />
       </span>
     );
   }
   if (item.kind === 'text') {
     return (
-      <span className="shrink-0 w-12 h-12 rounded-[10px] bg-status-warning/10 text-status-warning-ink dark:bg-white/[0.06] dark:text-white/60 flex items-center justify-center" aria-hidden>
+      <span className="shrink-0 w-12 h-12 rounded-[12px] bg-status-warning/10 text-status-warning-ink dark:bg-white/[0.06] dark:text-white/60 flex items-center justify-center" aria-hidden>
         <FileText className="w-5 h-5" />
       </span>
     );
@@ -292,12 +292,12 @@ function SavedRow({
                 href={safeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-[14px] font-semibold text-apple-blue dark:text-azure-400 hover:underline truncate"
+                className="block text-[13px] font-semibold text-apple-blue dark:text-azure-400 hover:underline truncate"
               >
                 {host || safeUrl}
               </a>
             ) : (
-              <span className="block text-[14px] font-semibold text-apple-ink dark:text-white truncate">{host || ''}</span>
+              <span className="block text-[13px] font-semibold text-apple-ink dark:text-white truncate">{host || ''}</span>
             )}
             <span className="block text-[12px] text-apple-ink-muted dark:text-white/45 break-all line-clamp-2">{item.url}</span>
           </div>
@@ -309,7 +309,7 @@ function SavedRow({
                 button below rides down with it. */}
             <Expandable>
               <p className={cn(
-                'text-[14px] leading-snug text-apple-ink dark:text-white whitespace-pre-wrap break-words',
+                'text-[13px] leading-snug text-apple-ink dark:text-white whitespace-pre-wrap break-words',
                 !expanded && 'line-clamp-3'
               )}>
                 {item.text}
@@ -328,7 +328,7 @@ function SavedRow({
             )}
           </div>
         ) : (
-          <span className="block text-[14px] font-semibold text-apple-ink dark:text-white break-words line-clamp-2">
+          <span className="block text-[13px] font-semibold text-apple-ink dark:text-white break-words line-clamp-2">
             {item.kind === 'image' && (item.text || item.filename) ? (item.text || item.filename) : item.filename || kindLabel}
           </span>
         )}
@@ -473,7 +473,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
       return (
         <div className="py-8 px-4 flex flex-col items-center gap-3 text-center" data-testid="saved-error">
           <AlertCircle className="w-6 h-6 text-status-danger" aria-hidden />
-          <p className="text-[14px] text-apple-ink dark:text-white">{errText(snapshot.errorCode)}</p>
+          <p className="text-[13px] text-apple-ink dark:text-white">{errText(snapshot.errorCode)}</p>
           <button
             type="button"
             onClick={() => { void reloadSavedItems(); }}
@@ -490,7 +490,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
           <span className="w-12 h-12 rounded-full bg-ember/10 text-ember flex items-center justify-center" aria-hidden>
             <Bookmark className="w-5 h-5" />
           </span>
-          <p className="mt-3 text-[15px] font-semibold text-apple-ink dark:text-white">{t('saved.emptyTitle')}</p>
+          <p className="mt-3 text-[16px] font-semibold text-apple-ink dark:text-white">{t('saved.emptyTitle')}</p>
           <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55 max-w-[300px]">
             {t('saved.emptyBody')}
           </p>
@@ -518,7 +518,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
                 aria-label={t('saved.search')}
                 placeholder={t('saved.search')}
                 data-testid="saved-search"
-                className="w-full h-10 pl-9 pr-3 rounded-[12px] bg-black/[0.045] dark:bg-white/[0.07] text-[14px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted dark:placeholder:text-white/40 outline-none focus:ring-2 focus:ring-ember/40"
+                className="w-full h-10 pl-9 pr-3 rounded-[12px] bg-black/[0.045] dark:bg-white/[0.07] text-[13px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted dark:placeholder:text-white/40 outline-none focus:ring-2 focus:ring-ember/40"
               />
             </div>
           </div>

@@ -24,7 +24,7 @@ export function LargeTitle({
 }) {
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <Tag className="text-[32px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink [text-wrap:balance] dark:text-white">
+      <Tag className="text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink [text-wrap:balance] dark:text-white">
         {children}
       </Tag>
       {subtitle ? (
