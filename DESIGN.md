@@ -279,27 +279,33 @@ softened.
 
 ### 20f. Share card (owner's artwork — do not redesign)
 
-The link preview is the owner's app tile mounted on 1200×630 of white and
-nothing else: the tile at 280px, centred, rounded, on a plain white field. No
-headline, no lockup, no UI sketch, no second colour, no shadow, no full-bleed
-orange. This is the composition the owner supplied as the reference.
+The link preview **is the owner's file**. They attached a 1200×630 JPEG — the
+app tile at ~272px, centred, on a plain white field, nothing else — and asked
+for that image, as it is, everywhere. So the shipped asset is their bytes,
+copied verbatim, with no generator between the two.
 
+- `public/og/sharetext-og-icon-v6.jpg` is byte-identical to the file they
+  attached (18,334 B, sha256 `41bd084c…b7ada`). `scripts/verify-brand-assets.mjs`
+  pins that hash: any script that re-encodes, re-renders or "tidies" this card
+  fails the gate instead of shipping a lookalike.
+- There is deliberately no generator. v4/v5 were rendered recreations of this
+  composition — close, never the same file — and that is precisely the drift
+  the owner kept seeing. Do not add one back.
 - v2/v3 filled the whole frame with the tile's gradient and blew the mark up to
   340px. That is a *different* picture from the owner's reference, and it is
   what shipped while they kept reporting the preview as wrong. Do not go back
   to it, and do not "fix" a small-looking card by enlarging the tile.
 - The owner has asked for this card to stay as it is: it changes when they say
   it changes, not when a pass decides it could be stronger.
-- Source: `public/brand/logo-tile-white-on-orange.jpg`, rendered by
-  `node scripts/gen-og-card.mjs` to `public/og/sharetext-og-icon-v5.jpg`.
 - Every surface that advertises the card names the same file: `index.html`
   (og + Twitter + JSON-LD), `public/guides/*.html`, `public/sw.js` (precache,
   with its `CACHE` bumped) and `scripts/seo-harden.mjs`.
 - Cache-busting is by FILENAME only — never `?v=`. WhatsApp's image scraper has
   a history of dropping an og:image that carries a query string, which previews
   the previous card while the URL itself still answers 200.
-- `scripts/verify-brand-assets.mjs` fails if the card gains any ink, loses the
-  tile, or if the head advertises a different file.
+- `scripts/verify-brand-assets.mjs` fails if the bytes are not the owner's, if
+  the card gains any ink, loses the tile, or if the head advertises a different
+  file, or if any page carries a retired card name.
 - This artwork is not a design decision for an agent to revisit. It changes
   when the owner says it changes.
 

@@ -60,18 +60,27 @@ const check = (name, cond) => checks.push([name, cond]);
 // Sampled from the path the meta tags actually serve, so this check cannot
 // pass against a retired file while the real one is broken.
 //
-// Artwork contract (owner, 2026-11): the card is the owner's app tile mounted
-// on a white field — tile centred, 280px, rounded, nothing else. No headline,
-// no lockup, no UI sketch, no second colour, no shadow. The owner supplied
-// this composition as the reference and asked for it to stay put.
+// Artwork contract (owner, 2026-11): the card is the owner's own file. They
+// attached a 1200×630 JPEG — white field, the app tile centred at ~272px,
+// nothing else — and asked for exactly that image, everywhere, permanently.
+// So the shipped asset is their file's bytes, copied verbatim: no generator,
+// no re-encode, no re-composition. The sha256 pin below is the contract; if a
+// future script ever "regenerates" this card, the pin fails and says so.
 //
 // History that must not repeat: v2/v3 blew the tile up to fill the whole card
-// (edge-to-edge orange, mark at 340px). That is a different picture, it shipped
-// while the owner kept reporting the preview as wrong, and these assertions
-// existed to pin it. They now pin the opposite: a white field, a centred tile,
-// and no full-bleed orange. Filling the card again fails here.
+// (edge-to-edge orange, mark at 340px) and v4/v5 were generated recreations of
+// this composition. All five are retired by name; the pin is what makes the
+// owner's file, rather than a lookalike, the thing that ships.
 // ──
-const og = await sample('/og/sharetext-og-icon-v5.jpg');
+const OG_SHA256 = '41bd084c3a7de2bc1db2bc7ac7f5e712124d70780fda6978a53589aad99b7ada';
+{
+  const { readFileSync } = await import('node:fs');
+  const { createHash } = await import('node:crypto');
+  const bytes = readFileSync('public/og/sharetext-og-icon-v6.jpg');
+  const sha = createHash('sha256').update(bytes).digest('hex');
+  check(`og is the owner's file, byte for byte (${bytes.length} B, sha ${sha.slice(0, 8)})`, sha === OG_SHA256);
+}
+const og = await sample('/og/sharetext-og-icon-v6.jpg');
 check('og is 1200x630', og.w === 1200 && og.h === 630);
 {
   // The file checked above must be the file the head actually advertises —
@@ -79,9 +88,9 @@ check('og is 1200x630', og.w === 1200 && og.h === 630);
   const { readFileSync } = await import('node:fs');
   const head = readFileSync('index.html', 'utf8');
   check('og:image and twitter:image point at this card',
-    head.includes('/og/sharetext-og-icon-v5.jpg') &&
+    head.includes('/og/sharetext-og-icon-v6.jpg') &&
     (head.match(/twitter:image/g) || []).length >= 2);
-  check('no page still advertises a retired og card', !/sharetext-og-icon-v[234]\.jpg/.test(head));
+  check('no page still advertises a retired og card', !/sharetext-og-icon-v[2345]\.jpg/.test(head));
 }
 {
   const orange = (q) => q[0] > 200 && q[1] > 40 && q[1] < 200 && q[2] < 110;
@@ -160,7 +169,7 @@ check('favicon-16 is 16x16', f16.w === 16 && f16.h === 16);
 check('favicon-16 transparent field', at(f16.data, 16, 0, 0)[3] === 0);
 check('favicon-16 ember glyph', count(f16.data, 16, 0, 0, 16, 16, ember, 1) > 0);
 
-// ── OG URL hygiene: the card is versioned by FILENAME (…-v4.jpg) and never by
+// ── OG URL hygiene: the card is versioned by FILENAME (…-v6.jpg) and never by
 //    a query string. Filename versioning still busts every cache, and it is the
 //    form the pickiest fetchers handle: WhatsApp's image scraper has a long
 //    history of dropping an og:image that carries a `?v=` — the link then
@@ -170,10 +179,11 @@ check('favicon-16 ember glyph', count(f16.data, 16, 0, 0, 16, 16, ember, 1) > 0)
 const { readFileSync, readdirSync } = await import('node:fs');
 const badUrls = [];
 const crossRefs = [];
-const cardRe = /sharetext-og-icon-v5\.jpg/g;
-// v2/v3 were full-bleed cards, v4 the first tile-on-white: all retired by name
-// so a page can never quietly point back at an artwork the owner replaced.
-const retiredRe = /sharetext-og-icon-v[234]\.(?:jpg|png)/g;
+const cardRe = /sharetext-og-icon-v6\.jpg/g;
+// v2/v3 were full-bleed cards, v4/v5 generated recreations of the current
+// composition: all retired by name so a page can never quietly point back at
+// an artwork the owner replaced.
+const retiredRe = /sharetext-og-icon-v[2345]\.(?:jpg|png)/g;
 const pages = ['index.html', ...readdirSync('public/guides')
   .filter((f) => f.endsWith('.html'))
   .map((f) => `public/guides/${f}`)];
@@ -182,7 +192,7 @@ for (const f of pages) {
   if (!html.includes('og:image')) continue;
   if (!cardRe.test(html)) crossRefs.push(f);
   cardRe.lastIndex = 0;
-  if (/sharetext-og-icon-v5\.jpg\?/.test(html)) badUrls.push(f);
+  if (/sharetext-og-icon-v6\.jpg\?/.test(html)) badUrls.push(f);
   if (retiredRe.test(html)) badUrls.push(`${f} (retired card)`);
   retiredRe.lastIndex = 0;
 }

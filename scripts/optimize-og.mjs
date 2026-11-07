@@ -69,7 +69,9 @@ if (after.length < before.length) {
 // with --jpeg to emit the card the product should actually advertise.
 if (process.argv.includes('--jpeg')) {
   const { chromium } = await import('playwright');
-  const target = join(ROOT, 'public/og/sharetext-og-icon-v5.jpg');
+  // Never the shipped card: it is the owner's file, pinned by sha256 in
+  // verify-brand-assets.mjs, and any re-encode is a different file.
+  const target = join(ROOT, 'audit/tmp/og-card-reference.jpg');
   const dataUrl = `data:image/png;base64,${before.toString('base64')}`;
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: png.width, height: png.height } });

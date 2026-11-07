@@ -1,5 +1,12 @@
 // OG card generator — the 1200×630 link preview every social surface reads
 // (X/Twitter, WhatsApp, LinkedIn, Slack, iMessage, Discord, Telegram, Facebook).
+// ⚠ THIS SCRIPT NO LONGER PRODUCES THE SHIPPED CARD. The owner attached the
+// card itself (a 1200×630 JPEG, 18,334 B) and asked for that file as it is; its
+// bytes were copied verbatim to public/og/sharetext-og-icon-v6.jpg and
+// scripts/verify-brand-assets.mjs pins its sha256. Running this script writes a
+// REFERENCE render to audit/tmp only — it must never touch public/og again,
+// because a render is a lookalike, not the owner's file, and shipping a
+// lookalike is exactly what kept the preview reading wrong to them.
 //
 // OWNER'S ARTWORK, OWNER'S COMPOSITION. The card is the app tile, centred on a
 // white field: no headline, no lockup, no UI sketch, no second colour, no
@@ -17,7 +24,7 @@
 //
 // Deterministic: same input, same pixels. Run:
 //   node scripts/gen-og-card.mjs
-// The file name carries the version (sharetext-og-icon-v5.jpg) and that name is
+// The file name carries the version (sharetext-og-icon-v6.jpg) and that name is
 // the ONLY cache-buster: the shipped URLs have no query string, because
 // WhatsApp's image scraper has a long history of dropping an og:image that
 // carries `?v=` — the link then previews with the old card while the URL itself
@@ -31,7 +38,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tilePath = path.join(root, 'public/brand/logo-tile-white-on-orange.jpg');
-const out = path.join(root, 'public/og/sharetext-og-icon-v5.jpg');
+const out = path.join(root, 'audit/tmp/og-card-reference.jpg');
 
 const W = 1200;
 const H = 630;
