@@ -131,7 +131,7 @@ export function ConfirmSheet({
           >
             {/* GRABBER + SHEET — full-bleed on mobile with safe-area padding;
                 rounded card on desktop. One DOM, two presentations. */}
-            <div className="sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] bg-white dark:bg-surface-dark sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.4)] shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.3)] pb-[env(safe-area-inset-bottom)] sm:pb-0">
+            <div className="sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] bg-white dark:bg-surface-dark sm:shadow-sheet shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.3)] pb-[env(safe-area-inset-bottom)] sm:pb-0">
               <div className="sm:hidden flex justify-center pt-2.5 pb-1" aria-hidden>
                 <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
               </div>

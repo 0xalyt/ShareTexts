@@ -511,7 +511,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                steps of the parchment, so “mine” and “theirs” separated only
                by alignment. A 15% ember tint reads instantly in both themes
                and keeps ink-on-tint at ~14:1 (white-on-tint at ~11:1). */
-            ? "bg-ember/15 dark:bg-ember/20 text-apple-ink dark:text-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+            ? "bg-ember/15 dark:bg-ember/20 text-apple-ink dark:text-white shadow-sm"
             /* Arrived: the product's raised card, so a received message
                sits ON the canvas instead of being a white box with a line
                drawn around it. */

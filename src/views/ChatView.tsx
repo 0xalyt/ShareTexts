@@ -1627,7 +1627,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               onContextMenu={(e) => e.preventDefault()}
               aria-label={t('attach.add')}
               aria-expanded={showAttachmentMenu}
-              className="min-w-[44px] min-h-[44px] w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 bg-white dark:bg-apple-tile-2 border border-apple-divider/70 dark:border-white/[0.08] shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-apple-ink dark:text-white hover:bg-apple-parchment dark:hover:bg-apple-tile-3 transition-colors active:scale-90 select-none [touch-action:manipulation] [-webkit-touch-callout:none]"
+              className="min-w-[44px] min-h-[44px] w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 bg-white dark:bg-apple-tile-2 border border-apple-divider/70 dark:border-white/[0.08] shadow-sm text-apple-ink dark:text-white hover:bg-apple-parchment dark:hover:bg-apple-tile-3 transition-colors active:scale-90 select-none [touch-action:manipulation] [-webkit-touch-callout:none]"
             >
               <Plus className={cn("w-5 h-5 transition-transform duration-200", showAttachmentMenu && "rotate-45")} />
             </button>
