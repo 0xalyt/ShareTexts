@@ -4,7 +4,7 @@ import { useI18n } from '../lib/i18n';
 /**
  * HeroMockupScene — the landing hero IS the reference composition, as an
  * image. The exact laptop + iPhone artwork ships untouched
- * (/hero-composition.webp with transparency, PNG fallback) and scales
+ * (/hero-composition.webp with transparency) and scales
  * fluidly to the container width at the true aspect ratio. No DOM
  * recreation, no SVG redrawing, no bleed tricks.
  *
@@ -20,11 +20,13 @@ export function HeroMockupScene({ className }: { className?: string }) {
   return (
     <div ref={ref} className={className}>
       {/* The user's exact reference composition, as shipped artwork.
-          WebP with alpha for all modern browsers; the PNG is the fallback. */}
+          WebP with alpha only: the 1.53 MB PNG fallback it used to carry was
+          shipped in dist for every visitor and requested by none — every
+          browser that can run this app (WebRTC) has decoded WebP since 2020. */}
       <picture style={{ display: 'block', width: '100%' }}>
         <source srcSet="/hero-composition.webp" type="image/webp" />
         <img
-          src="/hero-composition.png"
+          src="/hero-composition.webp"
           alt={t('home.heroAlt')}
           draggable={false}
           onLoad={() => setLoaded(true)}

@@ -260,51 +260,43 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // the chunk. Fire once, after first paint, completely off the hot path.
   useEffect(() => {
     // Prewarming costs bandwidth, and bandwidth is exactly what the first
-    // paint is waiting for. On a slow connection or a data-saver phone the
-    // 450 KB these two chunks weigh would delay the words on screen to save a
-    // tap later. So: warm on a connection that can spare it, and otherwise
-    // wait for the first sign of intent (a press, a key, a scroll) — the tap
-    // that needs the chunk always starts with one of those.
-    const conn = (navigator as Navigator & {
-      connection?: { effectiveType?: string; saveData?: boolean; downlink?: number };
-    }).connection;
-    const slow =
-      !!conn?.saveData ||
-      /^(slow-)?2g$|^3g$/.test(conn?.effectiveType ?? '') ||
-      (typeof conn?.downlink === 'number' && conn.downlink < 2);
-
+    // paint is waiting for. These two chunks are ~145 KB compressed and a
+    // large share of landing visitors never enter a room at all, so the
+    // warm-up now waits for INTENT on every connection, not just slow ones:
+    // a press, a focused field, or a key. The tap that needs the chunk always
+    // starts with one of those, and the browser starts the fetch on the way
+    // up rather than after the click returns.
+    //
+    // It used to fire on idle ~1.2s after load on any decent connection —
+    // measured on the landing at 390px, that was 144 KB gzipped requested by
+    // visitors who read the headline and left.
     let cancelled = false;
+    const warmRoom = () => void import('./ChatView');   // 31 KB gz
     const warm = () => {
       if (cancelled) return;
-      void import('./ChatView');
-      void import('../components/QRScanner');
+      cleanup();
+      warmRoom();
     };
-    if (slow) {
-      const onIntent = () => {
-        window.removeEventListener('pointerdown', onIntent);
-        window.removeEventListener('keydown', onIntent);
-        window.removeEventListener('scroll', onIntent);
-        warm();
-      };
-      window.addEventListener('pointerdown', onIntent, { passive: true });
-      window.addEventListener('keydown', onIntent);
-      window.addEventListener('scroll', onIntent, { passive: true });
-      return () => {
-        cancelled = true;
-        window.removeEventListener('pointerdown', onIntent);
-        window.removeEventListener('keydown', onIntent);
-        window.removeEventListener('scroll', onIntent);
-      };
-    }
+    const onIntent = () => warm();
+    const cleanup = () => {
+      window.removeEventListener('pointerdown', onIntent);
+      window.removeEventListener('keydown', onIntent);
+      window.removeEventListener('focusin', onIntent);
+    };
+    window.addEventListener('pointerdown', onIntent, { passive: true });
+    window.addEventListener('keydown', onIntent, { passive: true });
+    window.addEventListener('focusin', onIntent);
 
-    const idle = (cb: () => void) => {
-      const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
-      if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(cb, { timeout: 3000 });
-      else setTimeout(cb, 1200);
-    };
-    idle(warm);
+    // The SCANNER (98 KB gzip) and the ROOM (31 KB gzip) are both fetched on
+    // intent only. A timer-based warm was tried here and measured: warming
+    // the room chunk on an idle callback made the room's Send-to-first-message
+    // INP WORSE (204 ms → 346 ms in scripts/verify-quality.mjs), because the
+    // warm's fetch and the tap's own import compete for the same connection
+    // and the tap is the thing the user is waiting on. The tap IS the intent;
+    // the fetch starts on pointerdown, a frame before click.
     return () => {
       cancelled = true;
+      cleanup();
     };
   }, []);
   // /s/<code> share links: opening one should JOIN the room, not show the
@@ -937,13 +929,21 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     ? t('nav.saved')
     : `${t('nav.saved')} · ${savedCount === 1 ? t('saved.countOne') : t('saved.countMany', { n: savedCount })}`;
   const headerNode = (
-    /* px-[20px], not px-5: rem padding doubles when a reader sets 200% text
-       (20 → 40 each side), but the header's controls are fixed 44px circles,
-       so the action cluster was pushed 7px past the right edge and the theme
-       toggle's edge was clipped. Padding is space, not type: it should not
-       scale with the reader's type size. Measured with
-       scripts/probe-p8-over-run.mjs at 390px, 100% vs 200% text. */
-    <header className="shrink-0 sticky top-0 z-30 h-14 sm:h-16 flex items-center justify-between gap-3 px-[20px] sm:px-6 lg:px-10 bg-apple-canvas dark:bg-night-900 border-b border-black/[0.05] dark:border-white/[0.06] relative">
+    /* No bottom border and no hairline glow. The header used to draw a
+       1px rule plus the ember "spotlight" bar along its bottom edge, and
+       against the paper canvas that edge read as a bright seam cutting the
+       page in two — the first thing the eye landed on. The sticky bar is
+       translucent + blurred now, so the canvas runs straight through it and
+       the seam is gone; content scrolling underneath is what separates them.
+
+       px-5 on phones (not px-6): rem padding doubles at 200% text and the
+       controls are fixed 44px circles, so rem padding pushed the cluster past
+       the right edge. Measured with scripts/probe-p8-over-run.mjs at 390px. */
+    <header className="shrink-0 sticky top-0 z-30 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150">
+      {/* One max-width, shared with the hero, the scroll tail and the footer:
+          the wordmark, the headline and the section rules all start on the
+          same left edge at every width (they used to start 80px apart). */}
+      <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-3 px-5 sm:h-16 sm:px-6 lg:px-8 2xl:px-12">
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
             equal-height object, display-face wordmark, minimal gap. */}
         <BrandLockup />
@@ -961,7 +961,18 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             three controls on the narrowest screen, which is the Hick limit.
             Everything else the capsule used to carry moves into More. */}
         <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-2 sm:flex">
+          <div className="hidden items-center gap-2.5 sm:flex">
+            {/* Docs leaves the glyph capsule and becomes the one NAMED thing
+                in the header. Four unlabeled icons in a row is a guessing
+                game — search, language, saved, docs all read as "some
+                button" — and the destination people actually look for is the
+                docs. A 13px word is unmistakable and costs no extra tap. */}
+            <a
+              href="/docs"
+              className="inline-flex min-h-[40px] items-center rounded-full px-2 text-[13px] font-semibold text-apple-ink-muted transition-colors hover:text-apple-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-apple-ink/25 dark:text-white/60 dark:hover:text-white dark:focus-visible:ring-white/40"
+            >
+              {t('nav.docs')}
+            </a>
             <GlassCapsule label={t('nav.more')}>
               <CommandBarChip onClick={() => { productEvent('product.diagnostics_opened'); setCmdOpen(true); }} />
               <LanguageMenu />
@@ -980,29 +991,28 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   )}
                 </IconButton3D>
               )}
-              <IconButton3D label={t('nav.docs')} href="/docs">
-                <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
-              </IconButton3D>
             </GlassCapsule>
             {panelMode !== 'connected' && <ThemeToggle />}
           </div>
           <div className="flex items-center gap-2 sm:hidden">
-            {/* One control, not two: the phone capsule is More alone, and
-                language now lives inside More. A phone header competes with
-                the hero, so it spends exactly one tap on settings, one on
-                the theme, and nothing else. */}
-            <GlassCapsule label={t('nav.more')}>
+            {/* ONE instrument cluster on a phone: More and the theme control
+                share a capsule, split by a hairline. Two separate objects
+                (a white pill beside a bare glyph) made the theme toggle look
+                like an afterthought floating at the edge of the bar. */}
+            <GlassCapsule label={t('nav.more')} className="gap-1">
               <IconButton3D label={t('nav.more')} onClick={() => setShowMore(true)} testId="header-more" ariaExpanded={showMore} ariaHaspopup="dialog">
                 <MoreHorizontal className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
               </IconButton3D>
+              {panelMode !== 'connected' && (
+                <>
+                  <span aria-hidden className="h-4 w-px shrink-0 bg-black/[0.08] dark:bg-white/[0.12]" />
+                  <ThemeToggle />
+                </>
+              )}
             </GlassCapsule>
-            {panelMode !== 'connected' && <ThemeToggle />}
           </div>
         </div>
-        {/* Spotlight bar: a hairline of brand light where the sticky header
-            meets the page, so the seam reads as intentional depth rather
-            than a border. */}
-        <span aria-hidden className="st-spotlight absolute -bottom-px left-1/2 -translate-x-1/2 h-px w-[min(560px,72%)] opacity-70" />
+      </div>
     </header>
   );
 
@@ -1573,30 +1583,44 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     </div>
   );
   const footerNode = (
-    <footer className="shrink-0 mt-6 px-6 lg:px-10 pt-8 pb-[max(env(safe-area-inset-bottom),28px)] sm:pb-8 border-t border-black/[0.06] dark:border-white/[0.08]">
+    <footer className="shrink-0 mt-4 border-t border-black/[0.06] px-5 pt-10 pb-[max(env(safe-area-inset-bottom),28px)] dark:border-white/[0.08] sm:px-6 sm:pb-8 lg:px-8 2xl:px-12">
       {/* The front door's footer (DESIGN.md §20d): text links only. No icon
           row, no social buttons, no marketing band. Every link keeps a 44px
-          hit area even though the label is 13px — that is what closes B20. */}
-      <div className="max-w-6xl mx-auto flex flex-col gap-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex flex-col gap-2">
+          hit area even though the label is 13px — that is what closes B20.
+
+          Two things changed in this pass: the container is now the same
+          1200px / px-8 column as the header and the hero (it was px-6 of a
+          6xl box, so the brand sat ~80px left of everything above it), and
+          the link row is a real <nav> with a name that describes it — it
+          used to be labelled with the footer.language string, which told a
+          screen reader the wrong thing about the links inside it. */}
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
+          <div className="flex min-w-0 flex-col gap-2.5">
             <BrandLockup className="self-start" />
-            <span className="text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55">
+            <p className="max-w-[34ch] text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55">
               {t('footer.trust')}
-            </span>
+            </p>
+            {/* The one line that answers "will this work on MY things?"
+                without a support page. Same dot + wording as the long-form
+                footer, so the two footers describe one product. */}
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-status-success" aria-hidden />
+              iPhone · Android · Windows · macOS · Linux
+            </p>
           </div>
-          <nav aria-label={t('footer.language')} className="flex flex-wrap items-center gap-x-1">
+          <nav aria-label={t('footer.read')} className="flex flex-wrap items-center gap-x-4 gap-y-0 sm:justify-end">
             {[
               { label: t('nav.docs'), href: '/docs' },
+              { label: t('nav.guides'), href: '/guides' },
               { label: t('nav.about'), href: '/about' },
               { label: t('nav.privacy'), href: '/privacy' },
               { label: t('nav.terms'), href: '/terms' },
-              { label: t('nav.guides'), href: '/guides' },
             ].map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="inline-flex min-h-[44px] items-center px-2.5 -mx-1 text-[13px] font-medium text-apple-ink-muted hover:text-apple-ink dark:text-white/60 dark:hover:text-white decoration-[1px] underline-offset-[5px] hover:underline transition-colors"
+                className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-apple-ink-muted decoration-[1px] underline-offset-[5px] transition-colors hover:text-apple-ink hover:underline dark:text-white/60 dark:hover:text-white"
               >
                 {item.label}
               </a>
@@ -1604,13 +1628,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           </nav>
         </div>
         <div className="flex flex-col gap-2 border-t border-black/[0.05] pt-4 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-x-1">
-            {/* The current language, named, opening the same sheet the header
-                uses — so a visitor never has to hunt for the switcher. */}
-            <span className="inline-flex min-h-[44px] items-center">
-              <LanguageMenu />
-            </span>
-          </div>
+          {/* The current language, named, opening the same sheet the header
+              uses — so a visitor never has to hunt for the switcher. */}
+          <span className="inline-flex min-h-[44px] items-center">
+            <LanguageMenu />
+          </span>
           <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
             © {new Date().getFullYear()} ShareTexts
           </span>
@@ -1624,11 +1646,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       landing footer below would eat a third of the room rail and read as
       marketing inside a tool; app surfaces keep the one-band footer. */
   const compactFooterNode = (
-    <footer className="shrink-0 px-6 lg:px-10 pt-3 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-3 border-t border-apple-divider/60 dark:border-white/[0.06]">
+    <footer className="shrink-0 border-t border-apple-divider/60 px-5 pt-3 pb-[max(env(safe-area-inset-bottom),16px)] dark:border-white/[0.06] sm:px-6 sm:pb-3 lg:px-8">
       {/* Two tidy rows on a phone (brand + X, then the links) instead of one
           row that wrapped mid-list and left the X stranded on its own line.
           From sm up it collapses back to the single quiet band. */}
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-x-5 gap-y-0.5 flex-wrap">
+      <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-x-5 gap-y-0.5 flex-wrap">
         <BrandLockup compact className="select-none order-1" />
         <a
           href="https://x.com/0xalyt"
@@ -1701,7 +1723,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           source of truth for the headline on desktop and mobile, sitting in
           the same max-w-md column as the subtitle and actions. */}
       <div
-        className={`flex-1 flex flex-col px-6 lg:px-10 pb-6 min-h-0 overflow-y-auto overscroll-contain room-scroll ${isTaskScreen ? 'pt-[58px]' : 'pt-3 sm:pt-6 lg:pt-12'}`}
+        className={`flex-1 flex flex-col px-6 lg:px-8 pb-6 min-h-0 overflow-y-auto overscroll-contain room-scroll ${isTaskScreen ? 'pt-[58px]' : 'pt-5 sm:pt-7 lg:pt-10'}`}
       >
         {/* Vertically center the connected rail in the pane's real height —
             the column is shorter than the viewport on desktop, and top-
@@ -2008,7 +2030,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             is taller than the viewport, and the squeezed hero rows overflow
             ONTO the footer band — the footer then intercepts their clicks
             (caught by verify-autoconnect-trusted at 1100×800). */}
-        <div className="mx-auto w-full max-w-[1200px] min-h-[100dvh] shrink-0 px-8 2xl:px-12 flex flex-col">
+        <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1200px] shrink-0 flex-col px-6 lg:px-8 2xl:px-12">
           {/* Short laptops (≤820px inner height) hang BOTH columns from a
               shared top line instead of centering: centering a tall row on a
               short window pushes the demo's bottom past the fold (caught by
@@ -2138,7 +2160,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     right under the header on every phone height. */}
                 <div
                   id="main-content"
-                  className={`flex-1 flex flex-col justify-start px-6 lg:px-10 pb-6 min-h-0 ${isTaskScreen ? 'pt-[58px]' : 'pt-3 sm:pt-6'}`}
+                  className={`flex-1 flex flex-col justify-start px-5 sm:px-6 pb-8 min-h-0 ${isTaskScreen ? 'pt-[58px]' : 'pt-5 sm:pt-8'}`}
                 >
                   <ScreenStack screen={panelMode} mode={panelMode === 'connected' ? 'mode' : 'push'}>
                     {heroContent}

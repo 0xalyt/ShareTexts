@@ -716,7 +716,7 @@ export function Docs() {
   };
 
   return (
-    <div className="min-h-screen bg-apple-canvas dark:bg-night-900 font-sans">
+    <div className="min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
       {/* Header — the shared PageHeader, so Docs, Legal and the 404 share one
           header instead of three hand-rolled near-copies. */}
       <PageHeader

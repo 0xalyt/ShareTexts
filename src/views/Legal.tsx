@@ -184,7 +184,7 @@ export function Legal({ page }: { page: LegalPage }) {
   }, [title]);
 
   return (
-    <div className="min-h-screen bg-apple-canvas dark:bg-night-900 font-sans">
+    <div className="min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
       {/* The shared PageHeader: Legal used to be the one screen with no way
           to Docs or About from its header. */}
       <PageHeader

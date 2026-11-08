@@ -1085,8 +1085,12 @@ html.dark {
    layout-neutral, and each is used where a surface needs to feel like a
    MATERIAL rather than a box:
      .st-horizon   sunrise horizon — warm light rising from a bottom edge
-     .st-spotlight a hairline bar of brand light under a sticky header
-   All are tuned to whisper: nothing here is allowed to compete with type. */
+   All are tuned to whisper: nothing here is allowed to compete with type.
+
+   (.st-spotlight lived here — a 560px ember hairline pinned under the sticky
+   header. It was removed with the header's bottom border: the two together
+   drew a bright seam across the top of every page, and the header is now a
+   translucent blur that needs no rule at all.) */
 
 
 
@@ -1095,13 +1099,6 @@ html.dark {
 }
 html.dark .st-horizon {
   background: radial-gradient(120% 68% at 50% 118%, rgba(251, 146, 67, 0.20), rgba(255, 194, 92, 0.08) 42%, transparent 72%);
-}
-
-.st-spotlight {
-  background: linear-gradient(90deg, transparent, rgba(240, 100, 19, 0.45) 50%, transparent);
-}
-html.dark .st-spotlight {
-  background: linear-gradient(90deg, transparent, rgba(251, 146, 67, 0.5) 50%, transparent);
 }
 
 /* Disconnect toast entrance: settle down from 8px above, no bounce. */

@@ -40,11 +40,15 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 bg-apple-canvas dark:bg-night-900 border-b border-apple-divider dark:border-white/[0.06]',
+        // Same bar as the landing header: translucent canvas over a blur, no
+        // bottom rule. A 1px border here made the long pages start with a
+        // bright seam, and the two headers sat at different widths (6xl vs
+        // 1200px) so crossing into Docs moved the brand sideways.
+        'sticky top-0 z-40 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150',
         className,
       )}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-3">
+      <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center gap-3 px-5 sm:h-16 sm:px-6 lg:px-8 2xl:px-12">
         {/* Back arrow and lockup are siblings — BrandLockup is an anchor
             itself, and an anchor inside an anchor is invalid HTML. */}
         <div className="flex items-center gap-2 shrink-0">

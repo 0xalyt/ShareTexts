@@ -85,7 +85,7 @@ function DisconnectToast({ reason, onDone }: { reason: string, onDone: () => voi
 function RouteSkeleton({ wide }: { wide?: boolean }) {
   const { t } = useI18n();
   return (
-    <div className="min-h-screen bg-apple-canvas dark:bg-night-900 font-sans">
+    <div className="min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center gap-2" aria-hidden>
         <Bar className="h-6 w-6 !rounded-[8px]" />
         <Bar className="h-3.5 w-24" />
@@ -154,7 +154,7 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
   // Design: calm recovery — the brand lockup, one honest headline, one
   // explanation, one primary path forward and two quiet alternatives.
   return (
-    <div className="min-h-screen flex flex-col bg-apple-canvas dark:bg-night-900 dot-bg">
+    <div className="min-h-dvh flex flex-col bg-apple-canvas dark:bg-night-900 dot-bg">
       {/* Static English, same header geometry as the rest of the product.
           The theme switch is deliberately absent: the error can fire before
           the providers mount, and a control that cannot work is worse than
@@ -239,7 +239,7 @@ function AppContent() {
   }, [session.closedReason, leaveView]);
 
   if (typeof window !== 'undefined' && window.location.pathname === '/docs') {
-    return <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton wide /></SkeletonGate>}><Docs /></Suspense>;
+    return <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton wide /></SkeletonGate>}><Docs /></Suspense>;
   }
 
   // Temporary Space entry points (F21): the code IS the invitation, so
@@ -262,7 +262,7 @@ function AppContent() {
       const frag = window.location.hash.replace(/^#/, '');
       const km = frag.match(/^k=([A-Za-z0-9_-]+)$/);
       return (
-        <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton /></SkeletonGate>}>
+        <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton /></SkeletonGate>}>
           <SpaceView spaceId={m[1].toLowerCase()} token={km ? km[1] : ''} />
         </Suspense>
       );
@@ -270,11 +270,11 @@ function AppContent() {
   }
 
   if (typeof window !== 'undefined' && window.location.pathname === '/privacy') {
-    return <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton /></SkeletonGate>}><Legal page="privacy" /></Suspense>;
+    return <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton /></SkeletonGate>}><Legal page="privacy" /></Suspense>;
   }
 
   if (typeof window !== 'undefined' && window.location.pathname === '/terms') {
-    return <Suspense fallback={<SkeletonGate min="100vh" delay={300}><RouteSkeleton /></SkeletonGate>}><Legal page="terms" /></Suspense>;
+    return <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton /></SkeletonGate>}><Legal page="terms" /></Suspense>;
   }
 
   // /about is NOT an app route: the server (dev parity with production and
@@ -286,7 +286,7 @@ function AppContent() {
     // The 404 is a DESIGNED screen, not a dead end: brand, honest state,
     // and both ways forward (home primary, docs secondary).
     return (
-      <div className="min-h-screen flex flex-col bg-apple-canvas dark:bg-night-900 dot-bg">
+      <div className="min-h-dvh flex flex-col bg-apple-canvas dark:bg-night-900 dot-bg">
         {/* The same header the rest of the non-room screens use, so a dead
             link still feels like the product. */}
         <PageHeader

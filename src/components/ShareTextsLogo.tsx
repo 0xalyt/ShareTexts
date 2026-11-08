@@ -7,9 +7,15 @@ import { cn } from '../lib/utils';
  * pixels. The four supplied logo tiles live in public/brand/logo-tile-*.jpg;
  * scripts/gen-logo-glyphs.mjs keys their flat field out to transparency
  * (glyph body pixels byte-exact, only the AA edge gets recomputed coverage)
- * into public/brand/logo-glyph-orange.png at a square canvas whose ink
+ * into public/brand/logo-glyph-orange.webp at a square canvas whose ink
  * height is 0.72 of the box — the geometry BrandLockup was measured
  * against, so every `size` prop keeps meaning exactly what it meant before.
+ *
+ * Shipping format: the same pixels as WebP at 96px (5.4 kB instead of the
+ * 40.7 kB PNG the glyph was extracted to). The mark is drawn at 30–38 CSS
+ * px, so 96 gives 2.5× headroom for retina screens; at that ratio the
+ * difference is invisible and the file is 87% smaller — it is on every
+ * page, in the header, so those 35 kB were paid on every single visit.
  * The shape is never redrawn, traced, or recolored here: this component
  * only displays that file.
  *
@@ -43,7 +49,7 @@ const reducedMotion = typeof window !== 'undefined'
   : false;
 
 // Exact glyph pixels (transparent field, 0.72 ink/box) from gen-logo-glyphs.
-const GLYPH_ORANGE = '/brand/logo-glyph-orange.png';
+const GLYPH_ORANGE = '/brand/logo-glyph-orange.webp';
 
 export function ShareTextsLogo({
   className,

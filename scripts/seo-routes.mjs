@@ -107,7 +107,7 @@ const SHELL_CSS = `
       html.dark .st-seo .muted { color: rgba(255,255,255,0.5); }
     </style>`;
 
-const LOGO_SVG = `<img src="/brand/logo-glyph-orange.png" alt="" width="26" height="26" style="display:block;flex-shrink:0" aria-hidden="true">`;
+const LOGO_SVG = `<img src="/brand/logo-glyph-orange.webp" alt="" width="26" height="26" style="display:block;flex-shrink:0" aria-hidden="true">`;
 
 function shellBody({ overline, h1, subtitle, main, footerNote }) {
   return `<div id="root">

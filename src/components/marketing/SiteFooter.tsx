@@ -67,8 +67,10 @@ export function SiteFooter({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="max-w-6xl mx-auto px-5 sm:px-6 py-12 sm:py-14">
-        <div className="grid gap-x-8 gap-y-10 grid-cols-2 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.7fr)_repeat(3,minmax(0,1fr))]">
+      {/* Same 1200px column as the header, the landing footer and every
+          hero: the brand sits on one left edge across the whole site. */}
+      <div className="mx-auto w-full max-w-[1200px] px-5 py-12 sm:px-6 sm:py-16 lg:px-8 2xl:px-12">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.7fr)_repeat(3,minmax(0,1fr))]">
           <div className="col-span-2 min-w-0 sm:col-span-3 lg:col-span-1">
             {/* The brand lockup, linked home — same ember mark + themed
                 wordmark as every other header, never a cream night swap. */}

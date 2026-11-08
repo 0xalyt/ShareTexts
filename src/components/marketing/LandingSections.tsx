@@ -88,9 +88,17 @@ export function ThreeThings() {
   return (
     <section aria-labelledby="how-title" className="w-full pt-14 pb-10">
       <SectionHead id="how-title" heading={t('home.three.heading')} />
-      {/* Three rows, not three cards: a hairline above each story holds the
-          sequence together without boxing the product recording in. */}
-      <ul className="flex flex-col gap-10">
+      {/* Three stories. On phones each is a row (words left, recording right);
+          from lg it becomes three columns with the recording on top.
+
+          The row version was what shipped, and on a 1440 screen it left a
+          250px dead band beside every two-line paragraph — the recording is a
+          phone screen ~325px tall, so the row was always as tall as the
+          picture and the words floated in the middle of it. Three columns
+          give the recordings a shared top line, the words a full column
+          width, and the section the rhythm of a three-step sequence instead
+          of three empty bands. */}
+      <ul className="grid grid-cols-1 gap-10 lg:grid-cols-3 lg:gap-8">
         {STORIES.map(({ key, loop }) => {
           // A story with no recording yet is words on the page, one column:
           // an empty frame would be decoration pretending to be the product.
@@ -100,8 +108,10 @@ export function ThreeThings() {
             key={key}
             {...revealItem}
             className={cn(
-              'flex items-center border-t border-black/[0.10] pt-5 dark:border-white/[0.14]',
-              hasLoop ? 'gap-5 sm:gap-10' : 'gap-5',
+              'flex border-t border-black/[0.10] pt-5 dark:border-white/[0.14]',
+              hasLoop
+                ? 'flex-row items-start gap-5 sm:gap-8 lg:flex-col lg:gap-5'
+                : 'flex-col gap-2',
             )}
           >
               <div className="min-w-0 flex-1">
@@ -115,7 +125,7 @@ export function ThreeThings() {
               <ProductLoop
                 name={loop}
                 label={t(`home.three.${key}.lead`)}
-                className="w-[108px] sm:w-[148px]"
+                className="w-[108px] shrink-0 sm:w-[132px] lg:w-[168px]"
               />
           </motion.li>
           );
@@ -164,7 +174,15 @@ export function SmallThings() {
   );
 }
 
-/* ── FAQ — the eight questions that block a first transfer ────────────────── */
+/* ── FAQ — the seven questions that actually block a first transfer ────────
+ *
+ * The list is ordered the way a first-time visitor asks, not the way the
+ * docs are organised: what is this → how do I use it → what does it cost →
+ * will it work on MY device → where can I do this → is it safe → what can I
+ * send. Everything that only matters once someone is already in a room (code
+ * lifetime, relay internals, Temporary Spaces) lives in the docs, one click
+ * away, instead of competing here.
+ * ------------------------------------------------------------------------- */
 
 export function LandingFaq() {
   const { t } = useI18n();
@@ -176,12 +194,18 @@ export function LandingFaq() {
     { q: t('home.faq.q5'), a: t('home.faq.a5') },
     { q: t('home.faq.q6'), a: t('home.faq.a6') },
     { q: t('home.faq.q7'), a: t('home.faq.a7') },
-    { q: t('home.faq.q8'), a: t('home.faq.a8') },
   ];
   return (
     <section aria-labelledby="faq-title" className="w-full py-10">
-      <SectionHead heading={t('home.faq.heading')} id="faq-title" />
-      <FaqSection items={items} defaultOpen={null} hideLabel className="max-w-[720px]" />
+      <FaqSection
+        items={items}
+        heading={t('home.faq.heading')}
+        sub={t('home.faq.sub')}
+        pinFirst
+        hideLabel
+        defaultOpen={0}
+        className="max-w-[720px]"
+      />
       <a
         href="/docs"
         className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 py-3 text-[13px] font-semibold text-ember-ink hover:underline dark:text-azure-400"

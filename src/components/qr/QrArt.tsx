@@ -49,7 +49,7 @@ export type QrArtProps = {
   logo?: boolean;
 };
 
-const GLYPH = '/brand/logo-glyph-orange.png';
+const GLYPH = '/brand/logo-glyph-orange.webp';
 
 /**
  * Colours live in an inline stylesheet rather than in CSS variables or

@@ -27,9 +27,9 @@ const SHELL = [
   // unhashed like the favicons, so the network-first "unhashed" rule below
   // must also cover a future rebrand, and the offline shell must ship the
   // brand, not a broken image.
-  '/brand/logo-glyph-orange.png',
+  '/brand/logo-glyph-orange.webp',
   '/brand/logo-glyph-cream.png',
-  '/brand/logo-lockup-footer.png',
+  '/brand/logo-lockup-monoline.png',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-192.png',
@@ -68,7 +68,11 @@ async function lazyChunks() {
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    await cache.addAll(SHELL);
+    // allSettled, not addAll: ONE missing file used to reject the whole
+    // install, so the offline shell never arrived and there was no clue why.
+    // A shell with 23 of 24 files is an offline app; a rejected install is
+    // no offline app at all.
+    await Promise.allSettled(SHELL.map((url) => cache.add(url)));
     const lazy = await lazyChunks();
     if (lazy.length) {
       // One failed chunk must not fail the whole install.

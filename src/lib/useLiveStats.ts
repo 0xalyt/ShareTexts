@@ -79,7 +79,14 @@ export function useLiveStats(pollMs = 10_000): { devices: number | null; roomsCr
     // stale /stats, which lacks roomsCreated — the tracker then sits at the
     // floor until the next 10s tick. Await the probe, then poll.
     const boot = endpointSelectionSettled();
-    const tick = async () => { if (!cancelled) await load(); };
+    // A hidden tab has no tracker to update: polling keeps waking the radio on
+    // every parked tab, ten seconds at a time, for a number nobody is looking
+    // at. The visibilitychange handler below fetches the moment the tab comes
+    // back, so skipping while hidden costs no freshness.
+    const tick = async () => {
+      if (cancelled || document.visibilityState === 'hidden') return;
+      await load();
+    };
     void boot.then(tick);
     const timer = setInterval(tick, pollMs);
     // Returning to the tab (e.g. after finishing a room) refreshes at once,
