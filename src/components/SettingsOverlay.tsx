@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'motion/react';
 import { Check, ChevronRight, X } from 'lucide-react';
+import { Sheet } from './ui/Sheet';
 import { useI18n, LANGS, type Lang } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { useSession } from '../lib/SessionContext';
@@ -139,21 +138,11 @@ export function SettingsOverlay({
   const [visible, setVisible] = useState(() => !isPresenceHidden());
   const [autoConnect, setAutoConnect] = useState(() => isAutoConnectEnabled());
 
-  // Drag-to-dismiss (INTERACTION-MOTION §D). The grabber owns the gesture and
-  // moves the panel 1:1 with the pointer; on release a decisive drag or a flick
-  // dismisses from where the sheet already is, and anything less springs back.
-  // The enter/exit animation lives on the outer element, so dragging and
-  // dismissing never fight over the same transform.
-  const [dragY, setDragY] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const dragFrom = useRef<{ y: number; t: number; vy: number } | null>(null);
 
   useEffect(() => {
     if (!open) {
       setLanguageOpen(false);
       setEditingName(false);
-      setDragY(0);
-      setDragging(false);
     }
   }, [open]);
 
@@ -190,81 +179,20 @@ export function SettingsOverlay({
 
   const languageLabel = auto ? t('settings.languageAutomatic') : LANGS.find((l) => l.code === lang)?.native ?? 'English';
 
-  const onGrabStart = (e: React.PointerEvent<HTMLDivElement>) => {
-    dragFrom.current = { y: e.clientY, t: performance.now(), vy: 0 };
-    setDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const onGrabMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const from = dragFrom.current;
-    if (!from) return;
-    const next = Math.max(0, e.clientY - from.y);
-    const now = performance.now();
-    const dt = now - from.t;
-    if (dt > 0) {
-      // Smoothed so one jittery sample cannot fake a flick.
-      const vy = (e.clientY - from.y - dragY) / dt * 1000;
-      from.vy = from.vy * 0.7 + vy * 0.3;
-      from.t = now;
-    }
-    setDragY(next);
-  };
-
-  const onGrabEnd = () => {
-    const from = dragFrom.current;
-    dragFrom.current = null;
-    setDragging(false);
-    // 88px is a third of the grabber's travel; 500px/s is a flick.
-    if (from && (dragY > 88 || from.vy > 500)) onClose();
-    else setDragY(0);
-  };
-
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-[90] bg-black/35 dark:bg-black/60 flex items-end sm:items-center justify-center sm:p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('settings.title')}
-          onPointerDown={(e) => {
-            if (e.target === e.currentTarget) onClose();
-          }}
-        >
-          <motion.div
-            ref={trapRef}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-            exit={{ y: '100%', transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] } }}
-            className="w-full sm:max-w-[440px]"
-            data-testid="settings-overlay"
-          >
-            <div
-              className="relative sm:rounded-[24px] rounded-t-[24px] bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-2 max-h-[88dvh] flex flex-col"
-              style={{
-                transform: dragY ? `translate3d(0, ${dragY}px, 0)` : undefined,
-                transition: dragging ? 'none' : 'transform 220ms cubic-bezier(0.32, 0.72, 0, 1)',
-              }}
-            >
-              <div
-                className="sm:hidden flex shrink-0 justify-center pt-2.5 pb-1 cursor-grab touch-none"
-                aria-hidden
-                onPointerDown={onGrabStart}
-                onPointerMove={onGrabMove}
-                onPointerUp={onGrabEnd}
-                onPointerCancel={onGrabEnd}
-              >
-                <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
-              </div>
-
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      labelledBy="settings-title"
+      maxWidth={440}
+      z={90}
+      closeButton={false}
+      scroll="none"
+      testId="settings-overlay"
+      panelClassName="sm:pb-2"
+    >
               <div className="flex items-center justify-between px-4 pt-2 pb-1">
-                <h3 className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('settings.title')}</h3>
+                <h3 id="settings-title" className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('settings.title')}</h3>
                 <button
                   type="button"
                   onClick={onClose}
@@ -279,7 +207,7 @@ export function SettingsOverlay({
                   the sheet slides and the list is replaced, so Back (or this
                   chevron) is one gesture, in the same surface. */}
               {languageOpen ? (
-                <div className="min-h-0 overflow-y-auto px-3 pb-4" data-testid="settings-language-list">
+                <div className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4" data-testid="settings-language-list" data-sheet-scroll>
                   <button
                     type="button"
                     onClick={() => setLanguageOpen(false)}
@@ -317,7 +245,7 @@ export function SettingsOverlay({
                   </div>
                 </div>
               ) : (
-                <div className="min-h-0 overflow-y-auto px-3 pb-4 room-scroll">
+                <div className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4 room-scroll" data-sheet-scroll>
                   {/* ── Device ─────────────────────────────────────── */}
                   <Group title={t('settings.device')} testId="settings-device">
                     <Row first as="div" className="justify-between">
@@ -513,12 +441,7 @@ export function SettingsOverlay({
                   )}
                 </div>
               )}
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    typeof document !== 'undefined' ? document.body : null,
+    </Sheet>
   );
 }
 

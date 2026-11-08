@@ -15,7 +15,6 @@
  * blobs get object URLs that are revoked when their view unmounts.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X, Search, Trash2, Copy, Check, Download, ExternalLink,
@@ -24,9 +23,9 @@ import {
 import { useI18n } from '../lib/i18n';
 import { fmtDateTime } from '../lib/format';
 import type { I18nApi } from '../lib/i18n';
-import { useFocusTrap } from '../lib/useFocusTrap';
 import { useScrollFade } from '../lib/useScrollFade';
 import { DUR } from '../lib/motion/tokens';
+import { Sheet } from './ui/Sheet';
 import { cn, formatBytes } from '../lib/utils';
 import { FileTypeIcon } from './FileTypeIcon';
 import { ConfirmSheet } from './ConfirmSheet';
@@ -404,7 +403,6 @@ function SavedRow({
 export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t }: I18nApi = useI18n();
   const snapshot = useSavedSnapshot();
-  const trapRef = useFocusTrap(open, onClose);
 
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(60);
@@ -463,9 +461,20 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
 
   const body = (() => {
     if (snapshot.status === 'loading') {
+      // Skeleton rows, not a centred word: the list's real shape arrives
+      // already in place, so nothing jumps when the items land. aria-hidden
+      // because the sheet announces the busy state itself.
       return (
-        <div className="py-10 text-center text-[13px] text-apple-ink-muted dark:text-white/45" data-testid="saved-loading">
-          {t('common.loading')}
+        <div className="py-2 flex flex-col gap-2.5" data-testid="saved-loading" role="status" aria-label={t('common.loading')}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="rounded-[16px] border border-black/[0.06] dark:border-white/[0.07] p-3 flex gap-3" aria-hidden>
+              <span className="st-skeleton h-12 w-12 rounded-[12px] shrink-0" />
+              <span className="flex-1 min-w-0 flex flex-col gap-2 pt-0.5">
+                <span className="st-skeleton h-3 rounded-full" style={{ width: `${72 - i * 9}%` }} />
+                <span className="st-skeleton h-2.5 rounded-full w-2/5" />
+              </span>
+            </div>
+          ))}
         </div>
       );
     }
@@ -561,81 +570,67 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
     );
   })();
 
-  return createPortal(
+  return (
     <>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: DUR.short / 1000 }} /* motion takes SECONDS; DUR is ms */
-            className="fixed inset-0 z-[90] bg-black/35 dark:bg-black/60 flex items-end sm:items-center justify-center sm:p-6"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t('saved.title')}
-            onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      <Sheet
+        open={open}
+        onClose={onClose}
+        labelledBy="saved-title"
+        maxWidth={460}
+        z={90}
+        closeButton={false}
+        scroll="none"
+        testId="saved-overlay"
+        panelClassName="sm:max-w-[460px]"
+      >
+        <div className="px-6 pt-1 sm:pt-5 pb-1 flex items-start justify-between gap-3 shrink-0">
+          <div className="min-w-0">
+            <h3 id="saved-title" className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">
+              {t('saved.title')}
+            </h3>
+            {snapshot.status === 'ready' && items.length > 0 && (
+              <p className="text-[12px] text-apple-ink-muted dark:text-white/45 tnum">{countLabel}</p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('common.close')}
+            data-testid="saved-close"
+            className="shrink-0 -mt-1 -mr-1 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-90 transition-all"
           >
-            <motion.div
-              ref={trapRef}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-              className="w-full sm:max-w-[460px]"
-              data-testid="saved-overlay"
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* data-sheet-scroll tells the drag gesture which element scrolls:
+            the sheet only takes a downward drag when this list is at its top. */}
+        <div
+          ref={listRef}
+          data-sheet-scroll
+          className="st-scroll-fade-y flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-2"
+        >
+          {body}
+        </div>
+
+        {items.length > 0 && snapshot.status === 'ready' && (
+          <div className="shrink-0 px-4 sm:px-5 pt-3 pb-2 mt-1 border-t border-apple-divider dark:border-white/[0.06] flex items-center justify-between gap-3">
+            <p className="text-[11px] leading-snug text-apple-ink-muted dark:text-white/40 max-w-[62%]">
+              {t('saved.localNote')}
+            </p>
+            <button
+              type="button"
+              onClick={() => setConfirmClear(true)}
+              disabled={clearing}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[40px] rounded-full text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
+              data-testid="saved-clear"
             >
-              <div className="relative sm:rounded-[20px] sm:overflow-hidden rounded-t-[24px] bg-white dark:bg-surface-dark sm:shadow-sheet shadow-[0_-8px_40px_-8px_rgba(0,0,0,0.3)] flex flex-col max-h-[85dvh] pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0">
-                <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0" aria-hidden>
-                  <span className="w-9 h-1 rounded-full bg-black/15 dark:bg-white/20" />
-                </div>
-
-                <div className="px-6 pt-4 sm:pt-6 pb-1 flex items-start justify-between gap-3 shrink-0">
-                  <div className="min-w-0">
-                    <h3 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">
-                      {t('saved.title')}
-                    </h3>
-                    {snapshot.status === 'ready' && items.length > 0 && (
-                      <p className="text-[12px] text-apple-ink-muted dark:text-white/45 tnum">{countLabel}</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label={t('common.close')}
-                    data-testid="saved-close"
-                    className="shrink-0 -mt-1 -mr-1 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-90 transition-all"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div ref={listRef} className="st-scroll-fade-y flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-2">
-                  {body}
-                </div>
-
-                {items.length > 0 && snapshot.status === 'ready' && (
-                  <div className="shrink-0 px-4 sm:px-5 pt-3 pb-2 mt-1 border-t border-apple-divider dark:border-white/[0.06] flex items-center justify-between gap-3">
-                    <p className="text-[11px] leading-snug text-apple-ink-muted dark:text-white/40 max-w-[62%]">
-                      {t('saved.localNote')}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmClear(true)}
-                      disabled={clearing}
-                      className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[40px] rounded-full text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
-                      data-testid="saved-clear"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" aria-hidden />
-                      {t('saved.clear')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
+              <Trash2 className="w-3.5 h-3.5" aria-hidden />
+              {t('saved.clear')}
+            </button>
+          </div>
         )}
-      </AnimatePresence>
+      </Sheet>
 
       {/* Destructive confirmation — own sheet, own focus trap, paints above. */}
       <ConfirmSheet
@@ -652,7 +647,6 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
       <AnimatePresence>
         {open && viewing && <SavedImageViewer item={viewing} onClose={() => setViewing(null)} />}
       </AnimatePresence>
-    </>,
-    typeof document !== 'undefined' ? document.body : null
+    </>
   );
 }

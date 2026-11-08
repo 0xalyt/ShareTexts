@@ -33,6 +33,10 @@ export function initInstallCapture() {
     // and keep the event for a button the user actually pressed.
     e.preventDefault();
     deferred = e as BipEvent;
+    // Tell the UI an install is genuinely available *now*: the event can
+    // arrive long after mount, and a footer entry that only appears on the
+    // next render is one nobody finds.
+    try { window.dispatchEvent(new CustomEvent('sharetext:installable')); } catch { /* non-DOM */ }
   });
   window.addEventListener('appinstalled', () => {
     deferred = null;
@@ -41,6 +45,7 @@ export function initInstallCapture() {
     } catch {
       /* not fatal */
     }
+    try { window.dispatchEvent(new CustomEvent('sharetext:installed')); } catch { /* non-DOM */ }
   });
 }
 

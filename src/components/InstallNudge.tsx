@@ -15,73 +15,145 @@ import {
   silenceInstall,
 } from '../lib/pwaInstall';
 
-/** True while the transfer room owns the screen (ChatView's root marker).
- *  Used to keep this card out of a live session — see roomActive() below. */
+/** True while the transfer room owns the screen (ChatView's root marker). */
 const roomActive = () =>
   typeof document !== 'undefined' && !!document.querySelector('[data-app-state="connected"]');
+
+/**
+ * Is this an empty-handed moment? Everything the offer must never interrupt:
+ * an open sheet, a room, a keyboard, a half-watched tab. The install card is
+ * a convenience; a convenience that covers the thing someone is doing is a
+ * nuisance, and one nuisance is enough to make them dismiss it forever.
+ */
+function calm(): boolean {
+  if (typeof document === 'undefined') return false;
+  if (document.visibilityState !== 'visible') return false;
+  if (roomActive()) return false;
+  // A held sheet (Nearby) keeps its dialog in the DOM while closed, so ask
+  // for one that is not sitting inside a hidden branch — presence alone is
+  // not openness.
+  for (const dialog of Array.from(document.querySelectorAll('[role="dialog"]'))) {
+    if (!dialog.closest('[aria-hidden="true"]')) return false;
+  }
+  const active = document.activeElement as HTMLElement | null;
+  if (active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) return false;
+  return true;
+}
+
+/** How long the card stands on its own before it quietly leaves. */
+const SELF_RETIRE_MS = 26_000;
 
 /**
  * InstallNudge — "keep it handy?", asked once, at a calm moment.
  *
  * What keeps it from being one of those banners people learn to hate:
  *
- *   · IT WAITS. Twelve seconds after load, so it never lands on top of the
- *     thing the visitor came to do; and it only appears after real use or a
- *     second visit (shouldOfferInstall).
- *   · IT IS SMALL AND IN THE CORNER. A card, not a modal, not an overlay,
- *     no backdrop, nothing to dismiss before using the app.
+ *   · IT WAITS FOR A MOMENT, NOT A TIMER. Nothing is offered on load. The
+ *     offer is armed by something that actually happened — a device joined
+ *     (sharetext:recents), a room being left, a return to the tab on a second
+ *     visit — and only shown once ALL of those are true: no room, no sheet,
+ *     no focused input, tab visible. If none of that arrives in three
+ *     minutes, nothing is shown at all.
+ *   · IT IS SMALL AND IN THE CORNER. A card, not a modal, not an overlay, no
+ *     backdrop, nothing to dismiss before using the app.
+ *   · IT RETIRES ITSELF. Twenty-six seconds of being ignored and it fades
+ *     out without recording a refusal, so it can ask again another day.
  *   · IT CANNOT LIE. On Chromium the button triggers the browser's own
  *     install prompt. On iOS the card says "Share → Add to Home Screen" in
  *     words, because that is the only thing that works there.
- *   · IT STOPS. "Not now" is remembered for two weeks; dismissing forever
- *     is one tap away; installed apps never see it again.
+ *   · IT STOPS. "Not now" is remembered for two weeks; "don't ask" is one
+ *     tap away; installed apps never see it again.
  */
 export function InstallNudge() {
   const { t } = useI18n();
   const reduced = useReducedMotion();
   const [visible, setVisible] = useState(false);
   const [manual, setManual] = useState(false);
-  // Re-arming handle: hiding for a room hands the offer to a LATER calm
-  // moment instead of dropping it for the visit.
+  const shownRef = useRef(false);
+  const retireRef = useRef<number>(0);
+  /** Re-arm handle so a card that has to step aside hands the offer to a
+   *  later calm moment instead of dropping it for good. */
   const armRef = useRef<(delay: number) => void>(() => {});
 
   useEffect(() => {
     initInstallCapture();
     noteVisit();
-    // The demo/QA escape hatch: ?install=1 shows the card on demand.
     const forced = typeof window !== 'undefined' && /[?&]install=1/.test(window.location.search);
     let timer = 0;
-    const arm = (delay: number) => {
-      timer = window.setTimeout(() => {
-        // A live room is NOT the calm moment. On phones this card's own
-        // bottom placement (left-4 right-4 bottom-16) lands exactly on the
-        // composer — + , the text field and send — so showing it mid-session
-        // eats the primary controls of the screen being used (caught by
-        // verify-mobile-ui: the nudge intercepted the + tap). Wait for an
-        // empty moment instead of stealing the current one.
-        if (roomActive()) { arm(6000); return; }
-        if (forced || shouldOfferInstall(hasUsedApp())) {
-          setManual(isManualInstallPlatform() && !hasInstallPrompt());
-          setVisible(true);
-        }
-      }, delay);
+    let retired = false;
+
+    const show = () => {
+      if (shownRef.current) return;
+      shownRef.current = true;
+      setManual(isManualInstallPlatform() && !hasInstallPrompt());
+      setVisible(true);
+      retireRef.current = window.setTimeout(() => {
+        // Ignored, not refused: close it without writing a snooze.
+        retired = true;
+        setVisible(false);
+      }, SELF_RETIRE_MS);
     };
+
+    /** Wait for calm, polling at 1s, giving up after `budgetMs`. */
+    const arm = (delay: number, budgetMs = 180_000) => {
+      window.clearTimeout(timer);
+      const deadline = performance.now() + budgetMs;
+      const tick = () => {
+        if (retired) return;
+        if (performance.now() > deadline) return;
+        if (forced || shouldOfferInstall(hasUsedApp())) {
+          if (calm()) { show(); return; }
+        } else {
+          return;
+        }
+        timer = window.setTimeout(tick, 1000);
+      };
+      timer = window.setTimeout(tick, delay);
+    };
+
     armRef.current = arm;
-    arm(forced ? 400 : 12000);
-    return () => window.clearTimeout(timer);
+
+    if (forced) {
+      arm(400);
+    } else if (shouldOfferInstall(hasUsedApp())) {
+      // A second visit can be offered after the page has settled; a first
+      // visit needs an actual use first, which arrives as an event below.
+      arm(readVisitBaseline() >= 2 ? 14_000 : 180_000, 240_000);
+    }
+
+    // A device joined the room — the strongest "this app did something for
+    // me" signal there is. Offer shortly after the room empties.
+    const onRecent = () => arm(4000);
+    window.addEventListener('sharetext:recents', onRecent);
+
+    // Coming back to the tab is a fresh moment; going into it is not.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && shownRef.current) return;
+      if (document.visibilityState === 'visible') arm(6000);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(retireRef.current);
+      window.removeEventListener('sharetext:recents', onRecent);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
-  // If a room opens while the card is already on screen, it steps aside the
-  // moment the composer mounts (2s poll — cheap, one selector) and re-arms
-  // for a later calm moment.
+  // A card that is already on screen when a room opens (or a sheet, or the
+  // keyboard) gets out of the way on the next tick: on a phone this card's
+  // bottom placement lands exactly on the composer, and a convenience that
+  // covers the send button has failed at its job. It withdraws silently and
+  // re-arms for a later calm moment — withdrawn, not refused.
   useEffect(() => {
     if (!visible) return;
     const iv = window.setInterval(() => {
-      if (roomActive()) {
-        setVisible(false);
-        armRef.current(12_000);
-      }
-    }, 2000);
+      if (calm()) return;
+      setVisible(false);
+      window.clearTimeout(retireRef.current);
+      armRef.current(12_000);
+    }, 1500);
     return () => window.clearInterval(iv);
   }, [visible]);
 
@@ -105,7 +177,7 @@ export function InstallNudge() {
             'shadow-[0_16px_44px_-16px_rgba(20,16,10,0.35)]',
             'dark:border-white/[0.1] dark:bg-apple-tile-2',
             'left-4 right-4 bottom-[max(env(safe-area-inset-bottom),16px)]',
-            'sm:right-auto sm:bottom-16 sm:w-[330px]',
+            'sm:left-auto sm:right-5 sm:bottom-5 sm:w-[330px]',
           )}
         >
           <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-apple-parchment dark:bg-white/[0.06]">
@@ -180,6 +252,14 @@ export function InstallNudge() {
       )}
     </AnimatePresence>
   );
+}
+
+function readVisitBaseline(): number {
+  try {
+    return Number(localStorage.getItem('sharetext.visits.v1')) || 0;
+  } catch {
+    return 0;
+  }
 }
 
 export default InstallNudge;

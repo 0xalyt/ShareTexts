@@ -58,8 +58,21 @@ export function useFocusTrap(
 
     const container = containerRef.current;
 
-    // Focus the first focusable element after a tick (allows DOM to settle)
+    // Focus after a tick (allows DOM to settle). A surface can name where
+    // focus belongs with [data-autofocus] — a confirmation wants its armed
+    // action, a sheet wants its own container — and anything else keeps the
+    // old first-control behaviour. Jumping to the first control is a guess:
+    // in a sheet that is the ✕, so the first thing a keyboard user landed on
+    // was "close this" and the first thing they saw was a focus ring around
+    // it.
     const timer = setTimeout(() => {
+      const explicit = container.matches('[data-autofocus]')
+        ? container
+        : container.querySelector<HTMLElement>('[data-autofocus]');
+      if (explicit) {
+        explicit.focus({ preventScroll: true });
+        return;
+      }
       const focusable = container.querySelectorAll<HTMLElement>(FOCUSABLE);
       if (focusable.length > 0) {
         focusable[0].focus();

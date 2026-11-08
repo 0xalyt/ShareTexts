@@ -63,6 +63,7 @@ import { useI18n } from '../lib/i18n';
 import { detectInApp } from '../lib/inAppBrowser';
 import { fmtNumber, fmtShortDate } from '../lib/format';
 import { LanguageMenu } from '../components/LanguageMenu';
+import { InstallLink } from '../components/InstallLink';
 import { cn, shortCodeOf, sanitizeDeviceName, formatBytes } from '../lib/utils';
 // Icons: Gravity UI's set, aliased onto the local names this file already
 // uses — one import line changes, no JSX churn. The three it has no
@@ -939,6 +940,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
        px-5 on phones (not px-6): rem padding doubles at 200% text and the
        controls are fixed 44px circles, so rem padding pushed the cluster past
        the right edge. Measured with scripts/probe-p8-over-run.mjs at 390px. */
+    <>
+      {/* First stop on Tab, invisible until used. The header is a wall of
+          controls; without this a keyboard user traverses all of them to
+          reach the page every single time. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:inline-flex focus:min-h-[40px] focus:items-center focus:rounded-full focus:bg-apple-ink focus:px-4 focus:text-[13px] focus:font-semibold focus:text-white focus:outline-none dark:focus:bg-white dark:focus:text-apple-ink"
+      >
+        {t('app.skip')}
+      </a>
     <header className="shrink-0 sticky top-0 z-30 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150">
       {/* One max-width, shared with the hero, the scroll tail and the footer:
           the wordmark, the headline and the section rules all start on the
@@ -985,7 +996,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 >
                   <Bookmark className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
                   {savedCount > 0 && (
-                    <span aria-hidden className="absolute bottom-1 right-1 text-[9px] font-bold leading-none tnum text-apple-ink-muted dark:text-white/50">
+                    /* A 9px numeral tucked into the corner was unreadable at
+                       arm's length. The count is a real badge now: a small
+                       ember pill on the rim of the control. */
+                    <span
+                      aria-hidden
+                      className="absolute -top-1 -right-1 inline-flex min-w-[16px] h-[16px] items-center justify-center rounded-full bg-ember px-1 text-[10px] font-bold leading-none text-white tnum ring-2 ring-apple-canvas dark:ring-night-900"
+                    >
                       {savedCount > 99 ? '99+' : savedCount}
                     </span>
                   )}
@@ -1014,6 +1031,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         </div>
       </div>
     </header>
+    </>
   );
 
   // In-app browsers (WhatsApp, Instagram, LinkedIn…): one quiet line with a
@@ -1628,11 +1646,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           </nav>
         </div>
         <div className="flex flex-col gap-2 border-t border-black/[0.05] pt-4 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
-          {/* The current language, named, opening the same sheet the header
-              uses — so a visitor never has to hunt for the switcher. */}
-          <span className="inline-flex min-h-[44px] items-center">
-            <LanguageMenu />
-          </span>
+          <div className="flex flex-wrap items-center gap-x-5">
+            {/* The current language, named, opening the same sheet the header
+                uses — so a visitor never has to hunt for the switcher. */}
+            <span className="inline-flex min-h-[44px] items-center">
+              <LanguageMenu />
+            </span>
+            {/* Only renders when the browser can truly install in one tap,
+                so it is a real option rather than a permanent teaser. */}
+            <InstallLink />
+          </div>
           <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
             © {new Date().getFullYear()} ShareTexts
           </span>
@@ -1723,7 +1746,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           source of truth for the headline on desktop and mobile, sitting in
           the same max-w-md column as the subtitle and actions. */}
       <div
-        className={`flex-1 flex flex-col px-6 lg:px-8 pb-6 min-h-0 overflow-y-auto overscroll-contain room-scroll ${isTaskScreen ? 'pt-[58px]' : 'pt-5 sm:pt-7 lg:pt-10'}`}
+        id="main-content"
+        tabIndex={-1}
+        className={`flex-1 flex flex-col px-6 lg:px-8 pb-6 min-h-0 overflow-y-auto overscroll-contain room-scroll focus:outline-none ${isTaskScreen ? 'pt-[58px]' : 'pt-5 sm:pt-7 lg:pt-10'}`}
       >
         {/* Vertically center the connected rail in the pane's real height —
             the column is shorter than the viewport on desktop, and top-
@@ -2269,11 +2294,20 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       {/* More — the phone header's overflow (§18). A sheet on phones, and the
           same rows on a desktop popover-sized sheet; every destination the
           capsule can't hold without becoming a toolbar. */}
-      <OverlaySheet open={showMore} onClose={() => setShowMore(false)} label={t('nav.more')} maxWidth={400} testId="more-sheet">
+      <OverlaySheet open={showMore} onClose={() => setShowMore(false)} label={t('nav.more')} labelledBy="more-title" maxWidth={400} testId="more-sheet">
         {/* The sheet's close button floats at the top-right, over whatever the
             first row puts there. A top inset on a phone gives it its own band
             (desktop centres the dialog, where the button sits outside the list). */}
-        <div className="flex flex-col pt-9 sm:pt-0">
+        <div className="flex flex-col sm:pt-0">
+          {/* A named sheet, not an anonymous list. It used to start straight
+              into rows under the floating ✕ (which is why an 8px top inset
+              was added), so the sheet never said what it was. */}
+          <div className="mb-1 flex items-center justify-between gap-3 pr-9">
+            <h2 id="more-title" className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('nav.more')}</h2>
+          </div>
+          {/* Mine → learn → legal, split by quiet hairlines instead of one
+              undifferentiated stack of eight. The split needs no words, so
+              it survives every one of the nine locales unchanged. */}
           <ListRow title={t('nav.saved')} leading={<Bookmark className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setShowSaved(true); }} testId="more-saved" />
           <ListRow title={t('nav.search')} leading={<Search className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setCmdOpen(true); }} testId="more-search" />
           {/* aria-current marks where you already are, so the menu answers
@@ -2281,6 +2315,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <ListRow title={t('nav.docs')} href="/docs" current={here === '/docs'} leading={<BookOpen className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
           <ListRow title={t('nav.guides')} href="/guides" current={here === '/guides'} leading={<Compass className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
           <ListRow title={t('nav.about')} href="/about" current={here === '/about'} leading={<Info className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
+          <div aria-hidden className="my-1.5 h-px bg-apple-divider/70 dark:bg-white/[0.08]" />
           <ListRow title={t('nav.privacy')} href="/privacy" current={here === '/privacy'} leading={<ShieldCheck className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
           <ListRow title={t('nav.terms')} href="/terms" current={here === '/terms'} leading={<FileText className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
           {/* Language lives here on a phone (§18 header budget): the row keeps
@@ -2306,8 +2341,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       </OverlaySheet>
       {/* Temporary Space chooser — the two verbs and the recents that used to
           live in the hero, one level down. */}
-      <OverlaySheet open={spaceSheet === 'choose'} onClose={() => setSpaceSheet(null)} label={t('space.entryTitle')} maxWidth={420} testId="space-sheet">
+      <OverlaySheet open={spaceSheet === 'choose'} onClose={() => setSpaceSheet(null)} label={t('space.entryTitle')} labelledBy="space-sheet-title" maxWidth={420} testId="space-sheet">
         <div className="flex flex-col">
+          {/* Every sheet says what it is. This one used to start straight into
+              two rows under a floating ✕, which read as a stray popover. */}
+          <div className="mb-1 flex items-center justify-between gap-3 pr-9">
+            <h2 id="space-sheet-title" className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('space.entryTitle')}</h2>
+          </div>
           <ListRow title={t('space.createCta')} subtitle={t('space.entryHint')} leading={<Plus className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => setSpaceSheet('create')} testId="space-sheet-create" />
           <ListRow title={t('space.joinTitle')} leading={<Link2 className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => setSpaceSheet('join')} testId="space-sheet-join" />
           {recent.map(r => (
