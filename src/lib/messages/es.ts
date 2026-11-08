@@ -72,6 +72,7 @@ const es: Dict = {
   'room.offlineCount': '{count} sin conexión',
   'home.title': 'Mueve lo que quieras\nentre tus dispositivos.',
   'home.subtitle': 'Del teléfono al portátil, o del portátil al teléfono. Sin app que instalar, sin cuenta. Fotos y archivos llegan con calidad original: nada se comprime. Al cerrar la pestaña, desaparece.',
+  'home.announce': "Guías dispositivo por dispositivo, ya en Docs",
   'home.send': 'Enviar',
   'home.sendHint': 'Crear una sala',
   'home.receive': 'Recibir',

@@ -72,6 +72,7 @@ const ja: Dict = {
   'room.offlineCount': '{count} 台がオフライン',
   'home.title': 'デバイス間で\nなんでも送ろう。',
   'home.subtitle': 'スマホからパソコンへ、パソコンからスマホへ。アプリのインストールもアカウント作成も不要。写真もファイルも元の画質のまま届きます — 圧縮は一切なし。タブを閉じれば消えます。',
+  'home.announce': "端末ごとのガイドをDocsに公開",
   'home.send': '送信',
   'home.sendHint': 'ルームを作成',
   'home.receive': '受信',

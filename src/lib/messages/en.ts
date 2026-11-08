@@ -79,6 +79,7 @@ const en = {
 
   'home.title': 'Move anything\nbetween your devices.',
   'home.subtitle': "Phone to laptop, laptop to phone. Nothing to install, no account.",
+  'home.announce': "Device-by-device guides, now in Docs",
   'home.send': 'Send',
   'home.sendHint': 'Create a room',
   'home.receive': 'Receive',

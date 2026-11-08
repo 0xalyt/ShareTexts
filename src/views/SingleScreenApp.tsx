@@ -30,6 +30,7 @@ import { ReceiveScreen, type ReceiveError } from '../components/receive/ReceiveS
 import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
+import { Announcement, UploadFolder } from '../components/ui/Detent';
 import { GlassCapsule } from '../components/ui/GlassCapsule';
 import { GlassCircleButton } from '../components/ui/GlassCircleButton';
 import { ListRow } from '../components/ui/ListRow';
@@ -73,7 +74,7 @@ import { cn, shortCodeOf, sanitizeDeviceName, formatBytes } from '../lib/utils';
 import {
   LogOut, QrCode, Link as Link2, Copy, Check,
   Smartphone, Monitor as Monitor, X as X, ArrowLeftRight as ArrowRightLeft,
-  ArrowLeft, Info, Pencil, FileUp as Upload,
+  ArrowLeft, Info, Pencil,
   RefreshCw as RotateCcw, Settings as SettingsIcon, Clock as Clock3,
   Plus, ChevronRight, File as FileIcon, Bookmark, MoreHorizontal,
   Search, Compass, ShieldCheck, FileText,
@@ -1115,6 +1116,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   largest size whose second line still measures inside the
                   column (483px of glyphs in 486px, before tracking), so the
                   headline keeps its weight AND its intended two lines. */}
+              <Announcement
+                href="/guides"
+                tag="New"
+                action="Read"
+                className="order-0 mb-3 justify-self-center sm:justify-self-start"
+              >
+                {t('home.announce')}
+              </Announcement>
               <h1 className="st-display order-1 text-[clamp(34px,3.9vw,46px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center sm:text-left text-balance">
                 {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
               </h1>
@@ -1718,7 +1727,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none bg-apple-canvas/95 dark:bg-night-900/95"
         >
           <div className="flex flex-col items-center gap-3 px-10 py-8 rounded-[24px] border-2 border-dashed border-ember/50 dark:border-azure-400/50">
-            <Upload className="w-8 h-8 text-ember dark:text-azure-400" />
+            <UploadFolder />
             <p className="text-[17px] font-semibold text-apple-ink dark:text-white">{t('drop.send')}</p>
             <p className="text-[13px] font-medium text-apple-ink-muted dark:text-white/50">{t('drop.hint')}</p>
           </div>
