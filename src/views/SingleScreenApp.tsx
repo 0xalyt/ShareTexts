@@ -52,6 +52,7 @@ import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
 import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
 import { useSavedCount } from '../lib/savedItems';
+import { useOverscroll } from '../lib/useOverscroll';
 import { ConfirmSheet } from '../components/ConfirmSheet';
 import { SettingsOverlay } from '../components/SettingsOverlay';
 import { SavedItemsOverlay } from '../components/SavedItemsOverlay';
@@ -796,6 +797,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
      a screen entered from halfway down the landing kept the landing's
      offset and opened mid-content. */
   const shellScrollRef = useRef<HTMLDivElement | null>(null);
+  // The landing's own scroll surface gets the same rubber band as the room,
+  // so a pull at the top or bottom never dead-ends (lib/useOverscroll).
+  useOverscroll(shellScrollRef);
   useLayoutEffect(() => {
     const el = shellScrollRef.current;
     if (el) el.scrollTop = 0;

@@ -18,7 +18,7 @@ import {
   Image as ImageIcon, Play, Pause, RefreshCw,
   CircleAlert as AlertCircle, ChevronDown, ChevronUp,
   Share2, ShieldCheck, Terminal, ZoomIn,
-  Link as Link2, Bookmark,
+  Link as Link2, Bookmark, ArrowUpRight,
 } from 'lucide-react';
 import { hapticTick } from '../lib/haptics';
 import { EmojiReaction } from './spaceui/EmojiReaction';
@@ -163,18 +163,24 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
           </span>
         </motion.button>
       ))}
+      {/* The picker's trigger is a convenience, not part of the message: on a
+          pointer device it fades in with the row instead of floating a pale
+          circle under every bubble; on touch (no hover) it stays visible,
+          because there is no other way to find it. */}
       {!disabled && (
-        <EmojiReaction
-          size="md"
-          align={isMeSide(msg) ? 'right' : 'left'}
-          triggerLabel={t('msg.react')}
-          optionLabel={(name) => t('msg.reactWith', { emoji: CHAR_BY_NAME[name] ?? name })}
-          onReact={(name) => {
-            const char = CHAR_BY_NAME[name];
-            if (char) pick(char);
-          }}
-          className="-ml-1"
-        />
+        <span className="opacity-55 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/msg:opacity-100 [@media(hover:hover)]:focus-within:opacity-100">
+          <EmojiReaction
+            size="md"
+            align={isMeSide(msg) ? 'right' : 'left'}
+            triggerLabel={t('msg.react')}
+            optionLabel={(name) => t('msg.reactWith', { emoji: CHAR_BY_NAME[name] ?? name })}
+            onReact={(name) => {
+              const char = CHAR_BY_NAME[name];
+              if (char) pick(char);
+            }}
+            className="-ml-1"
+          />
+        </span>
       )}
     </div>
   );
@@ -489,7 +495,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
         className={cn(
-          "flex w-full items-center gap-2",
+          "group/msg flex w-full items-center gap-2",
           // Row-reverse for own messages puts the selection ring OUTSIDE the
           // bubble (right side) while the bubble stays flush right, exactly
           // as the plain justify-end layout renders without a ring.
@@ -653,7 +659,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         ? { type: 'spring', stiffness: 380, damping: 26, mass: 0.9 }
         : { type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
       className={cn(
-        "flex w-full items-center gap-2",
+        "group/msg flex w-full items-center gap-2",
         isMe ? "flex-row-reverse justify-start" : "justify-start",
         isGroupStart ? "mt-3" : "mt-0.5",
         selectMode && "px-1"
@@ -1232,6 +1238,16 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
   const title = preview?.title || host;
   const siteName = preview?.siteName || host;
   const showPreview = !!preview && (preview.title || preview.image);
+  // What sits under the title: the path when there is one, otherwise the
+  // site only if it says something the host does not. The old line read
+  // "sharetexts.online · sharetexts.online" — the same string twice, which
+  // is the tell that a card is padding itself out.
+  let path = '';
+  try {
+    const u = new URL(url);
+    path = `${u.pathname === '/' ? '' : u.pathname}${u.search}${u.hash}`;
+  } catch { /* unreachable — sanitizeUrl validated */ }
+  const subtitle = path && path !== '/' ? path.replace(/^\//, '') : siteName && siteName !== host ? siteName : '';
 
   return (
     <a
@@ -1240,11 +1256,15 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
       rel="noopener noreferrer"
       dir="ltr"
       onClick={(e) => e.stopPropagation()} // never toggle selection underneath
+      // No second surface: the bubble around this IS the card. A bordered,
+      // shadowed tile inside a bordered, shadowed bubble was two containers
+      // doing one job — the link now reads as a row inside the message, with
+      // the hover tint doing the "clickable" talking.
       className={cn(
-        'group/link mt-0.5 block w-full min-w-0 rounded-[12px] border overflow-hidden transition-colors',
+        'group/link mt-0.5 -mx-1 block w-[calc(100%+0.5rem)] min-w-0 rounded-[10px] px-1 transition-colors',
         onBlue
-          ? 'border-black/[0.08] bg-white/60 hover:bg-white/85 dark:border-white/10 dark:bg-white/[0.07] dark:hover:bg-white/[0.12]'
-          : 'border-apple-divider/60 bg-apple-parchment/70 hover:bg-apple-parchment dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]'
+          ? 'hover:bg-black/[0.045] dark:hover:bg-white/[0.07]'
+          : 'hover:bg-black/[0.035] dark:hover:bg-white/[0.06]'
       )}
     >
       {showPreview && preview?.image && (
@@ -1262,17 +1282,30 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
           />
         </span>
       )}
-      <span className="flex items-start gap-2.5 px-3 py-2.5">
-        <span className="shrink-0 w-8 h-8 rounded-[12px] bg-apple-blue/10 text-apple-blue flex items-center justify-center" aria-hidden>
+      <span className="flex items-center gap-2.5 py-0.5">
+        <span
+          className={cn(
+            'shrink-0 w-9 h-9 rounded-[11px] flex items-center justify-center',
+            onBlue
+              ? 'bg-ember/15 text-brand-strong dark:bg-white/10 dark:text-azure-400'
+              : 'bg-apple-blue/10 text-apple-blue dark:bg-white/[0.08] dark:text-azure-400',
+          )}
+          aria-hidden
+        >
           <Link2 className="w-4 h-4" />
         </span>
         <span className="flex-1 min-w-0 flex flex-col leading-tight">
-          <span className="text-[13px] font-semibold text-apple-blue truncate" dir="auto">{title}</span>
-          {showPreview && preview?.description && (
+          <span className="text-[14px] font-semibold text-apple-ink truncate dark:text-white" dir="auto">{title}</span>
+          {showPreview && preview?.description ? (
             <span className="mt-0.5 text-[12px] font-medium text-apple-ink-muted dark:text-white/45 line-clamp-2" dir="auto">{preview.description}</span>
-          )}
-          <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/35 truncate">{siteName} · {host}</span>
+          ) : subtitle ? (
+            <span className="mt-0.5 truncate text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40" dir="ltr">{subtitle}</span>
+          ) : null}
         </span>
+        <ArrowUpRight
+          className="w-4 h-4 shrink-0 text-apple-ink-muted/50 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 dark:text-white/35"
+          aria-hidden
+        />
       </span>
     </a>
   );

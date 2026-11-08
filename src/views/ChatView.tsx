@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
+import { useOverscroll } from '../lib/useOverscroll';
 import { motion, AnimatePresence } from 'motion/react';
 import { AttachmentPanel } from '../components/AttachmentPanel';
 import { TransferFlight } from '../components/TransferFlight';
@@ -224,6 +225,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // an incoming message can offer a "jump to newest" pill instead of yanking
   // the scroll position (the small thing chat apps get right).
   const scrollRef = useRef<HTMLDivElement>(null);
+  // iOS rubber band on the thread (see lib/useOverscroll): pull past the last
+  // message and the list answers with resistance instead of hitting a wall.
+  useOverscroll(scrollRef);
   const atBottomRef = useRef(true);
   const [showJump, setShowJump] = useState(false);
   const prevCountRef = useRef(session.messages.length);
@@ -1375,7 +1379,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col h-full">
+        {/* min-h-full, not h-full: a short thread should SIT ON the composer
+            instead of hanging from the top of the pane with a dead plane
+            underneath. min-height (not a fixed height) is what keeps the
+            first message reachable once the thread overflows. */}
+        <div className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col min-h-full">
           {session.messages.length === 0 ? (
             // Empty room: the room's first real surface, and the one every
             // session sees. It used to be a 168px drawing centred in a 400px
@@ -1441,6 +1449,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             </div>
           ) : (
             <>
+              {/* Pushes a short thread to the bottom of the pane. It collapses
+                  to 0 the moment the content is taller than the viewport, so
+                  it can never clip the first message. */}
+              <div aria-hidden className="grow" />
               <AnimatePresence initial={false}>
                 {session.messages.map((msg, idx) => {
                   // Date separators: a quiet chip between days. Today is the
