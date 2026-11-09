@@ -1127,9 +1127,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   is why the strip appears in the hero without anything having
                   to open. Empty and 0-height when there is nothing to say. */}
               <div id="nearby-suggest-host" className="order-0 w-full empty:hidden" />
+              {/* The pill points at the Temporary Spaces guide, not the guides
+                  hub: the hub is a menu, and a pill in the hero should lead
+                  somewhere. .html is the guide's canonical URL (scripts/verify-seo
+                  asserts it), so it is linked as published rather than through
+                  a redirect that would show up in analytics as a second page. */}
               <Announcement
-                href="/guides"
-                tag="New"
+                href="/guides/temporary-spaces.html"
+                tag="Guide"
                 action="Read"
                 className="order-0 mb-6 sm:mb-7 justify-self-center sm:justify-self-start"
               >

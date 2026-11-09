@@ -72,7 +72,7 @@ const de: Dict = {
   'room.offlineCount': '{count} offline',
   'home.title': 'Bewege alles\nzwischen deinen Geräten.',
   'home.subtitle': 'Vom Telefon zum Laptop oder umgekehrt. Keine App zum Installieren, kein Konto. Fotos und Dateien kommen in Originalqualität an – nichts wird komprimiert. Schließt du den Tab, ist alles weg.',
-  'home.announce': "Anleitungen für jedes Gerät, jetzt in den Docs",
+  'home.announce': "Temporäre Spaces: ein Regal, das sich selbst löscht",
   'home.send': 'Senden',
   'home.sendHint': 'Raum erstellen',
   'home.receive': 'Empfangen',

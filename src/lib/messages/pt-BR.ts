@@ -72,7 +72,7 @@ const pt: Dict = {
   'room.offlineCount': '{count} offline',
   'home.title': 'Mova qualquer coisa\nentre seus dispositivos.',
   'home.subtitle': 'Do celular para o laptop, ou do laptop para o celular. Sem app para instalar, sem conta para criar. Fotos e arquivos chegam em qualidade original — nada é comprimido. Ao fechar a aba, tudo some.',
-  'home.announce': "Guias dispositivo por dispositivo, agora em Docs",
+  'home.announce': "Espaços temporários: uma prateleira que se apaga",
   'home.send': 'Enviar',
   'home.sendHint': 'Criar uma sala',
   'home.receive': 'Receber',

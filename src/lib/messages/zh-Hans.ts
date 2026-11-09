@@ -72,7 +72,7 @@ const zh: Dict = {
   'room.offlineCount': '{count} 台离线',
   'home.title': '在设备之间\n传递一切。',
   'home.subtitle': '手机到电脑，或电脑到手机。无需安装应用，无需注册账号。照片和文件以原始画质到达——不做任何压缩。关闭标签页，一切即消失。',
-  'home.announce': "各设备之间的使用指南已上线 Docs",
+  'home.announce': "临时空间：会自动删除的共享架",
   'home.send': '发送',
   'home.sendHint': '创建房间',
   'home.receive': '接收',

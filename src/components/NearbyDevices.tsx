@@ -577,6 +577,13 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
           <motion.div
             key={suggest.id}
             data-testid="nearby-suggest"
+            /* Announced, because it is the only part of discovery that arrives
+               without the person asking: a silent row appearing above the
+               headline is invisible to anyone not looking there. It says its
+               whole line at once and stops — it is not a live feed. */
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
@@ -594,7 +601,10 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               type="button"
               onClick={connectSuggestion}
               data-testid="nearby-suggest-connect"
-              className="press shrink-0 rounded-full bg-ember px-3 py-1.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
+              /* 40px tall, not the pill's visual 28: this is the one control in
+                 the strip that commits something, so it has to meet the repo's
+                 tap-target floor rather than inherit the label's line height. */
+              className="press inline-flex min-h-[40px] shrink-0 items-center rounded-full bg-ember px-3.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
             >
               {t('nearby.accept')}
             </button>
@@ -603,7 +613,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               onClick={dismissSuggestion}
               aria-label={t('common.close')}
               data-testid="nearby-suggest-dismiss"
-              className="press grid h-8 w-8 shrink-0 place-items-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 dark:text-white/45 dark:hover:bg-white/[0.08]"
+              className="press grid h-10 w-10 shrink-0 place-items-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 dark:text-white/45 dark:hover:bg-white/[0.08]"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
             </button>
