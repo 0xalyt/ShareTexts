@@ -1134,7 +1134,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   a redirect that would show up in analytics as a second page. */}
               <Announcement
                 href="/guides/temporary-spaces.html"
-                tag="Guide"
+                tag="New"
                 action="Read"
                 className="order-0 mb-6 sm:mb-7 justify-self-center sm:justify-self-start"
               >

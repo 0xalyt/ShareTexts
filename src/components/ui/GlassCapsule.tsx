@@ -30,7 +30,7 @@ export function GlassCapsule({
          as one instrument cluster only when the rim stays a hairline. At 4px
          the capsule grew a visible white gutter around both icons, which is
          what made the phone header look like two buttons floating in a lozenge. */
-      className={cn('glass-capsule inline-flex items-center gap-0 p-[3px]', className)}
+      className={cn('glass-capsule inline-flex items-center gap-0 p-0.5', className)}
     >
       {children}
     </div>

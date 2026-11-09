@@ -207,10 +207,15 @@ export function Sheet({
     if (!open || !draggable || reduced) return;
     // Mouse drags are text selection on desktop; the dialog dismisses with
     // the ✕, Escape or the backdrop instead.
-    if (e.pointerType === 'mouse' || e.button !== 0) return;
+    if (e.button !== 0) return;
     const panel = e.currentTarget;
     const target = e.target as HTMLElement;
     const fromHandle = !!target.closest('[data-sheet-handle]');
+    // A mouse drag across the sheet body is text selection, and stealing it
+    // would break copying — but the handle exists only to be grabbed, so it
+    // drags with a mouse too. Refusing every pointer that is not a finger is
+    // why the drawers felt undraggable to anyone on a laptop.
+    if (e.pointerType === 'mouse' && !fromHandle) return;
     if (
       !fromHandle &&
       target.closest('button, a, input, textarea, select, label, [role="switch"], [contenteditable="true"], [data-sheet-no-drag]')
@@ -395,7 +400,7 @@ export function Sheet({
       <div
         data-sheet-handle
         aria-hidden
-        className="sm:hidden shrink-0 flex justify-center items-end pt-2.5 pb-1.5 cursor-grab active:cursor-grabbing touch-none"
+        className="shrink-0 flex justify-center items-end pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none sm:pt-2.5 sm:pb-1.5"
       >
         <span className="w-9 h-1 rounded-full bg-black/20 dark:bg-white/25" />
       </div>
