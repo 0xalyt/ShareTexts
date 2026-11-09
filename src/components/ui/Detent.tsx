@@ -148,12 +148,41 @@ export function HaloBands({
 
 /* ──────────────────────────── announcement ─────────────────────────────── */
 
+/* The light that runs round the pill.
+ *
+ * It used to spin the ELEMENT, which is wrong for this shape: the pill is a
+ * rounded rectangle, not a circle, so rotating it swung the ring outside the
+ * border — the light visibly broke away at the top and bottom edges on every
+ * hover, and a long pill showed it most. Only the gradient's starting angle
+ * is animated now, with the geometry left exactly where the border is. That
+ * needs an animatable angle, hence the registered property; it costs nothing
+ * on browsers without `@property` — the ring still fades in on hover, it just
+ * does not travel. */
 const RING_CSS = `
+@property --st-ann-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.st-announce-ring {
+  background: conic-gradient(from var(--st-ann-angle), transparent 0 62%, rgba(240,100,19,0.9) 84%, transparent 100%);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
 @media (prefers-reduced-motion: no-preference) {
-  .st-announce-ring { opacity: 0; }
   .st-announce:hover .st-announce-ring,
-  .st-announce:focus-within .st-announce-ring { opacity: .8; animation: st-announce-run 1.8s cubic-bezier(.6,0,.3,1) both; }
-  @keyframes st-announce-run { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .st-announce:focus-within .st-announce-ring {
+    opacity: .8;
+    animation: st-announce-run 1.8s cubic-bezier(.6,0,.3,1) both;
+  }
+  @keyframes st-announce-run {
+    from { --st-ann-angle: 0deg; }
+    to   { --st-ann-angle: 360deg; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-announce:hover .st-announce-ring,
+  .st-announce:focus-within .st-announce-ring { opacity: .8; }
 }
 `;
 
@@ -193,7 +222,8 @@ export function Announcement({
       <span
         className="st-announce-ring pointer-events-none absolute -inset-px rounded-full"
         style={{
-          background: 'conic-gradient(from 0deg, transparent 0 62%, rgba(240,100,19,0.9) 84%, transparent 100%)',
+          // The gradient itself lives in RING_CSS so the angle can be animated;
+          // only the ring-shaped mask belongs here.
           WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
           WebkitMaskComposite: 'xor',
           maskComposite: 'exclude',
@@ -205,19 +235,32 @@ export function Announcement({
         href={href}
         className="flex min-w-0 items-center gap-2 rounded-full pr-2.5 text-[13px] font-medium text-apple-ink outline-none focus-visible:ring-2 focus-visible:ring-ember/50 dark:text-white/90"
       >
+        {/* Both words live in the chip at all times, stacked in one grid cell,
+            so the chip is always as wide as the longer of the two. Swapping
+            ONE of them meant the pill resized mid-hover — "New" is narrower
+            than "Read", so the whole announcement, and the headline centred
+            under it, shifted horizontally as you reached for it. A hover
+            must never move the thing it is hovering. */}
         <span className="grid h-7 shrink-0 place-items-center overflow-hidden rounded-full bg-apple-ink px-2.5 text-[12px] font-semibold text-white dark:bg-white/[0.16]">
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={near ? 'action' : 'tag'}
-              initial={reduce ? false : { y: '70%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={reduce ? undefined : { y: '-70%', opacity: 0 }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
-              className="whitespace-pre"
-            >
-              {near ? action : tag}
-            </motion.span>
-          </AnimatePresence>
+          {([['tag', tag], ['action', action]] as const).map(([key, label]) => {
+            const active = (key === 'action') === near;
+            return (
+              <motion.span
+                key={key}
+                aria-hidden={!active}
+                initial={false}
+                animate={
+                  reduce
+                    ? { opacity: active ? 1 : 0 }
+                    : { y: active ? 0 : key === 'action' ? '70%' : '-70%', opacity: active ? 1 : 0 }
+                }
+                transition={reduce ? { duration: 0.12 } : { type: 'spring', bounce: 0, duration: 0.3 }}
+                className="whitespace-pre [grid-area:1/1]"
+              >
+                {label}
+              </motion.span>
+            );
+          })}
         </span>
         <span className="truncate">{children}</span>
         {/* A single chevron says "this goes somewhere" without a second
@@ -225,7 +268,7 @@ export function Announcement({
         <svg
           aria-hidden
           viewBox="0 0 24 24"
-          className="ml-0.5 h-3 w-3 shrink-0 text-apple-ink-muted transition-transform duration-200 group-hover:translate-x-0.5 dark:text-white/45"
+          className="ml-0.5 h-3 w-3 shrink-0 text-apple-ink-muted transition-transform duration-200 group-hover:translate-x-0.5 group-focus-within:translate-x-0.5 motion-reduce:transition-none dark:text-white/45"
           fill="none"
           stroke="currentColor"
           strokeWidth={2.5}
