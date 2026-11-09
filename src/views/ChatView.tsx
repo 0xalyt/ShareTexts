@@ -1397,7 +1397,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             // half by it. One 40px shift, once per room, then back.
             <div
               className={cn(
-                'flex-1 flex flex-col justify-start min-h-[40vh] pt-2 pb-6 transition-[padding] duration-300 ease-out',
+                'flex-1 flex flex-col justify-center min-h-[40vh] py-6 transition-[padding] duration-300 ease-out',
                 showConnected && 'pt-[52px]'
               )}
             >
