@@ -262,10 +262,14 @@ export function SendScreen({
 
   return (
     <div className="w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
-      <h2 className="text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll flex flex-col">
+      <h2 className="shrink-0 text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
         {t('send.title')}
       </h2>
+      {/* The code IS the screen, so it sits in the middle of the pane under
+          the title. Flush to the top it left a tall empty band down to the
+          waiting pill and the page read as two unrelated halves. */}
+      <div className="flex flex-1 flex-col justify-center py-6 [@media(max-height:520px)]:block [@media(max-height:520px)]:py-0">
       {/* No helper sentence here. This screen used to open with "Open
           ShareTexts on your other device and tap Receive." — a tutorial line
           above a control that already says what to do. The room is complete
@@ -320,7 +324,7 @@ export function SendScreen({
           )}
         </>
       )}
-
+      </div>
       </div>
 
       {/* ── Status, pinned to the bottom of the pane ─────────────────── */}

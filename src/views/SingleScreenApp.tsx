@@ -1678,7 +1678,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             ))}
           </nav>
         </div>
-        <div className="flex flex-col gap-2 border-t border-black/[0.05] pt-4 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+        {/* Language and copyright share one row at every width. Stacked on a
+            phone the globe sat alone above the ©, which read as a stray icon
+            rather than a footer baseline — and cost 44px of height for it. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-black/[0.05] pt-4 dark:border-white/[0.06]">
           <div className="flex flex-wrap items-center gap-x-5">
             {/* The current language, named, opening the same sheet the header
                 uses — so a visitor never has to hunt for the switcher. */}
