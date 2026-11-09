@@ -15,18 +15,23 @@ import {
 /**
  * HeroDeviceDemo — the visitor causes the transfer; the picture reports it.
  *
- * One machine, five states, ONE tap: the visitor presses Send and the
- * transfer runs — connect, fly, arrive, close — then rests until restarted.
- * There is no loop, no autoplayed story, and no state the picture does not
- * show: `phase` is the single source of truth, every visual is DERIVED from
- * it, and the caption is looked up by the same key, so the words can never
- * drift from what is on screen.
+ * One machine, five states, no tap: the picture conducts the transfer —
+ * connect, fly, arrive, close — and then begins again. It is a loop, and a
+ * quiet one: it only runs while it is on screen and the tab is live, and a
+ * visitor who prefers not to see things move on their own gets the opening
+ * still instead.
+ *
+ * No state the picture does not show: `phase` is the single source of truth,
+ * every visual is DERIVED from it, and the caption is looked up by the same
+ * key, so the words can never drift from what is on screen. Nothing here is a
+ * decorative animation layered on top — motion happens only when a payload
+ * actually moves.
  *
  *   open       both devices ready, the payload composed, nothing moving
  *   connecting the phone types the laptop's code in; the channel draws
  *   sending    the packet crosses the channel — device to device
  *   received   it lands, ticks, done
- *   done       the room closes; nothing is kept; restart is offered
+ *   done       the room closes; nothing is kept; the loop comes back round
  *
  * Why it is built this way:
  *   · The screens are REAL DOM at real sizes (no scaled screenshots), so
@@ -36,11 +41,12 @@ import {
  *     closed room are the real app's objects and states. No fake counts,
  *     no fake notifications, no decorative motion — motion only when a
  *     payload actually moves.
- *   · Auto-transitions after the tap are SHORT (~6s total) and interruptible
- *     (Restart works at every state). Nothing plays off screen or in a
- *     hidden tab.
- *   · Reduced motion hands over the same informative still and skips the
- *     flight: one tap lands the transfer instantly.
+ *   · One turn of the loop is ~12s, and the dwell at `done` is the longest
+ *     beat in it — that pause is the point: the room closes, nothing is
+ *     kept, and the picture rests before starting over. Nothing plays off
+ *     screen or in a hidden tab.
+ *   · Reduced motion hands over the same informative still: `running` is
+ *     false, so the machine never leaves `open` and never loops.
  */
 export type DemoPhase = 'open' | 'connecting' | 'sending' | 'received' | 'done';
 
@@ -60,10 +66,18 @@ const AUTO: Partial<Record<DemoPhase, { next: DemoPhase; ms: number }>> = {
   // §18 removed the demo's own Send button (a second orange Send CTA under
   // the picture, competing with the real one). The walk starts by itself;
   // under reduced motion `running` is false, so the still simply rests.
+  //
+  // `done` walks back to `open` instead of ending: an illustration that
+  // completes once and freezes leaves a dead object in the hero for every
+  // visitor who arrives after it finished, and the only way to see the beat
+  // again was to find a Restart button. The loop makes the picture its own
+  // invitation at no cost — the dwell here is the longest in the cycle, so
+  // the completed state is what a visitor is most likely to see first.
   open: { next: 'connecting', ms: 1400 },
   connecting: { next: 'sending', ms: 1700 },
   sending: { next: 'received', ms: 1600 },
   received: { next: 'done', ms: 2800 },
+  done: { next: 'open', ms: 4200 },
 };
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -386,7 +400,16 @@ export function HeroDeviceDemo({
             device when it can be.") — it restated the picture, and it pushed
             the pair up to make room for a sentence nobody needed. The state
             word IS the caption. */}
-        <div className="relative min-h-[1.6em]" role="status" data-testid="demo-caption">
+        <div
+          className="relative min-h-[1.6em]"
+          role="status"
+          /* A looping caption in a live region is an announcement every few
+             seconds, forever, to anyone using a screen reader. The words stay
+             in the accessibility tree — only the automatic announcements are
+             off while the loop is driving itself. */
+          aria-live={running ? 'off' : 'polite'}
+          data-testid="demo-caption"
+        >
           <AnimatePresence initial={false} mode="wait">
             <motion.div
               key={phase}
@@ -414,20 +437,13 @@ export function HeroDeviceDemo({
               replaying the beat is the only thing a still cannot do.
               size md (44px): the demo is real UI, so the repo's 40px
               tap-target floor applies to it like any other control. */}
-          {closed && (
-            <TactileButton
-              variant="secondary"
-              size="md"
-              onClick={restart}
-              data-testid="demo-restart"
-              className="min-w-[104px]"
-            >
-              {t('demo.restart')}
-            </TactileButton>
-          )}
-          {/* Under reduced motion the tap lands at `received` with nothing
-              left to play — Restart is offered from there on. */}
-          {reduced && phase === 'received' && (
+          {/* The loop owns the replay now, so the moving demo shows no
+              control of its own: a Restart that appeared for four seconds
+              every cycle was a button popping in and out of the hero, and a
+              visitor who wanted the beat again had to catch it. Only the
+              still (reduced motion) keeps one, because a still cannot
+              restart itself. */}
+          {reduced && (phase === 'received' || closed) && (
             <TactileButton
               variant="secondary"
               size="md"
