@@ -1021,13 +1021,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 share a capsule, split by a hairline. Two separate objects
                 (a white pill beside a bare glyph) made the theme toggle look
                 like an afterthought floating at the edge of the bar. */}
-            <GlassCapsule label={t('nav.more')} className="gap-1">
+            <GlassCapsule label={t('nav.more')}>
               <IconButton3D label={t('nav.more')} onClick={() => setShowMore(true)} testId="header-more" ariaExpanded={showMore} ariaHaspopup="dialog">
                 <MoreHorizontal className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
               </IconButton3D>
               {panelMode !== 'connected' && (
                 <>
-                  <span aria-hidden className="h-4 w-px shrink-0 bg-black/[0.08] dark:bg-white/[0.12]" />
+                  <span aria-hidden className="h-[18px] w-px shrink-0 bg-black/[0.09] dark:bg-white/[0.14]" />
                   <ThemeToggle />
                 </>
               )}

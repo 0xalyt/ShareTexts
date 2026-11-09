@@ -26,7 +26,11 @@ export function GlassCapsule({
       role={label ? 'group' : undefined}
       aria-label={label}
       data-testid={testId}
-      className={cn('glass-capsule inline-flex items-center gap-0.5 p-1', className)}
+      /* 3px of padding, not 4: two 44px targets inside a 40px-radius pill read
+         as one instrument cluster only when the rim stays a hairline. At 4px
+         the capsule grew a visible white gutter around both icons, which is
+         what made the phone header look like two buttons floating in a lozenge. */
+      className={cn('glass-capsule inline-flex items-center gap-0 p-[3px]', className)}
     >
       {children}
     </div>

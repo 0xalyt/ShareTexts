@@ -303,6 +303,45 @@
     overflow-x: clip;
   }
 
+  /* ── Platform layer ────────────────────────────────────────────────────
+     The tells that give a web app away on a phone, fixed once for the whole
+     document instead of per control.
+
+     1. iOS paints a translucent grey over anything tapped that has a click
+        handler. It is the loudest "this is a website" signal and it fights
+        the press states we design, so it is removed globally — every control
+        in this app carries its own :active feedback, which is the bargain.
+     2. -webkit-text-size-adjust stops iOS inflating text in landscape.
+     3. overscroll-behavior on the root stops pull-to-refresh and the page
+        rubber band from firing over the app's own overscroll physics
+        (useOverscroll), which was double-handling the same gesture. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overscroll-behavior: none;
+  }
+
+  /* A 300ms double-tap-zoom wait sits between a tap and its click unless the
+     element opts out. Nothing here is ever double-tap-zoomable, so every
+     control fires immediately. Text that is a control also stops being
+     selectable on a long press — text that is content stays selectable. */
+  button,
+  a,
+  [role='button'],
+  [role='switch'],
+  [role='tab'] {
+    touch-action: manipulation;
+  }
+  button,
+  [role='button'],
+  [role='switch'],
+  [role='tab'] {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
   html.dark body {
     background: #181818;
     color: white;
