@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 // Gravity UI icons aliased onto the names this file already uses (the
 // slashed wifi glyph is the one Gravity has no equivalent for).
@@ -143,6 +144,22 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
   const [overlayTarget, setOverlayTarget] = useState<NearbyDevice | null>(null);
   const [overlayMode, setOverlayMode] = useState<'detected' | 'incoming'>('detected');
   const [overlayBusy, setOverlayBusy] = useState(false);
+  /* A device that is simply VISIBLE, shown as a line in the page rather than
+     a popup. Passive discovery must not take the screen: nothing has actually
+     been asked of this person yet, they did not arrive here to decide anything
+     about this device, and a modal on BOTH devices at the same instant (which
+     is what the detected overlay did) interrupts two people at once for
+     something either of them can ignore. A live request from the other side
+     — an invitation — still gets the overlay, because that IS a decision. */
+  const [suggest, setSuggest] = useState<NearbyDevice | null>(null);
+  /* Where the strip is allowed to appear. The engine lives inside a
+     keep-mounted sheet, so its own DOM position is off-screen when that sheet
+     is shut — which is almost always. The page publishes a slot
+     (#nearby-suggest-host) in the hero; the strip portals there and the
+     suggestion becomes a line on the landing page instead of a popup over it.
+     No slot (any surface without one) falls back to rendering in place. */
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => { setHost(document.getElementById('nearby-suggest-host')); }, []);
   // Nearby visibility: who can find THIS device. Default is the simple,
   // privacy-friendly default — visible only while ShareTexts is open.
   const [presenceHidden, setPresenceHiddenState] = useState<boolean>(() => isPresenceHidden());
@@ -271,8 +288,9 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
     const now = Date.now();
     const target = devices.find(d => (autoCooldownRef.current.get(d.id) ?? 0) < now);
     if (!target) return;
-    setOverlayMode('detected');
-    setOverlayTarget(target);
+    // Inline, not modal. The row it points at is right there; the strip only
+    // saves the person from having to work out which row to press.
+    setSuggest((prev) => (prev?.id === target.id ? prev : target));
     productEvent('product.method_nearby');
   }, [autoOn, session.lastStayRoom, phase.kind, overlayTarget, devices]);
 
@@ -284,6 +302,22 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
     setOverlayTarget(null);
     setOverlayBusy(false);
   }, [devices, overlayTarget]);
+
+  // The suggestion strip follows reality too: a device that withdrew leaves no
+  // strip behind pointing at nothing.
+  useEffect(() => {
+    if (!suggest) return;
+    if (devices.some(d => d.id === suggest.id)) return;
+    setSuggest(null);
+  }, [devices, suggest]);
+
+  // And it lives only while the page is idle — the moment we are in a room, or
+  // a request is on the table, the strip is about nothing.
+  useEffect(() => {
+    if (!suggest) return;
+    if (phase.kind === 'idle' && !overlayTarget) return;
+    setSuggest(null);
+  }, [phase.kind, overlayTarget, suggest]);
 
   // The invitation currently on the table (if any) — the overlay's Yes
   // accepts it instead of sending a crossing invite of our own.
@@ -380,6 +414,22 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
 
   /** Cancel / ✕ / backdrop: close without deciding. A cooldown keeps the
    *  dismissed target from instantly re-popping the popup. */
+  /** The strip's primary action — the same invite the overlay would have
+   *  sent, one tap, without the popup in the way. */
+  const connectSuggestion = useCallback(() => {
+    const target = suggest;
+    if (!target) return;
+    setSuggest(null);
+    void handleOverlayConnect(target);
+  }, [suggest, handleOverlayConnect]);
+
+  /** Dismissing the strip is a real answer, so it buys the same cooldown the
+   *  dismissed overlay did: that device does not ask again for 45s. */
+  const dismissSuggestion = useCallback(() => {
+    if (suggest) autoCooldownRef.current.set(suggest.id, Date.now() + AUTO_COOLDOWN_MS);
+    setSuggest(null);
+  }, [suggest]);
+
   const closeOverlay = useCallback(() => {
     if (overlayTarget) {
       if (pendingInviteRef.current?.from === overlayTarget.id) pendingInviteRef.current = null;
@@ -518,8 +568,54 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
     return t('nearby.seenDay', { n });
   };
 
+  /* The suggestion strip: one device, one line, two answers. It sits in the
+     page flow above the list, so it never covers what the person came for and
+     it can be ignored without being dismissed. */
+  const suggestStrip = (
+      <AnimatePresence initial={false}>
+        {suggest && (
+          <motion.div
+            key={suggest.id}
+            data-testid="nearby-suggest"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.28 }}
+            className="mb-2 flex w-full items-center gap-3 rounded-[16px] bg-ember/[0.06] px-3 py-2.5 text-left dark:bg-azure-400/[0.09]"
+          >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-ember shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-white/[0.10] dark:text-azure-400">
+              <DeviceArt kind={suggest.kind} model={suggest.model} gpu={suggest.gpu} size={26} />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span className="truncate text-[13px] font-semibold text-apple-ink dark:text-white">{suggest.name}</span>
+              <span className="truncate text-[11.5px] font-medium text-apple-ink-muted dark:text-white/45">{t('nearby.found')}</span>
+            </span>
+            <button
+              type="button"
+              onClick={connectSuggestion}
+              data-testid="nearby-suggest-connect"
+              className="press shrink-0 rounded-full bg-ember px-3 py-1.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
+            >
+              {t('nearby.accept')}
+            </button>
+            <button
+              type="button"
+              onClick={dismissSuggestion}
+              aria-label={t('common.close')}
+              data-testid="nearby-suggest-dismiss"
+              className="press grid h-8 w-8 shrink-0 place-items-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 dark:text-white/45 dark:hover:bg-white/[0.08]"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+  );
+
   return (
     <div className="w-full">
+      {host ? createPortal(suggestStrip, host) : suggestStrip}
+
       {/* Nearby device rows */}
       <AnimatePresence>
         {devices.length > 0 && (

@@ -1023,7 +1023,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 like an afterthought floating at the edge of the bar. */}
             <GlassCapsule label={t('nav.more')}>
               <IconButton3D label={t('nav.more')} onClick={() => setShowMore(true)} testId="header-more" ariaExpanded={showMore} ariaHaspopup="dialog">
-                <MoreHorizontal className="w-[18px] h-[18px]" strokeWidth={1.5} aria-hidden />
+                {/* 16px, not 18: three dots are already optically wide, so at
+                    the same nominal size they read heavier than a round glyph
+                    beside them and made the capsule look full. The tap target
+                    stays 44px — only the drawing shrank. */}
+                <MoreHorizontal className="w-4 h-4" strokeWidth={1.75} aria-hidden />
               </IconButton3D>
               {panelMode !== 'connected' && (
                 <>
@@ -1116,6 +1120,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   largest size whose second line still measures inside the
                   column (483px of glyphs in 486px, before tracking), so the
                   headline keeps its weight AND its intended two lines. */}
+              {/* Where a nearby device is announced. The discovery engine
+                  lives in the always-mounted Nearby sheet, so a suggestion
+                  rendered there would be invisible on the page a person is
+                  actually looking at; it portals into this slot instead, which
+                  is why the strip appears in the hero without anything having
+                  to open. Empty and 0-height when there is nothing to say. */}
+              <div id="nearby-suggest-host" className="order-0 w-full empty:hidden" />
               <Announcement
                 href="/guides"
                 tag="New"
