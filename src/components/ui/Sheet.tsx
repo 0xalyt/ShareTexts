@@ -194,6 +194,10 @@ export function Sheet({
     startX: number;
     startT: number;
     startMax: number;
+    /** Distance already travelled when the finger landed. Non-zero only when
+     *  the sheet was caught mid-return, and the reason catching it does not
+     *  jump: the drag continues from where the panel actually is on screen. */
+    base: number;
     fromHandle: boolean;
     decided: boolean;
     ticked: boolean;
@@ -218,12 +222,31 @@ export function Sheet({
     // A body drag belongs to the content whenever the content can move.
     if (!fromHandle && scrollable && scroller.scrollTop > 0) return;
 
+    /* Catch it mid-flight. A sheet that is springing home is a moving object,
+       so the press has to freeze it where it is and adopt that offset as the
+       new origin — otherwise the panel snaps to its resting place under the
+       finger and the whole gesture restarts from zero. `pause` first (so the
+       frame we read is the frame that is painted), then cancel so our own
+       transform takes over; `m42` is the translateY framer wrote. */
+    let base = 0;
+    const el = panelRef.current;
+    if (el) {
+      const moving = el.getAnimations();
+      if (moving.length) {
+        for (const a of moving) a.pause();
+        const t = getComputedStyle(el).transform;
+        base = t && t !== 'none' ? new DOMMatrixReadOnly(t).m42 : 0;
+        for (const a of moving) a.cancel();
+      }
+    }
+
     gesture.current = {
       id: e.pointerId,
       startY: e.clientY,
       startX: e.clientX,
       startT: performance.now(),
       startMax: physics.current.max,
+      base,
       fromHandle,
       decided: false,
       ticked: false,
@@ -233,28 +256,32 @@ export function Sheet({
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const g = gesture.current;
     if (!g || e.pointerId !== g.id) return;
-    const dy = e.clientY - g.startY;
+    const raw = e.clientY - g.startY;
+    // What the panel should be showing, including anything it had already
+    // travelled when the finger arrived. Never above rest: there is no
+    // content hiding above the sheet's home position.
+    const dy = Math.max(0, g.base + raw);
     const dx = e.clientX - g.startX;
 
     if (!g.decided) {
       if (Math.abs(dy) < 7 && Math.abs(dx) < 7) return;
       // Horizontal intent (a swipe, a selection) is not a sheet drag. Neither
       // is pulling up from a body that has content above it to scroll.
-      if (Math.abs(dx) > Math.abs(dy)) { gesture.current = null; return; }
-      if (dy < 0 && !g.fromHandle) { gesture.current = null; return; }
+      if (Math.abs(dx) > Math.abs(raw)) { gesture.current = null; return; }
+      if (raw < 0 && !g.fromHandle) { gesture.current = null; return; }
       g.decided = true;
       const el = panelRef.current;
       if (el) el.style.willChange = 'transform, max-height';
       try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* unsupported */ }
     }
 
-    if (dy < 0) {
+    if (raw < 0) {
       // Pull up: the top edge rises until the ceiling, then resists, so the
       // gesture never dead-ends hard against a limit.
       const limit = fullMax();
-      const want = g.startMax - dy;
+      const want = g.startMax - raw;
       if (want <= limit) paint(0, want);
-      else paint((dy + (limit - g.startMax)) * 0.18, limit);
+      else paint((raw + (limit - g.startMax)) * 0.18, limit);
       return;
     }
 
@@ -284,9 +311,15 @@ export function Sheet({
     if (el) el.style.willChange = '';
     if (!g.decided) return;
 
-    const dy = e.clientY - g.startY;
+    const raw = e.clientY - g.startY;
     const dt = Math.max(1, performance.now() - g.startT);
-    const velocity = dy / dt; // px/ms, positive = downward
+    const velocity = raw / dt; // px/ms, positive = downward
+    /* Where a flick would coast to, not where the finger happened to stop.
+       Without this a short, fast downward flick that released just above the
+       threshold felt dead, and a nudge upward could never reach the ceiling.
+       160ms of coast is the projection at ~0.998 deceleration over the
+       distances a sheet actually travels. */
+    const landed = Math.max(0, g.base + raw + velocity * 160);
     const bd = backdropRef.current;
 
     const home = () => {
@@ -303,11 +336,11 @@ export function Sheet({
       return;
     }
 
-    if (dy > 0) {
+    if (raw > 0 || g.base > 0) {
       const height = el?.offsetHeight || restMax();
       const threshold = Math.min(160, Math.max(76, height * 0.3));
-      const fling = velocity > 0.5 && dy > 40;
-      if (dy > threshold || fling) {
+      const fling = velocity > 0.5 && raw > 40;
+      if (landed > threshold || fling) {
         onClose();
         return;
       }
@@ -319,7 +352,8 @@ export function Sheet({
     // wider; a short nudge just springs back.
     const grew = physics.current.max - g.startMax;
     const room = fullMax() - g.startMax;
-    const next = grew > Math.max(24, room * 0.35) ? fullMax() : g.startMax;
+    const projected = grew + Math.abs(velocity) * 160;
+    const next = (grew > Math.max(24, room * 0.35) || projected > room * 0.5) ? fullMax() : g.startMax;
     if (el) animate(el, { maxHeight: `${next}px` }, SPRING.sheet);
     physics.current.max = next;
     home();
