@@ -3,6 +3,7 @@ import { Infinity as InfinityIcon } from 'lucide-react';
 import { useSession } from '../lib/SessionContext';
 import { useI18n } from '../lib/i18n';
 import { StandardSwitch } from './StandardSwitch';
+import { hapticTick } from '../lib/haptics';
 import { cn } from '../lib/utils';
 
 /**
@@ -22,28 +23,52 @@ export function StayConnectedToggle({ className }: { className?: string }) {
   const on = session.stayConnected;
 
   return (
+    /* A SETTINGS ROW, not a card: it lives inside the details card, and a
+       bordered tile inside a bordered tile was reading as a second panel
+       wrapped around a switch (the "why is there a box in my box" look).
+       The whole row is the target — thumb, label and switch — because a
+       26px-tall switch on a phone is the kind of control people miss by
+       8px, and a missed tap on a room-lifetime setting is expensive. */
     <div
       className={cn(
-        'flex items-center gap-3 p-2.5 rounded-[14px] bg-apple-parchment/70 dark:bg-white/[0.04] border border-apple-divider/50 dark:border-white/[0.08]',
+        'group flex items-center gap-3 min-h-[56px] px-1 py-2.5',
         className
       )}
     >
-      <span
-        className={cn(
-          'shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors',
-          on
-            ? 'bg-ember/10 dark:bg-azure-400/15 text-ember dark:text-azure-400'
-            : 'bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/40'
-        )}
-        aria-hidden
+      {/* The label half is a SECOND, larger tap target for the same state.
+          It is aria-hidden and untabbable on purpose: the switch beside it is
+          the one control a screen reader (or the keyboard) ever meets, so the
+          duplicate can never announce the setting twice. */}
+      <button
+        type="button"
+        aria-hidden="true"
+        tabIndex={-1}
+        onClick={() => {
+          hapticTick();
+          setStayConnected(!on);
+        }}
+        className="flex min-w-0 flex-1 items-center gap-3 rounded-[12px] text-left outline-none"
       >
-        <InfinityIcon className="w-4 h-4" strokeWidth={2} />
-      </span>
-      <span className="flex-1 flex flex-col min-w-0 leading-tight">
-        <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{t('stay.title')}</span>
-        <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/60">{t('stay.hint')}</span>
-      </span>
-      {/* THE standard switch — ThemeToggle's geometry, one silhouette app-wide. */}
+        <span
+          className={cn(
+            'shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-[background-color,color] duration-300 ease-out',
+            on
+              ? 'bg-ember/[0.12] text-ember dark:bg-ember/20 dark:text-ember-400'
+              : 'bg-black/[0.055] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/45'
+          )}
+        >
+          <InfinityIcon className="w-[18px] h-[18px]" strokeWidth={2} />
+        </span>
+        <span className="flex flex-col min-w-0 leading-tight">
+          <span className="st-label text-apple-ink dark:text-white">{t('stay.title')}</span>
+          <span className="mt-0.5 text-[12px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
+            {t('stay.hint')}
+          </span>
+        </span>
+      </button>
+      {/* THE standard switch — ThemeToggle's geometry, one silhouette app-wide.
+          It keeps its own drag/tap handling; the row only adds a second, larger
+          way in, so both work and neither steals the other's gesture. */}
       <StandardSwitch
         checked={on}
         onChange={(next) => setStayConnected(next)}

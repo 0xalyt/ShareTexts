@@ -1120,7 +1120,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 href="/guides"
                 tag="New"
                 action="Read"
-                className="order-0 mb-5 justify-self-center sm:justify-self-start"
+                className="order-0 mb-6 sm:mb-7 justify-self-center sm:justify-self-start"
               >
                 {t('home.announce')}
               </Announcement>

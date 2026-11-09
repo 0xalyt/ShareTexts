@@ -187,7 +187,7 @@ export function Announcement({
       onPointerLeave={() => setNear(false)}
       onFocus={() => setNear(true)}
       onBlur={() => setNear(false)}
-      className={`st-announce relative inline-flex h-9 max-w-full items-center rounded-full border border-black/[0.07] bg-white pl-1 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-white/[0.1] dark:bg-apple-tile-2 ${className ?? ''}`}
+      className={`st-announce group relative inline-flex h-9 max-w-full items-center rounded-full border border-black/[0.08] bg-white pl-1 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-20px_rgba(0,0,0,0.35)] transition-[border-color,box-shadow,transform] duration-200 active:scale-[0.99] dark:border-white/[0.13] dark:bg-white/[0.07] dark:shadow-[0_9px_26px_-18px_rgba(0,0,0,0.9)] ${className ?? ''}`}
     >
       <style>{RING_CSS}</style>
       <span
@@ -203,9 +203,9 @@ export function Announcement({
       />
       <a
         href={href}
-        className="flex min-w-0 items-center gap-2 rounded-full pr-3 text-[13px] font-medium text-apple-ink outline-none focus-visible:ring-2 focus-visible:ring-ember/40 dark:text-white"
+        className="flex min-w-0 items-center gap-2 rounded-full pr-2.5 text-[13px] font-medium text-apple-ink outline-none focus-visible:ring-2 focus-visible:ring-ember/50 dark:text-white/90"
       >
-        <span className="grid h-7 shrink-0 place-items-center overflow-hidden rounded-full bg-apple-ink px-2.5 text-[12px] font-semibold text-white dark:bg-white dark:text-apple-ink">
+        <span className="grid h-7 shrink-0 place-items-center overflow-hidden rounded-full bg-apple-ink px-2.5 text-[12px] font-semibold text-white dark:bg-white/[0.16]">
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
               key={near ? 'action' : 'tag'}
@@ -220,6 +220,20 @@ export function Announcement({
           </AnimatePresence>
         </span>
         <span className="truncate">{children}</span>
+        {/* A single chevron says "this goes somewhere" without a second
+            label; it steps right on hover so the pill answers the pointer. */}
+        <svg
+          aria-hidden
+          viewBox="0 0 24 24"
+          className="ml-0.5 h-3 w-3 shrink-0 text-apple-ink-muted transition-transform duration-200 group-hover:translate-x-0.5 dark:text-white/45"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
       </a>
     </div>
   );
