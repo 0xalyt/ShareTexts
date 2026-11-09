@@ -543,9 +543,10 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
         >
           {busy ? t('space.creating') : t('space.createCta')}
         </TactileButton>
-        <p className="mt-3 text-[12px] leading-relaxed text-apple-ink-muted/70 dark:text-white/35">
-          {t('space.codeShareHint')}
-        </p>
+        {/* No closing sentence here. The subtitle already says the space
+            closes itself and the field hint already says who types the code,
+            so a third paragraph under the primary button only repeated the
+            sheet back to the reader and pushed the action up the page. */}
     </OverlaySheet>
   );
 }
