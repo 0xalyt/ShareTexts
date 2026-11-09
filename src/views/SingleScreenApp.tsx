@@ -1614,7 +1614,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     </div>
   );
   const footerNode = (
-    <footer className="shrink-0 mt-4 border-t border-black/[0.06] px-5 pt-10 pb-[max(env(safe-area-inset-bottom),28px)] dark:border-white/[0.08] sm:px-6 sm:pb-8 lg:px-8 2xl:px-12">
+    <footer className="shrink-0 mt-4 border-t border-black/[0.06] px-5 pt-8 pb-[max(env(safe-area-inset-bottom),24px)] dark:border-white/[0.08] sm:px-6 sm:pt-10 sm:pb-8 lg:px-8 2xl:px-12">
       {/* The front door's footer (DESIGN.md §20d): text links only. No icon
           row, no social buttons, no marketing band. Every link keeps a 44px
           hit area even though the label is 13px — that is what closes B20.
@@ -1625,7 +1625,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           the link row is a real <nav> with a name that describes it — it
           used to be labelled with the footer.language string, which told a
           screen reader the wrong thing about the links inside it. */}
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-7 sm:gap-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
           <div className="flex min-w-0 flex-col gap-2.5">
             <BrandLockup className="self-start" />
@@ -1640,7 +1640,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               iPhone · Android · Windows · macOS · Linux
             </p>
           </div>
-          <nav aria-label={t('footer.read')} className="flex flex-wrap items-center gap-x-4 gap-y-0 sm:justify-end">
+          {/* On a phone the five links are one even band across the column,
+              not a left-hugging cluster with a ragged tail — the same width
+              the brand block occupies, so the footer reads as one grid. From
+              sm up they go back to a tight right-aligned group. */}
+          <nav aria-label={t('footer.read')} className="flex w-full items-center justify-between gap-x-3 sm:w-auto sm:justify-end sm:gap-x-4">
             {[
               { label: t('nav.docs'), href: '/docs' },
               { label: t('nav.guides'), href: '/guides' },
@@ -1669,7 +1673,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 so it is a real option rather than a permanent teaser. */}
             <InstallLink />
           </div>
-          <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
+          <span className="shrink-0 text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
             © {new Date().getFullYear()} ShareTexts
           </span>
         </div>
