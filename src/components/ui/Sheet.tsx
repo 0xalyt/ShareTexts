@@ -201,6 +201,12 @@ export function Sheet({
     fromHandle: boolean;
     decided: boolean;
     ticked: boolean;
+    /** The last ~120ms of finger positions. Release speed has to be read from
+     *  HERE, not from the whole gesture: dividing the full travel by the full
+     *  duration meant a quick drag that then rested under the thumb for half a
+     *  second still released as a fling, and the sheet closed itself while the
+     *  person was still deciding. */
+    samples: { t: number; y: number }[];
   } | null>(null);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -216,17 +222,21 @@ export function Sheet({
     // in the top 56px that is not a control belongs to the gesture.
     const topZone = e.clientY - panel.getBoundingClientRect().top <= 44;
     const fromHandle = !!target.closest('[data-sheet-handle]') || topZone;
+    // A control is a control even when it sits in the grab strip. The close
+    // button lives in the top-right corner, which is inside the handle zone;
+    // checking controls only OUTSIDE the strip meant a few pixels of finger
+    // travel on the ✕ started dragging the whole sheet instead of dismissing
+    // it — the sheet moved and the button never fired.
+    if (
+      target.closest('button, a, input, textarea, select, label, [role="switch"], [role="button"], [contenteditable="true"], [data-sheet-no-drag]')
+    ) {
+      return;
+    }
     // A mouse drag across the sheet body is text selection, and stealing it
     // would break copying — but the handle exists only to be grabbed, so it
     // drags with a mouse too. Refusing every pointer that is not a finger is
     // why the drawers felt undraggable to anyone on a laptop.
     if (e.pointerType === 'mouse' && !fromHandle) return;
-    if (
-      !fromHandle &&
-      target.closest('button, a, input, textarea, select, label, [role="switch"], [contenteditable="true"], [data-sheet-no-drag]')
-    ) {
-      return;
-    }
     const scroller = (panel.querySelector('[data-sheet-scroll]') as HTMLElement | null) ?? panel;
     const scrollable = scroller.scrollHeight > scroller.clientHeight + 2;
     // A body drag belongs to the content whenever the content can move.
@@ -260,6 +270,7 @@ export function Sheet({
       fromHandle,
       decided: false,
       ticked: false,
+      samples: [{ t: performance.now(), y: e.clientY }],
     };
   };
 
@@ -273,8 +284,19 @@ export function Sheet({
     const dy = Math.max(0, g.base + raw);
     const dx = e.clientX - g.startX;
 
+    // Keep the trailing window fed even before the gesture is decided: the
+    // speed at the moment of release starts accruing from the first pixel.
+    const now = performance.now();
+    g.samples.push({ t: now, y: e.clientY });
+    while (g.samples.length > 2 && now - g.samples[0].t > 140) g.samples.shift();
+
     if (!g.decided) {
-      if (Math.abs(dy) < 7 && Math.abs(dx) < 7) return;
+      // Intent is decided on the SIGNED travel, not on `dy`: dy is clamped at
+      // zero (a sheet can never sit above its home), so an upward pull read as
+      // "no movement" and the gesture never started — which is why pulling a
+      // sheet UP to see more never worked, even though the code below has a
+      // whole branch for it.
+      if (Math.abs(raw) < 7 && Math.abs(dx) < 7) return;
       // Horizontal intent (a swipe, a selection) is not a sheet drag. Neither
       // is pulling up from a body that has content above it to scroll.
       if (Math.abs(dx) > Math.abs(raw)) { gesture.current = null; return; }
@@ -289,6 +311,9 @@ export function Sheet({
         // scrolls of anyone who never meant to drag.
         el.style.touchAction = 'none';
       }
+      // Text selection during a drag is why a sheet can feel like a web page
+      // in the middle of a gesture; the drag owns the pointer until release.
+      if (el) el.style.userSelect = 'none';
       try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* unsupported */ }
     }
 
@@ -308,7 +333,17 @@ export function Sheet({
     const dist = Math.min(160, Math.max(76, height * 0.3));
     const progress = Math.min(1, dy / dist);
     const bd = backdropRef.current;
-    if (bd) bd.style.opacity = String(Math.max(0.08, 1 - progress * 0.92));
+    // The room dims as the sheet leaves, but it never goes fully transparent:
+    // the page behind is still a page, and a backdrop that vanishes makes the
+    // drag look like a bug in the scrim rather than a dismissal in progress.
+    if (bd) bd.style.opacity = String(Math.max(0.16, 1 - progress * 0.84));
+    // The pill stretches with the pull — the smallest possible confirmation
+    // that the sheet is in the hand and the gesture is being read.
+    const pill = el?.querySelector('[data-sheet-pill]') as HTMLElement | null;
+    if (pill) {
+      pill.style.transform = `scaleX(${1 + Math.min(0.55, progress * 0.55)})`;
+      pill.style.opacity = String(0.45 + Math.min(0.35, progress * 0.35));
+    }
     if (!g.ticked && progress >= 1) {
       g.ticked = true;
       hapticTick();
@@ -328,12 +363,22 @@ export function Sheet({
     if (el) {
       el.style.willChange = '';
       el.style.touchAction = '';
+      el.style.userSelect = '';
+      const pill = el.querySelector('[data-sheet-pill]') as HTMLElement | null;
+      if (pill) {
+        pill.style.transform = '';
+        pill.style.opacity = '';
+      }
     }
     if (!g.decided) return;
 
     const raw = e.clientY - g.startY;
-    const dt = Math.max(1, performance.now() - g.startT);
-    const velocity = raw / dt; // px/ms, positive = downward
+    /* Release speed from the trailing window (≈90ms), so a deliberate drag
+       that stops before letting go is not mistaken for a flick. */
+    const now = performance.now();
+    const from = g.samples.find((s) => now - s.t <= 100) ?? g.samples[0];
+    const dt = Math.max(1, now - from.t);
+    const velocity = (e.clientY - from.y) / dt; // px/ms, positive = downward
     /* Where a flick would coast to, not where the finger happened to stop.
        Without this a short, fast downward flick that released just above the
        threshold felt dead, and a nudge upward could never reach the ceiling.
@@ -421,7 +466,10 @@ export function Sheet({
         aria-hidden
         className="shrink-0 flex justify-center items-end pt-4 pb-3 cursor-grab select-none active:cursor-grabbing touch-none sm:pt-3 sm:pb-2"
       >
-        <span className="w-9 h-1 rounded-full bg-black/20 dark:bg-white/25" />
+        <span
+          data-sheet-pill
+          className="w-9 h-1 rounded-full bg-black/20 dark:bg-white/25"
+        />
       </div>
       {closeButton && (
         <button

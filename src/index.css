@@ -1459,3 +1459,14 @@ html.dark .st-horizon {
     color: var(--color-text-muted);
   }
 }
+
+/* ── Hero demo bloom ─────────────────────────────────────────────────────
+   Two soft light pools drift under the hero's two surfaces so the objects
+   sit in a lit room rather than on a white page. Transform + opacity only
+   (compositor-safe), 9–11s so it reads as light moving, not as a loop, and
+   applied through `motion-safe:` so a visitor who asked for stillness gets
+   a still wash. */
+@keyframes st-bloom {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.8; }
+  50%      { transform: translate3d(2.5%, -3.5%, 0) scale(1.07); opacity: 1; }
+}

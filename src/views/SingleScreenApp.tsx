@@ -1692,8 +1692,29 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 so it is a real option rather than a permanent teaser. */}
             <InstallLink />
           </div>
-          <span className="shrink-0 text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
-            © {new Date().getFullYear()} ShareTexts
+          <span className="flex shrink-0 items-center gap-3">
+            {/* The X profile, back where it belongs: at the end of the page,
+                next to the copyright, not buried in the legal column. It is a
+                named target (44px pill, the X glyph, the handle) rather than a
+                bare icon, because a social link that only reads as a glyph is
+                a guess. */}
+            <a
+              href="https://x.com/0xalyt"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t('footer.followAria')}
+              title="x.com/0xalyt"
+              data-testid="footer-x"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-apple-divider/70 px-3 text-apple-ink-muted transition-colors hover:border-apple-ink/25 hover:text-apple-ink dark:border-white/[0.10] dark:text-white/60 dark:hover:border-white/25 dark:hover:text-white"
+            >
+              <svg className="h-[13px] w-[13px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              <span className="text-[12px] font-semibold leading-none">@0xalyt</span>
+            </a>
+            <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
+              © {new Date().getFullYear()} ShareTexts
+            </span>
           </span>
         </div>
       </div>

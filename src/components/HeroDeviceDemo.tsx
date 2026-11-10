@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  motion, AnimatePresence, useReducedMotion, useMotionValue, useSpring, useTransform,
+} from 'motion/react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 import type { MsgKey } from '../lib/messages/types';
@@ -9,50 +11,53 @@ import { ShareTextsLogo } from './ShareTextsLogo';
 import { SpinLoader } from './SpinLoader';
 import { TactileButton } from './TactileButton';
 import {
-  CheckCheck as CheckDouble, Lock, Paperclip, Send as PaperPlane, ArrowLeft, Settings as Gear,
+  CheckCheck as CheckDouble, Lock, Paperclip, Send as PaperPlane,
 } from 'lucide-react';
 
 /**
- * HeroDeviceDemo — the visitor causes the transfer; the picture reports it.
+ * HeroDeviceDemo — the transfer, up close.
  *
- * One machine, five states, no tap: the picture conducts the transfer —
- * connect, fly, arrive, close — and then begins again. It is a loop, and a
- * quiet one: it only runs while it is on screen and the tab is live, and a
- * visitor who prefers not to see things move on their own gets the opening
- * still instead.
+ * The old scene was a whole desktop app shrunk into a 331px canvas: a
+ * sidebar, a thread, a composer and a room-code card, all rendered at 7–8px
+ * type. It was accurate and it read as a miniature — nobody can tell what a
+ * 7px row says at arm's length, so the picture became texture instead of
+ * proof. Premium product shots do the opposite: crop hard to the one surface
+ * that carries the story and set its type LARGER than production so it
+ * survives the scale-down.
  *
- * No state the picture does not show: `phase` is the single source of truth,
- * every visual is DERIVED from it, and the caption is looked up by the same
- * key, so the words can never drift from what is on screen. Nothing here is a
- * decorative animation layered on top — motion happens only when a payload
- * actually moves.
+ * So this scene is two surfaces, both legible:
  *
- *   open       both devices ready, the payload composed, nothing moving
- *   connecting the phone types the laptop's code in; the channel draws
- *   sending    the packet crosses the channel — device to device
- *   received   it lands, ticks, done
+ *   the window   the sender's room, seen as a desktop app window — real
+ *                title bar, real pairing code, the payload composed
+ *   the phone    the receiver, cropped by the bottom edge of the stage
+ *                (a device bleeding out of frame reads as an object in a
+ *                room; a device floating whole reads as a diagram)
+ *
+ * Between them the only thing that moves: the beam, and the packet on it.
+ *
+ * The states are unchanged from the old machine, because they were right:
+ *
+ *   open       both surfaces at rest, the payload composed in the window
+ *   connecting the phone types the code in; the beam draws
+ *   sending    the packet crosses — window to phone
+ *   received   it lands, the chip ticks, the phone takes the hit
  *   done       the room closes; nothing is kept; the loop comes back round
  *
- * Why it is built this way:
- *   · The screens are REAL DOM at real sizes (no scaled screenshots), so
- *     the text stays sharp and the mini app is genuinely ours: ember
- *     bubbles, our radii, our tokens.
- *   · Nothing is "invented": the payload, the code, the starters and the
- *     closed room are the real app's objects and states. No fake counts,
- *     no fake notifications, no decorative motion — motion only when a
- *     payload actually moves.
- *   · One turn of the loop is ~12s, and the dwell at `done` is the longest
- *     beat in it — that pause is the point: the room closes, nothing is
- *     kept, and the picture rests before starting over. Nothing plays off
- *     screen or in a hidden tab.
- *   · Reduced motion hands over the same informative still: `running` is
- *     false, so the machine never leaves `open` and never loops.
+ * Interaction: the stage tracks the pointer, tilting the two surfaces by
+ * different amounts so the gap between them has depth, and the surfaces ride
+ * a soft spotlight. The rail under the stage is the loop's own clock — one
+ * segment per beat, the live one filling as the beat plays — and clicking a
+ * segment jumps to that beat. Pointer-only, and deliberately aria-hidden: a
+ * keyboard user gets the real value (the caption, as a live region) without
+ * four extra tab stops inside an illustration.
+ *
+ * Reduced motion gets the payoff still (`received`), not the empty opening:
+ * the still should show the product working, and a still cannot replay
+ * itself, so it keeps a Restart.
  */
 export type DemoPhase = 'open' | 'connecting' | 'sending' | 'received' | 'done';
 
-/** The caption per state — the same key the screens derive from. One line:
- *  the state word is the caption, and the sentence that used to sit under it
- *  was a tagline the picture already said. */
+/** The caption per state — the same key the surfaces derive from. */
 const CAPTIONS: Record<DemoPhase, MsgKey> = {
   open: 'demo.h1',
   connecting: 'demo.h2',
@@ -61,101 +66,51 @@ const CAPTIONS: Record<DemoPhase, MsgKey> = {
   done: 'demo.h7',
 };
 
-/** Where the machine walks on its own after the visitor's tap, and how fast. */
-const AUTO: Partial<Record<DemoPhase, { next: DemoPhase; ms: number }>> = {
-  // §18 removed the demo's own Send button (a second orange Send CTA under
-  // the picture, competing with the real one). The walk starts by itself;
-  // under reduced motion `running` is false, so the still simply rests.
-  //
-  // `done` walks back to `open` instead of ending: an illustration that
-  // completes once and freezes leaves a dead object in the hero for every
-  // visitor who arrives after it finished, and the only way to see the beat
-  // again was to find a Restart button. The loop makes the picture its own
-  // invitation at no cost — the dwell here is the longest in the cycle, so
-  // the completed state is what a visitor is most likely to see first.
-  open: { next: 'connecting', ms: 1400 },
-  connecting: { next: 'sending', ms: 1700 },
+/** Where the machine walks on its own, and how long each beat is worth. The
+ *  dwell at `done` is the longest in the cycle: the pause after the room
+ *  closes is the point being made. */
+const AUTO: Record<DemoPhase, { next: DemoPhase; ms: number }> = {
+  open: { next: 'connecting', ms: 2200 },
+  connecting: { next: 'sending', ms: 1900 },
   sending: { next: 'received', ms: 1600 },
-  received: { next: 'done', ms: 2800 },
-  done: { next: 'open', ms: 4200 },
+  received: { next: 'done', ms: 2600 },
+  done: { next: 'open', ms: 3600 },
 };
 
+/** The rail's beats — `done` is the loop's rest, not a beat of its own. */
+const STEPS: DemoPhase[] = ['open', 'connecting', 'sending', 'received'];
+
 const EASE = [0.22, 1, 0.36, 1] as const;
-const EASE_IN_OUT = [0.45, 0, 0.25, 1] as const;
+const EASE_IN_OUT = [0.55, 0, 0.2, 1] as const;
 
-/**
- * The mini screens are AUTHORED at these glass sizes — the exact pixel
- * geometry the 1440 hero had when the scenes were written. The whole
- * picture is scaled proportionally to whatever glass it sits behind
- * (transform, so text stays sharp), in BOTH directions: on a wide glass it
- * grows WITH the frame instead of drowning inside it, and on a narrow one
- * (a 390px phone, where the laptop glass is ~233px) it shrinks to FIT.
- *
- * It used to floor the factor at 1, i.e. "never smaller than authored" —
- * which cropped a third of both screens on every phone: "Paste a lin…",
- * "Enter the cod…", and four of the six room-code digits simply fell off
- * the edge. Both ends of the story have to be legible, so fit wins.
- */
-const LAPTOP_GLASS = { w: 331, h: 207 }; // 16:10 glass behind LaptopFrame
-const PHONE_GLASS = { w: 116, h: 251 };  // 9:19.5 glass behind PhoneFrame
+/** The six digits the phone types in. One source for both surfaces. */
+const CODE = ['4', '1', '8', '3', '0', '2'] as const;
 
-/** Fill the frame's glass, scaling the authored screen up on larger glasses. */
-function ScaledScreen({
-  design,
-  children,
-}: {
-  design: { w: number; h: number };
-  children: React.ReactNode;
-}) {
-  const hostRef = useRef<HTMLDivElement>(null);
-  const [k, setK] = useState(1);
+/** A fine pointer is what tilting is for. Touch has no hover to read, and a
+ *  tilt driven by a finger is a wobble under the thumb. */
+function useFinePointer() {
+  const [fine, setFine] = useState(false);
   useEffect(() => {
-    const el = hostRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      if (!width || !height) return;
-      // Fit BOTH axes (the glass is the frame's inner rect, so a slightly
-      // short glass would otherwise crop the composer). The 0.55 floor is a
-      // floor on silliness, not on legibility: it is only reached below a
-      // ~182px laptop glass.
-      setK((prev) => {
-        const next = Math.max(0.55, Math.min(width / design.w, height / design.h));
-        return Math.abs(prev - next) < 0.004 ? prev : next;
-      });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [design.w]);
-  return (
-    <div ref={hostRef} className="absolute inset-0 overflow-hidden">
-      {/* absolute left-0 (not block flow): the authored scene is a FIXED px
-          canvas wider than its host on small screens, and block flow obeys
-          the inherited writing direction — in RTL the canvas started at the
-          host's RIGHT edge and bled ~90px off its LEFT, cropping the
-          laptop's screen. Pinned to the physical top-left, the crop lands on
-          the same edge in every locale; text inside still mirrors. */}
-      <div
-        className="absolute left-0 top-0 origin-top-left"
-        style={{ width: design.w, height: design.h, transform: `scale(${k})` }}
-      >
-        {children}
-      </div>
-    </div>
-  );
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const on = () => setFine(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return fine;
 }
-/** The overlapping-window fallback if a browser has no IntersectionObserver. */
-const ASSUME_VISIBLE = true;
+
+type Box = { x: number; y: number; w: number; h: number };
 
 export function HeroDeviceDemo({
   variant = 'full',
   className,
 }: {
   /**
-   * `full`    laptop + phone side by side (the desktop hero)
-   * `stacked` the same two devices, laptop above and phone below-right, for
-   *           a phone's hero — the story needs both ends of the transfer,
-   *           and a phone alone showed only the half you already hold
+   * `full`    window + phone side by side (the desktop hero)
+   * `stacked` the same two surfaces, window above and phone below-right, for
+   *           a phone's hero — the story needs both ends of the transfer
    * `phone`   phone only (kept for the narrow landscape crop)
    */
   variant?: 'full' | 'stacked' | 'phone';
@@ -163,38 +118,36 @@ export function HeroDeviceDemo({
 }) {
   const { t } = useI18n();
   const reduced = useReducedMotion();
-  // The resting opening: the transfer has NOT happened — the visitor makes
-  // it happen. Reduced motion opens on this same honest still.
-  const [phase, setPhase] = useState<DemoPhase>('open');
-  const [onScreen, setOnScreen] = useState(ASSUME_VISIBLE);
+  const fine = useFinePointer();
+
+  // Reduced motion opens on the payoff: the still has to show the product
+  // having done its job, not an empty room waiting for a tap.
+  const [phase, setPhase] = useState<DemoPhase>(reduced ? 'received' : 'open');
+  const [onScreen, setOnScreen] = useState(true);
   const [tabVisible, setTabVisible] = useState(true);
+  const [beat, setBeat] = useState(0); // the packet's own bounce counter
 
   const hostRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [box, setBox] = useState({ w: 0, h: 0 });
+  const stageRef = useRef<HTMLDivElement>(null);
+  const windowRef = useRef<HTMLDivElement>(null);
+  const phoneRef = useRef<HTMLDivElement>(null);
+  const [geom, setGeom] = useState<{ w: number; h: number; a: Box; b: Box } | null>(null);
 
-  // Only the transit states own a clock — and only while the demo is
-  // actually on screen and the tab is live. `open`, `received` (reduced)
-  // and `done` rest forever until the visitor acts.
-  const running = !reduced && onScreen && tabVisible && box.w > 0;
+  const running = !reduced && onScreen && tabVisible;
 
-  /* ── The clock: each auto-beat advances the machine once ────────────── */
+  /* ── the clock ──────────────────────────────────────────────────────── */
   useEffect(() => {
+    if (!running) return;
     const auto = AUTO[phase];
-    if (!running || !auto) return;
     const timer = setTimeout(() => setPhase(auto.next), auto.ms);
     return () => clearTimeout(timer);
   }, [running, phase]);
 
-  /* ── Pause when off screen or in a background tab ───────────────────── */
+  /* ── pause off screen / in a background tab ─────────────────────────── */
   useEffect(() => {
     const el = hostRef.current;
-    if (!el) return;
-    if (typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(
-      ([entry]) => setOnScreen(entry.isIntersecting),
-      { threshold: 0.2 },
-    );
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { threshold: 0.2 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -206,61 +159,114 @@ export function HeroDeviceDemo({
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
-  /* ── One measurement, for the channel and the flight ────────────────── */
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([entry]) => {
-      const r = entry.contentRect;
-      setBox((prev) =>
-        Math.abs(prev.w - r.width) < 1 && Math.abs(prev.h - r.height) < 1
-          ? prev
-          : { w: r.width, h: r.height },
-      );
+  /* ── pointer tilt + spotlight ───────────────────────────────────────── */
+  const px = useMotionValue(0); // -0.5 … 0.5
+  const py = useMotionValue(0);
+  const tiltY = useSpring(useTransform(px, (v) => v * 7), { stiffness: 120, damping: 18, mass: 0.5 });
+  const tiltX = useSpring(useTransform(py, (v) => v * -5), { stiffness: 120, damping: 18, mass: 0.5 });
+  const tiltWindowX = useTransform(tiltX, (v) => v * 0.55);
+  const tiltWindowY = useTransform(tiltY, (v) => v * 0.55);
+
+  const onStagePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!fine || reduced) return;
+      const el = stageRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const nx = (e.clientX - r.left) / r.width - 0.5;
+      const ny = (e.clientY - r.top) / r.height - 0.5;
+      px.set(nx);
+      py.set(ny);
+      el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      el.style.setProperty('--my', `${e.clientY - r.top}px`);
+      el.style.setProperty('--spot', '1');
+    },
+    [fine, reduced, px, py],
+  );
+
+  const onStagePointerLeave = useCallback(() => {
+    px.set(0);
+    py.set(0);
+    stageRef.current?.style.setProperty('--spot', '0');
+  }, [px, py]);
+
+  /* ── measure the two surfaces: the beam is drawn between real edges ─── */
+  const measure = useCallback(() => {
+    const stage = stageRef.current;
+    const win = windowRef.current;
+    const phone = phoneRef.current;
+    if (!stage || !win || !phone) return;
+    const s = stage.getBoundingClientRect();
+    if (!s.width || !s.height) return;
+    const w = win.getBoundingClientRect();
+    const p = phone.getBoundingClientRect();
+    const toBox = (r: DOMRect): Box => ({
+      x: r.left - s.left,
+      y: r.top - s.top,
+      w: r.width,
+      h: r.height,
     });
-    ro.observe(el);
-    return () => ro.disconnect();
+    const a = toBox(w);
+    const b = toBox(p);
+    setGeom((prev) => {
+      if (prev && prev.w === s.width && prev.h === s.height
+        && Math.abs(prev.a.y - a.y) < 1 && Math.abs(prev.b.y - b.y) < 1) return prev;
+      return { w: s.width, h: s.height, a, b };
+    });
   }, []);
 
-  /* ── Derived states. Everything reads the phase. ────────────────────── */
-  const linked = phase !== 'open'; // the channel and the connected pill
+  useLayoutEffect(() => {
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => measure());
+    for (const el of [stageRef.current, windowRef.current, phoneRef.current]) {
+      if (el) ro.observe(el);
+    }
+    return () => ro.disconnect();
+  }, [measure, variant, phase]);
+
+  /* ── derived ────────────────────────────────────────────────────────── */
+  const linked = phase !== 'open';
   const sent = phase === 'sending' || phase === 'received' || phase === 'done';
   const flying = phase === 'sending';
   const arrived = phase === 'received' || phase === 'done';
   const closed = phase === 'done';
 
-  const { w, h } = box;
-  const px = (fx: number, fy: number) => ({ x: fx * w, y: fy * h });
-  /* The channel between the devices, and the packet's three-point arc:
-     out of the laptop's screen, over the gap, into the phone's screen. */
-  const channel = useMemo(() => {
-    if (!w || !h) return '';
-    /* Two compositions, two sets of anchors. `full` is the F24 side-by-side
-       scene: the laptop glass ends at ≈71.5% of the canvas and the phone's
-       glass opens near (79%, 24%), so the line leaves the laptop's right
-       edge and lands inside the phone's screen. `stacked` puts the phone
-       below the laptop, so the same line runs from the laptop's lower-right
-       corner down into the phone's glass top. */
-    const a = variant === 'stacked' ? px(0.72, 0.2) : px(0.715, 0.37);
-    const b = variant === 'stacked' ? px(0.82, 0.42) : px(0.79, 0.24);
-    const bend = variant === 'stacked' ? 0.55 : 0.5;
-    const c1x = a.x + (b.x - a.x) * bend;
-    const c2x = a.x + (b.x - a.x) * bend;
-    return `M ${a.x} ${a.y} C ${c1x} ${a.y}, ${c2x} ${b.y}, ${b.x} ${b.y}`;
-  }, [w, h, variant]);
-  const flight = useMemo(() => {
-    if (!w || !h) return null;
-    const start = variant === 'stacked' ? px(0.38, 0.24) : px(0.42, 0.46);
-    const over = variant === 'stacked' ? px(0.72, 0.24) : px(0.74, 0.32);
-    const land = variant === 'stacked' ? px(0.85, 0.52) : px(0.85, 0.5);
-    return { start, over, land };
-  }, [w, h, variant]);
+  // Arrival nudge: one small downward hit on the whole stage, the way a phone
+  // moves in the hand when something lands. Re-keyed per arrival so a loop
+  // that runs for an hour still ticks each time.
+  useEffect(() => {
+    if (arrived) setBeat((n) => n + 1);
+  }, [arrived]);
+
+  const beam = useMemo(() => {
+    if (!geom || variant === 'phone') return null;
+    const { a, b } = geom;
+    const start = { x: a.x + a.w + 3, y: a.y + a.h * 0.52 };
+    const end = { x: b.x + b.w * 0.07, y: b.y + b.h * 0.3 };
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const stacked = Math.abs(dy) > Math.abs(dx);
+    // Two control points: a flat S across the gap on the side-by-side scene,
+    // a relaxed arc down the page when the phone sits under the window.
+    const c1 = stacked
+      ? { x: start.x + dx * 0.18, y: start.y + dy * 0.55 }
+      : { x: start.x + dx * 0.5, y: start.y };
+    const c2 = stacked
+      ? { x: start.x + dx * 0.82, y: start.y + dy * 0.5 }
+      : { x: start.x + dx * 0.5, y: end.y };
+    return {
+      d: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`,
+      start,
+      end,
+      mid: { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 },
+    };
+  }, [geom, variant]);
 
   const caption = t(CAPTIONS[phase]);
+  const stepIndex = STEPS.indexOf(phase === 'done' ? 'received' : phase);
 
-  /** The visitor's tap. Under reduced motion there is no flight to watch —
-   *  one tap lands the transfer on the final informative still instead. */
-  const runTransfer = () => setPhase(reduced ? 'received' : 'connecting');
   const restart = () => setPhase('open');
 
   return (
@@ -269,74 +275,81 @@ export function HeroDeviceDemo({
       className={cn('w-full select-none', className)}
       data-testid="hero-demo"
       data-state={phase}
-      // role=group makes the aria-label real: a named container so assistive
-      // tech announces "…the demo…" on entry and the demo's Send never
-      // reads as a second bare "Send" beside the hero's real one.
       role="group"
       aria-label={t('demo.title')}
     >
-      {/* ── The canvas ─────────────────────────────────────────────────── */}
+      {/* ── the stage ─────────────────────────────────────────────────── */}
       <div
-        ref={canvasRef}
+        ref={stageRef}
+        onPointerMove={onStagePointerMove}
+        onPointerLeave={onStagePointerLeave}
+        style={{ '--spot': '0' } as React.CSSProperties}
         className={cn(
           'relative w-full',
-          // Taller than the old 16/9.8: the phone now stands nearly full-
-          // height beside the laptop, so the pair reads as ONE scene with
-          // real presence instead of two objects parked on a strip.
-          // The stage is as tall as the taller object (the phone), not taller:
-          // the old 16/10.4 left a dead band of white under the laptop, which
-          // is the "empty corner" a hero must never have.
+          // Aspect is the composition's, not a video's: the window owns the
+          // top-left, the phone the bottom-right, and the phone is allowed to
+          // run past the floor.
           variant === 'full'
-            ? 'aspect-[16/9.4]'
+            ? 'aspect-[16/9.6]'
             : variant === 'stacked'
-              ? 'aspect-[1/1.15]'
-              : 'aspect-[1/2.16] max-w-[178px] mx-auto',
+              ? 'aspect-[1/1.5]'
+              : 'aspect-[9/19.5] max-w-[210px] mx-auto',
         )}
       >
-        {variant !== 'phone' && (
-          <div className={variant === 'stacked' ? 'absolute left-0 top-0 w-[76%]' : 'absolute left-0 top-0 w-[74%]'}>
-            {/* Contact shadow: the deck meets the page. One restrained
-                pooled shadow under the chassis — grounding, not glow. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-[8%] -bottom-[7px] h-[15px] rounded-[50%] blur-[5px] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.22),transparent_72%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.55),transparent_72%)]"
-            />
-            <LaptopFrame label={t('demo.laptopAlt')}>
-              <ScaledScreen design={LAPTOP_GLASS}>
-                <LaptopScreen linked={linked} sent={sent} arrived={arrived} closed={closed} />
-              </ScaledScreen>
-            </LaptopFrame>
-          </div>
-        )}
+        {/* Ambient bloom: warm light under the two objects, so they sit in a
+            room instead of on a white page. Pointer-transparent. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+        >
+          <div className="absolute left-[6%] top-[16%] h-[46%] w-[52%] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(240,100,19,0.13),rgba(240,100,19,0)_70%)] blur-[6px] motion-safe:animate-[st-bloom_9s_ease-in-out_infinite]" />
+          <div className="absolute bottom-[4%] right-[2%] h-[52%] w-[44%] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(255,171,48,0.16),rgba(255,171,48,0)_70%)] blur-[8px] motion-safe:animate-[st-bloom_11s_ease-in-out_infinite_reverse]" />
+          <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(ellipse_at_50%_40%,rgba(251,146,67,0.10),transparent_65%)]" />
+        </div>
 
-        {/* The channel: drawn the moment the two ends are paired, then the
-            live pulse rides it during the transfer. The line IS the
-            connection — it explains what the code does before any words. */}
-        {variant !== 'phone' && channel !== '' && (
+        {/* Spotlight: follows the pointer, barely there — it is what makes a
+            static composition feel lit rather than printed. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[var(--spot)] transition-opacity duration-500"
+          style={{
+            background:
+              'radial-gradient(220px circle at var(--mx, 50%) var(--my, 40%), rgba(240,100,19,0.10), transparent 68%)',
+          }}
+        />
+
+        {/* The beam. Drawn between the two surfaces' measured edges, so it
+            stays attached at every width instead of relying on magic
+            percentages that drift the moment a frame changes size. */}
+        {beam && (
           <svg
             aria-hidden
-            className="absolute inset-0 h-full w-full overflow-visible"
-            viewBox={`0 0 ${Math.max(w, 1)} ${Math.max(h, 1)}`}
+            className="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible"
+            viewBox={`0 0 ${Math.max(geom?.w ?? 1, 1)} ${Math.max(geom?.h ?? 1, 1)}`}
             fill="none"
           >
+            {/* Bed: the channel that exists once the two ends are paired. */}
             <motion.path
-              d={channel}
+              d={beam.d}
               stroke="currentColor"
               strokeWidth={1.5}
               strokeLinecap="round"
-              className="text-apple-ink/40 dark:text-white/20"
+              strokeDasharray="2.5 3.5"
+              className="text-apple-ink/55 dark:text-white/40"
               initial={false}
-              animate={{ pathLength: linked ? 1 : 0 }}
-              transition={{ duration: 0.8, ease: EASE }}
+              animate={{ pathLength: linked ? 1 : 0, opacity: linked ? 1 : 0 }}
+              transition={{ duration: 0.9, ease: EASE }}
             />
+            {/* The live line: a short ember pulse that rides the channel the
+                moment the packet leaves. */}
             {linked && (
               <motion.path
-                d={channel}
+                d={beam.d}
                 stroke="currentColor"
-                strokeWidth={2}
+                strokeWidth={2.25}
                 strokeLinecap="round"
                 pathLength={100}
-                strokeDasharray="7 93"
+                strokeDasharray="9 91"
                 className="text-ember"
                 initial={{ strokeDashoffset: 100, opacity: 0 }}
                 animate={
@@ -344,152 +357,227 @@ export function HeroDeviceDemo({
                     ? { strokeDashoffset: [100, 0], opacity: [0, 1, 1, 0] }
                     : { strokeDashoffset: 100, opacity: 0 }
                 }
-                transition={{ duration: 1.5, ease: EASE_IN_OUT, times: [0, 0.12, 0.85, 1] }}
+                transition={{ duration: 1.45, ease: EASE_IN_OUT, times: [0, 0.1, 0.86, 1] }}
               />
             )}
+            {/* End caps: the two addresses on the wire. */}
+            <motion.circle
+              cx={beam.start.x}
+              cy={beam.start.y}
+              r={3.5}
+              className="fill-ember"
+              initial={false}
+              animate={{ opacity: linked ? 1 : 0, scale: linked ? 1 : 0.6 }}
+              transition={{ duration: 0.4, ease: EASE, delay: linked ? 0.55 : 0 }}
+              style={{ transformOrigin: `${beam.start.x}px ${beam.start.y}px` }}
+            />
+            <motion.circle
+              cx={beam.end.x}
+              cy={beam.end.y}
+              r={3.5}
+              className="fill-ember"
+              initial={false}
+              animate={{ opacity: linked ? 1 : 0, scale: linked ? 1 : 0.6 }}
+              transition={{ duration: 0.4, ease: EASE, delay: linked ? 0.65 : 0 }}
+              style={{ transformOrigin: `${beam.end.x}px ${beam.end.y}px` }}
+            />
           </svg>
         )}
 
-        {/* The packet: a file card that leaves the laptop's screen and lands
-            on the phone's. Transform-only, measured, and it dissolves into
-            the bubble that receives it — the hand-off reads as one event. */}
-        {variant !== 'phone' && flight && (
+        {/* The window: the sender's room, crowded up into the top-left. */}
+        {variant !== 'phone' && (
+          <motion.div
+            className={cn(
+              'absolute z-20',
+              variant === 'stacked' ? 'left-[2%] top-0 w-[86%]' : 'left-[1.5%] top-[6%] w-[64%]',
+            )}
+            style={{ rotateX: tiltWindowX, rotateY: tiltWindowY, transformPerspective: 1100 }}
+          >
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-[6%] -bottom-[10px] h-[22px] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.20),transparent_72%)] blur-[7px] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.6),transparent_72%)]"
+            />
+            <LaptopFrame label={t('demo.laptopAlt')}>
+              <div ref={windowRef} className="h-full w-full">
+                <RoomWindow linked={linked} sent={sent} arrived={arrived} closed={closed} />
+              </div>
+            </LaptopFrame>
+          </motion.div>
+        )}
+
+        {/* The packet: a file card that leaves the composer and lands as a
+            bubble. Transform-only, and it dissolves into the thing that
+            receives it — the hand-off reads as one event, not two. */}
+        {variant !== 'phone' && beam && (
           <motion.div
             aria-hidden
-            className="pointer-events-none absolute left-0 top-0"
+            key={`packet-${beat}-${phase}`}
+            className="pointer-events-none absolute left-0 top-0 z-30"
             initial={false}
             animate={
               flying
-                ? { x: [flight.start.x, flight.over.x, flight.land.x], y: [flight.start.y, flight.over.y, flight.land.y], opacity: 1, scale: 1 }
-                : arrived
-                  ? { x: flight.land.x, y: flight.land.y, opacity: 0, scale: 0.9 }
-                  : { x: flight.start.x, y: flight.start.y, opacity: 0, scale: 0.9 }
+                ? {
+                    x: [beam.start.x, beam.mid.x, beam.end.x],
+                    y: [beam.start.y, beam.mid.y, beam.end.y],
+                    opacity: [0, 1, 1, 1],
+                    scale: [0.92, 1.04, 0.92, 0.86],
+                  }
+                : { x: arrived ? beam.end.x : beam.start.x, y: arrived ? beam.end.y : beam.start.y, opacity: 0, scale: 0.9 }
             }
             transition={
               flying
-                ? { duration: 1.5, ease: EASE_IN_OUT, times: [0, 0.55, 1] }
-                : { duration: 0.24, ease: EASE }
+                ? { duration: 1.45, ease: EASE_IN_OUT, times: [0, 0.12, 0.8, 1] }
+                : { duration: 0.2, ease: EASE }
             }
           >
             <div className="-translate-x-1/2 -translate-y-1/2">
-              <div className="flex items-center gap-[5px] rounded-[8px] border border-apple-divider/70 bg-white/95 py-[4px] pl-[4px] pr-[7px] shadow-[0_8px_20px_-8px_rgba(20,16,10,0.5)] dark:border-white/[0.09] dark:bg-night-800/95">
-                <span className="flex h-[15px] w-[15px] items-center justify-center rounded-[8px] bg-ember text-[6.5px] font-bold text-white">PDF</span>
-                <span className="text-[8.5px] font-semibold leading-none text-apple-ink dark:text-white">plan.pdf</span>
-                <SpinLoader size={9} className="text-ember" />
+              <div className="flex items-center gap-1.5 rounded-[9px] border border-black/[0.06] bg-white/95 py-[5px] pl-[5px] pr-2 shadow-[0_10px_24px_-10px_rgba(20,16,10,0.6)] backdrop-blur-sm dark:border-white/10 dark:bg-night-800/95">
+                <span className="flex h-[17px] w-[17px] items-center justify-center rounded-[6px] bg-ember text-[7px] font-bold leading-none text-white">PDF</span>
+                <span className="text-[10px] font-semibold leading-none text-apple-ink dark:text-white">plan.pdf</span>
+                <SpinLoader size={10} className="text-ember" />
               </div>
             </div>
           </motion.div>
         )}
 
-        {variant !== 'phone' ? (
-          <div className={variant === 'stacked' ? 'absolute bottom-0 right-0 w-[30%]' : 'absolute bottom-0 right-0 w-[27%]'}>
-            {/* Same restrained pooled shadow as the laptop, under the phone. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-[16%] -bottom-[5px] h-[12px] rounded-[50%] blur-[5px] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.20),transparent_72%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5),transparent_72%)]"
-            />
-            <PhoneFrame label={t('demo.phoneAlt')}>
-              <ScaledScreen design={PHONE_GLASS}>
-                <PhoneScreen joined={phase !== 'open' && phase !== 'connecting'} typing={phase === 'connecting'} flying={flying} arrived={arrived} closed={closed} />
-              </ScaledScreen>
-            </PhoneFrame>
-          </div>
-        ) : (
-          <div className="absolute inset-0">
-            <PhoneFrame label={t('demo.phoneAlt')}>
-              <ScaledScreen design={PHONE_GLASS}>
-                <PhoneScreen joined={phase !== 'open' && phase !== 'connecting'} typing={phase === 'connecting'} flying={flying} arrived={arrived} closed={closed} />
-              </ScaledScreen>
-            </PhoneFrame>
-          </div>
-        )}
-      </div>
-
-      {/* ── Caption + controls, wired to the same phase ────────────────── */}
-      <div className="mt-5 sm:mt-6">
-        {/* The caption IS state output: role=status (live, polite) so the
-            transfer the visitor caused is announced as it happens. The
-            min-height reserves its two lines so phase changes never move
-            the controls below. */}
-        {/* One line, under the devices, centred on them. The second line
-            used to be a tagline ("It goes straight across. / Device to
-            device when it can be.") — it restated the picture, and it pushed
-            the pair up to make room for a sentence nobody needed. The state
-            word IS the caption. */}
-        <div
-          className="relative min-h-[1.6em]"
-          role="status"
-          /* A looping caption in a live region is an announcement every few
-             seconds, forever, to anyone using a screen reader. The words stay
-             in the accessibility tree — only the automatic announcements are
-             off while the loop is driving itself. */
-          aria-live={running ? 'off' : 'polite'}
-          data-testid="demo-caption"
-        >
-          <AnimatePresence initial={false} mode="wait">
-            <motion.div
-              key={phase}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: reduced ? 0 : 0.28, ease: EASE }}
-              className="absolute inset-x-0 top-0"
-            >
-              <p className="text-center text-[13px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
-                {caption}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        <div className="flex min-h-[44px] items-center gap-3">
-          {/* The visitor's control — the same verb the real app's key carries.
-              It exists only while the transfer hasn't run; during the walk
-              the row stays reserved but quiet; at done, Restart takes over.
-              size md (44px): the demo is real UI, so the repo's 40px
-              tap-target floor applies to it like any other control. */}
-          {/* §18: the walk plays itself — no Send button inside an
-              illustration. Restart is the one control the demo keeps, because
-              replaying the beat is the only thing a still cannot do.
-              size md (44px): the demo is real UI, so the repo's 40px
-              tap-target floor applies to it like any other control. */}
-          {/* The loop owns the replay now, so the moving demo shows no
-              control of its own: a Restart that appeared for four seconds
-              every cycle was a button popping in and out of the hero, and a
-              visitor who wanted the beat again had to catch it. Only the
-              still (reduced motion) keeps one, because a still cannot
-              restart itself. */}
-          {reduced && (phase === 'received' || closed) && (
-            <TactileButton
-              variant="secondary"
-              size="md"
-              onClick={restart}
-              data-testid="demo-restart"
-              className="min-w-[104px]"
-            >
-              {t('demo.restart')}
-            </TactileButton>
+        {/* The phone: the receiver, larger than life, cropped by the floor. */}
+        <motion.div
+          className={cn(
+            'absolute z-20',
+            variant === 'stacked'
+              ? 'bottom-0 left-[28%] w-[44%]'
+              : variant === 'phone'
+                ? 'inset-0'
+                : 'bottom-[-6%] right-[2%] w-[32%]',
           )}
-        </div>
+          style={
+            variant === 'phone'
+              ? undefined
+              : { rotateX: tiltX, rotateY: tiltY, transformPerspective: 1100 }
+          }
+        >
+          <div className="relative">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-[10%] -bottom-[8px] h-[18px] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.24),transparent_70%)] blur-[6px] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.65),transparent_70%)]"
+            />
+            <div ref={phoneRef}>
+              <PhoneFrame label={t('demo.phoneAlt')}>
+                <PhoneScreen
+                  joined={linked}
+                  typing={phase === 'connecting'}
+                  flying={flying}
+                  arrived={arrived}
+                  closed={closed}
+                  bump={arrived ? beat : 0}
+                />
+              </PhoneFrame>
+            </div>
+          </div>
+        </motion.div>
       </div>
+
+      {/* ── the rail: the loop's clock ────────────────────────────────── */}
+      <div
+        aria-hidden
+        className="mt-5 flex items-center gap-1.5 sm:mt-6"
+        data-testid="demo-rail"
+      >
+        {STEPS.map((step, i) => {
+          const done = i < stepIndex || phase === 'done';
+          const active = i === stepIndex && phase !== 'done';
+          return (
+            <button
+              key={step}
+              type="button"
+              tabIndex={-1}
+              onClick={() => setPhase(step)}
+              className={cn(
+                'group relative h-6 flex-1 cursor-pointer rounded-full outline-none',
+                // The visible line is 3px; the button is 24px tall so the
+                // click target is a control, not a hairline.
+              )}
+              aria-label={t(CAPTIONS[step])}
+            >
+              <span className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.10]">
+                {active ? (
+                  <motion.span
+                    key={phase}
+                    className="absolute inset-y-0 left-0 rounded-full bg-ember"
+                    initial={{ width: reduced ? '100%' : '0%' }}
+                    animate={{ width: '100%' }}
+                    transition={{ duration: reduced ? 0 : AUTO[step].ms / 1000, ease: 'linear' }}
+                  />
+                ) : (
+                  <span
+                    className={cn(
+                      'absolute inset-y-0 left-0 rounded-full',
+                      done ? 'w-full bg-ember/45' : 'w-0',
+                    )}
+                  />
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── the caption: state output, never decoration ───────────────── */}
+      <div
+        className="relative mt-2.5 min-h-[1.6em]"
+        role="status"
+        // A looping caption in a live region is an announcement every few
+        // seconds, forever. The words stay in the tree; only the automatic
+        // announcements are off while the loop drives itself.
+        aria-live={running ? 'off' : 'polite'}
+        data-testid="demo-caption"
+      >
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={phase}
+            initial={{ opacity: 0, y: 5, filter: 'blur(3px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
+            transition={{ duration: reduced ? 0 : 0.34, ease: EASE }}
+            className="absolute inset-x-0 top-0"
+          >
+            <p className="text-center text-[13px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
+              {caption}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* A still cannot replay itself, so only the still keeps a control. */}
+      {reduced && (
+        <div className="mt-1 flex justify-center">
+          <TactileButton
+            variant="secondary"
+            size="md"
+            onClick={restart}
+            data-testid="demo-restart"
+            className="min-w-[104px]"
+          >
+            {t('demo.restart')}
+          </TactileButton>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ────────────────────────────────────────────────────────────────────────
-   The two screens
+   The two surfaces
    ──────────────────────────────────────────────────────────────────────── */
 
-/** The room code, as the app shows it: six digits, one tile each. */
-const CODE = ['4', '1', '8', '3', '0', '2'] as const;
-
-function CodeTiles({
+/** The six digits, as the app shows them: one tile each. Sized for the
+ *  surface it sits on rather than one compromised size for both. */
+function PairCode({
   filled,
   size = 'md',
   highlight = false,
   stagger = false,
 }: {
-  /** How many digits are there yet. */
   filled: number;
   size?: 'sm' | 'md';
   /** The sender's code is the beat's focal point: it gets an ember ring. */
@@ -498,34 +586,31 @@ function CodeTiles({
   stagger?: boolean;
 }) {
   return (
-    <div className={cn('grid grid-cols-6', size === 'md' ? 'gap-[3px]' : 'gap-[2px]')}>
+    <div className={cn('grid grid-cols-6', size === 'md' ? 'gap-[3px]' : 'gap-[3px]')}>
       {CODE.map((d, i) => {
         const on = i < filled;
-        const delay = stagger && on ? i * 0.15 : 0;
         return (
           <span
             key={i}
             style={{ transitionDelay: `${stagger && on ? i * 150 : 0}ms` }}
             className={cn(
-              'flex items-center justify-center rounded-[8px] transition-colors duration-300',
-              size === 'md'
-                ? 'h-[22px] text-[12px]'
-                : 'h-[16px] text-[8px]',
+              'flex items-center justify-center rounded-[5px] font-semibold tabular-nums transition-colors duration-300',
+              size === 'md' ? 'h-[19px] text-[10px]' : 'h-[17px] text-[9.5px]',
               on
                 ? cn(
-                    'bg-white dark:bg-white/[0.1]',
+                    'bg-white dark:bg-white/[0.10]',
                     highlight
-                      ? 'ring-1 ring-ember/35 dark:ring-ember/30'
-                      : 'ring-1 ring-apple-divider/80 dark:ring-white/[0.12]',
+                      ? 'ring-1 ring-ember/45 dark:ring-ember/40'
+                      : 'ring-1 ring-apple-divider/80 dark:ring-white/[0.14]',
                   )
-                : 'bg-black/[0.05] ring-1 ring-transparent dark:bg-white/[0.05]',
+                : 'bg-black/[0.055] ring-1 ring-transparent dark:bg-white/[0.06]',
             )}
           >
             {on && (
               <motion.span
                 initial={{ opacity: 0, y: -2, scale: 0.7 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay, type: 'spring', stiffness: 520, damping: 28 }}
+                transition={{ delay: stagger ? i * 0.15 : 0, type: 'spring', stiffness: 520, damping: 28 }}
               >
                 {d}
               </motion.span>
@@ -537,7 +622,14 @@ function CodeTiles({
   );
 }
 
-function LaptopScreen({
+/**
+ * RoomWindow — the sender's room as a desktop app window.
+ *
+ * A window, not a dashboard: traffic lights, the room it is in, the payload
+ * and the composer. Everything else (the sidebar the old scene had) was the
+ * miniature's problem — a crop is what makes the type legible.
+ */
+function RoomWindow({
   linked, sent, arrived, closed,
 }: {
   linked: boolean;
@@ -549,157 +641,129 @@ function LaptopScreen({
   const note = t('demo.note');
 
   return (
-    // The rendered screens are a PICTURE of the product: their mini-UI text
-    // (file rows, status bars) is decorative context, not content — hidden
-    // from assistive tech so it can't be mistaken for real page text (and
-    // so image-text contrast rules correctly treat it as an image).
-    <div aria-hidden="true" className="relative flex h-full w-full flex-col bg-white text-apple-ink dark:bg-night-900 dark:text-white">
-      <div className="flex min-h-0 flex-1">
-        {/* Rail: brand · the code · who's here. */}
-        <div className="hidden w-[32%] shrink-0 flex-col gap-[8px] border-r border-apple-divider/70 bg-apple-parchment/60 p-[9px] dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex">
-          <div className="flex items-center gap-[4px]">
-            <ShareTextsLogo size={11} />
-            <span className="font-display text-[12px] font-bold tracking-[-0.02em]">ShareTexts</span>
-          </div>
-
-          <div className={cn(
-            'rounded-[8px] border bg-white p-[7px] transition-colors duration-300 dark:bg-white/[0.04]',
-            linked ? 'border-apple-divider/60 dark:border-white/[0.07]' : 'border-ember/30 dark:border-ember/25',
-          )}>
-            <span className="mb-[5px] block text-[7px] font-bold uppercase tracking-[0.09em] text-apple-ink-muted/80 dark:text-white/40">
-              {t('demo.roomCode')}
-            </span>
-            <CodeTiles filled={6} highlight={!linked} />
-          </div>
-
-          <div className="flex flex-col gap-[5px]">
-            {[
-              { key: 'here', name: t('demo.thisDevice'), state: t('demo.ready'), ok: true },
-              { key: 'there', name: t('demo.thatDevice'), state: linked ? t('demo.connected') : t('demo.waiting'), ok: linked },
-            ].map((row) => (
-              <div key={row.key} className="flex items-center gap-[5px]">
-                <span
-                  className={cn(
-                    'h-[5px] w-[5px] shrink-0 rounded-full transition-colors duration-300',
-                    row.ok ? 'bg-status-success' : 'bg-apple-ink/20 dark:bg-white/25',
-                  )}
-                />
-                <span className="min-w-0 flex-1 truncate text-[8.5px] font-medium leading-none">{row.name}</span>
-                <span className={cn(
-                  'shrink-0 text-[7.5px] leading-none transition-colors',
-                  row.ok ? 'text-status-success-ink dark:text-status-success-ink-dark' : 'text-apple-ink-muted/70 dark:text-white/35',
-                )}>
-                  {row.state}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-auto flex items-center justify-between gap-2 rounded-[8px] border border-apple-divider/50 px-[6px] py-[5px] dark:border-white/[0.06]">
-            <span className="truncate text-[7.5px] font-medium text-apple-ink-muted dark:text-white/45">{t('demo.stay')}</span>
-            <span className="relative h-[9px] w-[16px] shrink-0 rounded-full bg-status-success">
-              <span className="absolute right-[1px] top-[1px] h-[7px] w-[7px] rounded-full bg-white" />
-            </span>
-          </div>
-        </div>
-
-        {/* Thread. */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-apple-divider/70 px-[10px] py-[7px] dark:border-white/[0.06]">
-            <span className="min-w-0">
-              <span className="block truncate text-[12px] font-semibold leading-tight">{t('demo.room')}</span>
-              <span className="block truncate text-[8px] leading-tight text-apple-ink-muted dark:text-white/40">
-                {linked ? t('demo.twoDevices') : t('demo.oneDevice')}
-              </span>
-            </span>
-            <AnimatePresence initial={false}>
-              {linked && (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.26, ease: EASE }}
-                  className="flex shrink-0 items-center gap-[3px] rounded-full bg-ember/10 px-[6px] py-[3px] text-[7.5px] font-semibold text-ember dark:bg-ember/[0.16] dark:text-azure-400"
-                >
-                  <Lock className="h-[8px] w-[8px]" />
-                  {t('demo.encrypted')}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="flex min-h-0 flex-1 flex-col justify-end gap-[6px] overflow-hidden p-[10px]">
-            <AnimatePresence initial={false}>
-              {/* Before the transfer the room offers what the real room
-                  offers: the three one-tap starters, in the real words. It
-                  fills the empty thread honestly and teaches the same thing
-                  the live app teaches. The payload sits composed in the
-                  composer below — the state the visitor is looking at. */}
-              {!sent && (
-                <motion.div
-                  key="starters"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.3, ease: EASE }}
-                  className="flex flex-1 flex-col items-center justify-center gap-[5px]"
-                >
-                  <div className="flex max-w-[74%] flex-wrap items-center justify-center gap-[4px]">
-                    {(['chat.suggest.hi', 'chat.suggest.photo', 'chat.suggest.link'] as MsgKey[]).map((k) => (
-                      <span
-                        key={k}
-                        className="flex h-[16px] items-center rounded-full border border-apple-divider/80 bg-white/70 px-[6px] text-[7.5px] font-semibold text-apple-ink/70 dark:border-white/[0.12] dark:bg-white/[0.05] dark:text-white/60"
-                      >
-                        {t(k)}
-                      </span>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-              {sent && (
-                <motion.div
-                  key="note"
-                  initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                  className="flex flex-col items-end gap-[4px]"
-                >
-                  <span className="max-w-[80%] rounded-[12px] rounded-br-[4px] bg-ember px-[9px] py-[6px] text-[12px] leading-snug text-white shadow-[0_2px_6px_-2px_rgba(240,100,19,0.5)]">
-                    {note}
-                  </span>
-                  <FileChip arrived={arrived} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Composer — the payload, composed and waiting for the visitor. */}
-          <div className="shrink-0 border-t border-apple-divider/70 px-[9px] py-[7px] dark:border-white/[0.06]">
-            <div className="flex items-center gap-[7px]">
-              <span className="flex min-w-0 flex-1 items-center gap-[6px] rounded-full bg-black/[0.045] px-[8px] py-[5px] text-[12px] dark:bg-white/[0.06]">
-                <Paperclip className="h-[9px] w-[9px] shrink-0 text-apple-ink-muted dark:text-white/40" />
-                <span className="min-w-0 flex-1 truncate text-apple-ink dark:text-white">
-                  {sent ? (
-                    <span className="text-apple-ink-muted dark:text-white/35">{t('demo.placeholder')}</span>
-                  ) : (
-                    note
-                  )}
-                </span>
-                {!sent && (
-                  <span className="flex shrink-0 items-center gap-[3px] rounded-full bg-ember/10 px-[5px] py-[2px] text-[7.5px] font-semibold text-ember dark:bg-ember/[0.16] dark:text-azure-400">
-                    plan.pdf
-                  </span>
-                )}
-              </span>
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-white text-apple-ink dark:bg-night-900 dark:text-white">
+      {/* Title bar */}
+      <div className="flex h-[27px] shrink-0 items-center gap-2 border-b border-black/[0.07] bg-apple-parchment/70 px-2.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+        <span className="flex items-center gap-[4.5px]">
+          <span className="h-[7px] w-[7px] rounded-full bg-[#ff5f57]" />
+          <span className="h-[7px] w-[7px] rounded-full bg-[#febc2e]" />
+          <span className="h-[7px] w-[7px] rounded-full bg-[#28c840]" />
+        </span>
+        <span className="ml-1 flex min-w-0 items-center gap-1.5">
+          <ShareTextsLogo size={11} />
+          <span className="truncate font-display text-[10px] font-bold tracking-[-0.02em]">ShareTexts</span>
+        </span>
+        <span className="ml-auto flex shrink-0 items-center gap-1.5">
+          <AnimatePresence initial={false}>
+            {linked && (
               <motion.span
-                animate={sent ? { scale: 1, backgroundColor: 'rgba(20,18,14,0.14)' } : { scale: 1, backgroundColor: '#f06413' /* motion literal: framer cannot tween var() */ }}
-                transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                className="flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full text-white"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.24, ease: EASE }}
+                className="flex items-center gap-[3px] rounded-full bg-status-success/12 px-1.5 py-[2px] text-[8px] font-semibold text-status-success-ink dark:bg-status-success/15 dark:text-status-success-ink-dark"
               >
-                <PaperPlane className="h-[10px] w-[10px]" />
+                <span className="h-[4px] w-[4px] rounded-full bg-status-success" />
+                2
               </motion.span>
-            </div>
-          </div>
+            )}
+          </AnimatePresence>
+          <span className="flex items-center gap-[3px] rounded-full bg-black/[0.05] px-1.5 py-[3px] text-[8px] font-semibold text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/55">
+            <Lock className="h-[7px] w-[7px]" />
+            {t('demo.encrypted')}
+          </span>
+        </span>
+      </div>
+
+      {/* Room header: the code is the only thing this window has to explain. */}
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-black/[0.05] px-3 py-2 dark:border-white/[0.06]">
+        <span className="min-w-0">
+          <span className="block truncate text-[11px] font-semibold leading-tight">{t('demo.room')}</span>
+          <span className="block truncate text-[8.5px] leading-tight text-apple-ink-muted dark:text-white/40">
+            {linked ? t('demo.twoDevices') : t('demo.oneDevice')}
+          </span>
+        </span>
+        <span className="ml-auto w-[104px] shrink-0">
+          <PairCode filled={6} highlight={!linked} />
+        </span>
+      </div>
+
+      {/* Thread */}
+      <div className="flex min-h-0 flex-1 flex-col justify-end gap-1.5 overflow-hidden px-3 py-2.5">
+        <AnimatePresence initial={false}>
+          {!sent ? (
+            <motion.div
+              key="starters"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.28, ease: EASE }}
+              className="flex flex-1 flex-col items-center justify-center gap-1.5"
+            >
+              <span className="text-[9.5px] font-medium text-apple-ink-muted/70 dark:text-white/35">
+                {t('demo.ready')}
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-1">
+                {(['chat.suggest.hi', 'chat.suggest.photo', 'chat.suggest.link'] as MsgKey[]).map((k) => (
+                  <span
+                    key={k}
+                    className="flex h-[19px] items-center rounded-full border border-black/[0.07] bg-white px-2 text-[9px] font-semibold text-apple-ink/65 shadow-[0_1px_2px_rgba(20,16,10,0.04)] dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-white/60"
+                  >
+                    {t(k)}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="payload"
+              initial={{ opacity: 0, y: 8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+              className="flex flex-col items-end gap-1"
+            >
+              <span className="max-w-[78%] rounded-[11px] rounded-br-[3px] bg-ember px-2.5 py-1.5 text-[11px] leading-snug text-white shadow-[0_3px_10px_-4px_rgba(240,100,19,0.6)]">
+                {note}
+              </span>
+              <FileChip arrived={arrived} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Composer — the payload, composed and waiting. */}
+      <div className="shrink-0 border-t border-black/[0.06] px-2.5 py-2 dark:border-white/[0.07]">
+        <div className="flex items-center gap-2">
+          <span className="flex min-w-0 flex-1 items-center gap-1.5 rounded-full bg-black/[0.045] px-2.5 py-[6px] dark:bg-white/[0.06]">
+            <Paperclip className="h-[10px] w-[10px] shrink-0 text-apple-ink-muted dark:text-white/40" />
+            <span className="min-w-0 flex-1 truncate text-[11px] leading-none">
+              {sent ? (
+                <span className="text-apple-ink-muted dark:text-white/35">{t('demo.placeholder')}</span>
+              ) : (
+                note
+              )}
+            </span>
+            {!sent && (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-ember/10 px-1.5 py-[3px] text-[8.5px] font-semibold leading-none text-ember dark:bg-ember/[0.16] dark:text-azure-400">
+                plan.pdf
+              </span>
+            )}
+          </span>
+          <motion.span
+            animate={
+              sent
+                ? { scale: 1, backgroundColor: 'rgba(20,18,14,0.16)' }
+                : { scale: [1, 1.06, 1], backgroundColor: '#f06413' /* motion literal: framer cannot tween var() */ }
+            }
+            transition={
+              sent
+                ? { type: 'spring', stiffness: 380, damping: 26 }
+                : { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }
+            }
+            className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-white"
+          >
+            <PaperPlane className="h-[11px] w-[11px]" />
+          </motion.span>
         </div>
       </div>
 
@@ -709,127 +773,132 @@ function LaptopScreen({
 }
 
 function PhoneScreen({
-  joined, typing, flying, arrived, closed,
+  joined, typing, flying, arrived, closed, bump,
 }: {
-  /** The phone is IN the room (past the join screen). */
   joined: boolean;
-  /** The phone is typing the code in (the `connecting` walk). */
   typing: boolean;
   flying: boolean;
   arrived: boolean;
   closed: boolean;
+  /** Bumps on every arrival: one small physical tick, not a shake. */
+  bump: number;
 }) {
   const { t } = useI18n();
 
   return (
-    <div aria-hidden="true" className="relative flex h-full w-full flex-col bg-apple-canvas dark:bg-night-900">
-      <PhoneStatusBar />
+    <div className="relative h-full w-full bg-apple-canvas dark:bg-night-900">
+      <motion.div
+        key={`bump-${bump}`}
+        animate={bump ? { y: [0, 1.5, 0] } : { y: 0 }}
+        transition={{ duration: 0.34, ease: [0.3, 0.7, 0.4, 1], times: [0, 0.35, 1] }}
+        className="flex h-full w-full flex-col"
+      >
+        <PhoneStatusBar />
 
-      <AnimatePresence mode="popLayout" initial={false}>
-        {!joined ? (          <motion.div
-            key="join"
-            initial={false}
-            exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
-            transition={{ duration: 0.26, ease: EASE }}
-            className="flex min-h-0 flex-1 flex-col px-[7%] pb-[6%]"
-          >
-            <div className="flex items-center gap-[4px] pb-[8%]">
-              <ArrowLeft className="h-[9px] w-[9px] text-apple-ink-muted dark:text-white/45" />
-              <span className="font-display text-[8.5px] font-bold tracking-[-0.02em] text-apple-ink dark:text-white">ShareTexts</span>
-            </div>
-            <span className="text-[12px] font-semibold leading-tight text-apple-ink dark:text-white">{t('demo.joinTitle')}</span>
-            <span className="mt-[3px] text-[7.5px] leading-tight text-apple-ink-muted dark:text-white/45">{t('demo.joinHint')}</span>
-            <div className="mt-[9%]">
-              {/* The tiles light one by one — the code being typed in while
-                  the machine is in `connecting`. */}
-              <CodeTiles filled={typing ? 6 : 0} size="sm" stagger />
-            </div>
-            <span
-              className={cn(
-                'mt-[10%] flex items-center justify-center rounded-full py-[6px] text-[8.5px] font-semibold transition-colors duration-300',
-                typing
-                  ? 'bg-ember text-white'
-                  : 'bg-black/[0.06] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/40',
-              )}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {!joined ? (
+            <motion.div
+              key="join"
+              initial={false}
+              exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
+              transition={{ duration: 0.24, ease: EASE }}
+              className="flex min-h-0 flex-1 flex-col justify-center px-[7%] pb-[8%]"
             >
-              {t('demo.join')}
-            </span>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="room"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, ease: EASE }}
-            className="flex min-h-0 flex-1 flex-col"
-          >
-            {/* Header */}
-            <div className="flex shrink-0 items-center gap-[6px] border-b border-apple-divider/70 px-[7%] py-[4%] dark:border-white/[0.06]">
-              <ArrowLeft className="h-[9px] w-[9px] shrink-0 text-apple-ink-muted dark:text-white/45" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[8.5px] font-semibold leading-tight text-apple-ink dark:text-white">{t('demo.room')}</span>
-                <span className="flex items-center gap-[3px] text-[7px] leading-tight text-status-success-ink dark:text-status-success-ink-dark">
-                  <span className="h-[4px] w-[4px] rounded-full bg-status-success" />
-                  {t('demo.connected')}
+              <div className="flex items-center gap-1 pb-[6%]">
+                <span className="font-display text-[9px] font-bold tracking-[-0.02em] text-apple-ink dark:text-white">ShareTexts</span>
+              </div>
+              <span className="text-[11px] font-semibold leading-tight text-apple-ink dark:text-white">{t('demo.joinTitle')}</span>
+              <span className="mt-1 text-[8.5px] leading-tight text-apple-ink-muted dark:text-white/45">{t('demo.joinHint')}</span>
+              <div className="mt-[7%]">
+                <PairCode filled={typing ? 6 : 0} size="sm" stagger />
+              </div>
+              <span
+                className={cn(
+                  'mt-[8%] flex items-center justify-center rounded-full py-[6px] text-[9px] font-semibold transition-colors duration-300',
+                  typing
+                    ? 'bg-ember text-white'
+                    : 'bg-black/[0.06] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/40',
+                )}
+              >
+                {t('demo.join')}
+              </span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="room"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.28, ease: EASE }}
+              className="flex min-h-0 flex-1 flex-col"
+            >
+              {/* Header */}
+              <div className="flex shrink-0 items-center gap-1.5 border-b border-apple-divider/70 px-[7%] py-[4%] dark:border-white/[0.07]">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[10px] font-semibold leading-tight text-apple-ink dark:text-white">{t('demo.room')}</span>
+                  <span className="flex items-center gap-[3px] text-[8px] leading-tight text-status-success-ink dark:text-status-success-ink-dark">
+                    <span className="h-[4px] w-[4px] rounded-full bg-status-success" />
+                    {t('demo.connected')}
+                  </span>
                 </span>
-              </span>
-              <Gear className="h-[9px] w-[9px] shrink-0 text-apple-ink-muted dark:text-white/40" />
-            </div>
+                <span className="h-[4px] w-[4px] rounded-full bg-apple-ink-muted/40 dark:bg-white/30" />
+                <span className="h-[4px] w-[4px] rounded-full bg-apple-ink-muted/40 dark:bg-white/30" />
+              </div>
 
-            {/* Thread */}
-            <div className="flex min-h-0 flex-1 flex-col justify-end gap-[5px] overflow-hidden px-[6%] py-[5%]">
-              <AnimatePresence initial={false}>
-                {flying && (
-                  <motion.span
-                    key="receiving"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mb-[2px] flex items-center gap-[4px] self-center rounded-full bg-white px-[6px] py-[3px] text-[7px] font-medium text-apple-ink-muted shadow-[0_1px_3px_rgba(20,16,10,0.08)] dark:bg-white/[0.08] dark:text-white/60"
-                  >
-                    <SpinLoader size={8} className="text-ember" />
-                    {t('demo.receiving')}
-                  </motion.span>
-                )}
-                {arrived && (
-                  <>
+              {/* Thread */}
+              <div className="flex min-h-0 flex-1 flex-col justify-end gap-1.5 overflow-hidden px-[6%] py-[5%]">
+                <AnimatePresence initial={false}>
+                  {flying && (
                     <motion.span
-                      key="note-in"
-                      initial={{ opacity: 0, y: 9, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                      className="max-w-[86%] self-start rounded-[12px] rounded-bl-[4px] bg-white px-[7px] py-[5px] text-[8.5px] leading-snug text-apple-ink shadow-[0_1px_3px_rgba(20,16,10,0.07)] dark:bg-white/[0.08] dark:text-white"
+                      key="receiving"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="mb-1 flex items-center gap-1 self-center rounded-full bg-white px-2 py-[3px] text-[8px] font-medium text-apple-ink-muted shadow-[0_1px_3px_rgba(20,16,10,0.08)] dark:bg-white/[0.08] dark:text-white/60"
                     >
-                      {t('demo.note')}
+                      <SpinLoader size={8} className="text-ember" />
+                      {t('demo.receiving')}
                     </motion.span>
-                    <motion.div
-                      key="file-in"
-                      initial={{ opacity: 0, y: 9, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 420, damping: 30, delay: 0.06 }}
-                      className="self-start"
-                    >
-                      <FileChip side="in" compact />
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
+                  )}
+                  {arrived && (
+                    <>
+                      <motion.span
+                        key="note-in"
+                        initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 420, damping: 29 }}
+                        className="max-w-[88%] self-start rounded-[11px] rounded-bl-[3px] bg-white px-2.5 py-1.5 text-[10.5px] leading-snug text-apple-ink shadow-[0_2px_6px_-2px_rgba(20,16,10,0.14)] dark:bg-white/[0.09] dark:text-white"
+                      >
+                        {t('demo.note')}
+                      </motion.span>
+                      <motion.div
+                        key="file-in"
+                        initial={{ opacity: 0, y: 10, scale: 0.92 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 420, damping: 29, delay: 0.07 }}
+                        className="self-start"
+                      >
+                        <FileChip side="in" compact />
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
 
-            {/* Composer */}
-            <div className="flex shrink-0 items-center gap-[5px] border-t border-apple-divider/70 px-[6%] py-[4%] dark:border-white/[0.06]">
-              <span className="flex min-w-0 flex-1 items-center gap-[4px] rounded-full bg-black/[0.045] px-[6px] py-[4px] text-[7.5px] text-apple-ink-muted dark:bg-white/[0.06] dark:text-white/35">
-                <Paperclip className="h-[8px] w-[8px] shrink-0" />
-                <span className="truncate">{t('demo.placeholder')}</span>
-              </span>
-              <span className="flex h-[16px] w-[16px] shrink-0 items-center justify-center rounded-full bg-black/[0.08] text-apple-ink-muted dark:bg-white/[0.09] dark:text-white/40">
-                <PaperPlane className="h-[8px] w-[8px]" />
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {/* Composer */}
+              <div className="flex shrink-0 items-center gap-1.5 border-t border-apple-divider/70 px-[6%] py-[4%] dark:border-white/[0.07]">
+                <span className="flex min-w-0 flex-1 items-center gap-1 rounded-full bg-black/[0.045] px-2 py-[5px] text-[8.5px] text-apple-ink-muted dark:bg-white/[0.06] dark:text-white/35">
+                  <Paperclip className="h-[8px] w-[8px] shrink-0" />
+                  <span className="truncate">{t('demo.placeholder')}</span>
+                </span>
+                <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-black/[0.08] text-apple-ink-muted dark:bg-white/[0.09] dark:text-white/40">
+                  <PaperPlane className="h-[9px] w-[9px]" />
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       <RoomClosedVeil closed={closed} />
     </div>
@@ -839,11 +908,11 @@ function PhoneScreen({
 /**
  * The file the story sends — one component, both sides of the transfer.
  *
- * `side="out"` carries the live states (the spinner while it is in flight,
- * then the tick) and wears the sender's ember; `side="in"` is the same
- * object after it landed, quiet, white, tick-free — a receiver doesn't need
- * to be told it worked twice. Same geometry on both ends, so the hand-off
- * reads as one object that moved rather than two that resemble each other.
+ * `side="out"` carries the live states (spinner in flight, tick after) and
+ * wears the sender's ember; `side="in"` is the same object after it landed,
+ * quiet and tick-free — a receiver does not need to be told it worked twice.
+ * Same geometry on both ends, so the hand-off reads as one object that moved
+ * rather than two that resemble each other.
  */
 function FileChip({
   arrived = false,
@@ -854,40 +923,39 @@ function FileChip({
   side?: 'out' | 'in';
   compact?: boolean;
 }) {
-  const { t } = useI18n();
   const out = side === 'out';
   return (
     <span
       className={cn(
-        'flex items-center gap-[5px] shadow-[0_2px_6px_-2px_rgba(20,16,10,0.28)]',
-        out ? 'bg-ember text-white' : 'bg-white text-apple-ink dark:bg-white/[0.08] dark:text-white',
+        'flex items-center gap-1.5 shadow-[0_2px_8px_-3px_rgba(20,16,10,0.3)]',
+        out ? 'bg-ember text-white' : 'bg-white text-apple-ink dark:bg-white/[0.09] dark:text-white',
         compact
-          ? 'rounded-[12px] rounded-bl-[4px] px-[6px] py-[4px]'
-          : 'rounded-[12px] rounded-br-[4px] px-[8px] py-[5px]',
+          ? 'rounded-[11px] rounded-bl-[3px] px-2 py-1.5'
+          : 'rounded-[11px] rounded-br-[3px] px-2.5 py-[7px]',
       )}
     >
       <span
         className={cn(
-          'flex items-center justify-center rounded-[8px] font-bold leading-none',
-          compact ? 'h-[13px] w-[13px] text-[5.5px]' : 'h-[14px] w-[14px] text-[6px]',
+          'flex items-center justify-center rounded-[5px] font-bold leading-none',
+          compact ? 'h-[15px] w-[15px] text-[6px]' : 'h-[17px] w-[17px] text-[6.5px]',
           out ? 'bg-white/25' : 'bg-ember/12 text-ember',
         )}
       >
         PDF
       </span>
-      <span className={cn('font-semibold leading-none', compact ? 'text-[8px]' : 'text-[8.5px]')}>plan.pdf</span>
+      <span className={cn('font-semibold leading-none', compact ? 'text-[9.5px]' : 'text-[10.5px]')}>plan.pdf</span>
       {/* No invented byte count — this is a controlled demo, not a transfer
-          log. The sender's chip says what the state IS; the receiver's chip
-          says nothing, because arrival is already told by the thread. */}
+          log. The sender's chip says what the state IS; the receiver's says
+          nothing, because arrival is already told by the thread. */}
       {out && (
         <AnimatePresence mode="wait" initial={false}>
           {arrived ? (
             <motion.span key="tick" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }}>
-              <CheckDouble className={compact ? 'h-[8px] w-[8px]' : 'h-[9px] w-[9px]'} />
+              <CheckDouble className={compact ? 'h-[9px] w-[9px]' : 'h-[10px] w-[10px]'} />
             </motion.span>
           ) : (
             <motion.span key="ring" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <SpinLoader size={compact ? 8 : 9} />
+              <SpinLoader size={compact ? 9 : 10} />
             </motion.span>
           )}
         </AnimatePresence>
@@ -898,7 +966,7 @@ function FileChip({
 
 /** The done beat: the room empties and dims — nothing is kept. A RESTING
  *  veil, not a whiteout: the room stays legible while the pill does the
- *  talking, and Restart reopens the machine from `open`. */
+ *  talking, and the loop reopens the machine from `open`. */
 function RoomClosedVeil({ closed }: { closed: boolean }) {
   const { t } = useI18n();
   return (
@@ -909,12 +977,13 @@ function RoomClosedVeil({ closed }: { closed: boolean }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: EASE }}
-          className="absolute inset-0 flex items-center justify-center bg-apple-canvas/45 dark:bg-night-950/55">
-          {/* Dark side: a white stamp needs INK-dark text — but --color-apple-ink
-              FLIPS to near-white inside .dark, so the token here is the canvas
-              (which stays at the night-page value in dark scope). text-apple-ink
-              here rendered white-on-white: a blank pill where "Room closed" should read. */}
-          <span className="rounded-full bg-apple-ink/85 px-[8px] py-[4px] text-[8px] font-semibold text-white dark:bg-white/90 dark:text-apple-canvas">
+          className="absolute inset-0 flex items-center justify-center bg-apple-canvas/45 dark:bg-night-950/55"
+        >
+          {/* Dark side: a white stamp needs INK-dark text — but
+              --color-apple-ink FLIPS to near-white inside .dark, so the token
+              here is the canvas (which stays at the night-page value in dark
+              scope). text-apple-ink here rendered white-on-white. */}
+          <span className="rounded-full bg-apple-ink/85 px-2.5 py-1 text-[9px] font-semibold text-white dark:bg-white/90 dark:text-apple-canvas">
             {t('demo.closed')}
           </span>
         </motion.div>
