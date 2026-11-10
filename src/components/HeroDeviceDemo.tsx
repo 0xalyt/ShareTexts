@@ -389,7 +389,7 @@ export function HeroDeviceDemo({
           <motion.div
             className={cn(
               'absolute z-20',
-              variant === 'stacked' ? 'left-[2%] top-0 w-[86%]' : 'left-[1.5%] top-[6%] w-[64%]',
+              variant === 'stacked' ? 'left-[2%] top-0 w-[86%]' : 'left-[1%] top-[8%] w-[60%]',
             )}
             style={{ rotateX: tiltWindowX, rotateY: tiltWindowY, transformPerspective: 1100 }}
           >
@@ -448,7 +448,7 @@ export function HeroDeviceDemo({
               ? 'bottom-0 left-[28%] w-[44%]'
               : variant === 'phone'
                 ? 'inset-0'
-                : 'bottom-[-6%] right-[2%] w-[32%]',
+                : 'bottom-[-4%] right-[3%] w-[29%]',
           )}
           style={
             variant === 'phone'
