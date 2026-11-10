@@ -12,11 +12,9 @@ import { cn } from '../../lib/utils';
  * names those, with the app's own glyph vocabulary (one phone, one screen,
  * one globe) instead of borrowed marks.
  *
- * Motion rules: one transform-only keyframe on a duplicated track (the
- * compositor does the work), paused on hover and on focus-within so a reader
- * can actually stop and read it, edges masked so items dissolve instead of
- * being clipped mid-glyph, and under prefers-reduced-motion the whole thing
- * holds still and wraps — the same information, no movement.
+ * Presentation: a plain wrapping row. It was a marquee, which in a reference
+ * page is the wrong tool twice over — the reader is scanning for one name and
+ * has to wait for it, and the loop showed a clipped chip at each end.
  */
 const PLATFORMS: { name: string; kind: 'phone' | 'screen' | 'web' }[] = [
   { name: 'iPhone', kind: 'phone' },
@@ -38,32 +36,9 @@ const Glyph = ({ kind, className }: { kind: 'phone' | 'screen' | 'web'; classNam
 };
 
 export function PlatformStrip({ className }: { className?: string }) {
-  const row = (copy: number) => (
-    <ul
-      className={cn(
-        'flex shrink-0 items-center gap-3 pr-3 sm:gap-4 sm:pr-4',
-        // Only the second copy is announced; the first is the visible one.
-        copy === 2 && 'st-reduced-hidden',
-      )}
-      aria-hidden={copy === 2}
-    >
-      {PLATFORMS.map((p) => (
-        <li
-          key={`${copy}-${p.name}`}
-          className="flex shrink-0 items-center gap-2 rounded-full border border-apple-divider/70 bg-white/60 px-3.5 py-2 dark:border-white/[0.08] dark:bg-white/[0.04]"
-        >
-          <Glyph kind={p.kind} className="h-3.5 w-3.5 text-apple-ink-muted dark:text-white/45" />
-          <span className="text-[13px] font-semibold tracking-[-0.01em] text-apple-ink/80 dark:text-white/70">
-            {p.name}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-
   return (
     <section className={cn('w-full', className)} aria-labelledby="platforms-title">
-      <div className="flex items-baseline gap-3 mb-3.5">
+      <div className="mb-3.5 flex items-baseline gap-3">
         <h2
           id="platforms-title"
           className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
@@ -75,14 +50,24 @@ export function PlatformStrip({ className }: { className?: string }) {
           nothing to install
         </span>
       </div>
-      {/* The mask lives on the wrapper: items fade at both ends instead of
-          being cut by the container edge. */}
-      <div className="st-marquee-mask overflow-hidden">
-        <div className="st-marquee flex w-max items-center">
-          {row(1)}
-          {row(2)}
-        </div>
-      </div>
+      {/* A wrapping row, not a marquee. In a reference page the reader is
+          looking for one name — "does it run on Linux?" — and a ticker makes
+          them wait for it to come round, while the loop cut the first and
+          last chip in half at the mask. Ten short chips fit in two calm
+          lines at every width, and nothing moves. */}
+      <ul className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        {PLATFORMS.map((p) => (
+          <li
+            key={p.name}
+            className="flex shrink-0 items-center gap-2 rounded-full border border-apple-divider/70 bg-white/60 px-3.5 py-2 dark:border-white/[0.08] dark:bg-white/[0.04]"
+          >
+            <Glyph kind={p.kind} className="h-3.5 w-3.5 text-apple-ink-muted dark:text-white/45" />
+            <span className="text-[13px] font-semibold tracking-[-0.01em] text-apple-ink/80 dark:text-white/70">
+              {p.name}
+            </span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AtSign } from 'lucide-react';
+import { ArrowRight, AtSign } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { BrandLockup } from '../BrandLockup';
 import { useI18n } from '../../lib/i18n';
@@ -85,6 +85,18 @@ export function SiteFooter({ className }: { className?: string }) {
               <span className="h-1.5 w-1.5 rounded-full bg-status-success" aria-hidden />
               iPhone · Android · Windows · macOS · Linux
             </p>
+            {/* The end of a long page is where a reader is finally convinced
+                and has nothing left to click but a sitemap. One solid button
+                back to the product, in the same ink the app uses for its own
+                primary action, so the footer ends on a door instead of a
+                column of small links. */}
+            <a
+              href="/"
+              className="mt-5 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-apple-ink px-4 text-[13px] font-semibold text-white transition-colors hover:bg-apple-ink/90 dark:bg-white dark:text-night-900 dark:hover:bg-white/90"
+            >
+              {t('footer.open')}
+              <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+            </a>
           </div>
 
           {COLUMNS.map((col) => (

@@ -1310,7 +1310,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   {/* Only mounted when the layout is actually the phone one.
                       `lg:hidden` alone would leave a second, invisible copy
                       of the whole demo in the desktop DOM. */}
-                  {!isDesktopLayout && <HeroDeviceDemo variant={isNarrow ? 'phone' : 'full'} />}
+                  {!isDesktopLayout && <HeroDeviceDemo variant={isNarrow ? 'stacked' : 'full'} />}
                 </div>
               </div>
               {/* The two quiet doors (§18): lists, not cards. Nearby says what

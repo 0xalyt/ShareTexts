@@ -79,7 +79,10 @@ const en = {
 
   'home.title': 'Move anything\nbetween your devices.',
   'home.subtitle': "Phone to laptop, laptop to phone. Nothing to install, no account.",
-  'home.announce': "Temporary Spaces: a shelf that deletes itself",
+  // Short enough to sit on one line inside the hero pill on a 390px phone —
+  // the long version truncated to "…a shelf that deletes …" and read as a
+  // broken element rather than a link.
+  'home.announce': 'Temporary Spaces: gone in a week',
   'home.send': 'Send',
   'home.sendHint': 'Create a room',
   'home.receive': 'Receive',

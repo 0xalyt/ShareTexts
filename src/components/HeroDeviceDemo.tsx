@@ -151,8 +151,14 @@ export function HeroDeviceDemo({
   variant = 'full',
   className,
 }: {
-  /** `full` = laptop + phone (desktop hero). `phone` = phone only (mobile). */
-  variant?: 'full' | 'phone';
+  /**
+   * `full`    laptop + phone side by side (the desktop hero)
+   * `stacked` the same two devices, laptop above and phone below-right, for
+   *           a phone's hero — the story needs both ends of the transfer,
+   *           and a phone alone showed only the half you already hold
+   * `phone`   phone only (kept for the narrow landscape crop)
+   */
+  variant?: 'full' | 'stacked' | 'phone';
   className?: string;
 }) {
   const { t } = useI18n();
@@ -229,20 +235,26 @@ export function HeroDeviceDemo({
      out of the laptop's screen, over the gap, into the phone's screen. */
   const channel = useMemo(() => {
     if (!w || !h) return '';
-    // Anchored to the F24 composition: the laptop glass ends at ≈71.5% of
-    // the canvas and the phone's glass opens near (79%, 24%) — the line
-    // leaves the laptop's screen edge and lands inside the phone's screen.
-    const a = px(0.715, 0.37);
-    const b = px(0.79, 0.24);
-    return `M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`;
-  }, [w, h]);
+    /* Two compositions, two sets of anchors. `full` is the F24 side-by-side
+       scene: the laptop glass ends at ≈71.5% of the canvas and the phone's
+       glass opens near (79%, 24%), so the line leaves the laptop's right
+       edge and lands inside the phone's screen. `stacked` puts the phone
+       below the laptop, so the same line runs from the laptop's lower-right
+       corner down into the phone's glass top. */
+    const a = variant === 'stacked' ? px(0.72, 0.2) : px(0.715, 0.37);
+    const b = variant === 'stacked' ? px(0.82, 0.42) : px(0.79, 0.24);
+    const bend = variant === 'stacked' ? 0.55 : 0.5;
+    const c1x = a.x + (b.x - a.x) * bend;
+    const c2x = a.x + (b.x - a.x) * bend;
+    return `M ${a.x} ${a.y} C ${c1x} ${a.y}, ${c2x} ${b.y}, ${b.x} ${b.y}`;
+  }, [w, h, variant]);
   const flight = useMemo(() => {
     if (!w || !h) return null;
-    const start = px(0.42, 0.46);
-    const over = px(0.74, 0.32);
-    const land = px(0.85, 0.5);
+    const start = variant === 'stacked' ? px(0.38, 0.24) : px(0.42, 0.46);
+    const over = variant === 'stacked' ? px(0.72, 0.24) : px(0.74, 0.32);
+    const land = variant === 'stacked' ? px(0.85, 0.52) : px(0.85, 0.5);
     return { start, over, land };
-  }, [w, h]);
+  }, [w, h, variant]);
 
   const caption = t(CAPTIONS[phase]);
 
@@ -274,11 +286,15 @@ export function HeroDeviceDemo({
           // The stage is as tall as the taller object (the phone), not taller:
           // the old 16/10.4 left a dead band of white under the laptop, which
           // is the "empty corner" a hero must never have.
-          variant === 'full' ? 'aspect-[16/9.4]' : 'aspect-[1/2.16] max-w-[178px] mx-auto',
+          variant === 'full'
+            ? 'aspect-[16/9.4]'
+            : variant === 'stacked'
+              ? 'aspect-[1/1.15]'
+              : 'aspect-[1/2.16] max-w-[178px] mx-auto',
         )}
       >
-        {variant === 'full' && (
-          <div className="absolute left-0 top-0 w-[74%]">
+        {variant !== 'phone' && (
+          <div className={variant === 'stacked' ? 'absolute left-0 top-0 w-[76%]' : 'absolute left-0 top-0 w-[74%]'}>
             {/* Contact shadow: the deck meets the page. One restrained
                 pooled shadow under the chassis — grounding, not glow. */}
             <span
@@ -296,7 +312,7 @@ export function HeroDeviceDemo({
         {/* The channel: drawn the moment the two ends are paired, then the
             live pulse rides it during the transfer. The line IS the
             connection — it explains what the code does before any words. */}
-        {variant === 'full' && channel !== '' && (
+        {variant !== 'phone' && channel !== '' && (
           <svg
             aria-hidden
             className="absolute inset-0 h-full w-full overflow-visible"
@@ -337,7 +353,7 @@ export function HeroDeviceDemo({
         {/* The packet: a file card that leaves the laptop's screen and lands
             on the phone's. Transform-only, measured, and it dissolves into
             the bubble that receives it — the hand-off reads as one event. */}
-        {variant === 'full' && flight && (
+        {variant !== 'phone' && flight && (
           <motion.div
             aria-hidden
             className="pointer-events-none absolute left-0 top-0"
@@ -365,8 +381,8 @@ export function HeroDeviceDemo({
           </motion.div>
         )}
 
-        {variant === 'full' ? (
-          <div className="absolute bottom-0 right-0 w-[27%]">
+        {variant !== 'phone' ? (
+          <div className={variant === 'stacked' ? 'absolute bottom-0 right-0 w-[30%]' : 'absolute bottom-0 right-0 w-[27%]'}>
             {/* Same restrained pooled shadow as the laptop, under the phone. */}
             <span
               aria-hidden

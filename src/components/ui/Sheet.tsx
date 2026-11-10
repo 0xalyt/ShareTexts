@@ -210,7 +210,12 @@ export function Sheet({
     if (e.button !== 0) return;
     const panel = e.currentTarget;
     const target = e.target as HTMLElement;
-    const fromHandle = !!target.closest('[data-sheet-handle]');
+    // The grab strip is the handle plus the band above the first row. A
+    // 24px pill is a fine drawing and a terrible target: on a phone the
+    // thumb lands a few pixels off it and the sheet feels stuck. Everything
+    // in the top 56px that is not a control belongs to the gesture.
+    const topZone = e.clientY - panel.getBoundingClientRect().top <= 44;
+    const fromHandle = !!target.closest('[data-sheet-handle]') || topZone;
     // A mouse drag across the sheet body is text selection, and stealing it
     // would break copying — but the handle exists only to be grabbed, so it
     // drags with a mouse too. Refusing every pointer that is not a finger is
@@ -276,7 +281,14 @@ export function Sheet({
       if (raw < 0 && !g.fromHandle) { gesture.current = null; return; }
       g.decided = true;
       const el = panelRef.current;
-      if (el) el.style.willChange = 'transform, max-height';
+      if (el) {
+        el.style.willChange = 'transform, max-height';
+        // The browser's own pan has been cancelled, so nothing scrolls under
+        // the finger for the rest of the gesture. Set here rather than on
+        // pointerdown: doing it up front would swallow the taps and the
+        // scrolls of anyone who never meant to drag.
+        el.style.touchAction = 'none';
+      }
       try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* unsupported */ }
     }
 
@@ -313,7 +325,10 @@ export function Sheet({
     if (!g || e.pointerId !== g.id) return;
     const el = panelRef.current;
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* fine */ }
-    if (el) el.style.willChange = '';
+    if (el) {
+      el.style.willChange = '';
+      el.style.touchAction = '';
+    }
     if (!g.decided) return;
 
     const raw = e.clientY - g.startY;
@@ -383,9 +398,13 @@ export function Sheet({
   const panelClass = [
     'relative w-full bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet sm:shadow-2xl',
     'rounded-t-[24px] sm:rounded-[20px]',
+    // touch-pan-y + overscroll-contain on BOTH presentations: without them a
+    // downward pull from the top of the sheet turns into the browser's own
+    // rubber-band / pull-to-refresh, the pointer stream is cancelled, and the
+    // drag dies halfway. The sheet owns its vertical gesture.
     scroll === 'panel'
-      ? 'p-5 sm:p-6 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-6 overflow-y-auto overscroll-contain'
-      : 'flex flex-col overflow-hidden pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0',
+      ? 'p-5 sm:p-6 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-6 overflow-y-auto overscroll-contain touch-pan-y'
+      : 'flex flex-col overflow-hidden overscroll-contain touch-pan-y pb-[max(env(safe-area-inset-bottom),14px)] sm:pb-0',
     panelClassName ?? '',
   ]
     .filter(Boolean)
@@ -400,7 +419,7 @@ export function Sheet({
       <div
         data-sheet-handle
         aria-hidden
-        className="shrink-0 flex justify-center items-end pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none sm:pt-2.5 sm:pb-1.5"
+        className="shrink-0 flex justify-center items-end pt-4 pb-3 cursor-grab select-none active:cursor-grabbing touch-none sm:pt-3 sm:pb-2"
       >
         <span className="w-9 h-1 rounded-full bg-black/20 dark:bg-white/25" />
       </div>
