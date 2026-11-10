@@ -6,6 +6,7 @@ import { Segmented } from '../ui/Segmented';
 import { generateTOTP, getTOTPRemainingSeconds } from '../../lib/totp';
 import { useI18n } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
+import { LogoTraceLoader } from '../LogoTraceLoader';
 
 /**
  * SendScreen — the code hand-over (§18, P3).
@@ -278,7 +279,7 @@ export function SendScreen({
 
       {isCreating && !secret ? (
         <div className="flex flex-col items-center py-12" aria-live="polite">
-          <span aria-hidden className="w-2 h-2 rounded-full bg-ember animate-pulse" />
+          <LogoTraceLoader size={56} strokeWidth={4.5} className="text-ember" aria-hidden />
           <p className="mt-3 text-[16px] font-medium text-apple-ink-muted dark:text-white/70">{t('create.creating')}</p>
         </div>
       ) : (

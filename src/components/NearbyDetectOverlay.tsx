@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, Infinity as InfinityIcon } from 'lucide-react';
-import { SpinLoader } from './SpinLoader';
+import { LogoTraceLoader } from './LogoTraceLoader';
 import { useI18n } from '../lib/i18n';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { cn } from '../lib/utils';
@@ -401,7 +401,7 @@ export function NearbyDetectOverlay({
                   >
                     {busy ? (
                       <>
-                        <SpinLoader size={16} aria-hidden />
+                        <LogoTraceLoader size={18} strokeWidth={7} aria-hidden />
                         {t('nearby.overlay.connecting')}
                       </>
                     ) : mode === 'incoming' || armed ? (

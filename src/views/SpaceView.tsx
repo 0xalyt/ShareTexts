@@ -18,7 +18,7 @@ import {
   Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
   X, XCircle,
 } from 'lucide-react';
-import { SpinLoader } from '../components/SpinLoader';
+import { LogoTraceLoader } from '../components/LogoTraceLoader';
 import { QrArt } from '../components/qr/QrArt';
 import { Bar } from '../components/SkeletonScreen';
 import { Inbox } from 'lucide-react';
@@ -723,7 +723,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
             </div>
             {showQr && (
               <div className="mt-4 flex justify-center rounded-[16px] bg-white p-4">
-                <Suspense fallback={<span className="w-[208px] h-[208px] flex items-center justify-center"><SpinLoader size={24} className="text-apple-ink-muted" /></span>}>
+                <Suspense fallback={<span className="w-[208px] h-[208px] flex items-center justify-center"><LogoTraceLoader size={48} strokeWidth={5} className="text-ember" /></span>}>
                   <QrArt value={`${window.location.origin}/space/join?code=${formatSpaceCode(code)}`} size={208} label={t('qr.art.label')} />
                 </Suspense>
               </div>

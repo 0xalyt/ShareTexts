@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 // slashed wifi glyph is the one Gravity has no equivalent for).
 import { ArrowRight, Zap, Eye, EyeOff, RefreshCw, Search, Check, X, QrCode, Link as Link2 } from 'lucide-react';
 import { Wifi } from 'lucide-react';
-import { SpinLoader } from './SpinLoader';
+import { LogoTraceLoader } from './LogoTraceLoader';
 import { getSocket } from '../lib/socket';
 import { nearbyPresence, isPresenceHidden, setPresenceHidden, type NearbyDevice, type IncomingInvitation } from '../lib/nearby';
 import { getRecentDevices, recordRecentDevice, isTrustedToken, forgetRecentDevice, resolveLiveToken, lastSeenParts } from '../lib/pairing';
@@ -712,7 +712,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                       </span>
                     </span>
                     {busy ? (
-                      <SpinLoader size={16} className="text-ember dark:text-azure-400" aria-hidden />
+                      <LogoTraceLoader size={18} strokeWidth={7} className="text-ember dark:text-azure-400" aria-hidden />
                     ) : trusted ? (
                       <span
                         className="st-chip st-chip-ember shrink-0 gap-1 px-2.5"

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
-import { SpinLoader } from './SpinLoader';
+import { LogoTraceLoader } from './LogoTraceLoader';
 import { cn } from '../lib/utils';
 
 /**
@@ -113,7 +113,12 @@ export function TactileButton({
       {(icon || busyGlyph || success) && iconPosition === 'left' && (
         <span className="flex shrink-0 items-center justify-center leading-none">
           {busyGlyph ? (
-            <SpinLoader size={Math.round(1.05 * 16)} className={variant === 'secondary' ? 'text-ember dark:text-azure-400' : 'text-white'} aria-hidden />
+            <LogoTraceLoader
+              size={17}
+              strokeWidth={7}
+              className={variant === 'secondary' ? 'text-ember dark:text-azure-400' : 'text-white'}
+              aria-hidden
+            />
           ) : success ? (
             <Check className="h-[1.05em] w-[1.05em]" strokeWidth={2.5} aria-hidden />
           ) : (
@@ -125,7 +130,12 @@ export function TactileButton({
       {(icon || busyGlyph || success) && iconPosition === 'right' && (
         <span className="flex shrink-0 items-center justify-center leading-none">
           {busyGlyph ? (
-            <SpinLoader size={Math.round(1.05 * 16)} className={variant === 'secondary' ? 'text-ember dark:text-azure-400' : 'text-white'} aria-hidden />
+            <LogoTraceLoader
+              size={17}
+              strokeWidth={7}
+              className={variant === 'secondary' ? 'text-ember dark:text-azure-400' : 'text-white'}
+              aria-hidden
+            />
           ) : success ? (
             <Check className="h-[1.05em] w-[1.05em]" strokeWidth={2.5} aria-hidden />
           ) : (
