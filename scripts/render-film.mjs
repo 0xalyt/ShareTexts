@@ -27,18 +27,24 @@ const FRAMES = path.join(ROOT, 'film', 'frames');
 const AUDIO = path.join(ROOT, 'film', 'audio');
 const OUT = path.join(ROOT, 'film', 'out');
 const FPS = Number(process.env.FPS || 24);
-const DURATION = 33.5;
+const DURATION = 36.0;
 
 for (const dir of [ASSETS, FRAMES, AUDIO, OUT]) fs.mkdirSync(dir, { recursive: true });
 
 const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', ...args], { stdio: 'inherit' });
 
-const VO_TEXT = `Tired of emailing yourself files, or hunting for cables?
-ShareTexts moves text, photos, videos, and any file between any devices, straight from the browser.
+/* The voiceover is TWO reads, not one. A single clip has to be short enough to
+   finish before the end card, which forces the whole script to hurry; split, the
+   body can take its time and the brand line is placed on the card by
+   construction instead of by luck. The first attempt was one 43.2s read against
+   a 33.5s film, and `-shortest` cut the closing line without complaining. */
+const VO_BODY = `Tired of emailing yourself files, or hunting for cables?
+ShareTexts moves text, photos, videos, and any file between any devices, from the browser.
 Open it on both devices. Your other device appears. Connect once.
-Then send anything. It moves directly. Encrypted. Nothing is kept.
-Phone to laptop. iPhone to Windows. Any browser. No account. No app to install.
-ShareTexts. Move anything between your devices.`;
+Then send anything. Encrypted. Nothing is kept.
+Phone to laptop. iPhone to Windows. Any browser.`;
+const VO_TAG = 'ShareTexts. Move anything between your devices.';
+const VO_TAG_AT = 30.6; // the end card lands at 30.2
 
 /**
  * The landing screens, captured from the real site in dark mode. The laptop is
@@ -144,28 +150,41 @@ async function frames() {
   await browser.close();
 }
 
-/** Voiceover via the OS speech engine (SAPI). A reference track, not a
+/** One read, via the OS speech engine (SAPI). A reference track, not a
  *  finished one — a human or premium TTS should replace it. */
-function voiceover() {
-  const txt = path.join(AUDIO, 'vo.txt');
-  const wav = path.join(AUDIO, 'vo.wav');
-  fs.writeFileSync(txt, VO_TEXT, 'utf8');
+function speak(text, file, rate) {
+  const txt = file.replace(/\.wav$/, '.txt');
+  fs.writeFileSync(txt, text, 'utf8');
   const ps = [
     'Add-Type -AssemblyName System.Speech;',
     '$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;',
     '$s.SelectVoice("Microsoft David Desktop");',
-    '$s.Rate = -1;',
+    `$s.Rate = ${rate};`,
     '$s.Volume = 100;',
-    `$s.SetOutputToWaveFile("${wav.replace(/\\/g, '\\\\')}");`,
+    `$s.SetOutputToWaveFile("${file.replace(/\\/g, '\\\\')}");`,
     `$s.Speak((Get-Content -Raw "${txt.replace(/\\/g, '\\\\')}"));`,
     '$s.Dispose();',
   ].join(' ');
   execFileSync('powershell', ['-NoProfile', '-Command', ps], { stdio: 'inherit' });
-  const probeOut = execFileSync('ffprobe', [
-    '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', wav,
-  ]).toString().trim();
-  console.log(`audio: vo.wav ${Number(probeOut).toFixed(2)}s`);
-  return Number(probeOut);
+  return Number(
+    execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', file])
+      .toString()
+      .trim(),
+  );
+}
+
+function voiceover() {
+  const body = speak(VO_BODY, path.join(AUDIO, 'vo-body.wav'), 0);
+  // The tag is read slower than the body: it is the line the film ends on.
+  const tag = speak(VO_TAG, path.join(AUDIO, 'vo-tag.wav'), -1);
+  console.log(`audio: vo-body ${body.toFixed(2)}s · vo-tag ${tag.toFixed(2)}s`);
+  if (0.65 + body > VO_TAG_AT) {
+    console.log(`WARN vo-body ends at ${(0.65 + body).toFixed(2)}s, past the tag at ${VO_TAG_AT}s`);
+  }
+  if (VO_TAG_AT + tag > DURATION) {
+    console.log(`WARN vo-tag ends at ${(VO_TAG_AT + tag).toFixed(2)}s, past the film's ${DURATION}s`);
+  }
+  return { body, tag };
 }
 
 function music() {
@@ -210,10 +229,12 @@ function mix() {
   ff([
     '-i', path.join(AUDIO, 'music.wav'),
     '-i', path.join(AUDIO, 'sfx.wav'),
-    '-i', path.join(AUDIO, 'vo.wav'),
+    '-i', path.join(AUDIO, 'vo-body.wav'),
+    '-i', path.join(AUDIO, 'vo-tag.wav'),
     '-filter_complex',
     '[2:a]adelay=650:all=1,volume=1.9[vo];'
-      + '[0:a][1:a][vo]amix=inputs=3:normalize=0:duration=longest,'
+      + `[3:a]adelay=${Math.round(VO_TAG_AT * 1000)}:all=1,volume=2.0[tag];`
+      + '[0:a][1:a][vo][tag]amix=inputs=4:normalize=0:duration=longest,'
       + 'alimiter=limit=0.92,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo',
     out,
   ]);
@@ -243,12 +264,29 @@ function encode() {
   console.log(`encode: ${path.relative(ROOT, final)} · ${dur}s · ${size.toFixed(1)} MB`);
 }
 
+/** Re-mux the existing video with a fresh audio mix. Video is stream-copied, so
+ *  changing the voiceover costs seconds instead of another full encode. */
+function mux() {
+  const final = path.join(OUT, 'sharetexts-hero-1080p.mp4');
+  ff([
+    '-i', path.join(AUDIO, 'video-only.mp4'),
+    '-i', path.join(AUDIO, 'mix.wav'),
+    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest',
+    '-movflags', '+faststart',
+    final,
+  ]);
+  const dur = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', final]).toString().trim();
+  const size = fs.statSync(final).size / (1024 * 1024);
+  console.log(`mux: ${path.relative(ROOT, final)} · ${dur}s · ${size.toFixed(1)} MB`);
+}
+
 const step = process.argv[2] || 'all';
 if (step === 'assets') await assets();
 else if (step === 'probe') await probe();
 else if (step === 'frames') await frames();
 else if (step === 'audio') { voiceover(); music(); sfx(); mix(); }
 else if (step === 'encode') encode();
+else if (step === 'mux') mux();
 else {
   await assets();
   voiceover(); music(); sfx(); mix();

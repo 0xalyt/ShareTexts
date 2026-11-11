@@ -26,7 +26,7 @@ import { ShareTextsLogo } from '../components/ShareTextsLogo';
 
 const STAGE_W = 1920;
 const STAGE_H = 1080;
-export const DURATION = 33.5;
+export const DURATION = 36.0;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
@@ -358,7 +358,15 @@ export function FilmStage() {
       {/* ── end card ──────────────────────────────────────────────────── */}
       <div
         className="absolute inset-0 flex flex-col items-center justify-center"
-        style={{ opacity: endIn, transform: `scale(${lerp(1.02, 1, endIn)})` }}
+        style={{
+          opacity: endIn,
+          // The card holds for six seconds while the last line is spoken. A
+          // card that holds perfectly still reads as a freeze frame; this keeps
+          // drifting for as long as it is on screen.
+          transform: `scale(${
+            lerp(1.02, 1, endIn) * lerp(1, 1.012, clamp01((t - 30.35) / (DURATION - 30.35)))
+          })`,
+        }}
       >
         <div
           className="absolute inset-0"
