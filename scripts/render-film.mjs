@@ -201,7 +201,7 @@ function music() {
       + '[a0][a1][a2][a3]amix=inputs=4:duration=longest:normalize=0,'
       // tremolo's frequency floor is 0.1 Hz — 0.09 aborts the whole graph
       + 'lowpass=f=1100,tremolo=f=0.12:d=0.28,volume=0.9,'
-      + `afade=t=in:st=0:d=3.5,afade=t=out:st=${DURATION - 4}:d=4`,
+      + `afade=t=in:st=0:d=3.5,afade=t=out:st=${DURATION - 3.2}:d=3.2`,
     out,
   ]);
   console.log('audio: music.wav');
@@ -253,27 +253,28 @@ function encode() {
     video,
   ]);
   console.log('encode: video-only.mp4');
-  const final = path.join(OUT, 'sharetexts-hero-1080p.mp4');
-  ff([
-    '-i', video,
-    '-i', path.join(AUDIO, 'mix.wav'),
-    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest',
-    '-movflags', '+faststart',
-    final,
-  ]);
-  const size = fs.statSync(final).size / (1024 * 1024);
-  const dur = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', final]).toString().trim();
-  console.log(`encode: ${path.relative(ROOT, final)} · ${dur}s · ${size.toFixed(1)} MB`);
+  mux();
 }
 
 /** Re-mux the existing video with a fresh audio mix. Video is stream-copied, so
  *  changing the voiceover costs seconds instead of another full encode. */
 function mux() {
   const final = path.join(OUT, 'sharetexts-hero-1080p.mp4');
+  const video = path.join(AUDIO, 'video-only.mp4');
+  const videoDur = Number(
+    execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', video])
+      .toString()
+      .trim(),
+  );
   ff([
-    '-i', path.join(AUDIO, 'video-only.mp4'),
+    '-i', video,
     '-i', path.join(AUDIO, 'mix.wav'),
-    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest',
+    '-c:v', 'copy',
+    // Pad, never shorten. `-shortest` was deciding the film's length from the
+    // audio's, which is how the brand card lost its tail twice.
+    '-af', 'apad',
+    '-c:a', 'aac', '-b:a', '192k',
+    '-t', videoDur.toFixed(3),
     '-movflags', '+faststart',
     final,
   ]);
