@@ -651,7 +651,7 @@ export function HeroDeviceDemo({
             the bubbles below are the consequence of the thing that just flew
             rather than a second animation that happened to start. */}
         {beam && arrived && (
-          <motion.span
+          <span
             aria-hidden
             key={`ripple-${beat}`}
             data-demo="ripple"
@@ -660,11 +660,8 @@ export function HeroDeviceDemo({
             // margin, not by a translate utility — motion writes `transform`
             // from the scale keyframes and would throw the centring away,
             // which is exactly why the first version of this ring was invisible.
-            className="pointer-events-none absolute z-30 h-6 w-6 rounded-full border-[1.5px] border-ember"
+            className="pointer-events-none absolute z-30 h-6 w-6 rounded-full border-[1.5px] border-ember motion-safe:animate-[st-ring_0.7s_ease-out_forwards] motion-reduce:hidden"
             style={{ left: beam.end.x, top: beam.end.y, marginLeft: -12, marginTop: -12 }}
-            initial={{ opacity: 0, scale: 0.4 }}
-            animate={{ opacity: [0, 0.9, 0], scale: [0.4, 1.7, 2.3] }}
-            transition={{ duration: 0.7, ease: 'easeOut', times: [0, 0.3, 1] }}
           />
         )}
 
