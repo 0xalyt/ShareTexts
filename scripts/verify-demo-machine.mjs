@@ -1,10 +1,11 @@
 // F22-B: the hero demo is a transfer machine. These checks pin its contract:
-// it walks open → connecting → sending → received → done on fixed beats by
-// ITSELF (§18 removed the demo's own Send button — a second hero CTA), rests
-// at done instead of looping, and offers Restart to replay it.
-// The caption is always the same state as the picture, Restart returns to
-// the open rest, the hidden tab suspends the walk, reduced motion rests on
-// one honest still, and the caption is live region output.
+// it walks connecting → sending → received → done on fixed beats by ITSELF
+// (§18 removed the demo's own Send button — a second hero CTA) and loops back
+// to the open rest instead of dead-stopping. The only manual control left is
+// the Restart offered on the reduced-motion still.
+// The caption is always the same state as the picture, the hidden tab
+// suspends the walk, reduced motion rests on one honest still (the payoff,
+// not an empty room), and the caption is live region output.
 // Run: node scripts/verify-demo-machine.mjs  (URL env var, e.g. http://localhost:3010)
 import { launchBrowser, URL, sleep } from './lib.mjs';
 
@@ -27,7 +28,11 @@ const browser = await launchBrowser();
 
 // ── A. The machine: self-start → walk → done → restart ───────────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  // Retargeted to the tablet layout: the desktop hero is a rendered FILM now
+  // (src/components/HeroFilm.tsx), so the transfer machine this gate pins
+  // ships on the phone/tablet branch only. Same component, same contract,
+  // checked where it actually renders.
+  const ctx = await browser.newContext({ viewport: { width: 834, height: 1112 } });
   const p = await ctx.newPage();
   await p.goto(URL, { waitUntil: 'networkidle' });
   await p.evaluate(() => document.querySelector('[data-testid="hero-demo"]')?.scrollIntoView({ block: 'center' }));
@@ -40,7 +45,10 @@ const browser = await launchBrowser();
   // is hidden, and a real Restart.
   ok(!(await sendBtn(p)), 'no second Send control inside the demo');
 
-  await waitState(p, 'connecting', 8000);
+  // The walk now OPENS mid-action (`sending`) rather than on an empty room,
+  // so first-cycle `connecting` is ~10s away: sending→received→done→open→
+  // connecting. The old 8s budget predates that and expired before the beat.
+  await waitState(p, 'connecting', 16000);
   await sleep(450); // the caption crossfades in over 280 ms — read it settled
   const capConn = await captionHeadOf(p);
   await waitState(p, 'sending', 6000);
@@ -57,15 +65,12 @@ const browser = await launchBrowser();
     && new Set([capConn, capSend, capRec, capDone]).size === 4,
     'caption changes because the state changed');
 
-  // No loop: done rests until somebody asks for it again.
-  await sleep(3500);
-  ok((await stateOf(p)) === 'done', 'the walk does not loop — done rests');
-  ok(await restartBtn(p), 'done offers Restart');
-
-  // Restart: back to the open rest, and the walk leaves it again by itself.
-  await tapRestart(p);
-  await sleep(300);
-  ok((await stateOf(p)) === 'open', 'restart returns to the open rest');
+  // No dead stop and no manual control while it runs: `done` holds for its
+  // beat, then the walk returns to the open rest on its own. The loop is the
+  // hero's heartbeat — a demo that stops forever is a screenshot.
+  await waitState(p, 'open', 7000);
+  ok(true, 'the walk loops back to the open rest on its own');
+  ok(!(await restartBtn(p)), 'no Restart control while the walk drives itself');
   await waitState(p, 'connecting', 6000);
 
   // Hidden tab suspends the walk: hide mid-walk, state holds; unhide → completes.
@@ -85,8 +90,6 @@ const browser = await launchBrowser();
   await waitState(p, 'done', 12000);
   ok(true, 'visible tab resumes the walk to done');
 
-  // Back to rest for cleanliness.
-  await tapRestart(p);
   await ctx.close();
 }
 
@@ -98,11 +101,14 @@ const browser = await launchBrowser();
   await p.evaluate(() => document.querySelector('[data-testid="hero-demo"]')?.scrollIntoView({ block: 'center' }));
   await sleep(600);
   console.log('B. reduced motion');
-  ok((await stateOf(p)) === 'open', 'opens on the honest open still');
+  // The still is the payoff, not an empty room: a reduced-motion visitor gets
+  // the delivered state, which is the one frame that explains the product.
+  ok((await stateOf(p)) === 'received', 'opens on the honest payoff still');
   const devices = await p.evaluate(() => document.querySelectorAll('[data-testid="hero-demo"] svg').length);
   ok(devices >= 2, 'devices render under reduced motion');
   await sleep(2500);
-  ok((await stateOf(p)) === 'open', 'no motion sequence plays by itself');
+  ok((await stateOf(p)) === 'received', 'no motion sequence plays by itself');
+  ok(await restartBtn(p), 'the still keeps a Restart control');
   const stillCap = await captionHeadOf(p);
   ok(stillCap.length > 0, 'the still explains what it shows');
   await ctx.close();
@@ -110,7 +116,11 @@ const browser = await launchBrowser();
 
 // ── C. Caption hygiene: live output, headline + explanation per state ────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  // Retargeted to the tablet layout: the desktop hero is a rendered FILM now
+  // (src/components/HeroFilm.tsx), so the transfer machine this gate pins
+  // ships on the phone/tablet branch only. Same component, same contract,
+  // checked where it actually renders.
+  const ctx = await browser.newContext({ viewport: { width: 834, height: 1112 } });
   const p = await ctx.newPage();
   await p.goto(URL, { waitUntil: 'networkidle' });
   const cap = await p.evaluate(() => {
@@ -122,7 +132,9 @@ const browser = await launchBrowser();
     };
   });
   ok(cap.role === 'status', 'caption is live region output (role=status)');
-  ok(cap.headline.length > 0 && cap.sub.length > 0, 'every state carries headline + explanation');
+  // One line per state by design — the caption IS the explanation. The old
+  // `p + p` pair assertion could never match a single-paragraph caption.
+  ok(cap.headline.length >= 12, 'every state carries a readable caption');
   await ctx.close();
 }
 

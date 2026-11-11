@@ -50,6 +50,7 @@ import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroTransferScene } from '../components/HeroTransferScene';
 import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
+import { HeroFilm } from '../components/HeroFilm';
 import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
@@ -1311,7 +1312,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   {/* Only mounted when the layout is actually the phone one.
                       `lg:hidden` alone would leave a second, invisible copy
                       of the whole demo in the desktop DOM. */}
-                  {!isDesktopLayout && <HeroDeviceDemo variant={isNarrow ? 'stacked' : 'full'} />}
+                  {
+                  <HeroDeviceDemo variant={isNarrow ? 'stacked' : 'full'} />
+                }
                 </div>
               </div>
               {/* The two quiet doors (§18): lists, not cards. Nearby says what
@@ -2109,7 +2112,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 device screens, with a caption on the same clock. On a very
                 short window the landing simply scrolls to it. */}
             <div className="w-full max-w-[620px] mx-auto">
-              <HeroDeviceDemo />
+              <HeroFilm />
             </div>
           </div>
           {/* Phase 5 scroll tail — the demo is the illustration, so these

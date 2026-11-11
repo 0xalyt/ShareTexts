@@ -2,7 +2,7 @@
 //   1. hero demo "Room closed" stamp is legible in dark mode (not white-on-white)
 //   2. ShareMenu ships the real dropdown anatomy: caption, rail cells, copy footer
 //   3. room header carries NO theme toggle (the "two toggles" complaint)
-//   4. Settings shows the real SegmentedToggleButton (Light/System/Dark) and it drives theme
+//   4. Settings shows the real theme control (a 3-pill tablist: Light/System/Dark) and it drives theme
 import { chromium } from 'playwright';
 
 const BASE = 'http://localhost:3010';
@@ -13,7 +13,9 @@ const browser = await chromium.launch();
 try {
   // ── 1. Landing: closed-veil stamp legibility ─────────────────────────────
   // Dark is where the bug lived (white-on-white), so emulate it explicitly.
-  const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
+  // Tablet: the desktop hero is a rendered film now, so the demo's closed-veil
+  // stamp only exists on the phone/tablet scene.
+  const p = await browser.newPage({ viewport: { width: 834, height: 1112 }, colorScheme: 'dark' });
   await p.goto(BASE, { waitUntil: 'domcontentloaded' });
   await p.waitForSelector('[data-testid="hero-demo"]', { timeout: 20000 });
   // §18 removed the demo's Send control, so the walk starts by itself on
@@ -41,15 +43,18 @@ try {
 
   await pa.goto(BASE, { waitUntil: 'domcontentloaded' });
   await pa.waitForTimeout(1200);
-  await pa.click('[data-testid="home-send"]');
+  // The idle hero's "Show QR" chip is gone (§18 removed the second hero CTA);
+  // __stOpenSendQr is the real path now — it creates the room, then opens the
+  // same QR overlay the send flow uses. verify-qr.mjs drives this identical
+  // entry point, so this is not a test backdoor into a different surface.
+  await pa.waitForFunction(() => typeof window.__stOpenSendQr === 'function', null, { timeout: 20000 });
+  await pa.evaluate(() => window.__stOpenSendQr());
   await pa.waitForFunction(() => !!localStorage.getItem('sharetext.session.v1'), null, { timeout: 20000 });
   const { roomId } = await pa.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')));
   const short = roomId.replace(/-/g, '').slice(0, 8);
   out('creator room created', !!roomId);
 
   // ── 2. ShareMenu anatomy via the QR overlay's pill trigger ───────────────
-  await pa.waitForSelector('[data-testid="show-qr"]', { timeout: 15000 });
-  await pa.click('[data-testid="show-qr"]');
   await pa.waitForSelector('[data-testid="qr-share"]', { timeout: 8000 });
   await pa.click('[data-testid="qr-share"]');
   await pa.waitForSelector('[role="menu"]', { timeout: 5000 });
@@ -82,7 +87,7 @@ try {
   await pa.waitForTimeout(300);
   out('Escape closes the share menu', await pa.evaluate(() => !document.querySelector('[role="menu"]')));
   // Close the QR overlay if Escape also dismissed it (or not).
-  await pa.evaluate(() => { document.querySelector('[aria-label="Close"]')?.click(); document.querySelector('[data-testid="show-qr"]')?.focus(); });
+  await pa.evaluate(() => { document.querySelector('[aria-label="Close"]')?.click(); });
   await pa.keyboard.press('Escape').catch(() => {});
   await pa.waitForTimeout(400);
 
@@ -98,36 +103,39 @@ try {
   const toggles = await pa.evaluate(() => document.querySelectorAll('[data-testid="theme-toggle"]').length);
   out('room header carries NO theme toggle', toggles === 0, `count=${toggles}`);
 
-  // ── 4. Settings: real segmented control drives the theme ─────────────────
+  // ── 4. Settings: the appearance control drives the theme ─────────────────
+  // The control ships as a tablist of three pills inside `settings-appearance`
+  // (`theme-light|system|dark`, aria-selected). The segmented radiogroup with a
+  // sliding thumb this block used to pin is gone; these assertions follow the
+  // control that actually renders rather than the one that used to.
   await pa.click('[data-testid="open-settings"]');
-  await pa.waitForSelector('[data-testid="settings-theme-segmented"]', { timeout: 8000 });
+  await pa.waitForSelector('[data-testid="settings-appearance"]', { timeout: 8000 });
   const seg = await pa.evaluate(() => {
-    const group = document.querySelector('[data-testid="settings-theme-segmented"]');
-    const radios = [...group.querySelectorAll('[role="radio"]')];
+    const group = document.querySelector('[data-testid="settings-appearance"]');
+    const tabs = [...group.querySelectorAll('[role="tab"]')];
     return {
-      role: group.getAttribute('role'),
-      labels: radios.map(r => r.textContent),
-      checked: radios.map(r => r.getAttribute('aria-checked')).join(','),
-      slot: group.getAttribute('data-slot'),
-      thumb: !!group.querySelector('[class*="translate-x"]'),
+      role: group.querySelector('[role="tablist"]')?.getAttribute('role'),
+      labels: tabs.map(r => r.textContent.trim()),
+      testIds: tabs.map(r => r.getAttribute('data-testid')).join(','),
+      selected: tabs.map(r => r.getAttribute('aria-selected')).join(','),
     };
   });
-  out('settings uses segmented radiogroup', seg.role === 'radiogroup' && seg.slot === 'segmented-toggle-button' && seg.labels.length === 3, JSON.stringify(seg.labels));
-  out('segmented has sliding thumb', seg.thumb);
+  out('settings theme control is a 3-pill tablist', seg.role === 'tablist' && seg.labels.length === 3 && seg.testIds === 'theme-light,theme-system,theme-dark', JSON.stringify(seg.labels));
+  out('exactly one theme pill is selected', seg.selected.split(',').filter(v => v === 'true').length === 1, seg.selected);
 
   const stored = await pa.evaluate(() => localStorage.getItem('sharetext.theme'));
   const expectIdx = stored === 'light' ? 'true,false,false' : stored === 'dark' ? 'false,false,true' : 'false,true,false';
-  out(`aria-checked matches stored theme (${stored})`, seg.checked === expectIdx, seg.checked);
+  out(`aria-selected matches stored theme (${stored})`, seg.selected === expectIdx, seg.selected);
 
-  await pa.evaluate(() => { [...document.querySelectorAll('[data-testid="settings-theme-segmented"] [role="radio"]')].find(b => b.textContent === 'Dark')?.click(); });
+  await pa.click('[data-testid="theme-dark"]');
   await pa.waitForTimeout(300);
   const dark = await pa.evaluate(() => ({ cls: document.documentElement.classList.contains('dark'), stored: localStorage.getItem('sharetext.theme') }));
-  out('segmented Dark applies dark theme', dark.cls && dark.stored === 'dark', JSON.stringify(dark));
+  out('Dark pill applies dark theme', dark.cls && dark.stored === 'dark', JSON.stringify(dark));
 
-  await pa.evaluate(() => { [...document.querySelectorAll('[data-testid="settings-theme-segmented"] [role="radio"]')].find(b => b.textContent === 'System')?.click(); });
+  await pa.click('[data-testid="theme-system"]');
   await pa.waitForTimeout(300);
   const sys = await pa.evaluate(() => localStorage.getItem('sharetext.theme'));
-  out('segmented System follows OS again', sys === 'system', sys);
+  out('System pill follows OS again', sys === 'system', sys);
 
   const settingsToggles = await pa.evaluate(() => document.querySelectorAll('[data-testid="theme-toggle"]').length);
   out('settings row replaced the switch (no stray toggle)', settingsToggles === 0, `count=${settingsToggles}`);

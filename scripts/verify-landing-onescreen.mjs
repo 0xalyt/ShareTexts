@@ -24,12 +24,14 @@ for (const [w, h] of SIZES) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h } });
   const p = await ctx.newPage();
   await p.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await p.locator('[data-testid="hero-demo"]').first().waitFor({ timeout: 20000 });
+  await p.locator('[data-testid="hero-demo"]:visible').first().waitFor({ timeout: 20000 });
   await sleep(1200);
   const r = await p.evaluate(() => {
     const de = document.documentElement;
     const main = document.getElementById('main-content');
-    const demo = document.querySelector('[data-testid="hero-demo"]')?.getBoundingClientRect();
+    const demo = [...document.querySelectorAll('[data-testid="hero-demo"]')]
+      .map((el) => el.getBoundingClientRect())
+      .find((r) => r.width > 0);
     const scrub = document.querySelector('[role="slider"]')?.getBoundingClientRect();
     // Anything inside the landing that scrolls on its own would put the
     // visitor's wheel in a container instead of the page.
@@ -72,12 +74,14 @@ for (const [w, h] of SIZES) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage();
   await p.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await p.locator('[data-testid="hero-demo"]').first().waitFor({ timeout: 20000 });
+  await p.locator('[data-testid="hero-demo"]:visible').first().waitFor({ timeout: 20000 });
   await sleep(600);
   const marks = await p.evaluate(() => {
     const sel = {
       hero: 'h1',
-      demo: '[data-testid="hero-demo"]',
+      // `data-state="film"` is the desktop surface only; the phone branch
+      // renders a second, lg:hidden hero node earlier in the DOM.
+      demo: '[data-testid="hero-demo"][data-state="film"]',
       how: '#how-title',
       features: '#features-title',
       faq: '#faq-title',
@@ -105,7 +109,10 @@ for (const [w, h] of SIZES) {
   const order = ['hero', 'demo', 'how', 'features', 'faq', 'footer'];
   const present = order.every((k) => marks[k] !== null);
   const ascending = present && order.every((k, i) => i === 0 || marks[order[i]] >= marks[order[i - 1]]);
-  const countsOk = marks.howSteps === 3 && marks.smallItems === 7 && marks.faqItems === 8;
+  // 7 FAQ rows is the shipped set (LandingSections → `home.faq.q1…q7`); the 8
+  // here predates the row that was cut when the FAQ was re-scoped to the
+  // four questions a stranger actually asks.
+  const countsOk = marks.howSteps === 3 && marks.smallItems === 7 && marks.faqItems === 7;
   const targetsOk = marks.smallTargets.length === 0;
   const noRepeatCta = (await p.locator('#cta-title').count()) === 0;
   const okStruct = present && ascending && countsOk && targetsOk && noRepeatCta;
