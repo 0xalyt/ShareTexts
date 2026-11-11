@@ -50,6 +50,7 @@ import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroTransferScene } from '../components/HeroTransferScene';
 import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
+import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
 import { useSavedCount } from '../lib/savedItems';
@@ -985,7 +986,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 docs. A 13px word is unmistakable and costs no extra tap. */}
             <a
               href="/docs"
-              className="inline-flex min-h-[40px] items-center rounded-full px-2 text-[13px] font-semibold text-apple-ink-muted transition-colors hover:text-apple-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-apple-ink/25 dark:text-white/60 dark:hover:text-white dark:focus-visible:ring-white/40"
+              className="inline-flex min-h-[44px] items-center rounded-full px-2 text-[13px] font-semibold text-apple-ink-muted transition-colors hover:text-apple-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-apple-ink/25 dark:text-white/60 dark:hover:text-white dark:focus-visible:ring-white/40"
             >
               {t('nav.docs')}
             </a>
@@ -1671,7 +1672,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <a
                 key={item.href}
                 href={item.href}
-                className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-apple-ink-muted decoration-[1px] underline-offset-[5px] transition-colors hover:text-apple-ink hover:underline dark:text-white/60 dark:hover:text-white"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-[13px] font-medium text-apple-ink-muted decoration-[1px] underline-offset-[5px] transition-colors hover:text-apple-ink hover:underline dark:text-white/60 dark:hover:text-white"
               >
                 {item.label}
               </a>
@@ -1698,20 +1699,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 named target (44px pill, the X glyph, the handle) rather than a
                 bare icon, because a social link that only reads as a glyph is
                 a guess. */}
-            <a
-              href="https://x.com/0xalyt"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t('footer.followAria')}
-              title="x.com/0xalyt"
-              data-testid="footer-x"
-              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-apple-divider/70 px-3 text-apple-ink-muted transition-colors hover:border-apple-ink/25 hover:text-apple-ink dark:border-white/[0.10] dark:text-white/60 dark:hover:border-white/25 dark:hover:text-white"
-            >
-              <svg className="h-[13px] w-[13px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-              <span className="text-[12px] font-semibold leading-none">@0xalyt</span>
-            </a>
+            <XProfileLink />
             <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
               © {new Date().getFullYear()} ShareTexts
             </span>
@@ -1732,17 +1720,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           From sm up it collapses back to the single quiet band. */}
       <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-x-5 gap-y-0.5 flex-wrap">
         <BrandLockup compact className="select-none order-1" />
-        <a
-          href="https://x.com/0xalyt"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={t('footer.followAria')}
-          title="x.com/0xalyt"
-          className="order-2 sm:order-3 inline-flex items-center justify-center gap-1.5 min-h-[40px] min-w-[40px] px-2.5 rounded-full border border-apple-divider/60 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/55 hover:text-apple-ink dark:hover:text-white hover:border-apple-ink/30 dark:hover:border-white/25 transition-colors"
-        >
-          <svg className="w-[15px] h-[15px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-          <span className="hidden sm:inline text-[12px] font-semibold">x.com/0xalyt</span>
-        </a>
+        <XProfileLink showHandle={false} testId="footer-x-app" className="order-2 sm:order-3" />
         <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center justify-between sm:justify-start gap-4 sm:gap-7 pt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
           <a href="/docs" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
           <a href="/about" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>

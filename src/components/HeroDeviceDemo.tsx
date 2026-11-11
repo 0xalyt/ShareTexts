@@ -306,7 +306,10 @@ export function HeroDeviceDemo({
             type="button"
             tabIndex={-1}
             onClick={() => setPhase(step)}
-            className="group relative h-6 flex-1 cursor-pointer rounded-full outline-none"
+            // 44px of finger, 24px of drawing: the padding buys the target and
+            // the negative margin gives the height back, so the rail is easy to
+            // hit on a phone without growing the composition.
+            className="group relative -my-2.5 h-6 flex-1 cursor-pointer rounded-full py-2.5 outline-none"
             aria-label={t(CAPTIONS[step])}
           >
             <span

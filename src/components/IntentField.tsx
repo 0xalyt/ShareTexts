@@ -150,6 +150,11 @@ export function IntentField({
           spellCheck={false}
           enterKeyHint="send"
           aria-describedby={hintId}
+          // A placeholder is not a name: it disappears the moment you type,
+          // and a screen reader announced this field as just "text field" —
+          // on the app's primary input. Name it with the same words the
+          // placeholder uses so sighted and spoken labels agree.
+          aria-label={t('intent.placeholder')}
           data-testid="intent-input"
           placeholder={t('intent.placeholder')}
           className={cn(
