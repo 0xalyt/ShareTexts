@@ -527,7 +527,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
                 aria-label={t('saved.search')}
                 placeholder={t('saved.search')}
                 data-testid="saved-search"
-                className="w-full h-10 pl-9 pr-3 rounded-[12px] bg-black/[0.045] dark:bg-white/[0.07] text-[13px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted dark:placeholder:text-white/40 outline-none focus:ring-2 focus:ring-ember/40"
+                className="w-full h-11 pl-9 pr-3 rounded-[12px] bg-black/[0.045] dark:bg-white/[0.07] text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted dark:placeholder:text-white/40 outline-none focus:ring-2 focus:ring-ember/40"
               />
             </div>
           </div>

@@ -1173,7 +1173,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       }}
                       aria-label={t('pair.renameField')}
                       maxLength={32}
-                      className="w-full text-center text-[12px] font-medium text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none"
+                      className="w-full text-center text-[16px] sm:text-[12px] font-medium text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none"
                     />
                   ) : (
                     <button

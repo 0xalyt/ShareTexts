@@ -742,7 +742,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
             <input
               readOnly value={link}
               onFocus={e => e.currentTarget.select()}
-              className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[12px] text-apple-ink-muted dark:text-white/70 font-mono truncate"
+              className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink-muted dark:text-white/70 font-mono truncate"
             />
             <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[42px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-transform">
               {copied === 'link' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

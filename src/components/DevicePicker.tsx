@@ -171,7 +171,7 @@ export function DevicePicker({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('picker.search')}
-              className="w-full bg-transparent text-sm text-neutral-800 outline-none placeholder:text-neutral-400 dark:text-neutral-100"
+              className="w-full bg-transparent text-[16px] text-neutral-800 outline-none placeholder:text-neutral-400 dark:text-neutral-100"
               aria-label={t('picker.search')}
             />
           </div>
