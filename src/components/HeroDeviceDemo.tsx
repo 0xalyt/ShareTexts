@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   motion, AnimatePresence, useReducedMotion, useMotionValue, useSpring, useTransform,
 } from 'motion/react';
@@ -134,7 +134,7 @@ export function HeroDeviceDemo({
   const stageRef = useRef<HTMLDivElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const phoneRef = useRef<HTMLDivElement>(null);
-  const [geom, setGeom] = useState<{ w: number; h: number; a: Box; b: Box } | null>(null);
+  const [geom, setGeom] = useState<{ w: number; h: number; a: Box; b: Box; out?: Box; land?: Box } | null>(null);
   // Side-by-side needs width. Below it the window's thread is too short to
   // hold a two-line bubble, so the composition stacks instead of squeezing.
   const [wide, setWide] = useState(true);
@@ -217,10 +217,23 @@ export function HeroDeviceDemo({
     });
     const a = toBox(w);
     const b = toBox(p);
+    // The wire does not run edge-to-edge between two boxes: it runs from the
+    // chip that is being sent to the place on the phone where it will land.
+    // Both are measured, so the beam stays attached to the real objects when
+    // the payload appears, when a bubble arrives, and at every width — the
+    // old version aimed at the window's right edge and the packet visibly
+    // popped out of the middle of the app instead of off the file.
+    const outEl = stage.querySelector('[data-demo="out"]') as HTMLElement | null;
+    const landEl = stage.querySelector('[data-demo="land"]') as HTMLElement | null;
+    const out = outEl ? toBox(outEl.getBoundingClientRect()) : undefined;
+    const land = landEl ? toBox(landEl.getBoundingClientRect()) : undefined;
+    const moved = (p?: Box, q?: Box) => Math.abs((p?.y ?? -999) - (q?.y ?? -999)) > 1
+      || Math.abs((p?.x ?? -999) - (q?.x ?? -999)) > 1;
     setGeom((prev) => {
       if (prev && prev.w === s.width && prev.h === s.height
-        && Math.abs(prev.a.y - a.y) < 1 && Math.abs(prev.b.y - b.y) < 1) return prev;
-      return { w: s.width, h: s.height, a, b };
+        && Math.abs(prev.a.y - a.y) < 1 && Math.abs(prev.b.y - b.y) < 1
+        && !moved(prev.out, out) && !moved(prev.land, land)) return prev;
+      return { w: s.width, h: s.height, a, b, out, land };
     });
   }, []);
 
@@ -251,8 +264,14 @@ export function HeroDeviceDemo({
   const beam = useMemo(() => {
     if (!geom || variant === 'phone') return null;
     const { a, b } = geom;
-    const start = { x: a.x + a.w + 3, y: a.y + a.h * 0.52 };
-    const end = { x: b.x + b.w * 0.07, y: b.y + b.h * 0.3 };
+    const start = geom.out
+      ? { x: geom.out.x + geom.out.w + 2, y: geom.out.y + geom.out.h / 2 }
+      : { x: a.x + a.w + 3, y: a.y + a.h * 0.52 };
+    // Landing inside the thread, not on its edge: an object that stops half
+    // over the bezel looks dropped rather than delivered.
+    const end = geom.land
+      ? { x: geom.land.x + 24, y: geom.land.y - 18 }
+      : { x: b.x + b.w * 0.07, y: b.y + b.h * 0.3 };
     const dx = end.x - start.x;
     const dy = end.y - start.y;
     const stacked = Math.abs(dy) > Math.abs(dx);
@@ -271,6 +290,10 @@ export function HeroDeviceDemo({
       mid: { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 },
     };
   }, [geom, variant]);
+
+  // One gradient per instance: two demos on a page must not share a paint
+  // server by id.
+  const gradId = useId().replace(/:/g, '');
 
   const caption = t(CAPTIONS[phase]);
   const stepIndex = STEPS.indexOf(phase === 'done' ? 'received' : phase);
@@ -466,14 +489,41 @@ export function HeroDeviceDemo({
             viewBox={`0 0 ${Math.max(geom?.w ?? 1, 1)} ${Math.max(geom?.h ?? 1, 1)}`}
             fill="none"
           >
+            {/* A uniform grey hairline read as a scratch on ink. The channel
+                fades in at the sender and out at the receiver, so it looks
+                like light in a dark room rather than a pen line — and the eye
+                follows it toward the phone, which is where the story ends. */}
+            <defs>
+              <linearGradient
+                id={gradId}
+                gradientUnits="userSpaceOnUse"
+                x1={beam.start.x}
+                y1={beam.start.y}
+                x2={beam.end.x}
+                y2={beam.end.y}
+              >
+                {panel ? (
+                  <>
+                    <stop offset="0" stopColor="rgb(255,255,255)" stopOpacity="0.03" />
+                    <stop offset="0.42" stopColor="rgb(255,255,255)" stopOpacity="0.34" />
+                    <stop offset="1" stopColor="rgb(255,236,214)" stopOpacity="0.20" />
+                  </>
+                ) : (
+                  <>
+                    <stop offset="0" stopColor="rgb(20,18,14)" stopOpacity="0.04" />
+                    <stop offset="0.42" stopColor="rgb(20,18,14)" stopOpacity="0.34" />
+                    <stop offset="1" stopColor="rgb(20,18,14)" stopOpacity="0.16" />
+                  </>
+                )}
+              </linearGradient>
+            </defs>
             {/* Bed: the channel that exists once the two ends are paired. */}
             <motion.path
               d={beam.d}
-              stroke="currentColor"
-              strokeWidth={1.5}
+              stroke={`url(#${gradId})`}
+              strokeWidth={1.75}
               strokeLinecap="round"
-              strokeDasharray="2.5 3.5"
-              className={panel ? 'text-white/25' : 'text-apple-ink/55 dark:text-white/40'}
+              strokeDasharray="3 4"
               initial={false}
               animate={{ pathLength: linked ? 1 : 0, opacity: linked ? 1 : 0 }}
               transition={{ duration: 0.9, ease: EASE }}
@@ -537,6 +587,13 @@ export function HeroDeviceDemo({
               aria-hidden
               className="pointer-events-none absolute inset-x-[6%] -bottom-[10px] h-[22px] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.20),transparent_72%)] blur-[7px] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.6),transparent_72%)]"
             />
+            {/* The screen is switched on, so it emits: a window that only
+                reflects light reads as a sticker on ink, a window that casts
+                its own reads as an object in a dark room. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-[48px] -z-10 rounded-[32px] bg-[radial-gradient(ellipse_at_55%_40%,rgba(255,226,196,0.14),transparent_68%)] blur-[14px]"
+            />
             <LaptopFrame label={t('demo.laptopAlt')}>
               <div ref={windowRef} className="h-full w-full">
                 <RoomWindow
@@ -567,6 +624,10 @@ export function HeroDeviceDemo({
                     y: [beam.start.y, beam.mid.y, beam.end.y],
                     opacity: [0, 1, 1, 1],
                     scale: [0.92, 1.04, 0.92, 0.86],
+                    // A card carried across a room turns a little in the hand.
+                    // Two degrees is the whole difference between "a div that
+                    // moved" and "an object that was sent".
+                    rotate: [0, 3, 1, 0],
                   }
                 : { x: arrived ? beam.end.x : beam.start.x, y: arrived ? beam.end.y : beam.start.y, opacity: 0, scale: 0.9 }
             }
@@ -577,13 +638,34 @@ export function HeroDeviceDemo({
             }
           >
             <div className="-translate-x-1/2 -translate-y-1/2">
-              <div className="flex items-center gap-1.5 rounded-[9px] border border-black/[0.06] bg-white/95 py-[5px] pl-[5px] pr-2 shadow-[0_10px_24px_-10px_rgba(20,16,10,0.6)] backdrop-blur-sm dark:border-white/10 dark:bg-night-800/95">
+              <div className="flex items-center gap-1.5 rounded-[9px] border border-black/[0.06] bg-white/95 py-[5px] pl-[5px] pr-2 shadow-[0_10px_24px_-10px_rgba(20,16,10,0.6),0_0_22px_-4px_rgba(240,100,19,0.45)] backdrop-blur-sm dark:border-white/10 dark:bg-night-800/95">
                 <span className="flex h-[17px] w-[17px] items-center justify-center rounded-[6px] bg-ember text-[7px] font-bold leading-none text-white">PDF</span>
                 <span className="text-[10px] font-semibold leading-none text-apple-ink dark:text-white">plan.pdf</span>
                 <SpinLoader size={10} className="text-ember" />
               </div>
             </div>
           </motion.div>
+        )}
+
+        {/* The hand-off, made causal: a ring opens where the packet lands, so
+            the bubbles below are the consequence of the thing that just flew
+            rather than a second animation that happened to start. */}
+        {beam && arrived && (
+          <motion.span
+            aria-hidden
+            key={`ripple-${beat}`}
+            data-demo="ripple"
+            // Above the surfaces: the ring has to be seen on the glass it
+            // lands on, not hidden behind the phone it belongs to. Centred by
+            // margin, not by a translate utility — motion writes `transform`
+            // from the scale keyframes and would throw the centring away,
+            // which is exactly why the first version of this ring was invisible.
+            className="pointer-events-none absolute z-30 h-6 w-6 rounded-full border-[1.5px] border-ember"
+            style={{ left: beam.end.x, top: beam.end.y, marginLeft: -12, marginTop: -12 }}
+            initial={{ opacity: 0, scale: 0.4 }}
+            animate={{ opacity: [0, 0.9, 0], scale: [0.4, 1.7, 2.3] }}
+            transition={{ duration: 0.7, ease: 'easeOut', times: [0, 0.3, 1] }}
+          />
         )}
 
         {/* The phone: the receiver, larger than life, cropped by the floor. */}
@@ -608,6 +690,14 @@ export function HeroDeviceDemo({
             <div
               aria-hidden
               className="pointer-events-none absolute inset-x-[10%] -bottom-[8px] h-[18px] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(20,16,10,0.24),transparent_70%)] blur-[6px] dark:bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.65),transparent_70%)]"
+            />
+            {/* The receiving screen's own light, warm, brightest on impact —
+                the same beat the bubbles spring in. */}
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute -inset-[38px] -z-10 rounded-[44px] bg-[radial-gradient(ellipse_at_center,rgba(255,171,48,0.20),transparent_66%)] blur-[18px]"
+              animate={{ opacity: arrived ? 1 : 0.45 }}
+              transition={{ duration: 0.55, ease: EASE }}
             />
             <div ref={phoneRef}>
               <PhoneFrame label={t('demo.phoneAlt')}>
@@ -869,6 +959,15 @@ function PhoneScreen({
 
   return (
     <div className="relative h-full w-full bg-apple-canvas dark:bg-night-900">
+      {/* Arrival, seen from the receiver's side: the screen warms for a moment
+          instead of only the thread changing. */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_50%_18%,rgba(255,171,48,0.18),transparent_62%)]"
+        initial={false}
+        animate={{ opacity: arrived ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: EASE }}
+      />
       <motion.div
         key={`bump-${bump}`}
         animate={bump ? { y: [0, 1.5, 0] } : { y: 0 }}
@@ -965,6 +1064,10 @@ function PhoneScreen({
                     </>
                   )}
                 </AnimatePresence>
+                {/* A stable landing point at the foot of the thread: the beam
+                    aims here whether or not there is a bubble yet, so the wire
+                    does not jump when the payload arrives. */}
+                <span aria-hidden data-demo="land" className="h-0 w-0 self-start" />
               </div>
 
               {/* Composer */}
@@ -1008,6 +1111,9 @@ function FileChip({
   const out = side === 'out';
   return (
     <span
+      // Measured by the stage: this is where the wire starts (`out`) and
+      // where it is aimed (`in`), so the beam runs between two real chips.
+      data-demo={out ? 'out' : 'in'}
       className={cn(
         'flex items-center gap-1.5 shadow-[0_2px_8px_-3px_rgba(20,16,10,0.3)]',
         out ? 'bg-ember text-white' : 'bg-white text-apple-ink dark:bg-white/[0.09] dark:text-white',
