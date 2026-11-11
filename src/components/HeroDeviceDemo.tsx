@@ -797,7 +797,7 @@ function PairCode({
  * and the composer. Everything else (the sidebar the old scene had) was the
  * miniature's problem — a crop is what makes the type legible.
  */
-function RoomWindow({
+export function RoomWindow({
   compact = false,
   linked, sent, arrived, closed,
 }: {
@@ -941,7 +941,7 @@ function RoomWindow({
   );
 }
 
-function PhoneScreen({
+export function PhoneScreen({
   joined, typing, flying, arrived, closed, bump,
 }: {
   joined: boolean;

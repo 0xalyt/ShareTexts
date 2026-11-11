@@ -63,3 +63,9 @@ st-*/
 # Local dev-server scratch (pids + agent regression logs)
 *.pid
 .reglogs/
+
+# film render artifacts (regenerate with scripts/render-film.mjs)
+film/frames/
+film/audio/
+film/out/
+film/assets/

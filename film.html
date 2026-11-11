@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ShareTexts — hero film</title>
+    <style>
+      html, body { margin: 0; padding: 0; background: #070605; overflow: hidden; }
+      /* Deterministic capture: nothing may animate on its own. Every moving
+         element in the film is a function of window.__film(t). */
+      #film-root *, #film-root *::before, #film-root *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="film-root"></div>
+    <script type="module" src="/src/film/main.tsx"></script>
+  </body>
+</html>
