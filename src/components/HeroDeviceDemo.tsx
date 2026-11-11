@@ -121,8 +121,11 @@ export function HeroDeviceDemo({
   const fine = useFinePointer();
 
   // Reduced motion opens on the payoff: the still has to show the product
-  // having done its job, not an empty room waiting for a tap.
-  const [phase, setPhase] = useState<DemoPhase>(reduced ? 'received' : 'open');
+  // having done its job, not an empty room waiting for a tap. Motion opens
+  // mid-action — the packet already in flight — because the first frame is
+  // the only frame a lot of visitors will ever see, and "a room waiting for
+  // a code" is the emptiest one in the loop.
+  const [phase, setPhase] = useState<DemoPhase>(reduced ? 'received' : 'sending');
   const [onScreen, setOnScreen] = useState(true);
   const [tabVisible, setTabVisible] = useState(true);
   const [beat, setBeat] = useState(0); // the packet's own bounce counter
@@ -132,6 +135,9 @@ export function HeroDeviceDemo({
   const windowRef = useRef<HTMLDivElement>(null);
   const phoneRef = useRef<HTMLDivElement>(null);
   const [geom, setGeom] = useState<{ w: number; h: number; a: Box; b: Box } | null>(null);
+  // Side-by-side needs width. Below it the window's thread is too short to
+  // hold a two-line bubble, so the composition stacks instead of squeezing.
+  const [wide, setWide] = useState(true);
 
   const running = !reduced && onScreen && tabVisible;
 
@@ -199,6 +205,8 @@ export function HeroDeviceDemo({
     if (!stage || !win || !phone) return;
     const s = stage.getBoundingClientRect();
     if (!s.width || !s.height) return;
+    const isWide = s.width >= 480;
+    setWide((prev) => (prev === isWide ? prev : isWide));
     const w = win.getBoundingClientRect();
     const p = phone.getBoundingClientRect();
     const toBox = (r: DOMRect): Box => ({
@@ -267,7 +275,116 @@ export function HeroDeviceDemo({
   const caption = t(CAPTIONS[phase]);
   const stepIndex = STEPS.indexOf(phase === 'done' ? 'received' : phase);
 
-  const restart = () => setPhase('open');
+  const restart = () => setPhase('sending');
+
+  // The desktop scene is a lit panel — an object on the page, not a drawing of
+  // one. White window and white phone on a white page had no material
+  // contrast at all; on ink they read as two screens that are switched on.
+  // A two-up scene needs width to stay legible; under 560px it becomes the
+  // stacked composition the phone hero already uses, which never has to
+  // overlap one device on top of another device's text.
+  const panel = variant === 'full' && wide;
+  const stacked = variant === 'stacked' || (variant === 'full' && !wide);
+  // On a stage that is wide enough for two surfaces but not generous, the
+  // window takes a bigger share: its screen has to be tall enough to hold a
+  // two-line bubble without clipping it.
+  const roomy = (geom?.w ?? 0) >= 560;
+
+  /* ── the rail: the loop's clock ─────────────────────────────────────── */
+  const railBlock = (
+    <div
+      aria-hidden
+      className={cn('flex items-center', panel ? 'mt-2.5 gap-1' : 'mt-5 gap-1.5 sm:mt-6')}
+      data-testid="demo-rail"
+    >
+      {STEPS.map((step, i) => {
+        const done = i < stepIndex || phase === 'done';
+        const active = i === stepIndex && phase !== 'done';
+        return (
+          <button
+            key={step}
+            type="button"
+            tabIndex={-1}
+            onClick={() => setPhase(step)}
+            className="group relative h-6 flex-1 cursor-pointer rounded-full outline-none"
+            aria-label={t(CAPTIONS[step])}
+          >
+            <span
+              className={cn(
+                'absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full',
+                panel ? 'bg-white/[0.13]' : 'bg-black/[0.07] dark:bg-white/[0.10]',
+              )}
+            >
+              {active ? (
+                <motion.span
+                  key={phase}
+                  className="absolute inset-y-0 left-0 rounded-full bg-ember"
+                  initial={{ width: reduced ? '100%' : '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: reduced ? 0 : AUTO[step].ms / 1000, ease: 'linear' }}
+                />
+              ) : (
+                <span
+                  className={cn(
+                    'absolute inset-y-0 left-0 rounded-full',
+                    done ? 'w-full bg-ember/45' : 'w-0',
+                  )}
+                />
+              )}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  /* ── the caption: state output, never decoration ───────────────────── */
+  const captionBlock = (
+    <div
+      className={panel ? 'relative min-h-[1.45em]' : 'relative mt-2.5 min-h-[1.6em]'}
+      role="status"
+      // A looping caption in a live region is an announcement every few
+      // seconds, forever. The words stay in the tree; only the automatic
+      // announcements are off while the loop drives itself.
+      aria-live={running ? 'off' : 'polite'}
+      data-testid="demo-caption"
+    >
+      <AnimatePresence initial={false} mode="wait">
+        <motion.div
+          key={phase}
+          initial={{ opacity: 0, y: 5, filter: 'blur(3px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
+          transition={{ duration: reduced ? 0 : 0.34, ease: EASE }}
+          className="absolute inset-x-0 top-0"
+        >
+          <p
+            className={cn(
+              'font-medium leading-snug',
+              panel
+                ? 'text-left text-[13.5px] font-medium leading-snug text-white'
+                : 'text-center text-[13px] text-apple-ink-muted dark:text-white/55',
+            )}
+          >
+            {caption}
+          </p>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+
+  // A still cannot replay itself, so only the still keeps a control.
+  const restartNode = (
+    <TactileButton
+      variant="secondary"
+      size="md"
+      onClick={restart}
+      data-testid="demo-restart"
+      className="min-w-[104px]"
+    >
+      {t('demo.restart')}
+    </TactileButton>
+  );
 
   return (
     <div
@@ -289,9 +406,16 @@ export function HeroDeviceDemo({
           // Aspect is the composition's, not a video's: the window owns the
           // top-left, the phone the bottom-right, and the phone is allowed to
           // run past the floor.
-          variant === 'full'
-            ? 'aspect-[16/9.6]'
-            : variant === 'stacked'
+          panel
+            ? cn(
+                'aspect-[16/10] overflow-hidden rounded-[26px]',
+                'bg-[radial-gradient(125%_110%_at_18%_0%,#2b241c_0%,#191412_52%,#100d0c_100%)]',
+                'ring-1 ring-black/50',
+                'shadow-[0_60px_100px_-52px_rgba(20,16,10,0.72),0_16px_36px_-26px_rgba(20,16,10,0.5)]',
+                'dark:bg-[radial-gradient(125%_110%_at_18%_0%,#1c1b20_0%,#111014_55%,#0b0a0d_100%)]',
+                'dark:ring-white/[0.08] dark:shadow-[0_60px_100px_-52px_rgba(0,0,0,0.9)]',
+              )
+            : stacked
               ? 'aspect-[1/1.5]'
               : 'aspect-[9/19.5] max-w-[210px] mx-auto',
         )}
@@ -305,6 +429,17 @@ export function HeroDeviceDemo({
           <div className="absolute left-[6%] top-[16%] h-[46%] w-[52%] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(240,100,19,0.13),rgba(240,100,19,0)_70%)] blur-[6px] motion-safe:animate-[st-bloom_9s_ease-in-out_infinite]" />
           <div className="absolute bottom-[4%] right-[2%] h-[52%] w-[44%] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(255,171,48,0.16),rgba(255,171,48,0)_70%)] blur-[8px] motion-safe:animate-[st-bloom_11s_ease-in-out_infinite_reverse]" />
           <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(ellipse_at_50%_40%,rgba(251,146,67,0.10),transparent_65%)]" />
+          {/* The panel's own light: a warm wash from the top-left and a cold
+              fall-off at the bottom-right, so the ink reads as a lit surface
+              rather than a flat fill. */}
+          {panel && (
+            <>
+              <div className="absolute inset-0 bg-[radial-gradient(70%_58%_at_12%_2%,rgba(240,100,19,0.11),transparent_60%)]" />
+              <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.14)_22%,rgba(255,255,255,0.14)_70%,transparent)]" />
+              <div className="absolute inset-0 ring-1 ring-inset ring-white/[0.05]" />
+              <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_120%,rgba(0,0,0,0.55),transparent_58%)]" />
+            </>
+          )}
         </div>
 
         {/* Spotlight: follows the pointer, barely there — it is what makes a
@@ -335,7 +470,7 @@ export function HeroDeviceDemo({
               strokeWidth={1.5}
               strokeLinecap="round"
               strokeDasharray="2.5 3.5"
-              className="text-apple-ink/55 dark:text-white/40"
+              className={panel ? 'text-white/25' : 'text-apple-ink/55 dark:text-white/40'}
               initial={false}
               animate={{ pathLength: linked ? 1 : 0, opacity: linked ? 1 : 0 }}
               transition={{ duration: 0.9, ease: EASE }}
@@ -389,7 +524,9 @@ export function HeroDeviceDemo({
           <motion.div
             className={cn(
               'absolute z-20',
-              variant === 'stacked' ? 'left-[2%] top-0 w-[86%]' : 'left-[1%] top-[8%] w-[60%]',
+              stacked
+                ? 'left-[2%] top-0 w-[86%]'
+                : cn('left-[6%] top-[11%]', roomy ? 'w-[54%]' : 'w-[62%] top-[9%]'),
             )}
             style={{ rotateX: tiltWindowX, rotateY: tiltWindowY, transformPerspective: 1100 }}
           >
@@ -399,7 +536,13 @@ export function HeroDeviceDemo({
             />
             <LaptopFrame label={t('demo.laptopAlt')}>
               <div ref={windowRef} className="h-full w-full">
-                <RoomWindow linked={linked} sent={sent} arrived={arrived} closed={closed} />
+                <RoomWindow
+                  linked={linked}
+                  sent={sent}
+                  arrived={arrived}
+                  closed={closed}
+                  compact={stacked || (geom?.a.w ?? 999) < 320}
+                />
               </div>
             </LaptopFrame>
           </motion.div>
@@ -444,11 +587,13 @@ export function HeroDeviceDemo({
         <motion.div
           className={cn(
             'absolute z-20',
-            variant === 'stacked'
-              ? 'bottom-0 left-[28%] w-[44%]'
-              : variant === 'phone'
-                ? 'inset-0'
-                : 'bottom-[-4%] right-[3%] w-[29%]',
+            variant === 'phone'
+              ? 'inset-0'
+              : stacked
+                ? 'bottom-0 left-[28%] w-[44%]'
+                : roomy
+                  ? 'bottom-[6%] right-[6%] w-[25%]'
+                  : 'bottom-[5%] right-[4%] w-[23%]',
           )}
           style={
             variant === 'phone'
@@ -475,93 +620,26 @@ export function HeroDeviceDemo({
             </div>
           </div>
         </motion.div>
+
+        {/* On the panel the words live inside the frame, bottom-left, under
+            the window — the phone owns the bottom-right, so the composition
+            runs diagonally instead of a device picture with a caption
+            stapled underneath it. */}
+        {panel && (
+          <div className="pointer-events-none absolute bottom-[7%] left-[6%] z-40 w-[46%]">
+            {captionBlock}
+            <div className="pointer-events-auto">{railBlock}</div>
+          </div>
+        )}
       </div>
 
-      {/* ── the rail: the loop's clock ────────────────────────────────── */}
-      <div
-        aria-hidden
-        className="mt-5 flex items-center gap-1.5 sm:mt-6"
-        data-testid="demo-rail"
-      >
-        {STEPS.map((step, i) => {
-          const done = i < stepIndex || phase === 'done';
-          const active = i === stepIndex && phase !== 'done';
-          return (
-            <button
-              key={step}
-              type="button"
-              tabIndex={-1}
-              onClick={() => setPhase(step)}
-              className={cn(
-                'group relative h-6 flex-1 cursor-pointer rounded-full outline-none',
-                // The visible line is 3px; the button is 24px tall so the
-                // click target is a control, not a hairline.
-              )}
-              aria-label={t(CAPTIONS[step])}
-            >
-              <span className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.10]">
-                {active ? (
-                  <motion.span
-                    key={phase}
-                    className="absolute inset-y-0 left-0 rounded-full bg-ember"
-                    initial={{ width: reduced ? '100%' : '0%' }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: reduced ? 0 : AUTO[step].ms / 1000, ease: 'linear' }}
-                  />
-                ) : (
-                  <span
-                    className={cn(
-                      'absolute inset-y-0 left-0 rounded-full',
-                      done ? 'w-full bg-ember/45' : 'w-0',
-                    )}
-                  />
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Below the stage, the words say what the picture just did. */}
+      {!panel && railBlock}
+      {!panel && captionBlock}
 
-      {/* ── the caption: state output, never decoration ───────────────── */}
-      <div
-        className="relative mt-2.5 min-h-[1.6em]"
-        role="status"
-        // A looping caption in a live region is an announcement every few
-        // seconds, forever. The words stay in the tree; only the automatic
-        // announcements are off while the loop drives itself.
-        aria-live={running ? 'off' : 'polite'}
-        data-testid="demo-caption"
-      >
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={phase}
-            initial={{ opacity: 0, y: 5, filter: 'blur(3px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
-            transition={{ duration: reduced ? 0 : 0.34, ease: EASE }}
-            className="absolute inset-x-0 top-0"
-          >
-            <p className="text-center text-[13px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
-              {caption}
-            </p>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* A still cannot replay itself, so only the still keeps a control. */}
-      {reduced && (
-        <div className="mt-1 flex justify-center">
-          <TactileButton
-            variant="secondary"
-            size="md"
-            onClick={restart}
-            data-testid="demo-restart"
-            className="min-w-[104px]"
-          >
-            {t('demo.restart')}
-          </TactileButton>
-        </div>
-      )}
+      {/* The control belongs to the picture, so it sits under it — never
+          inside the frame, where it would eat the composition. */}
+      {reduced && <div className="mt-4 flex justify-center">{restartNode}</div>}
     </div>
   );
 }
@@ -630,12 +708,16 @@ function PairCode({
  * miniature's problem — a crop is what makes the type legible.
  */
 function RoomWindow({
+  compact = false,
   linked, sent, arrived, closed,
 }: {
   linked: boolean;
   sent: boolean;
   arrived: boolean;
   closed: boolean;
+  /** The stacked composition gives the window a shorter screen; the payload
+   *  has to fit inside it, so the file chip draws at its small size. */
+  compact?: boolean;
 }) {
   const { t } = useI18n();
   const note = t('demo.note');
@@ -676,7 +758,7 @@ function RoomWindow({
       </div>
 
       {/* Room header: the code is the only thing this window has to explain. */}
-      <div className="flex shrink-0 items-center gap-2.5 border-b border-black/[0.05] px-3 py-2 dark:border-white/[0.06]">
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-black/[0.05] px-3 py-1.5 dark:border-white/[0.06]">
         <span className="min-w-0">
           <span className="block truncate text-[11px] font-semibold leading-tight">{t('demo.room')}</span>
           <span className="block truncate text-[8.5px] leading-tight text-apple-ink-muted dark:text-white/40">
@@ -689,7 +771,7 @@ function RoomWindow({
       </div>
 
       {/* Thread */}
-      <div className="flex min-h-0 flex-1 flex-col justify-end gap-1.5 overflow-hidden px-3 py-2.5">
+      <div className="flex min-h-0 flex-1 flex-col justify-end gap-1.5 overflow-hidden px-3 py-1">
         <AnimatePresence initial={false}>
           {!sent ? (
             <motion.div
@@ -700,14 +782,11 @@ function RoomWindow({
               transition={{ duration: 0.28, ease: EASE }}
               className="flex flex-1 flex-col items-center justify-center gap-1.5"
             >
-              <span className="text-[9.5px] font-medium text-apple-ink-muted/70 dark:text-white/35">
-                {t('demo.ready')}
-              </span>
               <div className="flex flex-wrap items-center justify-center gap-1">
                 {(['chat.suggest.hi', 'chat.suggest.photo', 'chat.suggest.link'] as MsgKey[]).map((k) => (
                   <span
                     key={k}
-                    className="flex h-[19px] items-center rounded-full border border-black/[0.07] bg-white px-2 text-[9px] font-semibold text-apple-ink/65 shadow-[0_1px_2px_rgba(20,16,10,0.04)] dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-white/60"
+                    className="flex h-[20px] items-center rounded-full border border-black/[0.07] bg-white px-2 text-[9.5px] font-semibold text-apple-ink/65 shadow-[0_1px_2px_rgba(20,16,10,0.04)] dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-white/60"
                   >
                     {t(k)}
                   </span>
@@ -720,12 +799,12 @@ function RoomWindow({
               initial={{ opacity: 0, y: 8, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-              className="flex flex-col items-end gap-1"
+              className="flex shrink-0 flex-col items-end gap-1"
             >
-              <span className="max-w-[78%] rounded-[11px] rounded-br-[3px] bg-ember px-2.5 py-1.5 text-[11px] leading-snug text-white shadow-[0_3px_10px_-4px_rgba(240,100,19,0.6)]">
+              <span className="max-w-[78%] rounded-[11px] rounded-br-[3px] bg-ember px-2.5 py-1 text-[11px] leading-snug text-white shadow-[0_3px_10px_-4px_rgba(240,100,19,0.6)]">
                 {note}
               </span>
-              <FileChip arrived={arrived} />
+              <FileChip arrived={arrived} compact={compact} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -950,11 +1029,11 @@ function FileChip({
       {out && (
         <AnimatePresence mode="wait" initial={false}>
           {arrived ? (
-            <motion.span key="tick" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }}>
+            <motion.span key="tick" className="flex leading-none" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }}>
               <CheckDouble className={compact ? 'h-[9px] w-[9px]' : 'h-[10px] w-[10px]'} />
             </motion.span>
           ) : (
-            <motion.span key="ring" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.span key="ring" className="flex leading-none" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <SpinLoader size={compact ? 9 : 10} />
             </motion.span>
           )}
