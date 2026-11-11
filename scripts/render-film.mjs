@@ -27,7 +27,9 @@ const FRAMES = path.join(ROOT, 'film', 'frames');
 const AUDIO = path.join(ROOT, 'film', 'audio');
 const OUT = path.join(ROOT, 'film', 'out');
 const FPS = Number(process.env.FPS || 24);
-const DURATION = 36.0;
+// 36.6, not 36.0: the closing line ends at 35.58, and a film that cuts on the
+// last word has no beat for it to land in.
+const DURATION = 36.6;
 
 for (const dir of [ASSETS, FRAMES, AUDIO, OUT]) fs.mkdirSync(dir, { recursive: true });
 

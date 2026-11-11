@@ -26,7 +26,7 @@ import { ShareTextsLogo } from '../components/ShareTextsLogo';
 
 const STAGE_W = 1920;
 const STAGE_H = 1080;
-export const DURATION = 36.0;
+export const DURATION = 36.6;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
