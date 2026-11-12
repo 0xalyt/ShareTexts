@@ -78,7 +78,6 @@ export function HeroFilm({ className }: { className?: string }) {
         className="block aspect-video w-full select-none"
         src="/film/sharetexts-hero.mp4"
         poster="/film/sharetexts-hero-poster.jpg"
-        autoPlay={!reduced}
         muted
         loop
         playsInline

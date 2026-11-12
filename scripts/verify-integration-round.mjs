@@ -1,5 +1,5 @@
 // Integration-round verification:
-//   1. hero demo "Room closed" stamp is legible in dark mode (not white-on-white)
+//   1. the landing hero film mounts, and its panel is legible in dark mode
 //   2. ShareMenu ships the real dropdown anatomy: caption, rail cells, copy footer
 //   3. room header carries NO theme toggle (the "two toggles" complaint)
 //   4. Settings shows the real theme control (a 3-pill tablist: Light/System/Dark) and it drives theme
@@ -11,27 +11,28 @@ const out = (name, ok, extra = '') => { results.push(ok); console.log(`${ok ? 'P
 
 const browser = await chromium.launch();
 try {
-  // ── 1. Landing: closed-veil stamp legibility ─────────────────────────────
-  // Dark is where the bug lived (white-on-white), so emulate it explicitly.
-  // Tablet: the desktop hero is a rendered film now, so the demo's closed-veil
-  // stamp only exists on the phone/tablet scene.
-  const p = await browser.newPage({ viewport: { width: 834, height: 1112 }, colorScheme: 'dark' });
+  // ── 1. Landing: the hero film, in dark mode ─────────────────────────────
+  // The "Room closed" veil this pinned lives inside the film now, which has no
+  // DOM to read. What the page can still get wrong is the hero surface itself
+  // in dark mode — the old bug was a white panel on a white page.
+  const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
   await p.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await p.waitForSelector('[data-testid="hero-demo"]', { timeout: 20000 });
-  // §18 removed the demo's Send control, so the walk starts by itself on
-  // fixed beats and ends at the closed state this stamp check needs.
-  await p.waitForFunction(
-    () => document.querySelector('[data-testid="hero-demo"]')?.getAttribute('data-state') === 'done',
-    null, { timeout: 12000 },
-  );
-  const veil = await p.evaluate(() => {
-    const spans = [...document.querySelectorAll('span')].filter(s => (s.getAttribute('class') || '').includes('dark:bg-white/90'));
-    return spans.map(s => ({ text: s.textContent, color: getComputedStyle(s).color }));
+  // :visible matters — the phone slot mounts the same film and is display:none here.
+  await p.waitForSelector('[data-testid="hero-demo"][data-state="film"]:visible', { timeout: 20000 });
+  const film = await p.evaluate(() => {
+    const el = [...document.querySelectorAll('[data-testid="hero-demo"]')]
+      .find((n) => n.getBoundingClientRect().width > 0);
+    const v = el?.querySelector('video');
+    return {
+      w: Math.round(el?.getBoundingClientRect().width ?? 0),
+      bg: el ? getComputedStyle(el).backgroundColor : '',
+      poster: v?.getAttribute('poster') ?? null,
+      inDark: document.documentElement.classList.contains('dark'),
+    };
   });
-  out('closed-veil stamp reads "Room closed"', veil.length === 2 && veil.every(v => (v.text || '').includes('Room closed')), JSON.stringify(veil[0] || null));
-  out('closed-veil stamp is NOT white-on-white (dark mode)', veil.length === 2 && veil.every(v => v.color !== 'rgb(255, 255, 255)'), veil[0]?.color);
-  const inDark = await p.evaluate(() => document.documentElement.classList.contains('dark'));
-  out('check actually ran in dark scope', inDark);
+  out('hero film mounts on the landing', film.w > 0);
+  out('hero panel is NOT white-on-white (dark mode)', !!film.bg && !/^rgb\(255,\s*255,\s*255\)$/.test(film.bg), film.bg);
+  out('check actually ran in dark scope', film.inDark);
   await p.close();
 
   // ── Creator: create a room (still PAIRING — share menu lives here) ───────

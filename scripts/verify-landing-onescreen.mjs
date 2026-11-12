@@ -89,7 +89,12 @@ for (const [w, h] of SIZES) {
     };
     const out = {};
     for (const [k, s] of Object.entries(sel)) {
-      const el = document.querySelector(s);
+      // The hero mounts in both the phone slot and the desktop column; only one
+      // of them has size at any width, and a display:none node reports (0,0),
+      // which would put the hero below its own headline in this ordering test.
+      const el = k === 'demo'
+        ? [...document.querySelectorAll(s)].find((n) => n.getBoundingClientRect().width > 0)
+        : document.querySelector(s);
       // Document-relative, because the page now scrolls: viewport-relative tops
       // of below-fold sections are only meaningful before any scrolling, and a
       // restored scroll position would break the comparison.

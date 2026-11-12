@@ -49,7 +49,6 @@ import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
 import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroTransferScene } from '../components/HeroTransferScene';
-import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
 import { HeroFilm } from '../components/HeroFilm';
 import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
@@ -1308,13 +1307,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   order-4 lg:hidden keeps it out of the desktop DOM — display:
                   none hides it from the eye, not from the tree. */}
               <div className="st-hide-landscape order-6 lg:hidden mt-6 sm:mt-7 mb-6 flex justify-center">
-                <div className="w-full max-w-[420px] sm:max-w-[520px] px-1">
-                  {/* Only mounted when the layout is actually the phone one.
-                      `lg:hidden` alone would leave a second, invisible copy
-                      of the whole demo in the desktop DOM. */}
-                  {
-                  <HeroDeviceDemo variant={isNarrow ? 'stacked' : 'full'} />
-                }
+                <div className="w-full max-w-[560px] px-1">
+                  {/* The film, at every width. This slot is `lg:hidden`, so
+                      it is the phone hero; the desktop column mounts the same
+                      film. Neither copy autoplays while it is not on screen,
+                      so the hidden one never downloads the body. */}
+                  <HeroFilm />
                 </div>
               </div>
               {/* The two quiet doors (§18): lists, not cards. Nearby says what
