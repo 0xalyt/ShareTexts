@@ -75,7 +75,7 @@ function Kit() {
       <Section title="List rows">
         <div className="flex flex-col">
           <ListRow title="Nearby" subtitle="Looking for devices…" leading={<span className="h-1.5 w-1.5 rounded-full bg-status-success" />} trailing="2" onClick={() => {}} />
-          <ListRow title="Temporary Space" subtitle="Files and text for up to 7 days" onClick={() => {}} />
+          <ListRow title="Host" subtitle="Files and text for up to 7 days" onClick={() => {}} />
           <ListRow title="Theme" subtitle="Follow system" trailing="System" onClick={() => {}} />
           <ListRow title="Disabled row" disabled />
         </div>

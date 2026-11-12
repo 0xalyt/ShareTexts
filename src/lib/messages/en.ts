@@ -82,7 +82,7 @@ const en = {
   // Short enough to sit on one line inside the hero pill on a 390px phone —
   // the long version truncated to "…a shelf that deletes …" and read as a
   // broken element rather than a link.
-  'home.announce': 'Temporary Spaces: gone in a week',
+  'home.announce': 'Host: a shelf that cleans itself up',
   'home.send': 'Send',
   'home.sendHint': 'Create a room',
   'home.receive': 'Receive',
@@ -148,7 +148,7 @@ const en = {
   'home.three.send.lead': 'Send',
   'home.three.send.body': 'Paste text, add a photo, drop a file. Both devices show the same progress.',
   'home.three.keep.lead': 'Keep',
-  'home.three.keep.body': 'Leave a Temporary Space for up to seven days. The other device can collect it later.',
+  'home.three.keep.body': 'Leave a Host for up to seven days. The other device can collect it later.',
   'home.small.eyebrow': 'The small things',
   'home.small.heading': 'Small, and true.',
   'home.small.nearby': 'Nearby devices show up',
@@ -602,15 +602,15 @@ const en = {
   'settings.reconnectHint': 'The connection recovers on its own. This forces one now.',
   'settings.reconnectNow': 'Reconnect now',
 
-  // ── temporary space (F14) ────────────────────────────────────────
-  'space.title': 'Temporary Space',
-  'space.entryTitle': 'Temporary Space',
+  // ── host (F14) ────────────────────────────────────────
+  'space.title': 'Host',
+  'space.entryTitle': 'Host',
   'space.entryHint': 'Keep files and text for up to 7 days',
   'space.retention': '7 days',
   'space.joinTitle': 'Join a space',
   'space.reopen': 'Open',
   'space.createTitle': 'New space',
-  'space.createHeading': 'Create a temporary space',
+  'space.createHeading': 'Create a Host',
   'space.createSub': 'A shared shelf for this device and the ones you invite. It closes itself.',
   'space.nameLabel': 'Name (optional)',
   'space.namePlaceholder': 'Trip photos, project files…',

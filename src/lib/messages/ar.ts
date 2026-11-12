@@ -506,8 +506,8 @@ const ar: Dict = {
 
 
   // ── temporary space (F14) ─────────────────────────────────────────
-  'space.title': 'مساحة مؤقتة',
-  'space.entryTitle': 'مساحة مؤقتة',
+  'space.title': 'Host',
+  'space.entryTitle': 'Host',
   'space.entryHint': 'احفظ الملفات والنصوص حتى 7 أيام',
   'space.retention': '7 أيام',
   'space.joinTitle': 'الانضمام إلى مساحة',

@@ -507,8 +507,8 @@ const es: Dict = {
 
 
   // ── temporary space (F14) ─────────────────────────────────────────
-  'space.title': 'Espacio temporal',
-  'space.entryTitle': 'Espacio temporal',
+  'space.title': 'Host',
+  'space.entryTitle': 'Host',
   'space.entryHint': 'Guarda archivos y texto hasta 7 días',
   'space.retention': '7 días',
   'space.joinTitle': 'Unirse a un espacio',

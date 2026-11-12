@@ -1,24 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '../lib/utils';
-import { useI18n } from '../lib/i18n';
+import { hapticTap } from '../lib/haptics';
 
 /**
- * The X profile link — one component, because it appears in three footers and
- * had drifted into three different targets (36px, 40px, and a bare text run).
+ * XProfileLink — the maker's X profile, as a face rather than a handle.
  *
- * What "done properly" means for one social link:
+ * A social link at the end of a page is a small promise: "there is a person
+ * behind this". So it shows the person. Three things make that work without
+ * it becoming decoration:
  *
- *   · 44×44 minimum on a finger. A 36px pill is a fine drawing and a target
- *     a thumb misses; the handle text alone was a 20px-tall run.
- *   · A visible focus ring. These footers sit at the end of long pages, and
- *     a keyboard user tabbing the last row needs to see where they are —
- *     hover styles are not a focus state.
- *   · `rel="me"` as well as `noopener noreferrer`: it is a profile link, and
- *     `me` is the one rel that says so.
- *   · The new tab is announced, not implied. `target="_blank"` with no
- *     warning is the classic small betrayal of the last link on a page.
- *   · Press feedback (`active:scale`), so a tap answers before navigation.
+ *   · It still reads as a LINK on desktop. Hovering fades the portrait to
+ *     black and puts the X glyph on top — the same language as every profile
+ *     button — with "Maker: Garv" above it, so the identity and the
+ *     destination are both legible before the click.
+ *   · On a finger there is no hover, so the veil is desktop-only
+ *     (`@media (hover: hover)`); the tap answers with a squeeze instead, and
+ *     the haptic fires on pointerdown so the feedback lands before the
+ *     navigation does.
+ *   · It is a picture, not a file. `draggable={false}`, no text selection,
+ *     `pointer-events-none` on the image, and no download affordance: the
+ *     only thing you can do to it is follow it.
+ *
+ * If the portrait is missing (or fails to decode) the circle falls back to
+ * the ember X badge, which still reads as a profile link rather than a
+ * broken image.
+ *
+ * The portrait lives at `public/brand/maker-garv.webp` — a 1:1 image, 96–
+ * 160px, square. Nothing in this component needs to change when it is
+ * replaced.
  */
+
+const PORTRAIT = '/brand/maker-garv.webp';
+const PORTRAIT_FALLBACK = '/brand/maker-garv.png';
+
 export function XGlyph({ className }: { className?: string }) {
   return (
     <svg
@@ -34,19 +48,19 @@ export function XGlyph({ className }: { className?: string }) {
 }
 
 export function XProfileLink({
-  showHandle = true,
   className,
   testId = 'footer-x',
+  /** Diameter in px. 48 is the default; never below 44 for a finger. */
+  size = 48,
 }: {
-  /** Show the @handle beside the glyph. Hidden on the narrowest surfaces. */
-  showHandle?: boolean;
   className?: string;
   testId?: string;
+  size?: number;
 }) {
-  const { t } = useI18n();
-  // The accessible name carries both halves a sighted user gets from the
-  // picture: who it is, and that it leaves the site.
-  const label = `${t('footer.followAria')} — @0xalyt (opens in a new tab)`;
+  const [broken, setBroken] = useState(false);
+  // The accessible name carries everything the picture carries: who, where,
+  // and that it leaves the site.
+  const label = 'Maker: Garv — @0xalyt on X (opens in a new tab)';
 
   return (
     <a
@@ -54,23 +68,77 @@ export function XProfileLink({
       target="_blank"
       rel="me noopener noreferrer"
       aria-label={label}
-      title="x.com/0xalyt"
+      title="Maker: Garv — @0xalyt"
       data-testid={testId}
+      onPointerDown={() => hapticTap()}
       className={cn(
-        'group inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-full',
-        'border border-apple-divider/70 px-3 text-[12px] font-semibold leading-none',
-        'text-apple-ink-muted transition-[color,border-color,transform] duration-150',
-        'hover:border-apple-ink/25 hover:text-apple-ink',
-        'active:scale-[0.97]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-apple-canvas',
-        'dark:border-white/[0.10] dark:text-white/60 dark:hover:border-white/25 dark:hover:text-white',
-        'dark:focus-visible:ring-ember/70 dark:focus-visible:ring-offset-night-900',
-        'motion-reduce:transition-none motion-reduce:active:scale-100',
+        'group/maker relative inline-flex items-center justify-center rounded-full',
+        'min-h-[44px] min-w-[44px]',
+        // Squeeze on press: the whole point is that the tap is felt before the
+        // page leaves. 150ms is short enough to finish inside the navigation.
+        'transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+        'active:scale-[0.90] motion-reduce:active:scale-100',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-apple-parchment dark:focus-visible:ring-offset-night-900',
         className,
       )}
+      style={{ width: size, height: size }}
     >
-      <XGlyph className="h-[13px] w-[13px]" />
-      {showHandle && <span>@0xalyt</span>}
+      <span
+        className="relative block h-full w-full overflow-hidden rounded-full ring-1 ring-black/[0.10] dark:ring-white/15"
+        style={{ boxShadow: '0 1px 2px rgba(20,16,10,0.10), 0 6px 16px -8px rgba(20,16,10,0.28)' }}
+      >
+        {broken ? (
+          <span className="absolute inset-0 flex items-center justify-center bg-ember text-white">
+            <XGlyph className="h-[42%] w-[42%]" />
+          </span>
+        ) : (
+          // Either filename drops in: `.webp` is preferred when it exists,
+          // `.png` is the fallback, and if neither does the badge shows.
+          <picture>
+            <source srcSet={PORTRAIT} type="image/webp" />
+            <img
+              src={PORTRAIT_FALLBACK}
+              alt=""
+              width={size}
+              height={size}
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+              onError={() => setBroken(true)}
+              className="pointer-events-none h-full w-full select-none object-cover [-webkit-user-drag:none]"
+            />
+          </picture>
+        )}
+        {/* The profile veil — desktop only, because a touch browser keeps
+            :hover after a tap and the face would stay buried. */}
+        <span
+          aria-hidden
+          className={cn(
+            'absolute inset-0 flex items-center justify-center bg-black/82',
+            'opacity-0 transition-opacity duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+            '[@media(hover:hover)]:group-hover/maker:opacity-100',
+            'group-focus-visible/maker:opacity-100',
+          )}
+        >
+          <XGlyph className="h-[38%] w-[38%] text-white" />
+        </span>
+      </span>
+
+      {/* The name, on hover, above the face. Pointer-events off so it never
+          eats the click it is describing. */}
+      <span
+        role="tooltip"
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 translate-y-1 whitespace-nowrap',
+          'rounded-full bg-[#1d1d1f] px-2.5 py-1 text-[11px] font-semibold leading-none text-white',
+          'opacity-0 shadow-[0_8px_20px_-10px_rgba(0,0,0,0.6)] transition-all duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+          '[@media(hover:hover)]:group-hover/maker:translate-y-0 [@media(hover:hover)]:group-hover/maker:opacity-100',
+          'group-focus-visible/maker:translate-y-0 group-focus-visible/maker:opacity-100',
+          'dark:bg-[#e8e8ea] dark:text-[#1d1d1f]',
+        )}
+      >
+        Maker: Garv
+      </span>
     </a>
   );
 }

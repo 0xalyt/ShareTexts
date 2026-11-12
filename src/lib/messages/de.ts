@@ -507,8 +507,8 @@ const de: Dict = {
 
 
   // ── temporary space (F14) ─────────────────────────────────────────
-  'space.title': 'Temporärer Bereich',
-  'space.entryTitle': 'Temporärer Bereich',
+  'space.title': 'Host',
+  'space.entryTitle': 'Host',
   'space.entryHint': 'Dateien und Texte bis zu 7 Tage aufbewahren',
   'space.retention': '7 Tage',
   'space.joinTitle': 'Einem Space beitreten',

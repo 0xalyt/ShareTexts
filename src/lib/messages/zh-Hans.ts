@@ -506,8 +506,8 @@ const zh: Dict = {
 
 
   // ── temporary space (F14) ─────────────────────────────────────────
-  'space.title': '临时空间',
-  'space.entryTitle': '临时空间',
+  'space.title': 'Host',
+  'space.entryTitle': 'Host',
   'space.entryHint': '文件和文字最多保留 7 天',
   'space.retention': '7 天',
   'space.joinTitle': '加入空间',

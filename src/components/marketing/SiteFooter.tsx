@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { BrandLockup } from '../BrandLockup';
-import { XGlyph } from '../XProfileLink';
+import { XProfileLink } from '../XProfileLink';
 import { useI18n } from '../../lib/i18n';
 import type { MsgKey } from '../../lib/messages/types';
 
@@ -131,16 +131,10 @@ export function SiteFooter({ className }: { className?: string }) {
           <p className="text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>
-          <a
-            href="https://x.com/0xalyt"
-            target="_blank"
-            rel="me noopener noreferrer"
-            aria-label={`${t('footer.followAria')} — @0xalyt (opens in a new tab)`}
-            className="inline-flex min-h-[44px] min-w-[44px] w-fit items-center justify-center gap-1.5 rounded-full border border-apple-divider/70 px-3 text-[12px] font-semibold text-apple-ink-muted transition-[color,border-color,transform] duration-150 hover:border-apple-ink/25 hover:text-apple-ink active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-apple-parchment dark:border-white/[0.10] dark:text-white/55 dark:hover:border-white/25 dark:hover:text-white dark:focus-visible:ring-offset-night-900 motion-reduce:active:scale-100"
-          >
-            <XGlyph className="h-[13px] w-[13px]" />
-            0xalyt
-          </a>
+          {/* The person behind it, not a handle. One component owns the
+              target, the 44px floor, the reduced-motion opt-out and the
+              press feedback, so the three footers cannot drift again. */}
+          <XProfileLink />
         </div>
       </div>
     </footer>

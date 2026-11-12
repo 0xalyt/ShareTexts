@@ -6,6 +6,7 @@ import * as OTPAuth from 'otpauth';
 import crypto from 'crypto';
 import { readFileSync, writeFileSync } from 'fs';
 import helmet from 'helmet';
+import compression from 'compression';
 
 const app = express();
 
@@ -46,6 +47,13 @@ function inlineScriptPins(): string[] {
   }
   return pins;
 }
+
+// Text compresses 4–6×: the entry bundle leaves at ~170 KB instead of 746 KB,
+// which is the difference between a usable page and a stalled one on a slow
+// link. This runs before every router so HTML, JSON, JS, CSS and SVG all
+// benefit; the content-type filter skips images and film, which are already
+// compressed.
+app.use(compression());
 
 app.use(helmet({
   contentSecurityPolicy: {

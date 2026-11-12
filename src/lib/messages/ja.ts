@@ -506,8 +506,8 @@ const ja: Dict = {
 
 
   // ── temporary space (F14) ─────────────────────────────────────────
-  'space.title': 'テンポラリースペース',
-  'space.entryTitle': 'テンポラリースペース',
+  'space.title': 'Host',
+  'space.entryTitle': 'Host',
   'space.entryHint': 'ファイルやテキストを最大7日間保管',
   'space.retention': '7日',
   'space.joinTitle': 'スペースに参加',

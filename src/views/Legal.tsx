@@ -50,7 +50,7 @@ function PrivacyContent() {
           explicitly saved an item, which stays on your device only (see below).
         </p>
         <p>
-          <strong>Temporary Spaces are the one exception.</strong> A space exists so a device can
+          <strong>Host is the one exception.</strong> A space exists so a device can
           collect later, so what you add is held until the space closes or reaches its expiry
           (6 hours to 7 days, whichever the creator chose), and it is deleted then. Closing a space
           early deletes it early. There is no archive and nothing is kept past that point.

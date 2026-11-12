@@ -1210,8 +1210,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   52px targets still sit at a comfortable thumb width); on a
                   narrower phone they stack, because at 390 two 175px halves
                   read as a segmented control instead of two separate choices. */}
-              <div className="order-4 mt-5 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 sm:mx-0">
-                <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
+              <div className="order-4 mt-5 grid w-full max-w-[400px] grid-cols-2 gap-x-3 gap-y-3 sm:mx-0">
+                <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
                 {/* Both doors carry the same weight, so both are the primary
                     fill — Send and Receive are the only two things this
                     product does, and a grey Receive read as the lesser one.
@@ -1223,7 +1223,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   variant="primary"
                   size="lg"
                   data-testid="home-receive"
-                  className="w-full lg:text-[16px] lg:min-h-[56px] ring-1 ring-inset ring-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]"
+                  className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px] ring-1 ring-inset ring-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]"
                   icon={<ReceiveCircleIcon size={18} />}
                 >
                   {t('home.receive')}
@@ -1728,7 +1728,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           From sm up it collapses back to the single quiet band. */}
       <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-x-5 gap-y-0.5 flex-wrap">
         <BrandLockup compact className="select-none order-1" />
-        <XProfileLink showHandle={false} testId="footer-x-app" className="order-2 sm:order-3" />
+        <XProfileLink testId="footer-x-app" className="order-2 sm:order-3" />
         <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center justify-between sm:justify-start gap-4 sm:gap-7 pt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
           <a href="/docs" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
           <a href="/about" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>

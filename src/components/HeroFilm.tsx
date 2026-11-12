@@ -70,8 +70,13 @@ export function HeroFilm({ className }: { className?: string }) {
         // rounded card with a video pasted in it. 10px keeps the frame crisp at
         // every width without turning into a sharp rectangle.
         'relative w-full overflow-hidden rounded-[10px] bg-[#0b0908]',
-        'ring-1 ring-black/45 shadow-[0_50px_90px_-54px_rgba(20,16,10,0.66),0_14px_30px_-24px_rgba(20,16,10,0.42)]',
-        'dark:ring-white/[0.07] dark:shadow-[0_60px_100px_-52px_rgba(0,0,0,0.9)]',
+        // Three shadows, not one: a 1px contact line that seats the panel on
+        // the page, a tight ambient that gives it thickness, and a wide soft
+        // one that says "this is a lit object, not a screenshot". A single
+        // large blur at low opacity is what made the old edge look foggy.
+        'ring-1 ring-black/[0.38]',
+        'shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset,0_1px_2px_rgba(20,16,10,0.16),0_10px_24px_-16px_rgba(20,16,10,0.45),0_36px_70px_-40px_rgba(20,16,10,0.55)]',
+        'dark:ring-white/[0.08] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.03)_inset,0_1px_2px_rgba(0,0,0,0.5),0_12px_28px_-18px_rgba(0,0,0,0.7),0_44px_80px_-40px_rgba(0,0,0,0.85)]',
         className,
       )}
     >
