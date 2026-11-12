@@ -65,11 +65,13 @@ export function HeroFilm({ className }: { className?: string }) {
       data-testid="hero-demo"
       data-state="film"
       className={cn(
-        // Same frame language as the scene it replaces, so the hero column
-        // does not reflow into a different object on the page.
-        'relative w-full overflow-hidden rounded-[26px] bg-[#0b0908]',
-        'ring-1 ring-black/50 shadow-[0_60px_100px_-52px_rgba(20,16,10,0.72),0_16px_36px_-26px_rgba(20,16,10,0.5)]',
-        'dark:ring-white/[0.08] dark:shadow-[0_60px_100px_-52px_rgba(0,0,0,0.9)]',
+        // Corners are deliberately tight: the film inside is a photograph of a
+        // laptop on a desk, and a 26px radius made the whole hero read as a
+        // rounded card with a video pasted in it. 10px keeps the frame crisp at
+        // every width without turning into a sharp rectangle.
+        'relative w-full overflow-hidden rounded-[10px] bg-[#0b0908]',
+        'ring-1 ring-black/45 shadow-[0_50px_90px_-54px_rgba(20,16,10,0.66),0_14px_30px_-24px_rgba(20,16,10,0.42)]',
+        'dark:ring-white/[0.07] dark:shadow-[0_60px_100px_-52px_rgba(0,0,0,0.9)]',
         className,
       )}
     >
