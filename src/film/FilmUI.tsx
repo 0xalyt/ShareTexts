@@ -102,7 +102,7 @@ export function LaptopApp(s: LaptopState) {
             New room
           </span>
           <RailRow label="Nearby" hint="1 device" active={s.nearby > 0.4} icon="radar" />
-          <RailRow label="Temporary Space" hint="7 days" icon="clock" />
+          <RailRow label="Host" hint="7 days" icon="clock" />
           <div className="mt-auto px-1 text-[11px] leading-relaxed text-white/35">
             2,094 rooms made so far
             <span className="mt-0.5 block text-white/20">No account needed</span>

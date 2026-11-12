@@ -82,7 +82,7 @@ const en = {
   // Short enough to sit on one line inside the hero pill on a 390px phone —
   // the long version truncated to "…a shelf that deletes …" and read as a
   // broken element rather than a link.
-  'home.announce': 'Host: a shelf that cleans itself up',
+  'home.announce': 'Host: host files/texts/images/anything',
   'home.send': 'Send',
   'home.sendHint': 'Create a room',
   'home.receive': 'Receive',
@@ -168,7 +168,7 @@ const en = {
   'home.cta.sub': 'Open ShareTexts on both devices and start with Send or Receive.',
   'footer.noApp': 'No app',
   'footer.noAccount': 'No account',
-  'footer.temporary': 'Temporary',
+  'footer.temporary': 'Nothing stored',
   'home.badge.private': 'Encrypted',
   'footer.followAria': 'Follow on X',
   'lang.menu': 'Language',

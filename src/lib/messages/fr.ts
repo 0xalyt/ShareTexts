@@ -72,7 +72,7 @@ const fr: Dict = {
   'room.offlineCount': '{count} hors ligne',
   'home.title': 'Déplacez n’importe quoi\nentre vos appareils.',
   'home.subtitle': 'Du téléphone vers l’ordinateur, ou l’inverse. Aucune appli à installer, aucun compte à créer. Photos et fichiers arrivent en qualité originale — rien n’est compressé. Fermez l’onglet, tout disparaît.',
-  'home.announce': "Espaces temporaires : une étagère qui s'efface",
+  'home.announce': 'Host : fichiers, textes, images, tout',
   'home.send': 'Envoyer',
   'home.sendHint': 'Créer un salon',
   'home.receive': 'Recevoir',
