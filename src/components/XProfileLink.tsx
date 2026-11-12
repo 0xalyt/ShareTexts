@@ -93,8 +93,33 @@ export function XProfileLink({
         style={{ boxShadow: '0 1px 2px rgba(20,16,10,0.10), 0 6px 16px -8px rgba(20,16,10,0.28)' }}
       >
         {broken ? (
-          <span className="absolute inset-0 flex items-center justify-center bg-ember text-white">
-            <XGlyph className="h-[42%] w-[42%]" />
+          // The stand-in until the portrait lands: a monogram badge, not a
+          // fallback. Graphite sphere with a warm rim, the maker's initial in
+          // the same ember the product uses, and a presence dot — the three
+          // things every real avatar badge has, drawn with CSS so it still
+          // looks deliberate at 48px and costs zero bytes.
+          <span className="absolute inset-0 flex items-center justify-center overflow-hidden bg-[#141210] text-white">
+            <span
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background:
+                  'radial-gradient(120% 120% at 30% 8%, #3a322c 0%, #211c18 46%, #131110 100%)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -8px 14px -8px rgba(0,0,0,0.7)',
+              }}
+            />
+            <span
+              aria-hidden
+              className="relative leading-none font-bold tracking-[-0.03em] text-ember"
+              style={{ fontSize: Math.round(size * 0.44) }}
+            >
+              G
+            </span>
+            <span
+              aria-hidden
+              className="absolute bottom-[6%] right-[6%] z-10 h-[22%] w-[22%] rounded-full bg-[#35c759]"
+              style={{ boxShadow: '0 0 0 2px #141210' }}
+            />
           </span>
         ) : (
           <img
