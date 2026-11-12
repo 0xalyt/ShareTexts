@@ -30,8 +30,12 @@ import { hapticTap } from '../lib/haptics';
  * replaced.
  */
 
-const PORTRAIT = '/brand/maker-garv.webp';
-const PORTRAIT_FALLBACK = '/brand/maker-garv.png';
+/**
+ * The portrait, tried in order. Whichever file exists is the one used — a
+ * `.webp` saved from a design tool, a `.png` dragged out of a screenshot, or
+ * a `.jpg` off a phone. Nothing here needs editing when the picture changes.
+ */
+const PORTRAITS = ['/brand/maker-garv.webp', '/brand/maker-garv.png', '/brand/maker-garv.jpg'] as const;
 
 export function XGlyph({ className }: { className?: string }) {
   return (
@@ -57,7 +61,8 @@ export function XProfileLink({
   testId?: string;
   size?: number;
 }) {
-  const [broken, setBroken] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const broken = attempt >= PORTRAITS.length;
   // The accessible name carries everything the picture carries: who, where,
   // and that it leaves the site.
   const label = 'Maker: Garv — @0xalyt on X (opens in a new tab)';
@@ -92,21 +97,16 @@ export function XProfileLink({
             <XGlyph className="h-[42%] w-[42%]" />
           </span>
         ) : (
-          // Either filename drops in: `.webp` is preferred when it exists,
-          // `.png` is the fallback, and if neither does the badge shows.
-          <picture>
-            <source srcSet={PORTRAIT} type="image/webp" />
-            <img
-              src={PORTRAIT_FALLBACK}
-              alt=""
-              width={size}
-              height={size}
-              draggable={false}
-              onDragStart={(e) => e.preventDefault()}
-              onError={() => setBroken(true)}
-              className="pointer-events-none h-full w-full select-none object-cover [-webkit-user-drag:none]"
-            />
-          </picture>
+          <img
+            src={PORTRAITS[attempt]}
+            alt=""
+            width={size}
+            height={size}
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
+            onError={() => setAttempt((n) => n + 1)}
+            className="pointer-events-none h-full w-full select-none object-cover [-webkit-user-drag:none]"
+          />
         )}
         {/* The profile veil — desktop only, because a touch browser keeps
             :hover after a tap and the face would stay buried. */}
