@@ -33,6 +33,7 @@ const hero = (page) => page.evaluate(() => {
     loop: v?.loop ?? null,
     poster: !!v?.getAttribute('poster'),
     t: v ? +v.currentTime.toFixed(1) : -1,
+    dur: v ? +v.duration.toFixed(1) : -1,
     top: Math.round(vis[0]?.getBoundingClientRect().top ?? 0),
     playing: [...document.querySelectorAll('video')].filter((x) => !x.paused).length,
   };
@@ -68,7 +69,12 @@ const browser = await launchBrowser();
   ok(a.muted === true, 'the hero is muted (autoplay policy, and the web encode has no audio)');
   ok(a.loop === true, 'the hero loops');
   ok(a.poster, 'the hero carries a poster frame');
-  ok(a.paused === false && b.t > a.t, `the hero plays (t ${a.t}s → ${b.t}s)`);
+  // The hero is a LOOP, so a pair of samples can straddle the seam and read
+  // as backwards (8.6s → 0.1s). What "playing" means for a loop is progress
+  // modulo its duration.
+  const span = a.dur > 0 ? a.dur : 10;
+  const advance = (b.t - a.t + span) % span;
+  ok(a.paused === false && advance > 0.2, `the hero plays (t ${a.t}s → ${b.t}s across a ${span}s loop)`);
   // The phone slot mounts the same film and is display:none at this width; a
   // second playing copy would mean it is downloading and decoding the file for
   // nobody.

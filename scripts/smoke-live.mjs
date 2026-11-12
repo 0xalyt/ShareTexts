@@ -88,8 +88,8 @@ try {
       const meta = (attr, name) => html.match(new RegExp(`<meta ${attr}="${name}" content="([^"]*)"`))?.[1] ?? '';
       const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
       const ogImage = meta('property', 'og:image');
-      out(/^ShareTexts — send files and text between any devices, in your browser$/.test(title), 'share title leads with the product', title);
-      out(/^ShareTexts — send files and text between any devices, in your browser$/.test(meta('property', 'og:title')), 'og:title leads with the product', meta('property', 'og:title'));
+      out(/^ShareTexts: Airdrop for everyone$/.test(title), 'share title leads with the product', title);
+      out(/^ShareTexts: Airdrop for everyone$/.test(meta('property', 'og:title')), 'og:title leads with the product', meta('property', 'og:title'));
       out(ogImage.startsWith('https://'), 'og:image is absolute', ogImage || 'absent');
       out(/\/og\/sharetext-og-icon-v\d+\.jpg$/.test(ogImage),
         'og:image is the versioned card, no query string', ogImage || 'absent');

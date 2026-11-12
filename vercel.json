@@ -127,7 +127,7 @@
       ]
     },
     {
-      "source": "/(og|brand|demo|emoji-apple|fonts)/(.*)",
+      "source": "/(og|brand|demo|emoji-apple|fonts|film)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

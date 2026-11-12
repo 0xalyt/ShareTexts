@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- Primary -->
-    <title>ShareTexts — send files and text between any devices, in your browser</title>
+    <title>ShareTexts: Airdrop for everyone</title>
     <meta name="description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send. Nothing is stored." />
+    <!-- The hero's first frame, fetched while the document is still parsing:
+         the film panel paints a real picture instead of a black box, and the
+         video itself can wait until it is on screen. -->
+    <link rel="preload" as="image" href="/film/sharetexts-hero-poster.jpg" fetchpriority="high" />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
     <meta name="application-name" content="ShareTexts" />
@@ -47,7 +51,7 @@
          the URL, so the same path would keep serving the retired card. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ShareTexts" />
-    <meta property="og:title" content="ShareTexts — send files and text between any devices, in your browser" />
+    <meta property="og:title" content="ShareTexts: Airdrop for everyone" />
     <meta property="og:description" content="Send text, photos, and files between any two devices. No app. No account. No wires. Free, in the browser." />
     <meta property="og:url" content="https://sharetexts.online/" />
     <meta property="og:locale" content="en_US" />
@@ -62,7 +66,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@0xalyt" />
     <meta name="twitter:creator" content="@0xalyt" />
-    <meta name="twitter:title" content="ShareTexts — send files and text between any devices, in your browser" />
+    <meta name="twitter:title" content="ShareTexts: Airdrop for everyone" />
     <meta name="twitter:description" content="Send text, photos, and files between any two devices. No app. No account. No wires. Free, in the browser." />
     <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v6.jpg" />
     <meta name="twitter:image:src" content="https://sharetexts.online/og/sharetext-og-icon-v6.jpg" />
@@ -195,58 +199,87 @@
         <style>
           #loading-shell {
             min-height: 100dvh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: block;
             background: #fbfbfd;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
             transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
           }
           #loading-shell.fade-out { opacity: 0; }
           html.dark #loading-shell { background: #181818; }
-          #loading-shell .st-boot {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            padding: 24px;
-            animation: st-boot-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+          /* SKELETON, not a splash. It draws the page that is about to
+             arrive — the same grid, the same column split, the same radii —
+             so hydration replaces blocks in place instead of swapping one
+             layout for another. Nothing here fetches an image: the first
+             paint costs zero network requests beyond the document itself.
+             Radii mirror the real components (film 10, buttons 14, field
+             pill) because a skeleton with made-up corners is a second design
+             the user has to un-see. */
+          #loading-shell .st-skel {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 24px 56px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 28px;
+            align-items: start;
           }
-          @keyframes st-boot-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-          #loading-shell .st-boot-brand {
-            display: flex; align-items: center; gap: 9px;
+          @media (min-width: 1024px) {
+            #loading-shell .st-skel {
+              grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+              gap: 40px;
+              padding-top: 30px;
+            }
           }
-          #loading-shell .st-boot-brand img { display: block; width: 32px; height: 32px; }
-          #loading-shell .st-boot-brand span {
-            font-size: 23px; font-weight: 650; letter-spacing: -0.035em; color: #1d1d1f;
+          #loading-shell .st-sk {
+            position: relative;
+            overflow: hidden;
+            background: rgba(20, 16, 10, 0.075);
+            border-radius: 10px;
           }
-          html.dark #loading-shell .st-boot-brand span { color: #e4e4e4; }
-          /* One hairline bar: a warm run travels left to right inside a 2px
-             track. No shimmer sweeps across the page, no layout of fake
-             content — a progress indicator, not a mock site. */
-          #loading-shell .st-track {
-            position: relative; width: 132px; height: 2px; overflow: hidden;
-            border-radius: 999px; background: rgba(0, 0, 0, 0.08);
+          html.dark #loading-shell .st-sk { background: rgba(255, 255, 255, 0.08); }
+          #loading-shell .st-sk::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            animation: st-sk-shimmer 1.45s cubic-bezier(0.4, 0, 0.6, 1) infinite;
           }
-          html.dark #loading-shell .st-track { background: rgba(255, 255, 255, 0.12); }
-          #loading-shell .st-track::after {
-            content: ''; position: absolute; top: 0; bottom: 0; width: 45%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, rgba(254, 171, 48, 0.5), #f06413);
-            animation: st-run 1.25s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+          html.dark #loading-shell .st-sk::after {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
           }
-          @keyframes st-run {
-            0% { transform: translateX(-110%); }
-            100% { transform: translateX(320%); }
+          @keyframes st-sk-shimmer { 100% { transform: translateX(100%); } }
+          #loading-shell .st-sk--pill { height: 28px; width: min(220px, 70%); border-radius: 999px; }
+          #loading-shell .st-sk--h1 { height: 32px; margin-top: 18px; }
+          #loading-shell .st-sk--line { height: 14px; margin-top: 12px; }
+          #loading-shell .st-sk--track { height: 12px; width: 150px; margin-top: 22px; border-radius: 999px; }
+          #loading-shell .st-sk--btn { height: 52px; border-radius: 14px; }
+          #loading-shell .st-sk--field { height: 52px; margin-top: 12px; border-radius: 999px; }
+          #loading-shell .st-sk--film { margin-top: 20px; border-radius: 10px; aspect-ratio: 16 / 9; }
+          #loading-shell .st-skel__btns { display: grid; gap: 12px; margin-top: 22px; grid-template-columns: 1fr; }
+          @media (min-width: 420px) {
+            #loading-shell .st-skel__btns { grid-template-columns: 1fr 1fr; }
+          }
+          @media (min-width: 640px) { #loading-shell .st-sk--h1 { height: 42px; } }
+          /* The film is a column of its own on desktop and an inline block on
+             phones — exactly like the hero it is standing in for. */
+          #loading-shell .st-skel__film--inline { display: block; }
+          #loading-shell .st-skel__film--side { display: none; }
+          @media (min-width: 1024px) {
+            #loading-shell .st-skel__film--inline { display: none; }
+            #loading-shell .st-skel__film--side { display: block; }
           }
           #loading-shell .st-note {
-            margin: 0; font-size: 13px; font-weight: 500; line-height: 1.5;
-            color: #6e6e73; letter-spacing: -0.01em;
+            margin: 14px 0 0;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.5;
+            color: #6e6e73;
+            letter-spacing: -0.01em;
           }
           html.dark #loading-shell .st-note { color: rgba(255, 255, 255, 0.55); }
           @media (prefers-reduced-motion: reduce) {
-            #loading-shell .st-boot { animation: none; }
-            #loading-shell .st-track::after { animation: none; width: 40%; transform: none; }
+            #loading-shell .st-sk::after { animation: none; opacity: 0; }
           }
           #st-boot-slow {
             margin: 0; max-width: 34ch; text-align: center;
@@ -254,18 +287,33 @@
           }
         </style>
 
-        <div class="st-boot">
-          <div class="st-boot-brand">
-            <img src="/brand/logo-glyph-orange.webp" alt="" aria-hidden="true" />
-            <span>ShareTexts</span>
+        <div class="st-skel" aria-hidden="true">
+          <div>
+            <div class="st-sk st-sk--pill"></div>
+            <div class="st-sk st-sk--h1" style="width: 92%"></div>
+            <div class="st-sk st-sk--h1" style="width: 74%; margin-top: 10px"></div>
+            <div class="st-skel__film--inline">
+              <div class="st-sk st-sk--film"></div>
+            </div>
+            <div class="st-sk st-sk--track"></div>
+            <div class="st-skel__btns">
+              <div class="st-sk st-sk--btn"></div>
+              <div class="st-sk st-sk--btn"></div>
+            </div>
+            <div class="st-sk st-sk--line" style="width: 86%; margin-top: 18px"></div>
+            <div class="st-sk st-sk--line" style="width: 64%"></div>
+            <div class="st-sk st-sk--field"></div>
+            <!-- The honest escalation (mirrors the in-app connecting screen):
+                 an 8s boot is NOT normal — say so instead of shimmering
+                 forever. Kept outside the aria-hidden skeleton so a slow
+                 boot still announces something to a screen reader. -->
+            <p id="st-boot-slow" style="display:none">
+              Still loading — your connection is slow. If this doesn't clear, check your network and refresh.
+            </p>
           </div>
-          <div class="st-track" aria-hidden="true"></div>
-          <p class="st-note">Opening ShareTexts…</p>
-          <!-- The honest escalation (mirrors the in-app connecting screen): an
-               8s boot is NOT normal — say so instead of animating forever. -->
-          <p id="st-boot-slow" style="display:none">
-            Still loading — your connection is slow. If this doesn't clear, check your network and refresh.
-          </p>
+          <div class="st-skel__film--side">
+            <div class="st-sk st-sk--film" style="margin-top: 0"></div>
+          </div>
         </div>
       </div>
 

@@ -1656,6 +1656,11 @@ async function start() {
     // Hashed build assets are immutable — cache them hard; everything else
     // (html, manifest, icons, guides, og images) revalidates cheaply.
     app.use('/assets', express.static(path.join(distPath, 'assets'), { maxAge: '1y', immutable: true }));
+    // The hero film and its poster change only when the film is re-cut, so a
+    // week of cache turns a landing visit into zero media requests without
+    // pinning a stale cut for months. Filenames are stable, so `immutable`
+    // would be a lie the next time the film ships.
+    app.use('/film', express.static(path.join(distPath, 'film'), { maxAge: '7d' }));
     app.use(express.static(distPath, {
       setHeaders: (res, filePath) => {
         if (/\.[a-z0-9]+$/i.test(filePath) && !filePath.endsWith('.html')) {

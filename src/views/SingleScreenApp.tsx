@@ -1144,13 +1144,18 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <h1 className="st-display order-1 text-[clamp(34px,3.9vw,46px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center sm:text-left text-balance">
                 {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
               </h1>
-              {/* whitespace-pre-line honors the subtitle's deliberate line
-                  break ("No app. No account. No cable." / "Just open …").
-                  17px is the body ladder's top step (the hero subhead — the
-                  one written-reason size above 16). */}
-              <p className="st-h-sub order-2 mt-3.5 text-[17px] text-apple-ink-muted dark:text-white/60 font-medium leading-relaxed max-w-[40ch] text-center sm:text-left whitespace-pre-line">
-                {t('home.subtitle')}
-              </p>
+              {/* The film, directly under the headline at every width.
+                  Headline → the product moving → the number → the two doors is
+                  the order the argument is actually made in: what it is, what
+                  it looks like doing it, how many people already do, then the
+                  button. On lg the desktop column mounts the same film, and
+                  this slot is `lg:hidden` — neither copy autoplays off screen,
+                  so the hidden one never downloads the body. */}
+              <div className="st-hide-landscape order-2 lg:hidden mt-5 sm:mt-6 mb-1 flex justify-center">
+                <div className="w-full max-w-[560px] px-1">
+                  <HeroFilm />
+                </div>
+              </div>
               {/* Live activity tracker — bare (NO pill): a breathing dot, the
                   lifetime count, and the label. Honest, local — no fabricated
                   floor: until the service answers with a real total (and no
@@ -1168,7 +1173,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 animate={{ opacity: hasTracker ? 1 : 0 }}
                 transition={{ duration: 0.5 }}
                 aria-hidden={!hasTracker}
-                className="order-2 mt-4 flex h-5 items-center gap-2 w-fit mx-auto lg:mx-0"
+                className="order-3 mt-5 flex h-5 items-center gap-2 w-fit mx-auto lg:mx-0"
               >
                 {/* Halo dot: two slow radar rings drift outward from a solid
                     glowing core — layered, staggered, so it reads as breath,
@@ -1205,13 +1210,34 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   52px targets still sit at a comfortable thumb width); on a
                   narrower phone they stack, because at 390 two 175px halves
                   read as a segmented control instead of two separate choices. */}
-              <div className="order-3 mt-5 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 sm:mx-0">
+              <div className="order-4 mt-5 grid w-full max-w-[400px] grid-cols-1 gap-x-3 gap-y-3 min-[420px]:grid-cols-2 sm:mx-0">
                 <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
-                {/* One filled primary and one quiet surface keep the two
-                    equally valid actions distinct at a glance. */}
-                <TactileButton onClick={handleReceive} variant="secondary" size="lg" data-testid="home-receive" className="w-full lg:text-[16px] lg:min-h-[56px]" icon={<ReceiveCircleIcon size={18} className="text-ember dark:text-azure-400" />}>{t('home.receive')}</TactileButton>
+                {/* Both doors carry the same weight, so both are the primary
+                    fill — Send and Receive are the only two things this
+                    product does, and a grey Receive read as the lesser one.
+                    The distinction is detail, not rank: Receive sits on a
+                    1px inner highlight with a slightly translucent fill, so
+                    the pair reads as one family with two members. */}
+                <TactileButton
+                  onClick={handleReceive}
+                  variant="primary"
+                  size="lg"
+                  data-testid="home-receive"
+                  className="w-full lg:text-[16px] lg:min-h-[56px] ring-1 ring-inset ring-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]"
+                  icon={<ReceiveCircleIcon size={18} />}
+                >
+                  {t('home.receive')}
+                </TactileButton>
               </div>
-              <div className="order-5 mt-3 w-full">
+              {/* The subline moved DOWN, to the bridge into the paste field:
+                  it used to sit between the headline and the doors, where it
+                  pushed the two real actions below the fold on a phone. Here
+                  it explains the shortcut underneath it instead of competing
+                  with the headline. */}
+              <p className="order-5 mt-4 max-w-[46ch] text-[14.5px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 text-center sm:text-left text-balance">
+                {t('home.subtitle')}
+              </p>
+              <div className="order-6 mt-2.5 w-full">
                 <IntentField
                   onCreate={handleIntentCreate}
                   onJoin={handleIntentJoin}
@@ -1296,25 +1322,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* The rating moved OFF the landing (slop inventory #12):
                   feedback now lives in Settings, reachable but never
                   mid-marketing-page. */}
-              {/* The product, as it actually looks — laptop + phone running
-                  the real connected UI. F24: the demo moves UP the stack on
-                  mobile (right under the actions) so the first screen carries
-                  the whole story — what it does, what you can do, what it
-                  looks like — with discovery and the quiet tail one scroll
-                  below. Mobile runs the SAME full scene as desktop — laptop +
-                  phone + the channel between them (design owner: the transfer
-                  story needs both ends; a phone-only crop hid the other half).
-                  order-4 lg:hidden keeps it out of the desktop DOM — display:
-                  none hides it from the eye, not from the tree. */}
-              <div className="st-hide-landscape order-6 lg:hidden mt-6 sm:mt-7 mb-6 flex justify-center">
-                <div className="w-full max-w-[560px] px-1">
-                  {/* The film, at every width. This slot is `lg:hidden`, so
-                      it is the phone hero; the desktop column mounts the same
-                      film. Neither copy autoplays while it is not on screen,
-                      so the hidden one never downloads the body. */}
-                  <HeroFilm />
-                </div>
-              </div>
               {/* The two quiet doors (§18): lists, not cards. Nearby says what
                   it is doing in the subtitle (same words the discovery row
                   used), Temporary Space opens a chooser instead of putting two
