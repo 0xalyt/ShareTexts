@@ -32,8 +32,14 @@ import { LaptopApp, PhoneApp, PacketCard, type LaptopState, type PhoneState } fr
 
 const STAGE_W = 1920;
 const STAGE_H = 1080;
-export const DURATION = 34.0;
+export const DURATION = 32.0;
 export const LOOP_DURATION = 10.0;
+
+/* The materials. Both are generated once by scripts/make-film-textures.mjs
+   and treated here as photographs: a CSS gradient can suggest wood, but only
+   grain lines, pores and colour drift read as a real board at 1080p. */
+const TEX_OAK = '/film/tex/oak.jpg';
+const TEX_BRUSH = '/film/tex/brushed.jpg';
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
@@ -81,34 +87,36 @@ const PACKET_B = { x: PHONE.left + 20, y: PHONE.top + 400 };
 type Cam = { s: number; x: number; y: number; ry: number };
 const cam = (s: number, x = 0, y = 0, ry = 0): Cam => ({ s, x, y, ry });
 
+/* 32 seconds, four movements: establish (0–4), connect (4–11), value
+   (11–24), close (24–32). Every move is a single slow ease — no whip, no
+   bump, nothing that says "generated". */
 const SHOTS: { from: number; to: number; a: Cam; b: Cam }[] = [
-  // 0–3 establish: a slow push that barely announces itself.
-  { from: 0.0, to: 3.0, a: cam(1.0, 0, 14, 1.0), b: cam(1.035, -12, 2, 0.2) },
-  // 3–7.2 discovery: drift right onto the phone and its Nearby card.
-  { from: 3.0, to: 7.2, a: cam(1.035, -12, 2, 0.2), b: cam(1.13, -404, -22, -1.6) },
-  // 7.2–9.4 the tap: hold, a touch closer, no wobble.
-  { from: 7.2, to: 9.4, a: cam(1.13, -404, -22, -1.6), b: cam(1.155, -432, -30, -1.9) },
-  // 9.4–10.8 the other side types: arrive at the two-shot quickly. Both devices
-  // are 1732px wide, so a two-shot cannot live above ~1.05 without cropping one
-  // — and a shot that ends mid-pull leaves the window chrome sliced in half.
-  { from: 9.4, to: 10.8, a: cam(1.155, -432, -30, -1.9), b: cam(1.035, -70, -8, -0.4) },
-  // 10.8–12.4 hold: she is typing, the laptop is listening.
-  { from: 10.8, to: 12.4, a: cam(1.035, -70, -8, -0.4), b: cam(1.035, -74, -8, -0.4) },
-  // 12.4–13.4 hold the two-shot: the packet needs both devices in frame.
-  { from: 12.4, to: 13.4, a: cam(1.035, -70, -8, -0.4), b: cam(1.045, -84, -6, -0.5) },
-  // 13.4–16.4 text lands: settle wide, then lean in on the laptop.
-  { from: 13.4, to: 16.4, a: cam(1.045, -74, -6, -0.5), b: cam(1.055, -46, -8, -0.4) },
-  // 16.4–18.8 photo: push in on the laptop as it arrives.
-  { from: 16.4, to: 18.8, a: cam(1.055, -46, -8, -0.4), b: cam(1.24, 320, -44, 0.5) },
-  // 18.8–21.2 hold on the laptop.
-  { from: 18.8, to: 21.2, a: cam(1.24, 320, -44, 0.5), b: cam(1.225, 306, -38, 0.4) },
-  // 21.2–22.6 pull wide for the file.
-  { from: 21.2, to: 22.6, a: cam(1.225, 306, -38, 0.4), b: cam(1.05, -60, -8, -0.4) },
-  // 22.6–23.9 file lands: push until the phone is out of frame, then hold.
-  { from: 22.6, to: 23.9, a: cam(1.05, -60, -8, -0.4), b: cam(1.235, 338, -44, 0.5) },
-  { from: 23.9, to: 26.0, a: cam(1.235, 338, -44, 0.5), b: cam(1.22, 320, -38, 0.4) },
-  // 26–28.6 closing pull-back.
-  { from: 26.0, to: 28.6, a: cam(1.2, 292, -36, 0.4), b: cam(0.985, 0, 18, 0.6) },
+  // 0–4 establish: a push so slow you notice it only at the cut.
+  { from: 0.0, to: 4.0, a: cam(1.0, 0, 14, 1.0), b: cam(1.04, -10, 2, 0.2) },
+  // 4–7.2 connect: drift right onto the phone as Nearby appears.
+  { from: 4.0, to: 7.2, a: cam(1.04, -10, 2, 0.2), b: cam(1.13, -404, -22, -1.6) },
+  // 7.2–8.6 the tap: hold, a touch closer, no wobble.
+  { from: 7.2, to: 8.6, a: cam(1.13, -404, -22, -1.6), b: cam(1.162, -436, -30, -1.9) },
+  // 8.6–10.2 both ends light up: pull back to the two-shot while it connects.
+  { from: 8.6, to: 10.2, a: cam(1.162, -436, -30, -1.9), b: cam(1.04, -70, -8, -0.4) },
+  // 10.2–11.6 hold the two-shot; the phone types.
+  { from: 10.2, to: 11.6, a: cam(1.04, -70, -8, -0.4), b: cam(1.048, -80, -8, -0.5) },
+  // 11.6–13.2 the send: settle a hair wide so the packet has room to fly.
+  { from: 11.6, to: 13.2, a: cam(1.048, -80, -8, -0.5), b: cam(1.052, -58, -8, -0.4) },
+  // 13.2–16.2 text lands, then lean in on the laptop.
+  { from: 13.2, to: 16.2, a: cam(1.052, -58, -8, -0.4), b: cam(1.2, 300, -42, 0.45) },
+  // 16.2–18.4 photo arrives while the lens is already on it.
+  { from: 16.2, to: 18.4, a: cam(1.2, 300, -42, 0.45), b: cam(1.238, 332, -46, 0.5) },
+  // 18.4–19.9 pull wide so the file has the same room the text had.
+  { from: 18.4, to: 19.9, a: cam(1.238, 332, -46, 0.5), b: cam(1.05, -58, -8, -0.4) },
+  // 19.9–21.4 file lands: push until the phone leaves the frame.
+  { from: 19.9, to: 21.4, a: cam(1.05, -58, -8, -0.4), b: cam(1.236, 338, -46, 0.5) },
+  // 21.4–24.0 hold on the finished thread.
+  { from: 21.4, to: 24.0, a: cam(1.236, 338, -46, 0.5), b: cam(1.214, 318, -38, 0.4) },
+  // 24–26.3 closing pull-back to the whole desk.
+  { from: 24.0, to: 26.3, a: cam(1.214, 318, -38, 0.4), b: cam(0.985, 0, 18, 0.6) },
+  // 26.3–32 the end card holds on a still frame.
+  { from: 26.3, to: DURATION + 1, a: cam(0.985, 0, 18, 0.6), b: cam(0.985, 0, 18, 0.6) },
 ];
 
 /* The loop returns to its own first frame exactly: same camera, same focus,
@@ -161,6 +169,18 @@ function LaptopShell({ children, glow }: { children: React.ReactNode; glow: numb
             maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.25))',
           }}
         />
+        {/* the actual aluminium: brushed, at soft-light, so the lid has tooth */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            borderRadius: 9,
+            backgroundImage: `url(${TEX_BRUSH})`,
+            backgroundSize: '460px 230px',
+            mixBlendMode: 'soft-light',
+            opacity: 0.7,
+          }}
+        />
         <span
           aria-hidden
           className="absolute left-1/2 top-[2.5px] h-[3px] w-[3px] -translate-x-1/2 rounded-full"
@@ -191,6 +211,22 @@ function LaptopShell({ children, glow }: { children: React.ReactNode; glow: numb
             className="pointer-events-none absolute inset-0 z-30"
             style={{ background: 'linear-gradient(196deg, rgba(255,232,206,0.07) 0%, rgba(255,255,255,0) 26%)' }}
           />
+          {/* the window, reflected: a soft pane in the upper left plus the
+              bright line where the glass meets the bezel */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-30"
+            style={{
+              background:
+                'radial-gradient(42% 128% at 16% -18%, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.045) 34%, rgba(255,255,255,0) 62%)',
+              mixBlendMode: 'screen',
+            }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-30"
+            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.03)' }}
+          />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 z-30"
@@ -211,6 +247,17 @@ function LaptopShell({ children, glow }: { children: React.ReactNode; glow: numb
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.32), 0 16px 26px -16px rgba(0,0,0,1)',
         }}
       >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            borderRadius: '0 0 10px 10px',
+            backgroundImage: `url(${TEX_BRUSH})`,
+            backgroundSize: '460px 210px',
+            mixBlendMode: 'soft-light',
+            opacity: 0.65,
+          }}
+        />
         <span aria-hidden className="absolute left-1/2 top-0 h-[6px] w-[16%] -translate-x-1/2" style={{ borderRadius: '0 0 6px 6px', background: 'rgba(0,0,0,0.55)' }} />
       </div>
     </div>
@@ -230,6 +277,17 @@ function PhoneShell({ children, glow }: { children: React.ReactNode; glow: numbe
             'inset 0 1px 0 rgba(255,255,255,0.55), inset 0 0 0 1px rgba(255,255,255,0.08), 0 2px 1px rgba(0,0,0,0.5), 0 48px 84px -36px rgba(0,0,0,1)',
         }}
       >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            borderRadius: 24,
+            backgroundImage: `url(${TEX_BRUSH})`,
+            backgroundSize: '260px 170px',
+            mixBlendMode: 'soft-light',
+            opacity: 0.6,
+          }}
+        />
         <span aria-hidden className="absolute left-0 top-[14%] h-[72%] w-[2px]" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.08) 55%, rgba(255,255,255,0.3))' }} />
         <span aria-hidden className="absolute right-0 top-[14%] h-[72%] w-[1.5px]" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.04))' }} />
         <span aria-hidden className="absolute -left-[2px] top-[19%] h-[5%] w-[3px] rounded-l-[2px]" style={{ background: '#2a2a30' }} />
@@ -252,6 +310,15 @@ function PhoneShell({ children, glow }: { children: React.ReactNode; glow: numbe
             aria-hidden
             className="pointer-events-none absolute inset-0 z-30"
             style={{ background: 'linear-gradient(134deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 16%, rgba(255,255,255,0) 32%)' }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-30"
+            style={{
+              background:
+                'radial-gradient(58% 90% at 18% -14%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 36%, rgba(255,255,255,0) 64%)',
+              mixBlendMode: 'screen',
+            }}
           />
           <div aria-hidden className="pointer-events-none absolute inset-0 z-30" style={{ boxShadow: `inset 0 0 24px rgba(255,150,80,${0.04 + glow * 0.06})` }} />
         </div>
@@ -335,68 +402,68 @@ export function FilmStage() {
   const laptopBlur = loop
     ? key(t, [{ t: 0, v: 0.6 }, { t: 3.2, v: 1.7 }, { t: 5.6, v: 0.45 }, { t: 10, v: 0.6 }])
     : key(t, [
-        { t: 0, v: 0.9 }, { t: 3, v: 1.5 }, { t: 7.2, v: 1.7 }, { t: 9.4, v: 1.6 }, { t: 12.4, v: 1.4 },
-        { t: 13.4, v: 0.9 }, { t: 14.4, v: 0.22 }, { t: 16.4, v: 0.5 }, { t: 18.6, v: 0.18 },
-        { t: 21.2, v: 0.7 }, { t: 22.6, v: 0.3 }, { t: 26, v: 0.8 }, { t: 28.6, v: 0.7 },
+        { t: 0, v: 0.9 }, { t: 4, v: 1.5 }, { t: 7.2, v: 1.7 }, { t: 8.6, v: 1.6 }, { t: 11.6, v: 1.25 },
+        { t: 13.2, v: 0.55 }, { t: 14.2, v: 0.2 }, { t: 16.2, v: 0.45 }, { t: 18.4, v: 0.18 },
+        { t: 21.4, v: 0.6 }, { t: 24, v: 0.78 }, { t: 26.3, v: 0.7 },
       ]);
   const phoneBlur = loop
     ? key(t, [{ t: 0, v: 0.6 }, { t: 3.2, v: 0.3 }, { t: 5.6, v: 1.7 }, { t: 10, v: 0.6 }])
     : key(t, [
-        { t: 0, v: 1.0 }, { t: 3, v: 0.6 }, { t: 7.2, v: 0.14 }, { t: 9.4, v: 0.14 }, { t: 12.4, v: 0.3 },
-        { t: 13.6, v: 1.1 }, { t: 14.6, v: 1.4 }, { t: 16.4, v: 1.3 }, { t: 18.6, v: 1.9 },
-        { t: 21.4, v: 1.3 }, { t: 23.4, v: 2.0 }, { t: 26, v: 1.0 }, { t: 28.6, v: 0.8 },
+        { t: 0, v: 1.0 }, { t: 4, v: 0.6 }, { t: 7.2, v: 0.14 }, { t: 8.6, v: 0.18 }, { t: 11.6, v: 0.95 },
+        { t: 13.4, v: 1.25 }, { t: 16.2, v: 1.4 }, { t: 18.4, v: 1.85 },
+        { t: 21.4, v: 1.35 }, { t: 24, v: 1.0 }, { t: 26.3, v: 0.8 },
       ]);
 
   const land = (start: number) => (loop ? 1 : at(t, start, 0.4));
   const pulse = loop
     ? key(t, [{ t: 0, v: 0 }, { t: 3.9, v: 0 }, { t: 4.3, v: 1 }, { t: 5.6, v: 0.3 }, { t: 7.4, v: 0 }, { t: 10, v: 0 }])
     : Math.max(
-        key(t, [{ t: 0, v: 0 }, { t: 14.3, v: 0 }, { t: 14.5, v: 1 }, { t: 15.5, v: 0.22 }, { t: 16.2, v: 0 }]),
-        key(t, [{ t: 0, v: 0 }, { t: 18.2, v: 0 }, { t: 18.4, v: 1 }, { t: 19.5, v: 0.22 }, { t: 20.2, v: 0 }]),
-        key(t, [{ t: 0, v: 0 }, { t: 23.0, v: 0 }, { t: 23.2, v: 1 }, { t: 24.4, v: 0.22 }, { t: 25.1, v: 0 }]),
+        key(t, [{ t: 0, v: 0 }, { t: 14.0, v: 0 }, { t: 14.2, v: 1 }, { t: 15.2, v: 0.22 }, { t: 15.9, v: 0 }]),
+        key(t, [{ t: 0, v: 0 }, { t: 17.1, v: 0 }, { t: 17.3, v: 1 }, { t: 18.4, v: 0.22 }, { t: 19.1, v: 0 }]),
+        key(t, [{ t: 0, v: 0 }, { t: 20.9, v: 0 }, { t: 21.1, v: 1 }, { t: 22.3, v: 0.22 }, { t: 23.0, v: 0 }]),
       );
 
   const laptop: LaptopState = loop
     ? { linked: 1, nearby: 1, handshake: 1, text: 1, photo: 1, file: 1, fileProgress: 1, pulse }
     : {
-        linked: at(t, 8.35, 0.45),
-        nearby: at(t, 4.0, 0.5),
-        handshake: at(t, 8.5, 0.4),
-        text: land(14.3),
-        photo: land(18.2),
-        file: land(23.0),
-        fileProgress: at(t, 23.15, 1.4),
+        linked: at(t, 8.55, 0.45),
+        nearby: at(t, 4.2, 0.5),
+        handshake: at(t, 8.65, 0.4),
+        text: land(14.0),
+        photo: land(17.1),
+        file: land(20.9),
+        fileProgress: at(t, 21.05, 1.3),
         pulse,
       };
 
-  const press = loop ? 0 : Math.min(at(t, 7.0, 0.16), 1 - at(t, 7.4, 0.4));
+  const press = loop ? 0 : Math.min(at(t, 7.2, 0.16), 1 - at(t, 7.6, 0.4));
   const phone: PhoneState = loop
     ? { joined: 1, press: 0, typed: 1, text: 1, photo: 1, file: 1, attach: 'none', attachOn: 0 }
     : {
-        joined: at(t, 8.85, 0.35),
+        joined: at(t, 8.95, 0.35),
         press,
-        typed: t < 9.9 ? 0 : t < 11.1 ? at(t, 9.9, 1.2) : 1,
-        text: land(13.7),
-        photo: land(17.7),
-        file: land(22.6),
-        attach: t >= 16.4 && t < 17.8 ? 'photo' : t >= 21.3 && t < 22.7 ? 'file' : 'none',
+        typed: t < 11.2 ? 0 : t < 12.5 ? at(t, 11.2, 1.3) : 1,
+        text: land(13.4),
+        photo: land(16.5),
+        file: land(20.3),
+        attach: t >= 15.5 && t < 16.7 ? 'photo' : t >= 19.3 && t < 20.5 ? 'file' : 'none',
         attachOn: Math.max(
-          Math.min(at(t, 16.45, 0.35), 1 - at(t, 17.65, 0.3)),
-          Math.min(at(t, 21.35, 0.35), 1 - at(t, 22.55, 0.3)),
+          Math.min(at(t, 15.55, 0.35), 1 - at(t, 16.55, 0.3)),
+          Math.min(at(t, 19.35, 0.35), 1 - at(t, 20.35, 0.3)),
         ),
       };
 
   const flights = loop
     ? [{ from: 2.6, to: 3.9, kind: 'text' as const }]
     : [
-        { from: 13.5, to: 14.35, kind: 'text' as const },
-        { from: 17.45, to: 18.25, kind: 'photo' as const },
-        { from: 22.35, to: 23.15, kind: 'file' as const },
+        { from: 13.2, to: 14.05, kind: 'text' as const },
+        { from: 16.25, to: 17.1, kind: 'photo' as const },
+        { from: 20.15, to: 21.0, kind: 'file' as const },
       ];
 
   const intro = loop ? 1 : clamp01(t / 0.6);
-  const worldOut = loop ? 1 : 1 - clamp01((t - 28.2) / 0.85);
-  const endIn = loop ? 0 : at(t, 28.75, 0.95);
+  const worldOut = loop ? 1 : 1 - clamp01((t - 25.9) / 0.85);
+  const endIn = loop ? 0 : at(t, 26.4, 0.95);
 
   const glowLaptop = loop ? 0.6 : Math.max(0.3, pulse);
   const glowPhone = loop ? 0.5 : 0.35;
@@ -450,16 +517,35 @@ export function FilmStage() {
             opacity: intro,
           }}
         >
-          {/* desk surface: warm near the light, falling to black at the edge */}
+          {/* The desk is oak, not a gradient — and it is a PLANE, not a band.
+              rotateX around the device line is what makes the grain converge
+              toward the horizon the way a camera seeing a real tabletop does.
+              Without it the surface reads as a painted wall behind a laptop,
+              which is the single biggest tell this set used to have. */}
           <div
             className="absolute"
             style={{
               left: -700,
               top: DESK_Y,
               width: 3320,
-              height: 760,
+              height: 900,
+              backgroundImage: `url(${TEX_OAK})`,
+              backgroundSize: '1700px 850px',
+              backgroundPosition: '0 -80px',
+              filter: 'saturate(1.06) contrast(1.05)',
+            }}
+          />
+          {/* Light on the board: warm and strong in the first inch below the
+              devices, gone by the bottom of frame. */}
+          <div
+            className="absolute"
+            style={{
+              left: -700,
+              top: DESK_Y,
+              width: 3320,
+              height: 900,
               background:
-                'linear-gradient(180deg, #382a1f 0%, #211a15 11%, #14100d 38%, #0c0a09 70%, #0a0908 100%)',
+                'linear-gradient(180deg, rgba(255,216,180,0.22) 0%, rgba(196,140,96,0.15) 5%, rgba(28,18,12,0.16) 17%, rgba(0,0,0,0.46) 34%, rgba(0,0,0,0.82) 56%, #0a0908 78%, #0a0908 100%)',
             }}
           />
           <div
@@ -468,9 +554,21 @@ export function FilmStage() {
               left: -700,
               top: DESK_Y,
               width: 3320,
-              height: 760,
-              background: 'repeating-linear-gradient(87deg, rgba(255,255,255,0.02) 0 2px, rgba(0,0,0,0.03) 2px 6px)',
-              maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.18) 34%, transparent 66%)',
+              height: 420,
+              background: 'linear-gradient(101deg, rgba(255,214,170,0.14) 0%, rgba(255,205,160,0.05) 26%, rgba(0,0,0,0) 54%)',
+              mixBlendMode: 'screen',
+            }}
+          />
+          {/* the seam where the plane meets the wall: a soft lit edge, no line */}
+          <div
+            className="absolute"
+            style={{
+              left: -700,
+              top: DESK_Y - 6,
+              width: 3320,
+              height: 12,
+              background: 'linear-gradient(180deg, rgba(255,196,146,0) 0%, rgba(255,196,146,0.12) 60%, rgba(255,196,146,0) 100%)',
+              filter: 'blur(4px)',
             }}
           />
           {/* the specular streak across a real surface */}
@@ -634,12 +732,12 @@ export function FilmStage() {
 /* ── captions ───────────────────────────────────────────────────────────── */
 
 const CAPTIONS: { from: number; to: number; text: string }[] = [
-  { from: 3.4, to: 7.2, text: 'No app. No account.' },
-  { from: 7.8, to: 12.0, text: 'One tap to connect.' },
-  { from: 12.6, to: 16.2, text: 'Text.' },
-  { from: 16.7, to: 21.0, text: 'Photos.' },
-  { from: 21.3, to: 25.3, text: 'Files.' },
-  { from: 25.6, to: 28.3, text: 'Encrypted. Nothing is kept.' },
+  { from: 3.6, to: 7.0, text: 'No app. No account.' },
+  { from: 7.6, to: 11.4, text: 'One tap to connect.' },
+  { from: 12.4, to: 15.4, text: 'Text.' },
+  { from: 16.0, to: 19.0, text: 'Photos.' },
+  { from: 19.9, to: 23.2, text: 'Files.' },
+  { from: 23.6, to: 26.1, text: 'Encrypted. Nothing is kept.' },
 ];
 
 function Captions({ t }: { t: number }) {

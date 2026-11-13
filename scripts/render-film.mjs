@@ -8,7 +8,7 @@
  *
  * Steps:
  *   node scripts/render-film.mjs probe    nine stills to check framing/light
- *   node scripts/render-film.mjs frames   34.0s film  → film/frames
+ *   node scripts/render-film.mjs frames   32.0s film  → film/frames
  *   node scripts/render-film.mjs loop     10.0s hero loop → film/frames-loop
  *   node scripts/render-film.mjs audio    voiceover + music + sound design
  *   node scripts/render-film.mjs encode   frames + audio → film/out/*.mp4
@@ -31,7 +31,7 @@ const AUDIO = path.join(ROOT, 'film', 'audio');
 const OUT = path.join(ROOT, 'film', 'out');
 const WEB = path.join(ROOT, 'public', 'film');
 const FPS = Number(process.env.FPS || 24);
-const DURATION = 34.0;
+const DURATION = 32.0;
 const LOOP = 10.0;
 
 for (const dir of [FRAMES, LOOP_FRAMES, AUDIO, OUT, WEB]) fs.mkdirSync(dir, { recursive: true });
@@ -55,7 +55,7 @@ One tap, and you are connected. Now send anything.
 Text from the phone. A photo. A file. They land on the laptop.
 Direct on your network, end to end. Encrypted. Nothing is kept.`;
 const VO_TAG = 'ShareTexts. Move anything between your devices.';
-const VO_TAG_AT = 29.4;
+const VO_TAG_AT = 26.9;
 
 async function openFilm(browser, query = '') {
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
@@ -96,7 +96,7 @@ async function shoot(page, t, file) {
 async function probe() {
   const browser = await chromium.launch();
   const { ctx, page } = await openFilm(browser);
-  for (const t of [1.4, 4.8, 7.4, 10.6, 12.8, 14.9, 18.8, 23.7, 27.8, 31.2]) {
+  for (const t of [1.6, 5.4, 7.8, 9.6, 11.8, 14.4, 17.6, 21.2, 25.0, 28.6]) {
     const file = path.join(OUT, `probe-${String(t).replace('.', '_')}.png`);
     await shoot(page, t, file);
     console.log(`probe t=${t}s → ${path.basename(file)} ${(fs.statSync(file).size / 1024).toFixed(0)} KB`);
@@ -202,7 +202,7 @@ function music() {
     '[0:a]volume=0.15[a0];[1:a]volume=0.10[a1];[2:a]volume=0.055[a2];[3:a]volume=0.03[a3];'
       + '[a0][a1][a2][a3]amix=inputs=4:duration=longest:normalize=0,'
       + 'lowpass=f=1100,tremolo=f=0.12:d=0.28,volume=0.9,'
-      + 'afade=t=in:st=0:d=3.2,afade=t=out:st=27.4:d=3.0',
+      + 'afade=t=in:st=0:d=3.2,afade=t=out:st=25.2:d=3.2',
     path.join(AUDIO, 'music.wav'),
   ]);
   console.log('audio: music.wav');
@@ -218,9 +218,9 @@ function sfx() {
     '-f', 'lavfi', '-i', 'sine=frequency=1320:duration=1.0:sample_rate=48000',
     '-filter_complex',
     '[0:a]afade=t=out:st=0.01:d=0.05,volume=0.20,adelay=7000[a0];'
-      + '[0:a]afade=t=out:st=0.01:d=0.05,volume=0.16,adelay=14450[a1];'
-      + '[0:a]afade=t=out:st=0.01:d=0.05,volume=0.16,adelay=18350[a2];'
-      + '[0:a]afade=t=out:st=0.01:d=0.05,volume=0.14,adelay=23250[a3];'
+      + '[0:a]afade=t=out:st=0.01:d=0.05,volume=0.16,adelay=14050[a1];'
+      + '[0:a]afade=t=out:st=0.01:d=0.05,volume=0.16,adelay=17100[a2];'
+      + '[0:a]afade=t=out:st=0.01:d=0.05,volume=0.14,adelay=20950[a3];'
       + '[1:a]afade=t=out:st=0.04:d=0.9,volume=0.12,adelay=9000[c0];'
       + '[2:a]afade=t=out:st=0.04:d=0.9,volume=0.08,adelay=9000[c1];'
       + '[a0][a1][a2][a3][c0][c1]amix=inputs=6:normalize=0:duration=longest',

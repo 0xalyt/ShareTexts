@@ -4,7 +4,7 @@ Two cuts come out of this rig:
 
 | File | What it is | Where it goes |
 | --- | --- | --- |
-| `film/out/sharetexts-hero-1080p.mp4` | the 34.0 s film with sound (1920×1080, 24 fps) | anywhere that plays it deliberately — social, a launch post |
+| `film/out/sharetexts-hero-1080p.mp4` | the 32.0 s film with sound (1920×1080, 24 fps) | anywhere that plays it deliberately — social, a launch post |
 | `public/film/sharetexts-hero.mp4` | the 10.0 s muted loop, 1920×1080 | the landing hero |
 | `public/film/sharetexts-hero-poster.jpg` | frame 0 of the loop | the hero's poster, shown before playback and under reduced motion |
 
@@ -14,25 +14,30 @@ six-digit code in two groups of three, the countdown, the this ⇄ partner
 header with its Direct badge, the composer, the received thread — drawn at
 native laptop and native phone density. Nothing in the film is invented UI.
 
-The set around them (desk, light, depth of field, grade) is CSS, not a 3D
-render. It is lit like a room: warm key from upper left, cool fill from the
-right, spill from both panels onto the desk, contact shadows, a mirrored
-chassis on the surface, bokeh behind, then vignette + bloom + grain.
+The set around them is CSS, not a 3D render — but the *materials* are not
+CSS guesses. `scripts/make-film-textures.mjs` draws two textures once and
+writes them to `public/film/tex/`: an oak board (long wandering grain, pores
+that catch light, colour drift across the plank) and a brushed aluminium that
+is blended into the laptop lid, deck and phone body at soft-light. The screen
+glass carries a reflected window pane and a bright line where it meets the
+bezel. Light is a room: warm key from upper left, cool fill from the right,
+spill from both panels onto the wood, contact shadows, a mirrored chassis on
+the surface, bokeh behind, then vignette + bloom + grain.
 
-## Shot list (34.0 s)
+## Shot list (32.0 s)
 
 | Time | Shot |
 | --- | --- |
-| 0.0–3.0 | Establish. Both devices on a lit desk, ShareTexts already open: the room card with QR + `482 916` on the laptop, the Nearby card on the phone. Slow push. |
-| 3.0–7.2 | Discovery. Drift onto the phone; the laptop's "Your iPhone · Nearby" row appears. |
-| 7.2–9.4 | One tap. The Connect button presses (7.0–7.8); the laptop's header flips to Connecting… then Direct. |
-| 9.4–12.4 | Pull back to a two-shot; the phone types the message. |
-| 12.4–14.5 | Text. Send at 13.5, the payload crosses the desk, lands on the laptop at 14.4. |
-| 14.5–18.4 | Photos. Attachment appears, sends at 17.45, the photo card lands at 18.3. |
-| 18.4–23.2 | Files. `Q3-budget.pdf` sends at 22.35, lands at 23.1, progress runs to Saved. |
-| 23.2–26.0 | Hold on the laptop, three payloads in the thread. |
-| 26.0–28.6 | Pull back to the desk. |
-| 28.6–34.0 | End card: logo, "Move anything between your devices.", sharetexts.online. |
+| 0.0–4.0 | Establish. Both devices on the lit oak, ShareTexts already open: the room card with QR + `482 916` on the laptop, the Nearby card on the phone. A push so slow you notice it only at the cut. |
+| 4.0–7.2 | Connect. Drift onto the phone; Nearby appears at 4.2 with the laptop listed as *Your iPhone · Same network · 1 device*. |
+| 7.2–8.6 | One tap. Connect presses (7.2–7.6); the laptop's header flips to Connecting… then Direct at 8.55, the phone joins at 8.95. |
+| 8.6–11.6 | Two-shot. Pull back while both ends light up; the phone starts typing at 11.2. |
+| 11.6–14.0 | Text. Send at 13.2, the payload crosses the desk, lands at 14.0 with a receive pulse. |
+| 14.0–17.1 | Photo. Attachment appears at 15.5, sends at 16.25, the photo card lands at 17.1. |
+| 17.1–21.4 | File. `Q3-budget.pdf` attaches at 19.3, sends at 20.15, lands at 20.9, progress runs to Saved. |
+| 21.4–24.0 | Hold on the laptop: three payloads in the thread. |
+| 24.0–26.3 | Pull back to the whole desk. |
+| 26.4–32.0 | End card: logo, "Move anything between your devices.", sharetexts.online. |
 
 Captions are one line per beat (muted-friendly): *No app. No account.* ·
 *One tap to connect.* · *Text.* · *Photos.* · *Files.* · *Encrypted. Nothing
