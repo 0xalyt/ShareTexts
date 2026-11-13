@@ -71,7 +71,7 @@ export function SiteFooter({ className }: { className?: string }) {
       {/* Same 1200px column as the header, the landing footer and every
           hero: the brand sits on one left edge across the whole site. */}
       <div className="mx-auto w-full max-w-[1200px] px-5 py-12 sm:px-6 sm:py-16 lg:px-8 2xl:px-12">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.7fr)_repeat(3,minmax(0,1fr))]">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.7fr)_repeat(3,minmax(0,1fr))] lg:gap-x-12">
           <div className="col-span-2 min-w-0 sm:col-span-3 lg:col-span-1">
             {/* The brand lockup, linked home — same ember mark + themed
                 wordmark as every other header, never a cream night swap. */}
@@ -127,14 +127,18 @@ export function SiteFooter({ className }: { className?: string }) {
 
         {/* The bottom row: the deal, stated once, plus the one action a
             reader might want at the very end of a page. */}
-        <div className="mt-10 flex flex-row items-center justify-between gap-x-4 gap-y-2 border-t border-black/[0.06] pt-5 dark:border-white/[0.08]">
+        {/* Bottom row. Two things only — the deal, and the person — with the
+            hairline doing the separating work so neither needs a bigger gap
+            to look intentional. Wraps as a block on a phone instead of
+            shrinking the line until it wraps mid-sentence. */}
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-black/[0.06] pt-6 dark:border-white/[0.08]">
           <p className="min-w-0 text-[11.5px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 sm:text-[12px]">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>
           {/* The person behind it, not a handle. One component owns the
               target, the 44px floor, the reduced-motion opt-out and the
               press feedback, so the three footers cannot drift again. */}
-          <XProfileLink />
+          <XProfileLink className="-my-1" />
         </div>
       </div>
     </footer>

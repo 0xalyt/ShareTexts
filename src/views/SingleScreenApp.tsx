@@ -1700,17 +1700,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             <span className="inline-flex min-h-[44px] items-center">
               <LanguageMenu />
             </span>
+            {/* The maker sits with the language control, not across the row
+                with the copyright: both are "who and how you read this
+                page", and the © line stays alone on the right instead of
+                balancing a face against a paragraph. */}
+            <XProfileLink />
             {/* Only renders when the browser can truly install in one tap,
                 so it is a real option rather than a permanent teaser. */}
             <InstallLink />
           </div>
           <span className="flex shrink-0 items-center gap-3">
-            {/* The X profile, back where it belongs: at the end of the page,
-                next to the copyright, not buried in the legal column. It is a
-                named target (44px pill, the X glyph, the handle) rather than a
-                bare icon, because a social link that only reads as a glyph is
-                a guess. */}
-            <XProfileLink />
             <span className="text-[12px] font-medium leading-none text-apple-ink-muted dark:text-white/70">
               © {new Date().getFullYear()} ShareTexts
             </span>

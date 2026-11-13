@@ -35,7 +35,16 @@ import { hapticTap } from '../lib/haptics';
  * `.webp` saved from a design tool, a `.png` dragged out of a screenshot, or
  * a `.jpg` off a phone. Nothing here needs editing when the picture changes.
  */
-const PORTRAITS = ['/brand/maker-garv.webp', '/brand/maker-garv.png', '/brand/maker-garv.jpg'] as const;
+// The `?v=` is a cache key, not a param the server reads: the portrait was
+// replaced once already and browsers kept the old file (and, worse, kept a
+// cached 404 from before it existed, which made the component fall through to
+// its monogram on some devices but not others). Bump it whenever the picture
+// changes.
+const PORTRAITS = [
+  '/brand/maker-garv.webp?v=2',
+  '/brand/maker-garv.png?v=2',
+  '/brand/maker-garv.jpg?v=2',
+] as const;
 
 export function XGlyph({ className }: { className?: string }) {
   return (
@@ -54,8 +63,10 @@ export function XGlyph({ className }: { className?: string }) {
 export function XProfileLink({
   className,
   testId = 'footer-x',
-  /** Diameter in px. 48 is the default; never below 44 for a finger. */
-  size = 40,
+  /** Drawn diameter in px. The TAP target stays 44 regardless — a footer
+   *  portrait is an ornament next to the language control, not a button that
+   *  should take a button's space. */
+  size = 28,
 }: {
   className?: string;
   testId?: string;
@@ -81,16 +92,19 @@ export function XProfileLink({
         'min-h-[44px] min-w-[44px]',
         // Squeeze on press: the whole point is that the tap is felt before the
         // page leaves. 150ms is short enough to finish inside the navigation.
-        'transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
-        'active:scale-[0.90] motion-reduce:active:scale-100',
+        'transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]',
+        // Hover is a lift, not a bounce: the circle grows a hair and the ring
+        // warms, which reads as "a person you can visit" rather than a button.
+        '[@media(hover:hover)]:group-hover/maker:scale-[1.08]',
+        'active:scale-[0.90] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-apple-parchment dark:focus-visible:ring-offset-night-900',
         className,
       )}
       style={{ width: Math.max(44, size), height: Math.max(44, size) }}
     >
-      {/* 40px circle, 44px target: the drawing shrinks, the thumb area does not. */}
+      {/* The drawing, inside the 44px target. */}
       <span
-        className="relative block overflow-hidden rounded-full ring-1 ring-black/[0.10] dark:ring-white/15"
+        className="relative block overflow-hidden rounded-full ring-1 ring-black/[0.10] transition-[box-shadow,ring-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)]:group-hover/maker:ring-ember/35 dark:ring-white/15"
         style={{
           width: size,
           height: size,
@@ -153,22 +167,10 @@ export function XProfileLink({
         </span>
       </span>
 
-      {/* The name, on hover, above the face. Pointer-events off so it never
-          eats the click it is describing. */}
-      <span
-        role="tooltip"
-        aria-hidden
-        className={cn(
-          'pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 translate-y-1 whitespace-nowrap',
-          'rounded-full bg-[#1d1d1f] px-2.5 py-1 text-[11px] font-semibold leading-none text-white',
-          'opacity-0 shadow-[0_8px_20px_-10px_rgba(0,0,0,0.6)] transition-all duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
-          '[@media(hover:hover)]:group-hover/maker:translate-y-0 [@media(hover:hover)]:group-hover/maker:opacity-100',
-          'group-focus-visible/maker:translate-y-0 group-focus-visible/maker:opacity-100',
-          'dark:bg-[#e8e8ea] dark:text-[#1d1d1f]',
-        )}
-      >
-        Maker: Garv
-      </span>
+      {/* No custom tooltip: the anchor already carries `title`, so hovering
+          showed TWO labels stacked on top of each other — the drawn one and
+          the browser's. The browser's is the one that behaves (delay, edge
+          flipping, touch suppression), so it is the only one left. */}
     </a>
   );
 }
