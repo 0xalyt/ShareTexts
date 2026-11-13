@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { BrandLockup } from '../BrandLockup';
 import { XProfileLink } from '../XProfileLink';
+import { LanguageMenu } from '../LanguageMenu';
 import { useI18n } from '../../lib/i18n';
 import type { MsgKey } from '../../lib/messages/types';
 
@@ -132,13 +133,22 @@ export function SiteFooter({ className }: { className?: string }) {
             to look intentional. Wraps as a block on a phone instead of
             shrinking the line until it wraps mid-sentence. */}
         <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-black/[0.06] pt-6 dark:border-white/[0.08]">
+          {/* Same cluster order as the landing footer: the language control
+              and the maker sit together on the left, the deal on the right.
+              A long page and the app should not read as two different sites
+              that happen to share a wordmark. */}
+          <span className="flex items-center gap-x-5">
+            <span className="inline-flex min-h-[44px] items-center">
+              <LanguageMenu />
+            </span>
+            <XProfileLink className="-my-1" />
+          </span>
           <p className="min-w-0 text-[11.5px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 sm:text-[12px]">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>
           {/* The person behind it, not a handle. One component owns the
               target, the 44px floor, the reduced-motion opt-out and the
               press feedback, so the three footers cannot drift again. */}
-          <XProfileLink className="-my-1" />
         </div>
       </div>
     </footer>
