@@ -31,31 +31,28 @@ await A.goto('http://localhost:3010', { waitUntil: 'domcontentloaded' });
 await B.goto('http://localhost:3010', { waitUntil: 'domcontentloaded' });
 await A.waitForTimeout(2500);
 
-// 1. The detection overlay pops on BOTH sides (mutual detection).
-//    Wait for the REAL condition (discovery + overlay render) instead of
-//    snapshotting count() at an arbitrary instant — local-network discovery
-//    legitimately takes seconds, and a snapshot mid-wait false-fails.
-const overlayOnA = await A.getByTestId('nearby-detect-overlay').waitFor({ timeout: 20000 }).then(() => true).catch(() => false);
-const overlayOnB = await B.getByTestId('nearby-detect-overlay').waitFor({ timeout: 20000 }).then(() => true).catch(() => false);
-check('detection overlay on A', overlayOnA);
-check('detection overlay on B', overlayOnB);
+// 1. Detection is an INLINE suggestion, not a modal. The device that
+//    discovers a peer gets a strip above its own row ("Device found" +
+//    Connect); the modal is reserved for the INVITATION, because that is the
+//    side that has a decision to make and no row to point at. This suite
+//    asserted the old mutual-modal design and went red the day the strip
+//    shipped — the app was fine, the test was describing a screen that no
+//    longer exists.
+const suggestOnA = await A.getByTestId('nearby-suggest').waitFor({ timeout: 20000 }).then(() => true).catch(() => false);
+check('device found strip on A', suggestOnA);
 
-// 2. Overlay shows the two-step primary: first press arms, second commits.
-const primaryA = A.getByTestId('nearby-detect-primary');
-const labelBefore = (await primaryA.innerText()).trim();
-await primaryA.click(); // arm
-const labelArmed = (await primaryA.innerText()).trim();
-check('two-step confirm arms in place', labelBefore !== labelArmed, `"${labelBefore}" → "${labelArmed}"`);
+// 2. The strip's button is a single Accept: pressing it sends the invitation
+//    straight away. The confirmation step lives on the RECEIVING side (the
+//    modal), which is where a decision is actually being made.
+if (suggestOnA) {
+  await A.getByTestId('nearby-suggest-connect').click();
+}
 
-// 3. A commits → invite is sent → B's overlay flips to incoming, B confirms.
-//    Wait for the invite TEXT to actually render on B (up to 20s) rather
-//    than a fixed 1.2s nap + one innerText read.
-await primaryA.click(); // Yes
+// 3. A's commit sends the invite → B gets the modal → B confirms.
 const inviteArrived = await B.getByRole('dialog').getByText(/wants to connect/i)
   .waitFor({ timeout: 20000 }).then(() => true).catch(() => false);
-const bDialogText = inviteArrived ? 'wants to connect' : '';
-check('B overlay shows incoming invite', inviteArrived, bDialogText.slice(0, 80));
-await B.getByRole('button', { name: 'Yes', exact: true }).click().catch(() => {});
+check('B overlay shows incoming invite', inviteArrived);
+await B.getByTestId('nearby-detect-primary').click().catch(() => {});
 await A.waitForTimeout(500);
 
 // 4. Zero-extra-tap fallback: either the confirmations above completed the

@@ -367,15 +367,18 @@ app.post('/api/push', express.json({ limit: '12mb', type: 'application/json' }),
 // Add your own via ALLOWED_ORIGINS (comma-separated) — render.yaml sets this
 // to the Render service URL so same-origin deployments work too.
 const allowedOrigins = new Set<string>([
-  'http://localhost:3000',
+  'http://localhost:3010',
   'http://localhost:3311',
-  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3010',
   'http://127.0.0.1:3311',
   'https://sharetexts.online',
   'https://www.sharetexts.online',
   ...(process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
 ]);
-const PORT = process.env.PORT || 3000;
+// 3010, not 3000: every verification suite, the Lighthouse script and the
+// README all point at 3010. A dev server that quietly picks a different port
+// looks like an app that does not run at all.
+const PORT = process.env.PORT || 3010;
 // Same-origin deployments: the frontend served by THIS server (any port,
 // localhost or 127.0.0.1) is always a legitimate signaling client. Without
 // this, running dev on a nonstandard port (e.g. 3001) made the app's own
