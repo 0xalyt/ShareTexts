@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { readFileSync, writeFileSync } from 'fs';
 import helmet from 'helmet';
 import compression from 'compression';
+import { lookup } from 'node:dns/promises';
 
 const app = express();
 
@@ -103,6 +104,11 @@ app.use(helmet({
       frameAncestors: ["'none'"],
     }
   },
+  // Helmet's default X-Frame-Options is SAMEORIGIN, which contradicts the
+  // CSP above: the policy says no framing at all, the header said "same
+  // origin is fine". One of them was lying to every browser old enough to
+  // read the header instead of the policy.
+  xFrameOptions: { action: 'deny' },
   crossOriginEmbedderPolicy: false
 }));
 
@@ -130,7 +136,16 @@ function count(name: string) {
   }
 }
 
-app.get('/metrics', (_req, res) => {
+// Counters, not a public page. The only caller is an operator or a monitor
+// with the token; on a local box, loopback is enough. Everything else gets a
+// 404 rather than a 403, so the route does not advertise itself.
+app.get('/metrics', (req, res) => {
+  const remote = req.socket.remoteAddress || '';
+  const loopback = remote === '::1' || remote.startsWith('127.') || remote === '::ffff:127.0.0.1';
+  const token = process.env.METRICS_TOKEN;
+  const sent = req.headers.authorization?.replace(/^Bearer\s+/i, '') || '';
+  const allowed = loopback || (!!token && sent.length === token.length && secretMatches(sent, token));
+  if (!allowed) return res.status(404).type('text/plain').send('Not found');
   res.json({
     service: 'sharetext-signaling',
     generated_at: new Date().toISOString(),
@@ -246,7 +261,7 @@ function pushRateLimited(ip: string): boolean {
 }
 
 function handlePush(req: express.Request, res: express.Response) {
-  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const ip = clientIpFrom(req);
   if (pushRateLimited(ip)) {
     return res.status(429).json({ error: 'Too many pushes. Try again shortly.' });
   }
@@ -405,16 +420,37 @@ const io = new Server(httpServer, {
   }
 });
 
+/**
+ * Who is calling?
+ *
+ * The LEFT-most X-Forwarded-For entry is attacker-controlled: anyone can send
+ * `X-Forwarded-For: 1.2.3.4` and get a fresh set of rate-limit buckets on every
+ * request. That was the previous behaviour on both the HTTP and socket paths,
+ * which quietly turned every limiter in this file into a suggestion.
+ *
+ * The only trustworthy entry is the one our own edge appended, so the chain is
+ * read from the right and hops we actually deploy are skipped.
+ * TRUSTED_PROXY_HOPS=1 covers the normal one-proxy deployment (Vercel/Render);
+ * set it to 0 to run with no proxy in front, where the socket address is the
+ * real peer.
+ */
+const TRUSTED_PROXY_HOPS = Math.max(0, Number(process.env.TRUSTED_PROXY_HOPS ?? 1));
+function ipFromHeader(header: string | string[] | undefined, fallback: string): string {
+  const chain = (Array.isArray(header) ? header.join(',') : header || '')
+    .split(',').map((v) => v.trim()).filter(Boolean);
+  const index = chain.length - 1 - TRUSTED_PROXY_HOPS;
+  if (index >= 0 && chain[index]) return chain[index];
+  return fallback || 'unknown';
+}
+function clientIpFrom(req: express.Request): string {
+  return ipFromHeader(req.headers['x-forwarded-for'], req.socket.remoteAddress || 'unknown');
+}
+
 // Behind a proxy (Render/Vercel) every socket's handshake.address is the
-// proxy IP — without this, all visitors share one rate-limit bucket.
-// Prefer the leftmost untrusted-hop x-forwarded-for value.
+// proxy IP — without this, all visitors share one rate-limit bucket. Same
+// right-to-left rule as the HTTP path, so the two limiters agree on identity.
 function clientIp(socket: import('socket.io').Socket): string {
-  const fwd = socket.handshake.headers['x-forwarded-for'];
-  if (typeof fwd === 'string') {
-    const first = fwd.split(',')[0]?.trim();
-    if (first) return first;
-  }
-  return socket.handshake.address || 'unknown';
+  return ipFromHeader(socket.handshake.headers['x-forwarded-for'], socket.handshake.address || 'unknown');
 }
 
 /** One member of a multi-device room. Identity is a room-scoped stable id
@@ -785,6 +821,13 @@ const pushAttempts = new Map<string, { count: number, resetAt: number }>();
 
 function limited(ip: string, map: Map<string, { count: number, resetAt: number }>, max: number, windowMs: number): boolean {
   const now = Date.now();
+  // Unbounded growth is a memory DoS of its own: one entry per address, kept
+  // forever, and NAT means a busy day can be hundreds of thousands of them.
+  // A cheap sweep once the map is big enough to matter keeps it bounded
+  // without a timer running per bucket.
+  if (map.size > 5000) {
+    for (const [k, v] of map) if (now > v.resetAt) map.delete(k);
+  }
   let entry = map.get(ip);
   if (entry && now > entry.resetAt) entry = undefined;
   if (!entry) {
@@ -833,29 +876,60 @@ function previewRateLimited(ip: string): boolean {
 }
 
 /** True when a hostname/IP must never be fetched from the server. */
+/**
+ * Is this ADDRESS one we must never fetch? Split out from the URL check so the
+ * DNS path can reuse the exact same ranges: a hostname is only as public as
+ * the addresses it resolves to.
+ */
+function isPrivateAddress(ip: string): boolean {
+  const low = ip.toLowerCase();
+  if (low.startsWith('::ffff:')) return isPrivateAddress(low.slice(7));
+  if (low === '::1' || low === '::') return true;
+  if (/^f[cd]/.test(low)) return true; // unique-local fc00::/7
+  if (/^fe[89ab]/.test(low)) return true; // link-local fe80::/10
+  const o = low.split('.').map(Number);
+  if (o.length !== 4 || o.some((n) => Number.isNaN(n))) return false;
+  if (o[0] === 10 || o[0] === 127 || o[0] === 0) return true;
+  if (o[0] === 192 && o[1] === 168) return true;
+  if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return true;
+  if (o[0] === 169 && o[1] === 254) return true; // link-local incl. cloud metadata
+  if (o[0] === 100 && o[1] >= 64 && o[1] <= 127) return true; // carrier-grade NAT
+  if (o[0] === 192 && o[1] === 0 && o[2] === 0) return true;
+  if (o[0] === 198 && (o[1] === 18 || o[1] === 19)) return true; // benchmarking
+  if (o[0] >= 224) return true; // multicast + reserved
+  return false;
+}
+
 function isPrivateTarget(url: URL): boolean {
   const host = url.hostname.toLowerCase();
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal')) return true;
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
-    // Dotted quad: check the ranges directly.
-    const o = host.split('.').map(Number);
-    if (o[0] === 10 || o[0] === 127 || o[0] === 0) return true;
-    if (o[0] === 192 && o[1] === 168) return true;
-    if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return true;
-    if (o[0] === 169 && o[1] === 254) return true; // link-local incl. cloud metadata
-    if (o[0] >= 224) return true; // multicast + reserved
-    return false;
-  }
-  if (host === '[' || host.includes('[')) {
-    // IPv6 literal: block loopback, link-local (fe80::/10), unique-local (fc00::/7).
-    const h = host.replace(/[[\]]/g, '');
-    const low = h.toLowerCase();
-    if (low === '::1' || low === '::') return true;
-    if (/^f[cd]/.test(low)) return true;
-    if (/^fe[89ab]/.test(low)) return true;
-    return false;
-  }
+  if (host.includes('[')) return isPrivateAddress(host.replace(/[[\]]/g, ''));
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return isPrivateAddress(host);
   return false;
+}
+
+/**
+ * The half of SSRF protection that string checks cannot do.
+ *
+ * A hostname is not an address: `internal.example.com`, or any DNS-rebinding
+ * domain, can resolve to 127.0.0.1 — and the literal check above waved those
+ * through, because the string looked public. Every address the name resolves
+ * to is checked, and ANY private answer rejects the fetch: a name that answers
+ * both public and private is exactly what an attacker would arrange.
+ *
+ * The lookup/connect gap is narrowed, not closed. Node's fetch has no address
+ * pinning hook, so a TTL-0 record can still flip between the two calls. What
+ * remains is one request to a host the attacker already controls DNS for —
+ * defence in depth, not the only line.
+ */
+async function resolvesToPrivate(hostname: string): Promise<boolean> {
+  try {
+    const addrs = await lookup(hostname, { all: true, verbatim: true });
+    if (!addrs.length) return true;
+    return addrs.some((a) => isPrivateAddress(a.address));
+  } catch {
+    return true; // unresolvable: nothing good to fetch
+  }
 }
 
 function metaContent(html: string, names: string[]): string | null {
@@ -890,7 +964,7 @@ async function fetchPreview(target: string): Promise<PreviewData | null> {
   // target blocklist (a public shortener must not bounce us at 169.254.x.x).
   let current = url;
   for (let hop = 0; hop < 4; hop++) {
-    if (isPrivateTarget(current)) return null;
+    if (isPrivateTarget(current) || (await resolvesToPrivate(current.hostname))) return null;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), PREVIEW_TIMEOUT_MS);
     try {
@@ -951,7 +1025,7 @@ function concatChunks(chunks: Uint8Array[], total: number): Uint8Array {
 }
 
 app.get('/api/preview', async (req, res) => {
-  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const ip = clientIpFrom(req);
   if (previewRateLimited(ip)) {
     return res.status(429).json({ error: 'Too many preview requests. Try again shortly.' });
   }
@@ -1174,7 +1248,9 @@ io.on('connection', (socket) => {
     }
     // If a secret is supplied it must match. A fresh link-join has no secret
     // yet (the server hands it out after a successful join).
-    if (secret && room.secret !== secret) {
+    // Constant-time: a room secret is the whole credential, and `!==` leaks
+    // its length and prefix timing to anyone willing to measure.
+    if (typeof secret === 'string' && secret && !secretMatches(secret, room.secret)) {
       count('joins.failed:invalid_session');
       return cb({ success: false, error: 'Invalid session' });
     }
