@@ -125,7 +125,10 @@ export function ShuffleHeading({ className }: { className?: string }) {
             <span className="invisible whitespace-nowrap" aria-hidden>
               Screenshots
             </span>
-            <span className="absolute inset-0 whitespace-nowrap">
+            {/* Left-aligned inside the slot, so the word sits tight against
+                "Share" instead of floating in the middle of a wide gap. The
+                slot is what centres the line as a whole. */}
+            <span className="absolute inset-0 whitespace-nowrap text-left">
               <span
                 ref={wordRef}
                 className="st-word-gradient bg-clip-text text-transparent"
