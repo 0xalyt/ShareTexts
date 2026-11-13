@@ -104,26 +104,46 @@ export function ShuffleHeading({ className }: { className?: string }) {
 
   return (
     <h1
-      className={`st-display text-[clamp(34px,3.9vw,46px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center sm:text-left ${className ?? ''}`}
+      className={`st-display text-[clamp(29px,7.6vw,44px)] sm:text-[clamp(32px,3.6vw,44px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}
     >
       <span className="sr-only">Share anything between any devices easily.</span>
-      <span aria-hidden>
-        Share{' '}
-        <span className="relative inline-block text-left align-baseline">
-          {/* The widest word reserves the line box, so the sentence never
-              reflows around the word as it grows and shrinks. */}
-          <span className="invisible">Screenshots</span>
-          <span className="absolute inset-0 whitespace-nowrap">
-            <span ref={wordRef} className="text-ember">
-              {lang === 'en' ? 'Texts' : 'anything'}
+      <span aria-hidden className="flex flex-col items-center">
+        {/* Line one is centred as a unit and never moves: "Share" is anchored
+            at the start of that unit, and the word slot beside it has a fixed
+            width, so typing cannot shift the word, the caret or the sentence
+            below it. Two lines instead of one because a single line at this
+            size breaks mid-phrase on every phone. */}
+        <span className="inline-flex items-baseline whitespace-nowrap">
+          Share
+          <span
+            className="relative inline-block shrink-0 align-baseline text-left"
+            style={{ marginLeft: '0.26em' }}
+          >
+            {/* The ghost sets the slot width and must never be allowed to
+                shrink: when flex squeezed it on a phone, the word underneath
+                was clipped mid-glyph. */}
+            <span className="invisible whitespace-nowrap" aria-hidden>
+              Screenshots
             </span>
-            <span
-              className="st-caret-rm ml-[2px] inline-block w-[2px] translate-y-[0.06em] bg-ember"
-              style={{ height: '0.92em', animation: 'st-caret-blink 1.05s steps(1,end) infinite' }}
-            />
+            <span className="absolute inset-0 whitespace-nowrap">
+              <span
+                ref={wordRef}
+                className="st-word-gradient bg-clip-text text-transparent"
+              >
+                {lang === 'en' ? 'Texts' : 'anything'}
+              </span>
+              <span
+                className="st-caret-rm ml-[2px] inline-block w-[2px] translate-y-[0.06em]"
+                style={{
+                  height: '0.92em',
+                  background: 'linear-gradient(180deg, #ff9f45, #f06413)',
+                  animation: 'st-caret-blink 1.05s steps(1,end) infinite',
+                }}
+              />
+            </span>
           </span>
-        </span>{' '}
-        between any devices easily.
+        </span>
+        <span className="mt-0.5">between any devices easily.</span>
       </span>
     </h1>
   );

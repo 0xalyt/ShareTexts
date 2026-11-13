@@ -469,3 +469,19 @@ html.dark .st-btn--destructive {
 @media (prefers-reduced-motion: reduce) {
   .st-caret-rm { animation: none !important; }
 }
+
+/* The animated noun. A warm gradient rather than flat ember: at display size a
+   single hue reads as a highlight, two stops read as material. The fallback
+   colour matters for browsers without background-clip:text (very old Safari):
+   they get solid ember, not invisible text. */
+.st-word-gradient {
+  color: #f06413;
+  background-image: linear-gradient(96deg, #f06413 0%, #ff9a3d 46%, #f2600c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-right: 0.03em;
+}
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .st-word-gradient { -webkit-text-fill-color: currentColor; }
+}
