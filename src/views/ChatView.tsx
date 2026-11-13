@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
 import { useOverscroll } from '../lib/useOverscroll';
+import { PullToRefresh } from '../components/PullToRefresh';
 import { motion, AnimatePresence } from 'motion/react';
 import { AttachmentPanel } from '../components/AttachmentPanel';
 import { TransferFlight } from '../components/TransferFlight';
@@ -75,6 +76,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // Multi-device room state (calm defaults): the picker opens on demand; the
   // rest of the room doesn't change just because the roster grew.
   const [pickerOpen, setPickerOpen] = useState(false);
+  // The scroll pane itself, so the pull gesture can attach native listeners.
+  const [pullEl, setPullEl] = useState<HTMLDivElement | null>(null);
   const others = useMemo(() => peers.filter(p => !p.isSelf), [peers]);
   const isMultiRoom = others.length > 1;
   // A phone on phones, a screen on desktops — the "who am I talking to" chips
@@ -1371,7 +1374,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       </AnimatePresence>
       {/* Messages */}
       <div
-        ref={scrollRef}
+        ref={(el) => {
+          scrollRef.current = el;
+          if (el && el !== pullEl) setPullEl(el);
+        }}
         onScroll={onMessagesScroll}
         className="room-scroll flex-1 overflow-y-auto p-4 sm:p-6 relative"
         onDragEnter={handleDragEnter}
@@ -1379,6 +1385,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
+        {/* New things land here while you are reading, so the room is one of
+            the two places where pulling down means something: it reconnects
+            the thread from the top. Only at scrollTop 0, so scrolling back
+            through a conversation never reloads it. */}
+        <PullToRefresh scroller={pullEl} onRefresh={() => window.location.reload()} />
         {/* min-h-full, not h-full: a short thread should SIT ON the composer
             instead of hanging from the top of the pane with a dead plane
             underneath. min-height (not a fixed height) is what keeps the

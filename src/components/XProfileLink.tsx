@@ -55,7 +55,7 @@ export function XProfileLink({
   className,
   testId = 'footer-x',
   /** Diameter in px. 48 is the default; never below 44 for a finger. */
-  size = 48,
+  size = 40,
 }: {
   className?: string;
   testId?: string;
@@ -86,11 +86,16 @@ export function XProfileLink({
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-apple-parchment dark:focus-visible:ring-offset-night-900',
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{ width: Math.max(44, size), height: Math.max(44, size) }}
     >
+      {/* 40px circle, 44px target: the drawing shrinks, the thumb area does not. */}
       <span
-        className="relative block h-full w-full overflow-hidden rounded-full ring-1 ring-black/[0.10] dark:ring-white/15"
-        style={{ boxShadow: '0 1px 2px rgba(20,16,10,0.10), 0 6px 16px -8px rgba(20,16,10,0.28)' }}
+        className="relative block overflow-hidden rounded-full ring-1 ring-black/[0.10] dark:ring-white/15"
+        style={{
+          width: size,
+          height: size,
+          boxShadow: '0 1px 2px rgba(20,16,10,0.10), 0 6px 16px -8px rgba(20,16,10,0.28)',
+        }}
       >
         {broken ? (
           // The stand-in until the portrait lands: a monogram badge, not a

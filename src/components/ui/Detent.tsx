@@ -166,14 +166,22 @@ const RING_CSS = `
 }
 .st-announce-ring {
   background: conic-gradient(from var(--st-ann-angle), transparent 0 62%, rgba(240,100,19,0.9) 84%, transparent 100%);
-  opacity: 0;
-  transition: opacity 200ms ease-out;
+  opacity: .38;
+  transition: opacity 220ms ease-out;
 }
+/* The light now travels all the time — it is the pill saying "this is new",
+   not a hover reward. Hover makes it brighter and faster, so the pointer still
+   gets an answer, but the announcement is alive before anyone touches it.
+   Under reduced motion it stays as a still, lit edge: the motion is the
+   decoration here, not the information. */
 @media (prefers-reduced-motion: no-preference) {
+  .st-announce-ring {
+    animation: st-announce-run 3.4s linear infinite;
+  }
   .st-announce:hover .st-announce-ring,
   .st-announce:focus-within .st-announce-ring {
-    opacity: .8;
-    animation: st-announce-run 1.8s cubic-bezier(.6,0,.3,1) both;
+    opacity: .85;
+    animation-duration: 1.6s;
   }
   @keyframes st-announce-run {
     from { --st-ann-angle: 0deg; }
@@ -181,8 +189,9 @@ const RING_CSS = `
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .st-announce-ring { opacity: .3; }
   .st-announce:hover .st-announce-ring,
-  .st-announce:focus-within .st-announce-ring { opacity: .8; }
+  .st-announce:focus-within .st-announce-ring { opacity: .7; }
 }
 `;
 
@@ -200,12 +209,15 @@ export function Announcement({
   href,
   tag,
   action,
+  hoverText,
   className,
 }: {
   children: React.ReactNode;
   href: string;
   tag: string;
   action: string;
+  /** The "what changed" line, shown while the pill is hovered or focused. */
+  hoverText?: string;
   className?: string;
 }) {
   const [near, setNear] = useState(false);
@@ -262,21 +274,52 @@ export function Announcement({
             );
           })}
         </span>
-        <span className="truncate">{children}</span>
-        {/* A single chevron says "this goes somewhere" without a second
-            label; it steps right on hover so the pill answers the pointer. */}
-        <svg
-          aria-hidden
-          viewBox="0 0 24 24"
-          className="ml-0.5 h-3 w-3 shrink-0 text-apple-ink-muted transition-transform duration-200 group-hover:translate-x-0.5 group-focus-within:translate-x-0.5 motion-reduce:transition-none dark:text-white/45"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
+        {/* Two messages stacked in one cell, so swapping on hover cannot
+            resize the pill and push the headline around. The second one is
+            the "what changed" line; the first is the standing promise. */}
+        <span className="grid min-w-0 grid-cols-1">
+          {[
+            { key: 'title', text: children },
+            ...(hoverText ? [{ key: 'news', text: hoverText }] : []),
+          ].map(({ key, text }) => {
+            const active = key === 'title' ? !near || !hoverText : near;
+            return (
+              <motion.span
+                key={key}
+                aria-hidden={!active}
+                initial={false}
+                animate={reduce ? { opacity: active ? 1 : 0 } : { y: active ? 0 : '60%', opacity: active ? 1 : 0 }}
+                transition={reduce ? { duration: 0.12 } : { type: 'spring', bounce: 0, duration: 0.32 }}
+                className="truncate [grid-area:1/1]"
+              >
+                {text}
+              </motion.span>
+            );
+          })}
+        </span>
+        {/* Two marks in one cell: the resting chevron, and the arrow that
+            replaces it once the pill is being read. Both occupy the same box,
+            so nothing shifts when they swap. */}
+        <span className="relative ml-0.5 grid h-3 w-3 shrink-0 place-items-center text-apple-ink-muted dark:text-white/45">
+          <svg
+            aria-hidden
+            viewBox="0 0 24 24"
+            className={`[grid-area:1/1] h-3 w-3 transition-opacity duration-150 ${near ? 'opacity-0' : 'opacity-100'}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+          <span
+            aria-hidden
+            className={`[grid-area:1/1] text-[12px] font-semibold leading-none transition-opacity duration-150 ${near ? 'opacity-100' : 'opacity-0'}`}
+          >
+            →
+          </span>
+        </span>
       </a>
     </div>
   );

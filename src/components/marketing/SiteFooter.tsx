@@ -127,8 +127,8 @@ export function SiteFooter({ className }: { className?: string }) {
 
         {/* The bottom row: the deal, stated once, plus the one action a
             reader might want at the very end of a page. */}
-        <div className="mt-10 flex flex-col gap-1 border-t border-black/[0.06] pt-5 dark:border-white/[0.08] sm:flex-row sm:items-center sm:justify-between sm:gap-x-6">
-          <p className="text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
+        <div className="mt-10 flex flex-row items-center justify-between gap-x-4 gap-y-2 border-t border-black/[0.06] pt-5 dark:border-white/[0.08]">
+          <p className="min-w-0 text-[11.5px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 sm:text-[12px]">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>
           {/* The person behind it, not a handle. One component owns the

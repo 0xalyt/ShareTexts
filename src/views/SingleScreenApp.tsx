@@ -31,6 +31,7 @@ import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
 import { Announcement, UploadFolder } from '../components/ui/Detent';
+import { ShuffleHeading } from '../components/ShuffleHeading';
 import { GlassCapsule } from '../components/ui/GlassCapsule';
 import { GlassCircleButton } from '../components/ui/GlassCircleButton';
 import { ListRow } from '../components/ui/ListRow';
@@ -1137,13 +1138,15 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 href="/guides/temporary-spaces.html"
                 tag="New"
                 action="Read"
-                className="order-0 mb-6 sm:mb-7 justify-self-center sm:justify-self-start"
+                hoverText="New: Host keeps files for up to 7 days"
+                className="order-0 mb-5 sm:mb-6 justify-self-center sm:justify-self-start"
               >
                 {t('home.announce')}
               </Announcement>
-              <h1 className="st-display order-1 text-[clamp(34px,3.9vw,46px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center sm:text-left text-balance">
-                {(() => { const [a, b] = t('home.title').split('\n'); return (<>{a}{b ? <><br />{b}</> : null}</>); })()}
-              </h1>
+              {/* The headline is the one line that has to answer "can it send
+                  MY thing?" without a paragraph, so the noun cycles through
+                  the things people actually send. */}
+              <ShuffleHeading className="order-1" />
               {/* The film, directly under the headline at every width.
                   Headline → the product moving → the number → the two doors is
                   the order the argument is actually made in: what it is, what

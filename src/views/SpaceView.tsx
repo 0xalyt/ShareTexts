@@ -12,6 +12,7 @@
  */
 
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import { PullToRefresh } from '../components/PullToRefresh';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon,
@@ -757,6 +758,9 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
 // ── the space itself ──────────────────────────────────────────────────────
 
 export function SpaceView({ spaceId, token }: { spaceId: string; token: string }) {
+  // The page scrolls the document, so that is what the pull listens to.
+  const [scrollEl, setScrollEl] = useState<HTMLElement | null>(null);
+  useEffect(() => { setScrollEl(document.documentElement); }, []);
   const { t } = useI18n();
   const client = useSpaceClient(spaceId, token);
   const { snapshot, items, uploads, conn, nowMs } = client;
@@ -949,7 +953,10 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       </header>
 
       {/* ── content ── */}
-      <main className="flex-1 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6 py-5">
+      <main className="relative flex-1 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6 py-5">
+        {/* A Host is the other place where something new can land while you
+            are looking at it; pulling down at the top re-reads it. */}
+        <PullToRefresh scroller={scrollEl} onRefresh={() => window.location.reload()} />
         {conn === 'offline' && (
           <p className="mb-3 text-[12px] font-medium text-amber-600 dark:text-amber-400" role="status">{t('space.reconnecting')}</p>
         )}

@@ -78,7 +78,7 @@ const en = {
   'room.offlineCount': '{count} offline',
 
   'home.title': 'Move anything\nbetween your devices.',
-  'home.subtitle': "Nothing to install, no account. Paste a link, a snippet or a code and it sends the moment your other device connects.",
+  'home.subtitle': 'Move texts, images and files from any device to any device in the browser, without an account. It is easy, fast and free.',
   // Short enough to sit on one line inside the hero pill on a 390px phone —
   // the long version truncated to "…a shelf that deletes …" and read as a
   // broken element rather than a link.

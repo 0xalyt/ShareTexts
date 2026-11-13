@@ -455,3 +455,17 @@ html.dark .st-btn--destructive {
   .st-connect-line { animation: none; stroke-dashoffset: 0; }
   .st-connect-check { animation: st-check-fade 120ms linear both; }
 }
+
+/* The typewriter caret in the hero. Runs even under reduced motion: the
+   headline is the sentence that explains the product, and the cycling noun is
+   content, not decoration. */
+@keyframes st-caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* Under reduced motion the caret sits still: the word still types (it is
+   content), but nothing blinks at the reader. */
+@media (prefers-reduced-motion: reduce) {
+  .st-caret-rm { animation: none !important; }
+}
