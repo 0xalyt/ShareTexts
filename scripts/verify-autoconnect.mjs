@@ -11,6 +11,7 @@
 import { chromium } from 'playwright';
 import { resolveChrome } from './lib.mjs';
 
+const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const exe = resolveChrome();
 const browser = await chromium.launch(exe ? { executablePath: exe } : {});
 const mkPage = async () => {
@@ -27,8 +28,8 @@ const fails = [];
 const check = (name, ok) => { console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`); if (!ok) fails.push(name); };
 for (const p of [A, B]) p.on('pageerror', () => errors++);
 
-await A.goto('http://localhost:3010', { waitUntil: 'domcontentloaded' });
-await B.goto('http://localhost:3010', { waitUntil: 'domcontentloaded' });
+await A.goto(BASE, { waitUntil: 'domcontentloaded' });
+await B.goto(BASE, { waitUntil: 'domcontentloaded' });
 await A.waitForTimeout(2500);
 
 // 1. Detection is an INLINE suggestion, not a modal. The device that

@@ -1139,14 +1139,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 tag="New"
                 action="Read"
                 hoverText="New: Host keeps files for up to 7 days"
-                className="order-0 mb-5 sm:mb-6 justify-self-center sm:justify-self-start"
+                className="order-0 mb-5 sm:mb-6 justify-self-center"
               >
                 {t('home.announce')}
               </Announcement>
               {/* The headline is the one line that has to answer "can it send
                   MY thing?" without a paragraph, so the noun cycles through
                   the things people actually send. */}
-              <ShuffleHeading className="order-1" />
+              <ShuffleHeading className="order-1 w-full justify-self-center" />
               {/* The film, directly under the headline at every width.
                   Headline → the product moving → the number → the two doors is
                   the order the argument is actually made in: what it is, what

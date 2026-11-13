@@ -45,13 +45,20 @@ export function setPresenceHidden(v: boolean): void {
 }
 
 export function getOrCreateDeviceId(): string {
+  // sessionStorage, not localStorage: a device id identifies ONE presence
+  // participant, and two tabs of the same browser are two participants. With
+  // a localStorage id they both announced the same token, the server kept a
+  // single lobby entry, and each tab filtered itself out — so "one device
+  // detected" either never appeared or pointed at the tab you were looking
+  // at. sessionStorage keeps the id stable across a reload of that tab while
+  // giving every tab its own identity.
   try {
-    const existing = localStorage.getItem(DEVICE_ID_KEY);
+    const existing = sessionStorage.getItem(DEVICE_ID_KEY) || localStorage.getItem(DEVICE_ID_KEY);
     if (existing && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(existing)) {
       return existing;
     }
     const fresh = crypto.randomUUID();
-    localStorage.setItem(DEVICE_ID_KEY, fresh);
+    try { sessionStorage.setItem(DEVICE_ID_KEY, fresh); } catch { /* private mode */ }
     return fresh;
   } catch {
     return crypto.randomUUID(); // private mode: a per-load id still works

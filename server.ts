@@ -721,6 +721,9 @@ function broadcastPresenceList(): void {
   presenceBroadcastTimer = setTimeout(() => {
     presenceBroadcastTimer = null;
     const devices = [...presenceByDevice.values()]
+      // Never advertise a device whose socket is gone: every entry here is a
+      // thing somebody can tap, and a dead row is a tap that does nothing.
+      .filter(e => io.sockets.sockets.has(e.socketId))
       .sort((a, b) => a.announcedAt - b.announcedAt)
       .map(e => ({ id: e.token, name: e.name, kind: e.kind, browser: e.browser, model: e.model, gpu: e.gpu }));
     io.emit('presence_list', { devices });
@@ -1514,6 +1517,18 @@ safeOn('presence_announce', (payload: { deviceId?: unknown; name?: unknown; kind
   const prev = presenceByDevice.get(payload.deviceId);
   if (prev && prev.socketId !== socket.id && presenceBySocket.get(prev.socketId) === payload.deviceId) {
     presenceBySocket.delete(prev.socketId); // same device re-announced from a fresh socket
+  }
+  // One socket = one entry. The client can mount its discovery twice and
+  // announce under two ids from the SAME connection (two NearbyPresence
+  // instances, a remount, a hot reload) — the older entry then looked like a
+  // second real device. The landing strip invites the first row, so it
+  // invited the viewer's own ghost: ack success, no human on the other end,
+  // no popup, nothing happens. Evict every older id this socket owns.
+  for (const [id, e] of presenceByDevice) {
+    if (id !== payload.deviceId && e.socketId === socket.id) {
+      presenceByDevice.delete(id);
+      count('presence.evicted_stale');
+    }
   }
   presenceByDevice.set(payload.deviceId, {
     socketId: socket.id,
