@@ -784,7 +784,14 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     e?.preventDefault();
     if (sendingRef.current) return;
     if (!inputText.trim() && attachments.length === 0) return;
-    if (disconnected) return;
+    if (disconnected) {
+      // The send button is already disabled here, but Enter reaches this
+      // handler, and returning silently made a fast typist believe the message
+      // had gone: no bubble, no error, and the text still sitting in the box.
+      // Say the true thing and keep the draft — nothing is cleared below.
+      setErrorMsg(t('room.waiting'));
+      return;
+    }
     // Multi-device: any chosen recipient routes the send through the fan-out
     // scheduler (messageEngine.sendToRecipients — 1 selected → targeted; none
     // → every other live device). Clearing the selection afterwards is
