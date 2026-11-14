@@ -78,7 +78,13 @@ self.addEventListener('install', (event) => {
       // One failed chunk must not fail the whole install.
       await Promise.allSettled(lazy.map((url) => cache.add(url)));
     }
-    await self.skipWaiting();
+    // NO skipWaiting(): a new build must never take over a page that is
+    // mid-transfer. With it, activation happened immediately and the page
+    // started asking the new worker for chunks of the old build — the
+    // "everything reloaded and my file died" class of bug. Without it, this
+    // worker waits until every tab under the old one is gone, and activates on
+    // the next cold start or navigation. Nothing reloads the page under the
+    // user; stale chunks are still covered by the build-mismatch recovery.
   })());
 });
 
