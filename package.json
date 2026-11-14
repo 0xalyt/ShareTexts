@@ -42,7 +42,8 @@
     "verify:robust": "node scripts/verify-robust.mjs",
     "verify:claims": "node scripts/verify-claims.mjs",
     "verify:icons": "node scripts/verify-icons.mjs",
-    "verify:chaos": "node scripts/verify-chaos.mjs"
+    "verify:chaos": "node scripts/verify-chaos.mjs",
+    "verify:no-flash": "node scripts/verify-no-flash.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",

@@ -11,6 +11,8 @@ import { motion } from 'motion/react';
 import { useSession } from '../lib/SessionContext';
 import { formatSpeed, formatEta } from '../lib/speedEngine';
 import { renderRichText } from '../lib/richText';
+import { messageState, ITEM_STATE_LABEL, type ItemState } from '../lib/itemState';
+type DictKey = Parameters<ReturnType<typeof useI18n>['t']>[0];
 // lucide icons under the local names this file already uses (all icons are
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
@@ -303,9 +305,10 @@ const STATUS_TONE: Record<string, string> = {
  *   Delivered — the OTHER device confirmed arrival (encrypted ack)
  *   Seen      — the OTHER device's room is open with it on screen (read ack)
  */
-function DeliveryTick({ delivered, seen, onBlue }: { delivered?: boolean; seen?: boolean; onBlue: boolean }) {
+function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) {
   const { t } = useI18n();
-  if (seen) {
+  const label = t(ITEM_STATE_LABEL[state] as DictKey);
+  if (state === 'seen') {
     return (
       <span className="flex items-center gap-1 text-apple-blue">
         <motion.span
@@ -319,11 +322,11 @@ function DeliveryTick({ delivered, seen, onBlue }: { delivered?: boolean; seen?:
         {/* The tick carries the state in colour; the word stays quiet ink.
             A 12px label in full signal-green beside 16px message text made
             the receipt shout louder than the thing it confirms. */}
-        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{t('msg.seen')}</span>
+        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{label}</span>
       </span>
     );
   }
-  if (delivered) {
+  if (state === 'delivered') {
     return (
       <span className="flex items-center gap-1 text-status-success">
         {/* The check pops in when the peer's receipt arrives — a tiny
@@ -336,7 +339,7 @@ function DeliveryTick({ delivered, seen, onBlue }: { delivered?: boolean; seen?:
         >
           <CheckCheck className="w-3.5 h-3.5" />
         </motion.span>
-        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{t('msg.delivered')}</span>
+        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{label}</span>
       </span>
     );
   }
@@ -350,7 +353,7 @@ function DeliveryTick({ delivered, seen, onBlue }: { delivered?: boolean; seen?:
       >
         <Check className="w-3.5 h-3.5" />
       </motion.span>
-      <span className="font-semibold">{t('msg.sent')}</span>
+      <span className="font-semibold">{label}</span>
     </span>
   );
 }
@@ -588,7 +591,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               <>
                 <span className="text-[12px] font-medium flex items-center gap-1 text-apple-ink-muted">
                   {isMe ? (
-                    <DeliveryTick delivered={msg.delivered} seen={msg.seen} onBlue />
+                    <DeliveryTick state={messageState(msg)} onBlue />
                   ) : msg.source === 'push' ? (
                     <span className="font-semibold flex items-center gap-1">
                       <Terminal className="w-3 h-3" /> {t('msg.fromPush')}
@@ -815,7 +818,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                           ? t('xfer.receivedInFrom', { size: formatBytes(a.size), name: session.partnerName, time: formatElapsed(a.completedAt - a.startedAt) })
                           : t('xfer.receivedIn', { size: formatBytes(a.size), time: formatElapsed(a.completedAt - a.startedAt) })}
                     </span>
-                  ) : isMe ? <DeliveryTick delivered={msg.delivered} seen={msg.seen} onBlue /> : msg.source === 'push' ? (
+                  ) : isMe ? <DeliveryTick state={messageState(msg)} onBlue /> : msg.source === 'push' ? (
                     <span className="font-semibold flex items-center gap-1"><Terminal className="w-3 h-3" /> {t('msg.fromPush')}</span>
                   ) : <span className="font-semibold">{t('xfer.receivedShort')}</span>}
                   {/* "Verified" explains itself in place — the term carries the
