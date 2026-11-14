@@ -1,0 +1,89 @@
+{
+  "$comment": "Forbidden claims and their scope. A match fails `node scripts/verify-claims.mjs`. Add `claims-ok: <reason>` on the same line to opt out; every opt-out is printed by the gate so the exemption is never silent.",
+  "rules": [
+    {
+      "id": "e2e",
+      "pattern": "\\bend[- ]to[- ]end\\b|\\bE2E\\b",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "Rooms are encrypted in transit only — the Worker mints the room secret, so it could derive the key. E2E becomes claimable only when the Circle work (M3/M4) proves zero-knowledge."
+    },
+    {
+      "id": "nothing-stored",
+      "pattern": "nothing is (ever )?stored(?! (after|once|when|until|in a|on a server after))|nothing is (ever )?kept(?! (after|once|when|until|in a))",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "Temporary Spaces hold items for a chosen duration, and the server keeps room state, IPs, sizes and times. An absolute is false; say what is actually true."
+    },
+    {
+      "id": "anonymous",
+      "pattern": "\\banonymous\\b(?!\\s+(counters?|metrics?|aggregate))|\\buntraceable\\b|\\buntrackable\\b",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "The service sees IP addresses, times and sizes. Aggregate counters are anonymous; the product is not."
+    },
+    {
+      "id": "military-grade",
+      "pattern": "military[- ]grade|bank[- ]grade",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "Unverifiable marketing superlative."
+    },
+    {
+      "id": "free-forever",
+      "pattern": "free forever|forever free|always free",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "True only until free-tier limits are reached; the product degrades rather than dying."
+    },
+    {
+      "id": "no-limits",
+      "pattern": "no limits|unlimited|any size|any file size",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "There are per-item and per-space caps; 'unlimited' is a promise the server breaks."
+    },
+    {
+      "id": "hardcoded-count",
+      "pattern": "\\b\\d{2,}[ ]+(rooms|connections|people|users)\\b",
+      "scope": [
+        "src/lib/messages/en.ts",
+        "index.html"
+      ],
+      "reason": "Counts come from the metrics service, never from copy. A hard-coded number is an invented one."
+    },
+    {
+      "id": "space-files",
+      "pattern": "space.{0,40}\\b(files|photos|images)\\b.{0,40}\\b(upload|store|keep|host)\\b",
+      "scope": [
+        "src/lib/messages/en.ts",
+        "public/guides/temporary-spaces.html"
+      ],
+      "reason": "Space file storage is disabled (R2 binding commented out). Text and links only until it ships."
+    }
+  ]
+}

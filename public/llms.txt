@@ -21,7 +21,7 @@ Your other device appears in the Nearby list when ShareTexts is open on it with 
 No. ShareTexts runs entirely in the browser on any device with a modern browser: iPhone, iPad, Android, Windows, macOS, Linux, Chromebook.
 
 ### What can I send?
-Text, links, photos, videos, audio, documents — any file type. Links render as tappable cards. Transfers are end-to-end encrypted and never stored on a server.
+Text, links, photos, videos, audio, documents — any file type. Links render as tappable cards. Transfers are encrypted in transit and never stored on a server.
 
 ### What is a Temporary Space and how does its code work?
 A Temporary Space is a shared shelf that lives 6 hours up to 7 days. The creator picks or generates an 8-character code (letters and digits, no 0, O, 1, I, L, 5, S or B to avoid lookalike confusion). Anyone with the code can join while the space is open and add or download content. When the space expires or is closed, the code is retired and the stored content is deleted.
@@ -40,7 +40,7 @@ A Temporary Space is a shared shelf that lives 6 hours up to 7 days. The creator
 - Free, no sign-up; runs in any modern browser with WebRTC (Chrome, Safari, Firefox, Edge).
 - Works across platforms: iPhone ↔ Windows, Android ↔ Mac, iPhone ↔ Android, any combination.
 - Transfer types: text, links, photos, videos, audio, documents, any file. Files up to 1 TB stream to disk; quality and bytes are never altered. Links render as rich preview cards (server-side Open Graph fetch, SSRF-guarded).
-- End-to-end encrypted via WebRTC (DTLS) with an additional AES-GCM layer; the signaling server relays connection metadata only and never sees content.
+- Encrypted in transit via WebRTC (DTLS) with an additional AES-GCM layer; the signaling server relays connection metadata only and never sees content.
 - Nearby discovery shows a device only while ShareTexts is open on it, and you can set yourself Hidden; it is never a global user list.
 - Stay Connected keeps a room alive until you disconnect it yourself; rejoining is one tap from the landing page, and refreshes/network drops recover automatically.
 - Temporary Spaces: shared shelf, 6h–7d lifetime, 8-character join code (discovery only, no keys), self-deletes at expiry; create at /space/create, join at /space/join.

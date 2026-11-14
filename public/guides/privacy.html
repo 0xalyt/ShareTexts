@@ -193,8 +193,8 @@
     </ul>
     <p>The server <strong>cannot</strong> see:</p>
     <ul>
-      <li>File contents (encrypted end-to-end via WebRTC)</li>
-      <li>Text messages (encrypted end-to-end via WebRTC)</li>
+      <li>File contents (encrypted in transit via WebRTC)</li>
+      <li>Text messages (encrypted in transit via WebRTC)</li>
       <li>Transfer metadata like filenames or sizes (exchanged directly between devices)</li>
       <li>User identities (no accounts)</li>
     </ul>
@@ -219,7 +219,7 @@
     <ul>
       <li><strong>Both devices must be online</strong> during the transfer — there is no offline mode.</li>
       <li><strong>Signaling server sees metadata</strong> — the server knows a room exists and two devices are connected, but not what they're transferring.</li>
-      <li><strong>Relay fallback</strong> — if a direct peer-to-peer connection isn't possible, traffic routes through a TURN relay server. The data remains encrypted end-to-end; the relay only forwards encrypted packets.</li>
+      <li><strong>Relay fallback</strong> — if a direct peer-to-peer connection isn't possible, traffic routes through a TURN relay server. The data stays encrypted in transit; the relay only forwards encrypted packets.</li>
       <li><strong>IP addresses are used for rate limiting</strong> — the server reads your IP to prevent abuse, but does not store it persistently.</li>
       <li><strong>No protection against screenshot/screen recording</strong> — the receiving device can capture content after it arrives.</li>
       <li><strong>No protection against a compromised browser</strong> — if your browser is compromised, the encryption cannot protect you.</li>
