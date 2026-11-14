@@ -89,6 +89,7 @@ const hi: Dict = {
   'intent.asText': 'इसे टेक्स्ट के रूप में भेजें',
   'home.journey': 'खोलें · कनेक्ट करें · भेजें',
   'home.roomsMade': 'कनेक्शन अब तक',
+  'home.live': 'लाइव',
   'home.heroAlt': 'ShareTexts लैपटॉप और iPhone पर चल रहा है — डिवाइस जुड़े हैं और ट्रांसफ़र चल रहा है',
   'home.retry': 'फिर कोशिश करें',
   'footer.noApp': 'कोई ऐप नहीं',

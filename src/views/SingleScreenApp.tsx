@@ -1188,11 +1188,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 </span>
                 {nearbyStatus ? (
                   <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
-                ) : roomsCreated != null ? (
+                ) : roomsCreated != null && roomsCreated >= 10 ? (
                   <>
                     <span className="text-[16px] font-bold text-apple-ink/80 dark:text-white/90 tnum leading-none">{fmtNumber(lang, roomsCreated)}</span>
                     <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.roomsMade')}</span>
                   </>
+                ) : roomsCreated != null ? (
+                  // Below ten a count reads as a quiet site advertising its
+                  // quietness ("3 rooms made so far"). The dot is already
+                  // pulsing; one honest word does the same job.
+                  <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.live')}</span>
                 ) : null}
               </motion.div>
               {/* Equal-width grid: the two primary actions share ONE geometry

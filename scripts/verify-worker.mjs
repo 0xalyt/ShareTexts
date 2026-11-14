@@ -606,17 +606,17 @@ async function runRegistry() {
 }
 
 /**
- * The landing-page "rooms made" tracker must NEVER go backwards: the
- * lifetime counter is floored at the historical count (rooms made before
- * lifetime tracking existed), on every increment AND on every read — so a
- * redeploy/eviction that wipes DO storage can't drop the public number from
- * 113+ to 0 and make the landing page look frozen.
+ * The landing-page "rooms made" tracker counts real connections and nothing
+ * else. It used to be floored at 113 — an invented number that made a fresh
+ * deployment look busy. The floor is gone: a wiped counter reports 0, and the
+ * only guarantee is that it grows by exactly one per counted room while the
+ * storage survives.
  *
- * SEMANTICS (Round 04B honesty): rooms.created is fired by Room.recomputeState
- * when a room FIRST holds two live peers — a real two-device connection —
- * never at room creation. These tests exercise the Metrics DO contract
- * directly; the Room-side "counted once per room" behavior is covered by
- * the recomputeState flag, verified in the room-flow test.
+ * SEMANTICS: rooms.created is fired by Room.recomputeState when a room FIRST
+ * holds two live peers — a real two-device connection — never at room
+ * creation. These tests exercise the Metrics DO contract directly; the
+ * Room-side "counted once per room" behavior is covered by the recomputeState
+ * flag, verified in the room-flow test.
  */
 async function runMetrics() {
   const metrics = new Metrics(new FakeCtx(), {});
@@ -625,34 +625,35 @@ async function runMetrics() {
     body: JSON.stringify({ name }),
   }));
 
-  // First rooms.created on FRESH storage: must report the floor, not 1.
+  // First rooms.created on FRESH storage counts 1 — no seed, no floor.
   await post('rooms.created');
   let snap = await (await metrics.fetch(new Request('http://x/metrics'))).json();
-  check('lifetime rooms counter is floored on first increment (fresh storage)', snap.lifetime_rooms_created === 114, `got ${snap.lifetime_rooms_created}`);
+  check('fresh storage counts the first room as 1', snap.lifetime_rooms_created === 1, `got ${snap.lifetime_rooms_created}`);
 
-  // Each subsequent room grows it by one.
+  // Each subsequent room grows it by exactly one.
   await post('rooms.created');
   await post('rooms.created');
   snap = await (await metrics.fetch(new Request('http://x/metrics'))).json();
-  check('lifetime rooms counter grows monotonically', snap.lifetime_rooms_created === 116, `got ${snap.lifetime_rooms_created}`);
+  check('lifetime rooms counter grows monotonically', snap.lifetime_rooms_created === 3, `got ${snap.lifetime_rooms_created}`);
 
-  // A metrics DO reset (redeploy/eviction) must NOT drop the public number
-  // below the floor even on READ, before any new room arrives.
+  // A metrics DO reset (redeploy/eviction) reports the truth: zero, not a
+  // floor. The UI hides the number below 10, so an honest zero is invisible
+  // rather than embarrassing.
   const fresh = new Metrics(new FakeCtx(), {});
   snap = await (await fresh.fetch(new Request('http://x/metrics'))).json();
-  check('floored on read after a storage reset (no room needed)', snap.lifetime_rooms_created >= 113, `got ${snap.lifetime_rooms_created}`);
+  check('storage reset reports 0 (no invented floor)', snap.lifetime_rooms_created === 0, `got ${snap.lifetime_rooms_created}`);
 
-  // Simulated pre-existing counter ABOVE the floor is preserved exactly.
+  // A long run stays exact — no offset, no drift.
   const ahead = new Metrics(new FakeCtx(), {});
   for (let i = 0; i < 40; i++) await ahead.fetch(new Request('http://x/event', { method: 'POST', body: JSON.stringify({ name: 'rooms.created' }) }));
   snap = await (await ahead.fetch(new Request('http://x/metrics'))).json();
-  check('counter above floor keeps exact count (113 + 40 = 153)', snap.lifetime_rooms_created === 153, `got ${snap.lifetime_rooms_created}`);
+  check('40 rooms counts exactly 40', snap.lifetime_rooms_created === 40, `got ${snap.lifetime_rooms_created}`);
 
   // Other metric names never touch the lifetime counter.
   const other = new Metrics(new FakeCtx(), {});
   await other.fetch(new Request('http://x/event', { method: 'POST', body: JSON.stringify({ name: 'joins.succeeded' }) }));
   snap = await (await other.fetch(new Request('http://x/metrics'))).json();
-  check('non-room metrics do not inflate the rooms counter', snap.lifetime_rooms_created === 113, `got ${snap.lifetime_rooms_created}`);
+  check('non-room metrics do not inflate the rooms counter', snap.lifetime_rooms_created === 0, `got ${snap.lifetime_rooms_created}`);
 }
 
 // ── Temporary Space (F14) DO ──────────────────────────────────────────────

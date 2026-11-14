@@ -89,6 +89,7 @@ const zh: Dict = {
   'intent.asText': '改为作为文本发送',
   'home.journey': '打开 · 连接 · 发送',
   'home.roomsMade': '次连接',
+  'home.live': '实时',
   'home.heroAlt': 'ShareTexts 在笔记本电脑和 iPhone 上运行——设备已连接，正在传输',
   'home.retry': '重试',
   'footer.noApp': '无需应用',

@@ -89,6 +89,7 @@ const ja: Dict = {
   'intent.asText': 'テキストとして送信',
   'home.journey': '開く · 接続 · 送信',
   'home.roomsMade': '回の接続',
+  'home.live': 'ライブ',
   'home.heroAlt': 'ShareTexts をノートパソコンと iPhone で使用 — 接続されたデバイス間で転送中',
   'home.retry': 'もう一度試す',
   'footer.noApp': 'アプリ不要',

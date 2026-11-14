@@ -89,6 +89,7 @@ const de: Dict = {
   'intent.asText': 'Stattdessen als Text senden',
   'home.journey': 'Öffnen · Verbinden · Senden',
   'home.roomsMade': 'Verbindungen bisher',
+  'home.live': 'Live',
   'home.heroAlt': 'ShareTexts auf einem Laptop und einem iPhone — Geräte verbunden, Übertragung läuft',
   'home.retry': 'Erneut versuchen',
   'footer.noApp': 'Keine App',

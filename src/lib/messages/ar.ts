@@ -89,6 +89,7 @@ const ar: Dict = {
   'intent.asText': 'أرسله كنص بدلًا من ذلك',
   'home.journey': 'افتح · اربط · أرسل',
   'home.roomsMade': 'اتصال حتى الآن',
+  'home.live': 'مباشر',
   'home.heroAlt': 'ShareTexts يعمل على حاسوب محمول وآيفون — الأجهزة متصلة وعمليات النقل جارية',
   'home.retry': 'إعادة المحاولة',
   'footer.noApp': 'بلا تطبيق',

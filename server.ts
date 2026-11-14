@@ -173,7 +173,7 @@ app.get('/stats', (_req, res) => {
     // Lifetime total, persisted across restarts — never resets to 0. The
     // floor of 113 covers rooms created before lifetime tracking existed;
     // every NEW room still increments past the floor.
-    roomsCreated: Math.max(roomsCreatedTotal, metrics['rooms.created'] ?? 0, 113),
+    roomsCreated: Math.max(roomsCreatedTotal, metrics['rooms.created'] ?? 0),
     note: 'approximate live count of seated devices + total rooms ever created (lifetime, persisted)',
   });
 });

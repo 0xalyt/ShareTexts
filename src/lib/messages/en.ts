@@ -99,6 +99,7 @@ const en = {
   'intent.asText': 'Send as text instead',
   'home.journey': 'Open · Connect · Send',
   'home.roomsMade': 'rooms made so far',
+  'home.live': 'Live',
   'home.heroAlt': 'ShareTexts running on a laptop and iPhone — devices connected and transferring',
   'home.retry': 'Try again',
 
@@ -714,7 +715,7 @@ const en = {
   'demo.h6': 'Arrived.',
   'demo.s6': 'Already on the other device.',
   'demo.h7': 'Done.',
-  'demo.s7': 'Close the room. Nothing is kept.',
+  'demo.s7': 'Close the room. Nothing is kept afterwards.',
   'demo.laptopAlt': 'ShareTexts running on a laptop, inside a demo room',
   'demo.phoneAlt': 'ShareTexts running on a phone, inside a demo room',
   'demo.roomCode': 'Room code',
