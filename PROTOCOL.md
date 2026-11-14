@@ -13,9 +13,9 @@ architectural direction, not a shipped feature.
 | Layer | Responsibility | Implementation |
 | --- | --- | --- |
 | **Transport** | Move bytes between peers | socket.io WebSocket signaling (`server.ts`, `src/lib/socket.ts`) + WebRTC data channel (`src/lib/webrtc.ts`); encrypted relay fallback when no direct route exists |
-| **Session** | Create/join/expire rooms | Rooms keyed by UUID; paired with a 6-digit TOTP code; rooms idle-expire after 12h, stay rejoinable 4h after both peers leave; cleanup every 60s |
+| **Session** | Create/join/expire rooms | Rooms keyed by UUID; paired with a 6-digit TOTP code; rooms idle-expire after 5h (`ROOM_TTL`, `worker/src/room.ts`), and a Stay Connected room stays re-enterable for up to 30 idle days with both seats empty (`STAY_EMPTY_MS`); cleanup every 60s |
 | **Identity** | Who is in the room | The room `secret` (issued by the server after a successful join) is the only credential; device names are cosmetic only |
-| **Encryption** | Keep content private | E2E: both peers derive an AES-GCM key from the room secret via WebCrypto (`src/lib/crypto.ts`). The relay never sees plaintext |
+| **Encryption** | Keep content private | Encrypted in transit: peers derive an AES-GCM key from the room secret via WebCrypto (`src/lib/crypto.ts`). This is **not** end-to-end today — the Worker mints that secret (`worker/src/room.ts`), so it could derive the key. Do not claim E2E for rooms. |
 | **Transfer** | Reliable chunked delivery | Chunked envelope ordered by `transferId`/`sequence`; files use a compact binary variant; relay mirrors chunks when the data channel is down |
 | **Object type** | What is being moved | Typed objects with metadata (`src/lib/protocol.ts`) |
 
