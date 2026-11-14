@@ -1,5 +1,14 @@
 # M2 — BLOCKED
 
+> **Update, `c6bfcb0`.** Three of the four prerequisites below are now done:
+> `src/lib/itemState.ts` exists and `MessageCard`'s delivery tick reads its
+> state and label from it; `scripts/verify-no-flash.mjs` exists and is clean
+> (0 ms blank, 0 white frames, no `skipWaiting`); `SHARETEXTS-PROJECT-STATE.md`
+> exists with §4–8 in place. **One blocker remains: the bundle gate.**
+> `npm run verify:bundle` still fails at 219.9 KB against 180 KB, and the M2
+> prompt's prerequisite check treats a red gate as a stop. Everything else in
+> this file is the original audit, kept for the record.
+
 **Checked at `8e70030` (M1 pushed), 2026-11-14.** The M2 prompt requires the
 previous milestone's report to show STEPs 0–3 shipped before anything is built.
 It does not. Nothing was built for M2; no files outside this one were touched.
