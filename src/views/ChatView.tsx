@@ -1164,7 +1164,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             data-testid="end-session"
             onClick={() => setConfirmDisconnect(true)}
             aria-label={t('common.disconnectAria')}
-            className="flex items-center gap-1.5 rounded-full font-semibold min-h-[40px] px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
+            className="flex items-center gap-1.5 rounded-full font-semibold min-h-[40px] px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.97] transition-colors"
           >
             <DisconnectGlyph size={16} />
             <span className="hidden sm:inline">{t('common.disconnect')}</span>
@@ -1318,7 +1318,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 data-testid="reconnect"
                 onPointerDown={startReconnectFeedback}
                 disabled={reconnecting}
-                className="min-h-[40px] px-3 py-1.5 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-95 shrink-0 flex items-center gap-1.5"
+                className="min-h-[40px] px-3 py-1.5 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-[0.97] shrink-0 flex items-center gap-1.5"
               >
                 {/* In-flight acknowledgment: the arrow spins while the
                     handshake runs and the label says so — a tap always
@@ -1557,7 +1557,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 exit={{ opacity: 0, y: 8, scale: 0.9 }}
                 transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
                 onPointerDown={() => { setShowJump(false); atBottomRef.current = true; messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="self-center flex items-center gap-1.5 px-4 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float text-[13px] font-semibold active:scale-95 transition-motion"
+                className="self-center flex items-center gap-1.5 px-4 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float text-[13px] font-semibold active:scale-[0.97] transition-motion"
               >
                 <ChevronDown className="w-3.5 h-3.5" /> {t('chat.newMessage')}
               </motion.button>
@@ -1586,7 +1586,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 type="button"
                 onClick={copySelected}
                 disabled={selection.size === 0}
-                className="flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-full bg-white/15 dark:bg-black/10 text-[12px] font-semibold disabled:opacity-40 active:scale-95 transition-motion"
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-full bg-white/15 dark:bg-black/10 text-[12px] font-semibold disabled:opacity-40 active:scale-[0.97] transition-motion"
               >
                 <Copy className="w-3.5 h-3.5" /> {t('select.copySelected')}
               </button>
@@ -1594,7 +1594,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 type="button"
                 onClick={exitSelectMode}
                 aria-label={t('select.clear')}
-                className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/15 dark:hover:bg-black/10 active:scale-95 transition-motion"
+                className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/15 dark:hover:bg-black/10 active:scale-[0.97] transition-motion"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1690,7 +1690,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               onContextMenu={(e) => e.preventDefault()}
               aria-label={t('attach.add')}
               aria-expanded={showAttachmentMenu}
-              className="min-w-[44px] min-h-[44px] w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 bg-white dark:bg-apple-tile-2 border border-apple-divider/70 dark:border-white/[0.08] shadow-sm text-apple-ink dark:text-white hover:bg-apple-parchment dark:hover:bg-apple-tile-3 transition-colors active:scale-90 select-none [touch-action:manipulation] [-webkit-touch-callout:none]"
+              className="min-w-[44px] min-h-[44px] w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 bg-white dark:bg-apple-tile-2 border border-apple-divider/70 dark:border-white/[0.08] shadow-sm text-apple-ink dark:text-white hover:bg-apple-parchment dark:hover:bg-apple-tile-3 transition-colors active:scale-[0.97] select-none [touch-action:manipulation] [-webkit-touch-callout:none]"
             >
               <Plus className={cn("w-5 h-5 transition-transform duration-200", showAttachmentMenu && "rotate-45")} />
             </button>
@@ -1827,7 +1827,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                           aria-label={label}
                           data-testid={`format-${kind}`}
                           onClick={() => applyFormatting(kind)}
-                          className="w-10 h-10 rounded-[12px] flex items-center justify-center text-apple-ink-muted dark:text-white/50 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-95 transition-all"
+                          className="w-10 h-10 rounded-[12px] flex items-center justify-center text-apple-ink-muted dark:text-white/50 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-[0.97] transition-all"
                         >
                           {glyph}
                         </button>
@@ -1881,7 +1881,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 onClick={handleSend}
                 disabled={(!inputText.trim() && attachments.length === 0) || (!session.partnerConnected && !(recipients.length > 0) && !isMultiRoom)}
                 aria-label={t('composer.send')}
-                className="w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 transition-all duration-200 active:scale-90 text-white bg-ember hover:bg-brand-strong disabled:bg-apple-hairline dark:disabled:bg-white/15 disabled:shadow-none disabled:text-apple-ink-muted/60 dark:disabled:text-white/30 shadow-[0_1px_3px_rgba(240,100,19,0.35)]"
+                className="w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 transition-all duration-200 active:scale-[0.97] text-white bg-ember hover:bg-brand-strong disabled:bg-apple-hairline dark:disabled:bg-white/15 disabled:shadow-none disabled:text-apple-ink-muted/60 dark:disabled:text-white/30 shadow-[0_1px_3px_rgba(240,100,19,0.35)]"
               >
                 {/* Arrow ↔ check morph: the arrow lifts away, a check springs
                     in — a real shape transition, not a crossfade. */}
@@ -1958,7 +1958,7 @@ function RemoveAttachmentButton({ onClick }: { onClick: () => void }) {
       type="button"
       onPointerDown={onClick}
       aria-label={t('attach.remove')}
-      className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-black/75 dark:bg-black/75 text-white border border-white/25 shadow-md flex items-center justify-center z-10 transition-transform active:scale-90 hover:bg-black/90"
+      className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-black/75 dark:bg-black/75 text-white border border-white/25 shadow-md flex items-center justify-center z-10 transition-transform active:scale-[0.97] hover:bg-black/90"
     >
       <X className="w-4 h-4" />
     </button>

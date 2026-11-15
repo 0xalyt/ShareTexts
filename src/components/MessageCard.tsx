@@ -148,7 +148,7 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
           aria-label={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           title={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           data-testid={`reaction-chip-${emoji}`}
-          className="group/chip flex items-center justify-center min-h-[40px] min-w-[40px] px-0.5 transition-motion active:scale-90"
+          className="group/chip flex items-center justify-center min-h-[40px] min-w-[40px] px-0.5 transition-motion active:scale-[0.97]"
         >
           {/* The hit box is 40px; the VISIBLE pill stays 26px inside it. The
               touch contract and the visual weight are both satisfied — a
@@ -618,7 +618,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 </span>
                 <button
                   onPointerDown={(e) => { e.preventDefault(); void retryText(msg.id); }}
-                  className="st-tap flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-95 bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
+                  className="st-tap flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-[0.97] bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
                 >
                   <RefreshCw className="w-3 h-3" /> {t('action.retry')}
                 </button>
@@ -654,7 +654,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   aria-label={t('msg.copyMessage')}
                   title={t('msg.copy')}
                   className={cn(
-                    "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] -mr-[13px] rounded-full transition-motion active:scale-90",
+                    "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] -mr-[13px] rounded-full transition-motion active:scale-[0.97]",
                     copied
                       ? "text-status-success"
                       : "text-apple-ink-muted hover:text-apple-ink dark:hover:text-white hover:bg-apple-divider/60 dark:hover:bg-apple-tile-3"
@@ -1082,7 +1082,7 @@ function BookmarkButton({ msg }: { msg: ChatMessage }) {
         disabled={bm.busy}
         data-testid="save-item"
         className={cn(
-          "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] rounded-full transition-motion active:scale-90",
+          "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] rounded-full transition-motion active:scale-[0.97]",
           bm.error
             ? "text-status-danger"
             : bm.saved
@@ -1266,7 +1266,7 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
       <button
         onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
         aria-label={t('common.close')}
-        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-95"
+        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-[0.97]"
       >
         <X className="w-5 h-5" />
       </button>

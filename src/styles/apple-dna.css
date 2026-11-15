@@ -12,12 +12,12 @@
 
 @layer base {
   :root {
-    /* Press */
-    --st-press-scale: 0.975;
+    /* Press — one value for every control in the app. */
+    --st-press-scale: 0.97;
 
     /* Durations (§18) */
-    --st-t-press: 95ms;
-    --st-t-release: 155ms;
+    --st-t-press: 160ms;
+    --st-t-release: 160ms;
     --st-t-popover: 175ms;
     --st-t-thumb: 240ms;
     --st-t-mode: 190ms;
@@ -48,16 +48,41 @@
 }
 
 /* ── Press ──────────────────────────────────────────────────────────────
-   Every tappable control answers contact within 95 ms. Primary buttons use
-   the translateY + edge press from §6 instead, so they do not also scale. */
-.press {
-  transition: transform var(--st-t-release) var(--st-ease-enter);
+   Every tappable control answers contact the same way: transform to
+   scale(0.97) in 160 ms on ease-out, released on the same curve.
+
+   Deliberately NOT a layout change — no margin, width, padding or position
+   moves on press, so a press cannot reflow what is being pressed, and
+   deliberately not a brightness filter as the only feedback: the scale is
+   the feedback, and colour rides along at 160 ms if the control has one.
+
+   These rules are unlayered, so they beat Tailwind's utilities on a tie; any
+   control that must keep its own motion (a translating handle, a full-page
+   surface) opts out with data-no-press instead of fighting the cascade. */
+.press,
+:where(button, [role='button'], summary, [data-press]):not([data-no-press]) {
+  transition:
+    transform var(--st-t-press) var(--ease-out),
+    background-color var(--st-t-press) ease,
+    color var(--st-t-press) ease,
+    border-color var(--st-t-press) ease,
+    opacity var(--st-t-press) ease;
+  transform-origin: center;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.press:active:not(:disabled):not([aria-disabled='true']) {
+.press:active:not(:disabled):not([aria-disabled='true']):not([data-no-press]),
+:where(button, [role='button'], summary, [data-press]):active:not(:disabled):not([aria-disabled='true']):not([data-no-press]) {
   transform: scale(var(--st-press-scale));
-  transition-duration: var(--st-t-press);
+}
+
+/* A disabled control does not answer contact and does not pretend to: no
+   scale, no pointer, and the existing disabled styling keeps it visibly
+   inert. */
+:where(button, [role='button'], [data-press]):disabled,
+:where(button, [role='button'], [data-press])[aria-disabled='true'] {
+  transform: none;
+  cursor: not-allowed;
 }
 
 /* ── Glass ──────────────────────────────────────────────────────────────
@@ -240,10 +265,19 @@ html.dark .sheet-grabber {
 /* ── Reduced motion ─────────────────────────────────────────────────────
    No travel, no parallax: the same information arrives as a 140 ms fade. */
 @media (prefers-reduced-motion: reduce) {
+  /* Fewer and gentler, not zero: the scale goes away, colour and opacity stay
+     so a press still answers. */
   .press,
-  .press:active {
+  :where(button, [role='button'], summary, [data-press]):not([data-no-press]) {
+    transition:
+      background-color 120ms ease,
+      color 120ms ease,
+      border-color 120ms ease,
+      opacity 120ms ease;
+  }
+  .press:active,
+  :where(button, [role='button'], summary, [data-press]):active {
     transform: none;
-    transition: none;
   }
   .route-screen[data-route-state] {
     animation: st-crossfade var(--st-t-reduce) linear both;
@@ -296,8 +330,10 @@ html.dark .sheet-grabber {
   font-size: 19px;
   box-shadow: 0 3px 0 #c04b09;
 }
+/* Press is the same scale as everything else; the edge shrink rides along
+   without moving the label, so nothing reflows. */
 .st-btn--primary:active:not(:disabled) {
-  transform: translateY(2px);
+  transform: scale(var(--st-press-scale));
   box-shadow: 0 1px 0 #c04b09;
 }
 html.dark .st-btn--primary {
@@ -403,7 +439,7 @@ html.dark .st-btn--destructive {
   background: #e85e10;
 }
 .st-pill-brand:active {
-  transform: translateY(2px);
+  transform: scale(var(--st-press-scale));
   box-shadow: 0 1px 0 #c04b09;
 }
 

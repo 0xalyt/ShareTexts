@@ -740,7 +740,7 @@ export function Docs() {
                   <button
                     key={item.id}
                     onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.99] motion-reduce:active:scale-100 ${
+                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.97] motion-reduce:active:scale-100 ${
                       activeSection === item.id
                         ? 'bg-ember/10 text-ember dark:bg-azure-400/10 dark:text-azure-400'
                         : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'
@@ -760,7 +760,7 @@ export function Docs() {
                   <button
                     key={item.id}
                     onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.99] motion-reduce:active:scale-100 ${
+                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.97] motion-reduce:active:scale-100 ${
                       activeSection === item.id
                         ? 'bg-ember/10 text-ember dark:bg-azure-400/10 dark:text-azure-400'
                         : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'

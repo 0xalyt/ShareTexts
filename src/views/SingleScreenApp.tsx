@@ -1299,7 +1299,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                         data-testid="stay-rejoin"
                         onClick={handleStayRejoin}
                         disabled={isRejoining}
-                        className="group w-full flex items-center gap-3.5 pl-3.5 pr-3 py-3 rounded-[16px] st-card hover:border-ember/45 dark:hover:border-azure-400/50 active:scale-[0.985] transition-all duration-200 text-left disabled:opacity-60"
+                        className="group w-full flex items-center gap-3.5 pl-3.5 pr-3 py-3 rounded-[16px] st-card hover:border-ember/45 dark:hover:border-azure-400/50 active:scale-[0.97] transition-all duration-200 text-left disabled:opacity-60"
                       >
                         <span className="relative shrink-0 w-9 h-9 rounded-full bg-ember/10 dark:bg-azure-400/15 flex items-center justify-center text-ember dark:text-azure-400" aria-hidden>
                           {/* Live pulse: this room is still breathing upstream. */}
@@ -1483,7 +1483,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* Escape hatch: the creator returns to their pairing screen
                     (the room stays open); the joiner abandons and can enter a
                     fresh code. Never a trap. */}
-                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[40px] rounded-full active:scale-95 transition-colors">
+                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[40px] rounded-full active:scale-[0.97] transition-colors">
                   <X className="w-3.5 h-3.5" /> {t('cancel')}
                 </button>
               </div>
@@ -1941,7 +1941,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 onClick={() => setShowSettings(true)}
                 aria-label={t('settings.title')}
                 title={t('settings.title')}
-                className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 active:scale-95 text-apple-ink-muted/70 dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07]"
+                className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 active:scale-[0.97] text-apple-ink-muted/70 dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07]"
               >
                 <SettingsIcon className="w-[18px] h-[18px]" aria-hidden />
               </button>
@@ -2327,7 +2327,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <button
                   onClick={() => { void copyLink(); }}
                   data-testid="qr-copy"
-                  className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-apple-parchment dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.98]"
+                  className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-apple-parchment dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.97]"
                 >
                   {copiedLink ? <Check className="w-4 h-4 text-status-success" /> : <Copy className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />}
                   {copiedLink ? t('action.copied') : t('action.copy')}

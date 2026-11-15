@@ -111,7 +111,7 @@ export function StayBadge({ className, onOpenDetails }: { className?: string; on
       aria-label={t('stay.badge')}
       title={t('stay.badge')}
       data-testid="stay-badge"
-      className="shrink-0 w-11 h-11 -m-2 flex items-center justify-center rounded-full active:scale-90 transition-transform"
+      className="shrink-0 w-11 h-11 -m-2 flex items-center justify-center rounded-full active:scale-[0.97] transition-transform"
     >
       <span
         className="w-7 h-7 rounded-full flex items-center justify-center bg-ember/10 dark:bg-azure-400/15 text-ember dark:text-azure-400"

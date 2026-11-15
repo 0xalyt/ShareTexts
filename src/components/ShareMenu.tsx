@@ -225,7 +225,7 @@ export function ShareMenu({
               onClick={() => { void copy(url, 'link'); }}
               className={cn(
                 'mt-2 w-full min-h-[40px] flex items-center justify-center gap-2 rounded-[12px] border px-3 py-2',
-                'text-[12px] font-semibold transition-colors active:scale-[0.99]',
+                'text-[12px] font-semibold transition-colors active:scale-[0.97]',
                 done === 'link'
                   ? 'border-status-success/40 bg-status-success/10 text-status-success'
                   : 'border-apple-divider dark:border-white/10 text-apple-ink dark:text-white/85 hover:bg-apple-parchment dark:hover:bg-white/[0.07]'

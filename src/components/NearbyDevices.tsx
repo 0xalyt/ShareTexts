@@ -690,7 +690,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                          two never read as the same thing at a glance. */
                       'st-card',
                       'hover:border-ember/45 dark:hover:border-azure-400/50',
-                      'active:scale-[0.985] transition-all',
+                      'active:scale-[0.97] transition-all',
                       'disabled:opacity-50 disabled:pointer-events-none',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark',
                       'focus-visible:transition-colors' // smoother focus state
@@ -793,7 +793,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                     type="button"
                     onClick={() => { forgetRecentDevice(r.token); setRecents(getRecentDevices()); }}
                     aria-label={t('nearby.forget')}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-apple-ink-muted/60 dark:text-white/30 hover:text-status-danger hover:bg-status-danger/10 active:scale-90 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-apple-ink-muted/60 dark:text-white/30 hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.97] transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
