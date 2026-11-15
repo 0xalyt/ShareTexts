@@ -50,6 +50,11 @@ the room secret, so the product does **not** claim end-to-end encryption.
 
 ## 5. Known debt (ordered by what it costs the owner)
 
+-1. **M6 is blocked on M4, and M4 is blocked on nothing now.** Linked devices,
+   the outbox/inbox and push do not exist yet, so "Send from anywhere" has no
+   destination. M4's original blockers (deploy, zero-knowledge gate) are both
+   cleared — see `M6-blocked.md`. Run M4, then M6.
+
 0. **Nearby is scoped but not yet private.** STEP 1 gave presence a network
    shard; visibility is still implicit (any open tab is listed) and there is no
    code for a stranger. M5 STEPs 2–3 fix that. Until then the honest sentence is
