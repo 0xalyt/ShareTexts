@@ -166,7 +166,67 @@ STEP 2 mailbox server (`worker/src/circle.ts`, `limits.ts`, routes, `CIRCLES`,
 (`verify-zero-knowledge.mjs`) · STEP 5 flagged dev surface · STEP 6 deploy
 safety.
 
-## 5. Files changed
+
+## 5. STEP 3 — client pairing, shipped
+
+`src/lib/circle/api.ts` — the signed client. Every call signs
+`METHOD 
+ PATH 
+ hex(SHA-256(bodyBytes)) 
+ time 
+ nonce` with the device key;
+the body is hashed as bytes and the path is the pathname (query excluded, so the
+two sides cannot disagree about a `since`). `join` is the one request that signs
+with the key it is *submitting*, which is why a pending device can speak before
+it is a member.
+
+`src/lib/circle/pairing.ts` — the four moves: create (the circle id is chosen by
+the client, not the server), invite (the **join secret is the client's**; the
+server is given only its SHA-256 — this was a real bug in STEP 2's first version
+and is fixed here), join → pending, four emoji, approve → wrap + signed
+`add_device`. Plus `pairingProblemKey()`, so every failure the flow can produce
+has an i18n key instead of ad-hoc wording.
+
+`src/lib/circle/store.ts` — IndexedDB `sharetext-circle` v1, one record per
+circle: `circleId`, `epoch`, K imported for use, and the raw K the inviting
+device needs to wrap for a new device.
+
+### Gate — `npm run verify:circle-pairing` (17/17, real worker)
+
+Runs the production modules against `wrangler dev` on 127.0.0.1:8787 (not a
+mock, not a re-implementation):
+
+```
+ok  one device creates the circle and holds K
+ok  an invite has a code, a client-owned secret and a fragment
+ok  the server never receives the join secret
+ok  the fragment round-trips to (circleId, joinSecret)
+ok  the joiner becomes pending with a transcript hash
+ok  the inviter sees exactly one pending device · a pending device is not a member yet
+ok  both devices show the same four emoji — 🍉 🦊 🦊 ✈️
+ok  a swapped key produces different emoji — 🐷 🥁 🐔 🎸
+ok  approval wraps K for the joiner and records an epoch
+ok  the joiner unwraps the same K and reads what the inviter sealed
+ok  the circle now lists two devices, and B can read it too
+ok  a wrap exists for the joiner at epoch 1
+ok  a spent invite cannot link another device · a wrong code is refused
+ok  a device outside the circle cannot read it · the server rejects a malformed invite id
+
+17/17 checks passed
+```
+
+Server changes that came with it: `POST /invite` now takes the client's
+`inviteId` (the server mints only the code), `GET /pending` lists joiners for
+members only, base64**url** keys and signatures decode correctly on the Worker
+side (a plain `atob` rejected every browser-signed request), and circle
+responses carry CORS headers with PUT/DELETE plus the signature headers allowed.
+
+**Deviation to know about (⚑ question 1 below):** `store.ts` keeps the raw K
+alongside the non-extractable import. Wrapping K for a newly linked device needs
+its bytes, and the server holds nothing. The item path still uses only derived,
+non-extractable keys.
+
+## 5b. Files changed
 
 `docs/adr/0001-circle.md` (new) · `docs/claims.md` · `src/lib/circle/seal.ts`
 (new) · `src/lib/circle/keys.ts` (new) · `scripts/verify-circle-crypto.mjs`

@@ -109,8 +109,11 @@ export default {
         status: 204,
         headers: {
           'Access-Control-Allow-Origin': origin || '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'content-type',
+          // The mailbox needs PUT (sealed chunks) and DELETE (an item the
+          // sender withdrew), plus the signature headers it signs with.
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers':
+            'content-type, x-st-device, x-st-time, x-st-nonce, x-st-sig, x-st-chunks, x-st-epoch, x-st-size',
           'Access-Control-Max-Age': '86400',
           'Vary': 'Origin',
         },
@@ -261,7 +264,12 @@ export default {
       if (!m) return json({ error: 'Not found' }, 404, cors);
       const internal = new Request('https://internal' + path + url.search, request);
       const id = env.CIRCLES.idFromName(m[1].toLowerCase());
-      return env.CIRCLES.get(id).fetch(internal);
+      const res = await env.CIRCLES.get(id).fetch(internal);
+      // The DO speaks plain JSON; the browser needs the origin headers too, or
+      // every mailbox call from the app fails at the CORS step.
+      const out = new Response(res.body, res);
+      for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+      return out;
     }
 
     if (path === '/space-ws') {

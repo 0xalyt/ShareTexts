@@ -92,8 +92,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const DEVICE_RE = /^[a-z0-9]{8,40}$/i;
 const MAX_STRING = 8192;
 
+/** base64url OR base64 — browsers send url-safe alphabets, and a key that
+ *  decodes differently on the two sides of the wire is a silent auth bug. */
 const b64 = (s: string): Uint8Array => {
-  const bin = atob(s);
+  const norm = s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=');
+  const bin = atob(norm);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
@@ -166,8 +169,16 @@ export class Circle extends DurableObject<Env> {
       if ('response' in auth) return auth.response;
       const deviceId = auth.deviceId;
 
-      if (path === '/invite' && method === 'POST') return await this.handleInvite(deviceId, existing);
+      if (path === '/invite' && method === 'POST') return await this.handleInvite(rawBody, deviceId, existing);
       if (path === '/members' && method === 'GET') return await this.handleMembers(existing);
+      // Pending devices are visible to members only: approval needs the key
+      // the joiner submitted, and nobody else may ever enumerate them.
+      if (path === '/pending' && method === 'GET') {
+        const pending = await this.ctx.storage.list<MemberRecord>({ prefix: 'pending:' });
+        return json({ pending: [...pending.values()].map((m) => ({
+          deviceId: m.deviceId, signPub: m.signPub, ecdhPub: m.ecdhPub, joinedAt: m.joinedAt,
+        })) });
+      }
       if (path === '/approve' && method === 'POST') return await this.handleApprove(rawBody, deviceId, existing);
       if (path === '/log' && method === 'POST') return await this.handleLogAppend(rawBody, deviceId, existing);
       if (path === '/log' && method === 'GET') return await this.handleLogRead(url, existing);
@@ -194,14 +205,19 @@ export class Circle extends DurableObject<Env> {
 
   // ── handlers ────────────────────────────────────────────────────────────────
 
-  private async handleInvite(deviceId: string, meta: CircleMeta): Promise<Response> {
+  private async handleInvite(rawBody: Uint8Array, deviceId: string, meta: CircleMeta): Promise<Response> {
     const invites = await this.ctx.storage.list<InviteRecord>({ prefix: 'invite:' });
     const live = [...invites.values()].filter((i) => i.expiresAt > Date.now() && !i.usedAt);
     if (live.length >= L.invitesPerCircle) return json({ error: 'TOO_MANY_INVITES' }, 429);
 
-    const raw = crypto.getRandomValues(new Uint8Array(16));
-    const joinSecret = Array.from(raw).map((b) => b.toString(16).padStart(2, '0')).join('');
-    const inviteId = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(joinSecret)));
+    // The client chooses the join secret and sends only its hash: the server
+    // stores an id it cannot reverse, exactly as ADR 0001 says.
+    const body = this.parse<{ inviteId: string }>(rawBody);
+    const inviteId = String(body?.inviteId || '').toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(inviteId)) return json({ error: 'BAD_INVITE' }, 400);
+    if (await this.ctx.storage.get<InviteRecord>(`invite:${inviteId}`)) {
+      return json({ error: 'INVITE_EXISTS' }, 409);
+    }
     // 8 characters from a 32-symbol alphabet: readable, not guessable.
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const code = Array.from(crypto.getRandomValues(new Uint8Array(8)))

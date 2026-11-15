@@ -124,10 +124,14 @@ const C = await newDevice();
 // ── invite and pending join ─────────────────────────────────────────────────
 let invite;
 {
-  const r = await call('POST', '/invite', { headers: await sign(A, 'POST', '/invite', '{}'), body: '{}', label: 'POST /invite' });
+  // The join secret is the client's: the server is given only its hash.
+  const joinSecret = b64(crypto.getRandomValues(new Uint8Array(16)));
+  const inviteId = Buffer.from(new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(joinSecret)))).toString('hex');
+  const inviteBody = JSON.stringify({ inviteId });
+  const r = await call('POST', '/invite', { headers: await sign(A, 'POST', '/invite', inviteBody), body: inviteBody, label: 'POST /invite' });
   invite = r.body;
-  check('invite mints a 64-hex id and an 8-char code',
-    r.status === 200 && /^[0-9a-f]{64}$/.test(invite?.inviteId || '') && /^[A-Z2-9]{8}$/.test(invite?.code || ''),
+  check('invite echoes the client id and mints an 8-char code',
+    r.status === 200 && invite?.inviteId === inviteId && /^[A-Z2-9]{8}$/.test(invite?.code || ''),
     invite?.code);
   check('invite expires within ten minutes', !!invite && invite.expiresAt - Date.now() <= 10 * 60 * 1000 + 1000);
 }
@@ -222,7 +226,7 @@ const plaintext = crypto.getRandomValues(new Uint8Array(1024));
 {
   const body = JSON.stringify({ kind: 'add_device', body: '{"device":"' + B.deviceId + '"}', sig: 'sig', ts: Date.now() });
   const append = await call('POST', '/log', { headers: await sign(A, 'POST', '/log', body), body, label: 'POST /log' });
-  // Signatures bind the PATH, never the query string (ADR: METHOD/PATH/digest).
+  // Signatures bind the whole target, query included.
   const read = await call('GET', '/log?since=0', { headers: await sign(A, 'GET', '/log'), label: 'GET /log' });
   if (append.status !== 200) console.log('    log append status', append.status, JSON.stringify(append.body));
   check('a signed log entry is chained with a sequence number',
