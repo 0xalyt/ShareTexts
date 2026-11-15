@@ -58,6 +58,9 @@ const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = {
   ws: { limit: 30, windowMs: 60_000 },
   space: { limit: 40, windowMs: 60_000 },
   'space-code': { limit: 30, windowMs: 60_000 }, // code checks + join-by-code
+  // Circle (M3): a mailbox is chatty — a single item is many chunk PUTs plus
+  // an ack per device — so this budget is per IP per minute, not per action.
+  circle: { limit: 240, windowMs: 60_000 },
 };
 
 export class Registry extends DurableObject<Env> {

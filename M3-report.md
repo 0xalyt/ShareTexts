@@ -233,7 +233,36 @@ non-extractable keys.
 (new) · `package.json` (gate wired) · `M1-report.md` (bundle line brought up to
 date: the recorded failure was fixed in `661f99e` and the record now says so).
 
-## 6. New gates
+
+## 6. DEPLOY — done (2026-11-15)
+
+`npm run worker:deploy` ran against the owner's Cloudflare account (wrangler
+OAuth, account `b46c16…`). Version `53ee77ad-8502-42ba-a788-32b0f7551355`.
+
+Verified against production, not assumed:
+
+```
+GET  /health                        → {"ok":true,"service":"sharetext-signaling-cf"}
+POST /circle/<uuid>/create          → 200 {"circleId":…,"epoch":1,"createdAt":…}
+GET  /circle/<uuid>/members (no sig)→ 401
+POST /lookup (unknown code)         → 404
+npm run worker:test                 → 103/103
+npm run worker:test-live            → 18/18
+```
+
+**A production bug was found by deploying**: `/circle/*` answered **429** to
+every request, first one included. Cause: the route asks the Registry for the
+`circle` rate-limit scope, and that scope did not exist — an unknown scope
+returns 400, which the route reads as "limited". Fixed by adding
+`circle: { limit: 240, windowMs: 60_000 }` to `RATE_LIMITS` (a mailbox is many
+chunk PUTs per item, so the budget is per IP per minute, not per action) and
+re-deploying. This is exactly the class of failure the emulator cannot see.
+
+Still to come in M3: STEP 4 (`verify-zero-knowledge.mjs`), STEP 5
+(`/?circle=dev`), STEP 6 (`/circle/capabilities` + deploy safety). The mailbox
+is live and answers, but the claim flip stays forbidden until STEP 4 is green.
+
+## 7. New gates
 
 `npm run verify:circle-crypto` (24 assertions).
 
