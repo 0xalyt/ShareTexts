@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, animate, motion, useReducedMotion } from 'motion/react';
 import { X } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 import { useFocusTrap } from '../../lib/useFocusTrap';
 import { hapticTick } from '../../lib/haptics';
-import { DUR, SPRING } from '../../lib/motion/tokens';
+import { DUR, EASE, SPRING } from '../../lib/motion/tokens';
 import { cn } from '../../lib/utils';
 
 /**
@@ -60,6 +60,8 @@ export type SheetProps = {
   keepMounted?: boolean;
   /** Disable the drag gesture (e.g. a sheet that is itself a keyboard form). */
   draggable?: boolean;
+  /** `false` for a destructive confirmation: Escape and the scrim do not dismiss it. */
+  dismissable?: boolean;
   panelClassName?: string;
   children: React.ReactNode;
 };
@@ -122,6 +124,7 @@ export function Sheet({
   scroll = 'panel',
   keepMounted = false,
   draggable = true,
+  dismissable = true,
   panelClassName,
   children,
 }: SheetProps) {
@@ -131,6 +134,48 @@ export function Sheet({
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const backdropRef = useRef<HTMLDivElement | null>(null);
+
+  /* Where the dialog grows from: the control that had focus before it opened,
+     so the panel appears to come out of what you pressed. Centre is only the
+     fallback for a sheet with no source (deep link, error, first paint). */
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const [origin, setOrigin] = useState<string | undefined>(undefined);
+  /** >=sm: a centred dialog may scale; below it the panel slides from the bottom edge. */
+  const [desktop, setDesktop] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 640px)');
+    const sync = () => setDesktop(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  // While closed, remember the last focused control: that is the trigger.
+  // Safari leaves focus on <body> after a click, and then the origin simply
+  // stays undefined, which means centre.
+  useEffect(() => {
+    if (open || typeof document === 'undefined') return;
+    const remember = () => {
+      const active = document.activeElement as HTMLElement | null;
+      if (active && active !== document.body) triggerRef.current = active;
+    };
+    document.addEventListener('focusin', remember);
+    return () => document.removeEventListener('focusin', remember);
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const panelEl = panelRef.current;
+    const trigger = triggerRef.current ?? (document.activeElement as HTMLElement | null);
+    if (!panelEl || !trigger || trigger === document.body) { setOrigin(undefined); return; }
+    const t = trigger.getBoundingClientRect();
+    // offsetTop/Left ignore the transform motion writes, so the origin is
+    // measured against where the panel settles, not where it flies in from.
+    const clamp = (v: number, max: number) => Math.round(Math.min(Math.max(v, 0), max));
+    setOrigin(`${clamp(t.left + t.width / 2 - panelEl.offsetLeft, panelEl.offsetWidth)}px ${clamp(t.top + t.height / 2 - panelEl.offsetTop, panelEl.offsetHeight)}px`);
+  }, [open]);
   /** Heights in px, mirrored into inline styles. Kept in a ref because they
    *  change per frame and must never trigger a React render. */
   const physics = useRef({ y: 0, max: restMax() });
@@ -179,13 +224,16 @@ export function Sheet({
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // A destructive confirmation is decided by its buttons, not by a
+        // stray Escape that would read as "cancelled" after the fact.
+        if (!dismissable) return;
         e.preventDefault();
         onClose();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open, onClose, dismissable]);
 
   /* ── drag ─────────────────────────────────────────────────────────────── */
   const gesture = useRef<{
@@ -436,7 +484,7 @@ export function Sheet({
       exit={{ opacity: 0 }}
       style={{ pointerEvents: open ? undefined : 'none' }}
       transition={{ duration: DUR.short / 1000 }}
-      onClick={open ? onClose : undefined}
+      onClick={open && dismissable ? onClose : undefined}
     />
   );
 
@@ -524,8 +572,8 @@ export function Sheet({
         {backdrop}
         <motion.div
           className="w-full flex justify-center sm:block"
-          animate={{ y: open ? 0 : '100%', opacity: open ? 1 : 0.4 }}
-          transition={SPRING.sheet}
+          animate={{ y: open ? 0 : '100%', opacity: open ? 1 : 0.4, scale: 1 }}
+          transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE.out }}
           style={{ visibility: open ? 'visible' : 'hidden', maxWidth }}
         >
           {panel(true)}
@@ -542,11 +590,15 @@ export function Sheet({
           {backdrop}
           <motion.div
             className="w-full flex justify-center sm:block"
-            initial={{ y: '100%', opacity: 0.6 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 0.35 }}
-            transition={SPRING.sheet}
-            style={{ maxWidth }}
+            initial={reduced
+              ? { opacity: 0 }
+              : { y: desktop ? 10 : '100%', opacity: 0, scale: desktop ? 0.98 : 1 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={reduced
+              ? { opacity: 0 }
+              : { y: desktop ? 8 : '100%', opacity: 0, scale: desktop ? 0.98 : 1 }}
+            transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE.out }}
+            style={{ maxWidth, transformOrigin: desktop ? origin : 'bottom center' }}
           >
             {panel(false)}
           </motion.div>

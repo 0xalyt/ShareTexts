@@ -110,6 +110,7 @@ export function ConfirmSheet({
       closeButton={false}
       scroll="none"
       testId="confirm-sheet"
+      dismissable={!destructive}
     >
       <div className="px-6 pt-2 sm:pt-5 pb-1 text-center">
         <h3 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">{title}</h3>

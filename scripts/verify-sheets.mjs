@@ -114,6 +114,53 @@ await closeWithEscape(home);
 const moreClosed = await home.evaluate(() => !document.querySelector('[data-testid="more-sheet"]'));
 out('Escape closes More', moreClosed);
 
+// ── where it comes from ─────────────────────────────────────────────────────
+// A dialog that materialises in the middle of the screen has no relationship
+// to the control that opened it. At a width where the dialog is centred and
+// therefore scaled, its transform-origin must point at that control.
+await a.setViewportSize({ width: 900, height: 800 });
+await a.waitForTimeout(300);
+const devicesTrigger = a.getByRole('button', { name: /details|devices|connection/i }).first();
+await devicesTrigger.click();
+await a.waitForTimeout(600);
+const originFacts = await a.evaluate(() => {
+  const panel = document.querySelector('[data-testid="devices-sheet"]');
+  const wrap = panel?.parentElement;
+  return {
+    origin: wrap ? getComputedStyle(wrap).transformOrigin : '',
+    transform: wrap ? getComputedStyle(wrap).transform : '',
+  };
+});
+out('a centred dialog grows from its trigger, not the viewport centre',
+  /^[0-9]+px [0-9]+px$/.test(originFacts.origin) && originFacts.origin !== '50% 50%',
+  originFacts.origin);
+out('the settled panel is at scale 1 (never 0)',
+  originFacts.transform === 'none' || originFacts.transform.startsWith('matrix(1, 0, 0, 1'),
+  originFacts.transform);
+await a.keyboard.press('Escape');
+await a.waitForTimeout(300);
+await a.setViewportSize({ width: 390, height: 844 });
+
+// ── focus goes back to the trigger ──────────────────────────────────────────
+// Measured on the home screen, not in a room: a seated room deliberately pulls
+// focus to the composer after any overlay closes, which would mask the answer.
+const homeTrigger = home.getByTestId('header-more');
+await homeTrigger.click();
+await home.waitForTimeout(400);
+await home.keyboard.press('Escape');
+await home.waitForTimeout(500);
+const focusAfter = await home.evaluate(() => {
+  const el = document.activeElement;
+  return {
+    testId: el?.getAttribute('data-testid'),
+    tag: el?.tagName,
+    name: el?.getAttribute('aria-label'),
+  };
+});
+out('focus returns to the control that opened it',
+  focusAfter.testId === 'header-more',
+  `${focusAfter.tag} testid=${focusAfter.testId} label=${focusAfter.name}`);
+
 await homeCtx.close();
 await ctxA.close();
 await ctxB.close();
