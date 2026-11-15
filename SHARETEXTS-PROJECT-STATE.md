@@ -26,7 +26,7 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | Milestone | State |
 | --- | --- |
 | M1 — Solid ground | shipped (`M1-report.md`), with three carry-over items completed after the report: `src/lib/itemState.ts`, `scripts/verify-no-flash.mjs`, this file. Bundle gate still red. |
-| M2 — The Room | blocked at its prerequisite check (`M2-blocked.md`); the carry-over above clears two of its conditions. |
+| M2 — The Room | prerequisites cleared (`661f99e`); STEP 0 shipped (tag `before-M2`, `docs/redesign/room-audit.md`, six before-shots); STEPs 1–5 untouched (`M2-report.md`). |
 | M3+ | not started. |
 
 ## 4. Gates — current truth
@@ -42,12 +42,13 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `npm run verify:chaos` | four reliability promises, measured | 4/4 PASS (S2, S3, S11, S12) |
 | `node scripts/verify-no-flash.mjs` | no blank gap, no white frame, no mid-session SW takeover | clean |
 | `npm run verify:icons` | every icon reference resolves and matches its size | 12 references |
-| `npm run verify:bundle` | entry ≤ 180 KB gzip | **FAIL — 219.9 KB** |
+| `npm run verify:bundle` | entry ≤ 180 KB gzip | **PASS — 179.0 KB** (was 219.9) |
 
 ## 5. Known debt (ordered by what it costs the owner)
 
-1. **Bundle: 219.9 KB against 180 KB.** Not re-based; the number is real. Cuts
-   need route-splitting the chat view and/or deferring `motion`.
+1. **Bundle: 179.0 KB, 1.0 KB under the ceiling.** The cut was real deferral
+   (sheets, QR art, palette, overlays). M2 STEP 1 adds code and will need a
+   re-measure.
 2. **Reliability matrix is partial.** S1, S4–S10, S13–S15 unmeasured.
 3. **Item state is now centralised but not yet the only reader.** `MessageCard`
    uses `itemState.ts`; `ChatView` and the sheets still derive some words inline.
