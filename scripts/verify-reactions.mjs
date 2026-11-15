@@ -105,6 +105,87 @@ try {
   const bGone = (await pb.locator(CHIP).count()) === 0;
   out('last reaction removed clears the row on both devices', gone && bGone, `a-cleared=${gone} b-cleared=${bGone}`);
 
+  // ── Tapbacks (§19): a hold opens the strip; it no longer arms selection ──
+  const ACTIONS = '[data-testid="message-actions"]';
+  const bubbleBox = async (page) => page.evaluate(() => {
+    const el = document.querySelector('[data-testid="msg-time"]')?.closest('.group\\/msg');
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: r.left + Math.min(r.width / 2, 120), y: r.top + r.height / 2 };
+  });
+
+  // 1. Long-press (600 ms, well past the 500 ms threshold).
+  const spot = await bubbleBox(pa);
+  if (!spot) {
+    out('long-press opens the tapback strip', false, 'no bubble found');
+  } else {
+    await pa.mouse.move(spot.x, spot.y);
+    await pa.mouse.down();
+    await pa.waitForTimeout(650);
+    await pa.mouse.up();
+    const opened = await pa.locator(ACTIONS).count();
+    out('long-press opens the tapback strip', opened === 1, `panels=${opened}`);
+
+    // 2. Escape closes it.
+    await pa.keyboard.press('Escape');
+    await pa.waitForTimeout(200);
+    out('Escape closes the strip', (await pa.locator(ACTIONS).count()) === 0);
+
+    // 3. A moving finger is a scroll, not a hold.
+    await pa.mouse.move(spot.x, spot.y);
+    await pa.mouse.down();
+    await pa.mouse.move(spot.x, spot.y - 40, { steps: 6 });
+    await pa.waitForTimeout(650);
+    await pa.mouse.up();
+    out('a moving finger cancels the strip (scrolling wins)', (await pa.locator(ACTIONS).count()) === 0);
+
+    // 4. Right-click opens it on a pointer device, and the browser menu is
+    //    suppressed (a native menu over our strip would be two menus).
+    await pa.mouse.click(spot.x, spot.y, { button: 'right' });
+    await pa.waitForTimeout(300);
+    out('right-click opens the tapback strip', (await pa.locator(ACTIONS).count()) === 1);
+
+    // 5. A tapback in the strip reacts, and the badge toggles it off again.
+    const heart = pa.locator('[data-testid="tapback-❤️"]');
+    if (await heart.count()) {
+      await heart.first().click();
+      await pa.waitForTimeout(800);
+      const chipAfter = await pa.locator(CHIP).count();
+      out('a tapback from the strip lands as a badge', chipAfter === 1, `chips=${chipAfter}`);
+      await pa.locator(CHIP).first().click();
+      await pa.waitForTimeout(700);
+      out('tapping the badge toggles my reaction off', (await pa.locator(CHIP).count()) === 0);
+    } else {
+      out('a tapback from the strip lands as a badge', false, 'strip has no heart');
+    }
+  }
+
+  // 6. Keyboard: the React control is reachable by Tab and carries a label.
+  const reactReachable = await pb.evaluate(() => {
+    const btn = [...document.querySelectorAll('button')].find((b) => /^React/.test(b.getAttribute('aria-label') || ''));
+    if (!btn) return { found: false };
+    btn.focus();
+    return { found: true, focused: document.activeElement === btn, label: btn.getAttribute('aria-label') };
+  });
+  out('the React control is keyboard-reachable', reactReachable.found && reactReachable.focused, JSON.stringify(reactReachable));
+
+  // 7. Screenshot of strip + menu at 390×844, the review artefact §19 asks for.
+  try {
+    await pb.setViewportSize({ width: 390, height: 844 });
+    const spot2 = await bubbleBox(pb);
+    if (spot2) {
+      await pb.mouse.move(spot2.x, spot2.y);
+      await pb.mouse.down();
+      await pb.waitForTimeout(650);
+      await pb.mouse.up();
+      await pb.waitForTimeout(250);
+      await pb.screenshot({ path: 'docs/redesign/shots/m2-tapbacks-390x844.png' });
+      out('strip + menu screenshot captured', true, 'docs/redesign/shots/m2-tapbacks-390x844.png');
+    }
+  } catch (e) {
+    out('strip + menu screenshot captured', false, String(e).slice(0, 80));
+  }
+
   const passed = results.filter(Boolean).length;
   console.log(`\n${passed}/${results.length} checks passed`);
   process.exitCode = passed === results.length ? 0 : 1;

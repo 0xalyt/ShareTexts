@@ -44,6 +44,7 @@ interface SessionContextValue {
   /** Emoji reactions: toggle THIS device's reaction under one message. The
    *  local chip flips instantly; the room is told on the control channel. */
   reactToMessage: (messageId: string, emoji: string) => void;
+  deleteLocalMessage: (messageId: string) => void;
   /** Pause one of OUR in-flight uploads (receiver is told; resume lifts it). */
   pauseTransfer: (messageId: string) => void;
   /** Resume a paused upload. */
@@ -181,7 +182,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // room manager refs), and useMessageEngine must not capture a TDZ binding.
     ensureLink: (pid: string) => ensureLinkRef.current(pid),
   });
-  const { updateMessageAttachment, sendMessage, retryText, retryTransfer, cancelTransfer, pauseTransfer, resumeTransferById, transferSpeedFor, wirePeerHandlers, handleChannelOpen, handlePushMessage, clearRuntimeState, setPcm, retryRecipient, cancelRecipient, reactToMessage } = messageEngine;
+  const { updateMessageAttachment, sendMessage, retryText, retryTransfer, cancelTransfer, pauseTransfer, resumeTransferById, transferSpeedFor, wirePeerHandlers, handleChannelOpen, handlePushMessage, clearRuntimeState, setPcm, retryRecipient, cancelRecipient, reactToMessage, deleteLocalMessage } = messageEngine;
 
   // ---- Multi-device roster mirror -------------------------------------------
   // The authoritative roster lives in the framework-free RoomRoster store;
@@ -1506,7 +1507,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [peers, recipients]);
 
   return (
-    <SessionContext.Provider value={{ session: { ...session, peers, recipients }, createSession, joinWithCode, joinWithLink, joinWithShortCode, sendMessage, updateMessageAttachment, retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, setDeviceName, transferSpeedFor, requestReconnect, refreshCode, closeSession, leaveView, abandonSession, setStayConnected, registerRoomViewer, claimSeen, rejoinStayRoom, peers, selfParticipantId: selfPidRef.current, recipients, toggleRecipient, selectAllRecipients, clearRecipients, ensureLink, retryRecipient, cancelRecipient, reactToMessage }}>
+    <SessionContext.Provider value={{ session: { ...session, peers, recipients }, createSession, joinWithCode, joinWithLink, joinWithShortCode, sendMessage, updateMessageAttachment, retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, setDeviceName, transferSpeedFor, requestReconnect, refreshCode, closeSession, leaveView, abandonSession, setStayConnected, registerRoomViewer, claimSeen, rejoinStayRoom, peers, selfParticipantId: selfPidRef.current, recipients, toggleRecipient, selectAllRecipients, clearRecipients, ensureLink, retryRecipient, cancelRecipient, reactToMessage, deleteLocalMessage }}>
       {children}
     </SessionContext.Provider>
   );

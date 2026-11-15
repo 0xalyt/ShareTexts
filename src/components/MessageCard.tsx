@@ -12,6 +12,7 @@ import { useSession } from '../lib/SessionContext';
 import { formatSpeed, formatEta } from '../lib/speedEngine';
 import { renderRichText } from '../lib/richText';
 import { messageState, isFailed, ITEM_STATE_LABEL, type ItemState } from '../lib/itemState';
+import { MessageActions } from './MessageActions';
 type DictKey = Parameters<ReturnType<typeof useI18n>['t']>[0];
 // lucide icons under the local names this file already uses (all icons are
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
@@ -379,7 +380,7 @@ export interface MessageCardProps {
 
 export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart, showMeta = true, showStateWord = true }) => {
   const { t, lang } = useI18n();
-  const { retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, session } = useSession();
+  const { retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, session, reactToMessage, deleteLocalMessage } = useSession();
   const isMe = msg.sender === 'me';
   const a = msg.attachment;
   const [copied, setCopied] = useState(false);
@@ -455,11 +456,24 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
     document.body.removeChild(link);
   };
   const [shared, setShared] = useState(false);
-  // Selection mode: long-press any bubble to enter (this message becomes the
-  // first selected); tap toggles while selecting — but a tap on one of the
-  // bubble's own buttons (Copy/Retry/…) stays a button press, never a
-  // selection toggle. The hook is created once, shared by both render paths.
-  const longPress = useLongPress(selectMode ? undefined : onLongPressStart, msg.id);
+  // Selection mode still exists, but it is no longer what a long-press means:
+  // it moved into the action menu as one row. A tap on one of the bubble's own
+  // buttons (Copy/Retry/…) stays a button press, never a selection toggle.
+  // Tapbacks (§19): a 500 ms hold opens the reaction strip and the action
+  // menu; it no longer arms selection mode. Selection is one row inside the
+  // menu now — a hold should react, not start a destructive multi-select.
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [actionsAnchor, setActionsAnchor] = useState<{ x: number; y: number } | null>(null);
+  const openActions = (e?: { clientX: number; clientY: number }) => {
+    if (selectMode) return;
+    if (e) setActionsAnchor({ x: e.clientX, y: e.clientY });
+    setActionsOpen(true);
+    // Android only; iOS Safari has no vibrate, and nothing pretends it does.
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(10);
+    }
+  };
+  const longPress = useLongPress(selectMode ? undefined : () => openActions(), msg.id);
   const handleBubbleTap = (e: React.MouseEvent) => {
     if (!selectMode) return;
     if ((e.target as HTMLElement).closest('button')) return;
@@ -505,7 +519,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
         className={cn(
-          "group/msg flex w-full items-center gap-2",
+          "group/msg relative flex w-full items-center gap-2",
           // Row-reverse for own messages puts the selection ring OUTSIDE the
           // bubble (right side) while the bubble stays flush right, exactly
           // as the plain justify-end layout renders without a ring.
@@ -514,9 +528,25 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           selectMode && "px-1"
         )}
         {...longPress}
+        onContextMenu={(e) => { e.preventDefault(); openActions(e); }}
         onClickCapture={selectMode ? undefined : longPress.onClickCapture}
         onClick={selectMode ? handleBubbleTap : undefined}
       >
+        <MessageActions
+          open={actionsOpen}
+          onClose={() => setActionsOpen(false)}
+          anchor={actionsAnchor}
+          onReact={(emoji) => reactToMessage(msg.id, emoji)}
+          onCopy={() => { void handleCopy(msg.text); }}
+          onSave={a?.url ? () => handleDownload(a.url as string, a.name) : undefined}
+          onShare={typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+            ? () => { void navigator.share({ text: msg.text }).catch(() => {}); }
+            : undefined}
+          onSelect={() => onLongPressStart?.(msg.id)}
+          onDelete={() => deleteLocalMessage(msg.id)}
+          align={isMe ? 'right' : 'left'}
+          canDelete
+        />
         {selectMode && <SelectionRing selected={selected} />}
         <div className={cn("flex flex-col min-w-0 max-w-[82%]", isMe ? "items-end" : "items-start")}>
         <div className={cn(
@@ -677,15 +707,31 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         ? { type: 'spring', stiffness: 380, damping: 26, mass: 0.9 }
         : { type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
       className={cn(
-        "group/msg flex w-full items-center gap-2",
+        "group/msg relative flex w-full items-center gap-2",
         isMe ? "flex-row-reverse justify-start" : "justify-start",
         isGroupStart ? "mt-3" : "mt-0.5",
         selectMode && "px-1"
       )}
       {...longPress}
+      onContextMenu={(e) => { e.preventDefault(); openActions(e); }}
       onClickCapture={selectMode ? undefined : longPress.onClickCapture}
       onClick={selectMode ? handleBubbleTap : undefined}
     >
+      <MessageActions
+        open={actionsOpen}
+        onClose={() => setActionsOpen(false)}
+        anchor={actionsAnchor}
+        onReact={(emoji) => reactToMessage(msg.id, emoji)}
+        onCopy={() => { void handleCopy(msg.text); }}
+        onSave={a?.url ? () => handleDownload(a.url as string, a.name) : undefined}
+        onShare={typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+          ? () => { void navigator.share({ text: msg.text }).catch(() => {}); }
+          : undefined}
+        onSelect={() => onLongPressStart?.(msg.id)}
+        onDelete={() => deleteLocalMessage(msg.id)}
+        align={isMe ? 'right' : 'left'}
+        canDelete
+      />
       {selectMode && <SelectionRing selected={selected} />}
       <div className={cn(
         "flex flex-col gap-0 max-w-[85%] sm:max-w-[65%] w-full transition-shadow",

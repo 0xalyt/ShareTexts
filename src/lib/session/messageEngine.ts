@@ -88,6 +88,10 @@ export interface MessageEngine {
    *  to receive — and tell every live link in the room. Tapping the same
    *  emoji again removes it. */
   reactToMessage(messageId: string, emoji: string): void;
+  /** Remove ONE message from THIS device's thread. Nothing is recalled from
+   *  the other device — the protocol has no recall, so the menu says exactly
+   *  that instead of implying the message disappears for everyone. */
+  deleteLocalMessage(messageId: string): void;
   /** Assign the message/transfer callbacks onto a PeerManager. */
   wirePeerHandlers(pm: PeerManager): void;
   /** Channel-open consequences: resume interrupted transfers, then honest
@@ -1135,6 +1139,14 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     if (!ok) setRecipientState({ state: 'cancelled', completedAt: Date.now() });
   };
 
+  /** Delete this device's copy of one message. Local only, on purpose: a
+   *  frameless "delete" that implied recall would be a lie the wire cannot
+   *  keep. */
+  const deleteLocalMessage = (messageId: string): void => {
+    if (!messageId) return;
+    setSession(s => ({ ...s, messages: s.messages.filter(m => m.id !== messageId) }));
+  };
+
   /** Toggle our reaction under one message. Reactions are room-wide and
    *  attach to the message id (shared on the wire), so they land on every
    *  device's copy of that bubble regardless of who sent it. Returns nothing
@@ -1210,5 +1222,6 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     retryRecipient,
     cancelRecipient,
     reactToMessage,
+    deleteLocalMessage,
   };
 }
