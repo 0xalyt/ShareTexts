@@ -68,6 +68,8 @@ export class CircleClient {
   private readonly identity: CircleIdentity;
   private readonly baseUrl: string;
   private readonly doFetch: typeof fetch;
+  /** Learned from the server when our clock is off (ms to add to Date.now()). */
+  private skewMs = 0;
 
   constructor(baseUrl: string, identity: CircleIdentity, fetchImpl?: typeof fetch) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
@@ -87,7 +89,8 @@ export class CircleClient {
     const path = `/circle/${circleId}${tail}`;
     const signPath = `/circle/${circleId}${tail.split('?')[0]}`;
     const raw = body?.bytes ?? new TextEncoder().encode(body?.json === undefined ? '' : JSON.stringify(body.json));
-    const time = Date.now();
+    // Every phone whose clock drifts a minute would otherwise be locked out.
+    const time = Date.now() + this.skewMs;
     const nonce = b64u(crypto.getRandomValues(new Uint8Array(12)));
     const digest = hex(await crypto.subtle.digest('SHA-256', raw));
     const message = `${method}\n${signPath}\n${digest}\n${time}\n${nonce}`;
@@ -114,10 +117,20 @@ export class CircleClient {
 
     if (!res.ok) {
       let code = `HTTP_${res.status}`;
+      let serverNow: number | undefined;
       try {
-        const parsed = (await res.json()) as { error?: string };
+        const parsed = (await res.json()) as { error?: string; now?: number };
         if (parsed?.error) code = parsed.error;
+        if (typeof parsed?.now === 'number') serverNow = parsed.now;
       } catch { /* a body-less error is still an error */ }
+      // One correction, one retry: the server just told us what time it is.
+      if (code === 'STALE' && serverNow && !body?.headers?.['x-st-retry']) {
+        this.skewMs = serverNow - Date.now();
+        return this.call<T>(method, circleId, tail, {
+          ...body,
+          headers: { ...(body?.headers ?? {}), 'x-st-retry': '1' },
+        });
+      }
       throw new CircleApiError(code, res.status);
     }
     if (res.status === 204) return undefined as T;
@@ -162,28 +175,40 @@ export class CircleClient {
       ecdhPub: this.identity.dhPub,
     });
     const raw = new TextEncoder().encode(body);
-    const time = Date.now();
-    const nonce = b64u(crypto.getRandomValues(new Uint8Array(12)));
-    const digest = hex(await crypto.subtle.digest('SHA-256', raw));
-    const sig = await crypto.subtle.sign(
-      { name: 'ECDSA', hash: 'SHA-256' },
-      this.identity.sign,
-      new TextEncoder().encode(`POST\n${path}\n${digest}\n${time}\n${nonce}`),
-    );
-    const res = await this.doFetch(`${this.baseUrl}${path}`, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-st-device': this.identity.deviceId,
-        'x-st-time': String(time),
-        'x-st-nonce': nonce,
-        'x-st-sig': b64u(sig),
-      },
-      body: raw,
-      credentials: 'omit',
-    });
-    if (!res.ok) throw new CircleApiError((await res.json().catch(() => ({}))).error ?? `HTTP_${res.status}`, res.status);
-    return res.json();
+    // Nothing is preserved from the join: on a STALE clock this repeats with
+    // the offset the server just told us about.
+    for (let round = 0; round < 2; round++) {
+      const time = Date.now() + this.skewMs;
+      const nonce = b64u(crypto.getRandomValues(new Uint8Array(12)));
+      const digest = hex(await crypto.subtle.digest('SHA-256', raw));
+      const sig = await crypto.subtle.sign(
+        { name: 'ECDSA', hash: 'SHA-256' },
+        this.identity.sign,
+        new TextEncoder().encode(`POST\n${path}\n${digest}\n${time}\n${nonce}`),
+      );
+      const res = await this.doFetch(`${this.baseUrl}${path}`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-st-device': this.identity.deviceId,
+          'x-st-time': String(time),
+          'x-st-nonce': nonce,
+          'x-st-sig': b64u(sig),
+        },
+        body: raw,
+        credentials: 'omit',
+      });
+      if (res.ok) return res.json();
+      const parsed = (await res.json().catch(() => ({}))) as { error?: string; now?: number };
+      // Same clock courtesy as every other call: a phone a minute off must
+      // still be able to link.
+      if (parsed.error === 'STALE' && typeof parsed.now === 'number' && round === 0) {
+        this.skewMs = parsed.now - Date.now();
+        continue;
+      }
+      throw new CircleApiError(parsed.error ?? `HTTP_${res.status}`, res.status);
+    }
+    throw new CircleApiError('STALE', 401);
   }
 
   pending(circleId: string): Promise<{ pending: CircleMember[] }> {
@@ -233,6 +258,11 @@ export class CircleClient {
   async getChunk(circleId: string, itemId: string, idx: number): Promise<Uint8Array> {
     const buf = await this.call<ArrayBuffer>('GET', circleId, `/item/${itemId}/chunk/${idx}`);
     return new Uint8Array(buf);
+  }
+
+  /** Withdraw an item this device sent. Only the sender may. */
+  deleteItem(circleId: string, itemId: string): Promise<{ ok: boolean }> {
+    return this.call('DELETE', circleId, `/item/${itemId}`);
   }
 
   ack(circleId: string, itemId: string, ack = true): Promise<{ ok: boolean }> {

@@ -262,7 +262,82 @@ Still to come in M3: STEP 4 (`verify-zero-knowledge.mjs`), STEP 5
 (`/?circle=dev`), STEP 6 (`/circle/capabilities` + deploy safety). The mailbox
 is live and answers, but the claim flip stays forbidden until STEP 4 is green.
 
-## 7. New gates
+
+## 7. STEP 4 — the zero-knowledge gate, against production
+
+`scripts/verify-zero-knowledge.mjs` (`npm run verify:zero-knowledge`) does not ask
+the Worker whether it can read items. It seals a 4 KiB item on a real device,
+**records every byte that leaves that device**, uploads through the production
+client, pulls the ciphertext back, and then tries to read it with only what the
+server holds. Default target is the deployed Worker.
+
+```
+target: https://sharetext-signaling.alighttt.workers.dev
+ok  K exists only on the device
+ok  the ciphertext does not contain the plaintext
+ok  no request body / header ever contained the plaintext
+ok  no request body or header ever contained K
+ok  every request went to the mailbox, and only over the signed API — 3 requests
+ok  the file comes back byte-identical
+ok  what is stored is indistinguishable from random — 7.96 bits/byte
+ok  what is stored contains no plaintext
+ok  the member list carries public keys only — deviceId,signPub,ecdhPub,joinedAt
+ok  the server view contains no K · contains no plaintext
+ok  a key the server could have made cannot open it
+ok  the device that holds K reads it back exactly
+ok  every mailbox read answered with data and no key material
+    — /members:ok /items:ok /log:ok /pending:ok
+
+15/15 checks passed
+```
+
+The claim flip this unlocks is **permitted but not done**: the public wording
+("Linked devices are end-to-end encrypted") belongs with the copy work in M4
+STEP 8, which must update `docs/claims.md`, the forbidden list, the privacy page
+and all 11 locales in one change. `verify:claims` still forbids the phrase today,
+which is the correct state until that copy lands.
+
+### Gate bug found and fixed while writing it
+
+The first version measured Shannon entropy over an 80-byte sample and failed at
+6.06 bits/byte — arithmetically impossible to beat (log2(80) = 6.3), so the
+threshold was measuring the sample, not the cipher. It now seals 4 KiB.
+
+## 8. `/circle/capabilities` — live, and honest
+
+`GET /circle/capabilities` is unauthenticated on purpose: it is the number the
+UI must show instead of inventing one.
+
+```json
+{"version":"circle-1","maxChunkBytes":1048576,"chunksPerItem":200,
+ "itemsPerCircle":500,"itemTtlDays":30,"membersPerCircle":12,
+ "push":false,"heavyDay":false}
+```
+
+`push:false` is true because the VAPID secrets are not set, and `heavyDay:false`
+is true because the budget guard is not built — the endpoint says what the server
+actually enforces, not what it hopes to.
+
+## 9. The clock bug production exposed
+
+This machine's clock runs **59.4 s behind** the edge. Signed requests failed with
+`STALE` at a 60 s window — meaning any owner phone with a slightly wrong clock
+could not link a device at all, and would have seen a generic failure.
+
+Fixed at the source rather than by widening the window:
+
+- the Worker answers `401 {error:'STALE', now:<server ms>}` on every signed route
+  **and** on `/join` (which previously returned `UNAUTHENTICATED`, telling the
+  client nothing);
+- `CircleClient` keeps a learned `skewMs`, corrects once, and retries once —
+  for `call()` and for `join()` separately, because `join` carries its own
+  signature path.
+
+Proof: `verify:circle-pairing` now passes **17/17 against production**
+(`WORKER_URL=https://sharetext-signaling.alighttt.workers.dev`), on the same
+skewed clock that used to fail.
+
+## 10. New gates
 
 `npm run verify:circle-crypto` (24 assertions).
 

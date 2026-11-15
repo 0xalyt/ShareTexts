@@ -253,8 +253,11 @@ export class Circle extends DurableObject<Env> {
     const sig = request.headers.get('x-st-sig') || '';
     const time = Number(request.headers.get('x-st-time') || '0');
     const nonce = request.headers.get('x-st-nonce') || '';
-    if (!sig || !nonce || Math.abs(Date.now() - time) > L.clockSkewMs) {
-      return json({ error: 'UNAUTHENTICATED' }, 401);
+    if (!sig || !nonce) return json({ error: 'UNAUTHENTICATED' }, 401);
+    if (Math.abs(Date.now() - time) > L.clockSkewMs) {
+      // Same courtesy as every other route: say what time it is, so a device
+      // whose clock drifted can join instead of staring at "no network".
+      return json({ error: 'STALE', now: Date.now() }, 401);
     }
     const ok = await verifySig(body.signPub, sig, request.method, url.pathname, rawBody, time, nonce);
     if (!ok) return json({ error: 'BAD_SIGNATURE' }, 401);
@@ -459,7 +462,9 @@ export class Circle extends DurableObject<Env> {
     const sig = request.headers.get('x-st-sig') || '';
     if (!DEVICE_RE.test(deviceId) || !sig || !nonce) return { response: json({ error: 'UNAUTHENTICATED' }, 401) };
     if (!Number.isFinite(time) || Math.abs(Date.now() - time) > L.clockSkewMs) {
-      return { response: json({ error: 'STALE' }, 401) };
+      // A device whose clock is a minute off is a real device, not an
+      // attacker. Answer with OUR time so it can correct and retry.
+      return { response: json({ error: 'STALE', now: Date.now() }, 401) };
     }
     const member = await this.ctx.storage.get<MemberRecord>(`member:${deviceId}`);
     if (!member) return { response: json({ error: 'NOT_A_MEMBER' }, 403) };

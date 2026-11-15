@@ -5,6 +5,7 @@ import { Stats } from './stats';
 import { Lobby } from './lobby';
 import { Space } from './space';
 import { Circle } from './circle';
+import { CIRCLE_LIMITS } from './limits';
 import { json, dayKey, type Env } from './types';
 
 // Durable Object classes must be exported from the entrypoint.
@@ -256,6 +257,24 @@ export default {
     // rate-limited by IP here; the DO authenticates the device signature.
     // The server never holds a key, so these routes are a post office: they
     // move sealed bytes and signed statements, and nothing else.
+    // Public, unauthenticated, and deliberately boring: what the mailbox can
+    // hold, how long it keeps it, and whether push is configured on this
+    // deployment. The UI shows these numbers instead of inventing them.
+    if (path === '/circle/capabilities' && request.method === 'GET') {
+      return json({
+        version: 'circle-1',
+        maxChunkBytes: CIRCLE_LIMITS.chunkBytes,
+        chunksPerItem: CIRCLE_LIMITS.chunksPerItem,
+        itemsPerCircle: CIRCLE_LIMITS.itemsPerCircle,
+        itemTtlDays: Math.round(CIRCLE_LIMITS.itemTtlMs / 86_400_000),
+        membersPerCircle: CIRCLE_LIMITS.membersPerCircle,
+        push: !!(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY && env.VAPID_SUBJECT),
+        // The budget guard is not built yet; saying so is better than a number
+        // the server does not actually enforce.
+        heavyDay: false,
+      }, 200, cors);
+    }
+
     if (path.startsWith('/circle/')) {
       if (!(await rateLimited(env, 'circle', clientIp(request)))) {
         return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);
