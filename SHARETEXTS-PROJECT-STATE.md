@@ -45,9 +45,17 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `npm run verify:circle-crypto` | Circle seal: pins, tamper, wrap, SAS, chain | GREEN, 24 assertions |
 | `node scripts/verify-no-flash.mjs` | no blank gap, no white frame, no mid-session SW takeover | clean |
 | `npm run verify:icons` | every icon reference resolves and matches its size | 12 references |
+| `npm run verify:lobby-shard` | Nearby is scoped by network: shard = HMAC(dailySalt, IPv4 or IPv6 /64), 64 devices per shard, no IP stored | **25/25** (emulator, real DO) |
 | `npm run verify:bundle` | entry ≤ 180 KB gzip | **PASS — 179.0 KB** (was 219.9) |
 
 ## 5. Known debt (ordered by what it costs the owner)
+
+0. **Nearby is scoped but not yet private.** STEP 1 gave presence a network
+   shard; visibility is still implicit (any open tab is listed) and there is no
+   code for a stranger. M5 STEPs 2–3 fix that. Until then the honest sentence is
+   "devices on your network can see that ShareTexts is open", not "nearby".
+   Related: a carrier-grade-NAT shard can be large, so consent per transfer
+   (STEP 3) is the real boundary, not the shard.
 
 1. **Bundle: 179.0 KB, 1.0 KB under the ceiling.** The cut was real deferral
    (sheets, QR art, palette, overlays). M2 STEP 1 adds code and will need a
