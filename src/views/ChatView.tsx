@@ -32,6 +32,7 @@ import { createTypingSender, typingIndicatorEnabled, TYPING_TIMING } from '../li
 import { DeviceLinkIllustration, PacketTrain } from '../components/DeviceLinkIllustration';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
 import { SettingsOverlay } from '../components/SettingsOverlay';
+import { OverlaySheet } from '../components/OverlaySheet';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { generateTOTP, getTOTPRemainingSeconds } from '../lib/totp';
 import { saveDraft, loadDraft, clearDraft, ComposerDraft } from '../lib/draftStore';
@@ -185,7 +186,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     if (session.nameAutoAdjusted) setNameNoticeOpen(true);
   }, [session.nameAutoAdjusted]);
-  const connectionDetailsTrapRef = useFocusTrap(showConnectionDetails, () => setShowConnectionDetails(false));
   const [showThatsIt, setShowThatsIt] = useState(false);
   const [thatsItCopy, setThatsItCopy] = useState('');
   const [announcement, setAnnouncement] = useState('');
@@ -1170,36 +1170,20 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <span className="hidden sm:inline">{t('common.disconnect')}</span>
           </button>
         </div>
-        <AnimatePresence>
-          {showConnectionDetails && (
-            <motion.div
-              ref={connectionDetailsTrapRef}
-              initial={{ opacity: 0, y: -6, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.98 }}
-              transition={{ type: "spring", bounce: 0, duration: 0.28 }}
-              className="absolute top-[calc(100%+10px)] right-2 sm:right-4 left-2 sm:left-auto sm:w-[360px] p-4 rounded-[16px] st-card st-elev-floating z-40 overflow-y-auto overscroll-contain max-h-[calc(100dvh-120px)]"
-              role="dialog"
-              aria-modal="true"
-              aria-label={t('details.aria')}
-              onPointerDown={(e) => { if (e.target === e.currentTarget) setShowConnectionDetails(false); }}
-            >
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="flex items-center gap-2 text-[13px] font-semibold text-apple-ink dark:text-white">
-                  <ShieldCheck className="w-4 h-4 text-status-success" />
-                  {t('details.secure')}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <kbd aria-hidden="true" className="hidden sm:inline px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-apple-tile-3 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
-                  <button
-                    onPointerDown={() => setShowConnectionDetails(false)}
-                    aria-label={t('details.close')}
-                    className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-apple-divider/50 dark:hover:bg-white/10 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+        <OverlaySheet
+          open={showConnectionDetails}
+          onClose={() => setShowConnectionDetails(false)}
+          label={t('details.aria')}
+          maxWidth={420}
+          testId="devices-sheet"
+        >
+          <div className="flex flex-col">
+              {/* Named, not anonymous: the sheet owns the ✕ and Escape, so the
+                  heading only has to say what this is and that it's safe. */}
+              <h2 id="devices-title" className="mb-3 flex items-center gap-2 pr-9 text-[17px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-status-success" aria-hidden />
+                {t('details.secure')}
+              </h2>
               {/* The two devices — tap your name to rename; the other device
                   sees the change immediately. */}
               <div className="flex items-center gap-2">
@@ -1280,9 +1264,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   needed if the other device drops and has to rejoin, so it\u2019s
                   one tap away instead of always visible. */}
               <PairingMini secret={session.secret} createdAt={session.createdAt} className="mt-3" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+        </OverlaySheet>
       </div>
       </>)} {/* Connected toast — the "alert" when the other device arrives. */}
       <AnimatePresence>

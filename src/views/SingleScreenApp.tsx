@@ -46,6 +46,7 @@ import { ShareMenu } from '../components/ShareMenu';
 import { SystemAlert } from '../components/SystemAlert';
 import { PresenceDock, type PresenceEntry } from '../components/PresenceDock';
 import { InlineConfirm } from '../components/InlineConfirm';
+import { RoomRail } from '../components/RoomRail';
 import { BookOpen } from 'lucide-react';
 import { ConnectHandshake } from '../components/ConnectHandshake';
 import { CommandBarChip } from '../components/CommandBarChip';
@@ -1501,6 +1502,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   status pill — repeated the header or the stats card and
                   competed for attention. One column, one voice, room to
                   breathe. */}
+              {/* The room list heads the rail: this is the master pane, and
+                  the first thing it says is where you are. */}
+              <RoomRail className="mb-5" />
               {/* Your device: name row (tap to rename) — the only identity
                   element here; the pair visual lives in the room header. */}
               <div className="flex items-center gap-2.5 mb-5">

@@ -85,6 +85,82 @@ STEP 5 desktop master-detail · STEP 6 polish (`break-ui`, `review-animations`).
    `sessionStorage` until M4's Linked devices. *Recommendation: ship on
    `sessionStorage` behind the stable hook.*
 
+
+## 10. STEP 3 — typing (OD-4), shipped `52927ec`
+
+One ephemeral frame each way: `{type:'typing', state:'start'|'stop'}` on the
+control lane, beside `seen` and `reaction`. Nothing is stored — not in a room
+snapshot, not in `localStorage`, not in a log line. A `start` carries a 6 s
+expiry on the receiving side, so a lost `stop` goes quiet on its own instead of
+leaving a ghost behind.
+
+- Sender: 3 s idle before the first frame, then at most one per 3 s; a `stop`
+  goes out after 4 s of silence, on send, and on blur.
+- Receiver: session state holds the expiry (`peerTypingUntil`), the room bar's
+  status line says "Windows PC 2 is typing…" instead of the connection word, and
+  a ghost bubble mounts at the end of the thread. It reserves no height: the
+  thread does not move by a single pixel when it appears (measured Δ=0 px).
+- Reduced motion: the dots stop and a static "···" does the work; the bubble's
+  own entrance collapses to a plain fade.
+- Setting: *Show when I'm typing* in Settings → Feedback, default ON, off means
+  it neither sends nor shows.
+
+`scripts/verify-typing.mjs` — two real browsers, **5/5**: appears (≤3.5 s),
+thread shift 0 px, sending clears it, silence clears it at 4 195 ms, the setting
+persists. New i18n keys ×9: `chat.typing`, `chat.typingName`, `settings.typing`,
+`settings.typingHint`. `PROTOCOL.md` gains an "Ephemeral control frames: typing"
+section; protocol version stays **1**.
+
+The first build silently received every frame and displayed none: the ChatView
+listener effect depended on the subscription function's identity and tore itself
+down between frames. The fix moved the truth into session state — the UI reads
+the expiry, the engine writes it — so there is no listener left to lose.
+
+## 11. STEP 4 — one sheet, two doors, shipped
+
+Devices was the last bespoke popover in the room: its own dimmer, its own Escape
+handler, its own trap. It now renders on the shared `OverlaySheet`, so Devices
+and More are the same object with different contents.
+
+- Devices: `<OverlaySheet>`, 36% scrim, focus trapped, Escape and backdrop close,
+  drag-to-dismiss, named by a visible `<h2>`.
+- More: already on `OverlaySheet` — now measured against Devices rather than
+  assumed.
+
+`scripts/verify-sheets.mjs` — **9/9**: both are `role="dialog" aria-modal="true"`,
+both scrims resolve to the identical `oklab(0 0 0 / 0.36)`, focus lands inside,
+twelve Tabs never leave Devices, Escape closes both.
+
+## 12. STEP 5 — the desktop master pane, shipped
+
+The desktop room already split into a left pane and the thread; what it lacked
+was the room *as a room*. `useRoomList()` (new) reports the rooms that exist —
+one today — and `RoomRail` heads the left pane with that list, the live status
+dot, and one door back out. No invented history, no placeholder rows: when there
+is one room the list has one row, and `hasMultiple` is the honest answer for the
+day that changes.
+
+Measured at three desktop widths by `scripts/verify-desktop.mjs` — **16/16**:
+rail on screen, thread starts right of the rail's right edge, zero horizontal
+overflow, one room listed, one way out, and no rail at all at 900 px.
+Shots: `docs/redesign/shots/m2-desktop-1024.png`, `-1440.png`, `-2560.png`.
+
+The first attempt mounted a second 320 px rail inside `ChatView`; the shot showed
+it wedging itself between the existing pane and the thread and squeezing the
+conversation into a strip. It was removed rather than patched — the pane that
+already existed is the master pane.
+
+## 13. Remaining in M2
+
+Nothing. STEPs 1–5 are shipped, each with its own gate and its own push.
+
+## 14. Gate ledger (M2 final)
+
+`lint` (tsc) clean · `build` 0 · `smoke:local` GREEN · `verify:claims` clean
+(8 rules / 43 files / 1 exemption) · `verify:bundle` GREEN at 179.1 KB ·
+`verify:typing` 5/5 · `verify:sheets` 9/9 · `verify:desktop` 16/16 ·
+`test:reactions` 17/17 · `verify:room-feed` 6/6 · `verify:no-flash` clean.
+
 ## 9. OWNER ACTIONS
 
 - Answer 1 before STEP 2 lands, since it decides what long-press means.
