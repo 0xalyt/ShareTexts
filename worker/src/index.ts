@@ -4,6 +4,7 @@ import { Metrics } from './metrics';
 import { Stats } from './stats';
 import { Lobby } from './lobby';
 import { Space } from './space';
+import { Circle } from './circle';
 import { json, dayKey, type Env } from './types';
 
 // Durable Object classes must be exported from the entrypoint.
@@ -13,6 +14,7 @@ export { Metrics };
 export { Stats };
 export { Lobby };
 export { Space };
+export { Circle };
 
 /**
  * ShareText signaling — Cloudflare Workers entry.
@@ -244,6 +246,22 @@ export default {
       }
       const id = env.SPACES.idFromName(m[1].toLowerCase());
       return env.SPACES.get(id).fetch(internal);
+    }
+
+    // ── Circle (M3): linked-device mailbox ─────────────────────────────
+    // One Durable Object per circle. Every request is origin-checked and
+    // rate-limited by IP here; the DO authenticates the device signature.
+    // The server never holds a key, so these routes are a post office: they
+    // move sealed bytes and signed statements, and nothing else.
+    if (path.startsWith('/circle/')) {
+      if (!(await rateLimited(env, 'circle', clientIp(request)))) {
+        return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);
+      }
+      const m = path.match(/^\/circle\/([0-9a-f-]{36})(\/.*)?$/i);
+      if (!m) return json({ error: 'Not found' }, 404, cors);
+      const internal = new Request('https://internal' + path + url.search, request);
+      const id = env.CIRCLES.idFromName(m[1].toLowerCase());
+      return env.CIRCLES.get(id).fetch(internal);
     }
 
     if (path === '/space-ws') {

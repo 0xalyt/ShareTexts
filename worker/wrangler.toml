@@ -10,7 +10,8 @@ bindings = [
   { name = "METRICS", class_name = "Metrics" },
   { name = "STATS", class_name = "Stats" },
   { name = "LOBBY", class_name = "Lobby" },
-  { name = "SPACES", class_name = "Space" }
+  { name = "SPACES", class_name = "Space" },
+  { name = "CIRCLES", class_name = "Circle" }
 ]
 
 [[migrations]]
@@ -32,6 +33,11 @@ new_sqlite_classes = ["Lobby"]
 [[migrations]]
 tag = "v5-space"
 new_sqlite_classes = ["Space"]
+
+[[migrations]]
+# M3: the linked-device mailbox. Sealed bytes, signed statements, no keys.
+tag = "v6-circle"
+new_sqlite_classes = ["Circle"]
 
 # Temporary Space content storage (F14). Bind the real bucket for deploys;
 # the Space DO degrades honestly (503 "Storage is not configured") when the

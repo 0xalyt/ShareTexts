@@ -109,3 +109,24 @@ it as a draft marked pending; no public copy changes in M3.
   lazily loaded: zero bytes in the entry chunk.
 - The product now has two encryption stories, and copy must keep them apart:
   rooms are "encrypted in transit", Circle is (later) "end-to-end".
+
+## Storage mapping (STEP 2, as built)
+
+The tables above are implemented as prefixed keys in the Circle Durable
+Object's storage — the same DO KV API the Room and Space classes use, on
+SQLite-backed DOs per `wrangler.toml`'s `new_sqlite_classes`. One key per row,
+no prefix scans beyond the prefixes themselves:
+
+`meta` · `member:<deviceId>` · `wrap:<deviceId>:<epoch>` · `log:<seq>` ·
+`invite:<inviteId>` · `code:<CODE>` · `pending:<deviceId>` ·
+`item:<itemId>` · `chunk:<itemId>:<idx>` · `nonce:<deviceId>:<nonce>`
+
+Request authentication as built: ECDSA P-256 over
+`METHOD 
+ PATH 
+ hex(SHA-256(bodyBytes)) 
+ time 
+ nonce`. The body is hashed
+as **bytes** (never decoded to text) and read exactly once per request; `PATH` is
+the path the client sent, without the query string. Replay protection is a
+5-minute nonce window per device.

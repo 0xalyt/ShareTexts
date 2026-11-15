@@ -8,6 +8,8 @@ export interface Env {
   LOBBY: DurableObjectNamespace;
   /** Temporary Spaces (F14) — one Space DO per space id. */
   SPACES: DurableObjectNamespace;
+  /** Circle (M3) — one mailbox DO per circle id (sealed bytes only). */
+  CIRCLES: DurableObjectNamespace;
   /** Temporary Space content storage (F14). Bound when the feature deploys;
    *  space.ts degrades honestly (503) when the binding is absent. */
   SPACE_BUCKET?: R2Bucket;

@@ -76,7 +76,72 @@ Other gates after STEP 1: `tsc --noEmit` clean · `npm run build` 0 ·
 `npm run verify:bundle` **PASS 179.0 KB (unchanged)** · `npm run smoke:local`
 GREEN · `npm run verify:claims` clean.
 
-## 3. NOT VERIFIED (strict)
+
+## 3. STEP 2 — the mailbox, shipped
+
+`worker/src/circle.ts` — the `Circle` Durable Object. Server-side nouns, exactly
+as ADR 0001 describes: members, per-device wraps, a signed membership log, invites,
+pending joins, sealed items and their chunks, acks, nonces. It holds no key, no
+name, no kind and no plaintext.
+
+- **Routes** (all under `/circle/<circleId>/…`): `POST /create`, `POST /invite`,
+  `POST /join`, `POST /approve`, `GET /members`, `POST|GET /log`,
+  `PUT|GET /item/:id/chunk/:i`, `GET /items`, `POST /item/:id` (ack),
+  `DELETE /item/:id`.
+- **Auth**: ECDSA P-256 over `METHOD 
+ PATH 
+ hex(SHA-256(bodyBytes)) 
+ time 
+
+  nonce`, verified against the member's stored key, ±60 s clock window, 5-minute
+  nonce memory for replay. A pending joiner may speak once, with the key it is
+  submitting plus a live invite; approval — never a code — is what writes
+  membership.
+- **Limits** (`worker/src/limits.ts`): 1 MiB chunks, 200 chunks/item, 500
+  items/circle, 30-day item TTL, 12 devices, 5 000 log entries, 20 invites,
+  10-minute invites, ±60 s clock, 5-minute nonces, 1 MiB + 8 KiB body cap.
+- **Config**: `CIRCLES` DO binding, migration `v6-circle`
+  (`new_sqlite_classes = ["Circle"]`), route table entry with the same per-IP
+  rate limiting the Space routes use.
+
+### Gate — `npm run verify:circle-worker` (30/30)
+
+Bundles the real class against the Worker shim and signs real requests:
+
+```
+ok  create registers the first device · a second create is refused
+ok  unsigned / stale / replayed / non-member / forged are each refused
+     (401, 401, 409, 403, 401)
+ok  invite mints a 64-hex id and an 8-char code, expiring in ten minutes
+ok  a joiner with the code becomes pending, not a member
+ok  the join relay carries a transcript hash, not keys
+ok  a pending device cannot approve itself
+ok  approval writes membership and a wrap (2 devices, wrap @ epoch 1)
+ok  an invite is not reusable once approved
+ok  a sealed chunk is accepted · the other device reads back identical bytes
+ok  the chunk response is not cacheable (no-store)
+ok  a chunk over 1 MiB is refused · item list has sizes/epochs but no names
+ok  an ack names the device that got it · another device cannot delete your item
+ok  the owner deletes it and it stops being listed
+ok  a signed log entry is chained with a sequence number
+
+30/30 checks passed · 25 routes timed: median 0.45 ms, p95 2.21 ms
+```
+
+**Honest reading of the timing**: p95 2.21 ms is Node emulator *wall* time for the
+whole DO call, not Worker CPU time. It clears the 5 ms target with room, but a
+real `wrangler dev`/production CPU measurement still needs the deploy.
+
+Not built, and named so it is not mistaken for done: the **Stats budget guard**
+(the per-circle accounting hook the prompt pairs with these routes). The generic
+per-IP rate limit is in place; the per-circle request budget is not.
+
+**`npm run worker:deploy` has still NOT been run** — no Cloudflare token on this
+machine. The binding, the `v6-circle` migration and the routes exist in the repo
+and pass their gate, but nothing is live until that deploy. No client code calls
+`/circle/*` yet, so shipping the frontend before the Worker is harmless.
+
+## 4.. NOT VERIFIED (strict)
 
 - **STEPs 2–6 untouched.** No `Circle` Durable Object, no `/circle/*` routes, no
   `CIRCLES` binding, no `v6-circle` migration, no `limits.ts`, no Stats budget
