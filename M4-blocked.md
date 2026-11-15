@@ -24,8 +24,8 @@ at the first link: **M3 is not finished, and the Worker is not deployed.**
 M3's own report (§4 "Untouched steps") carries these forward, and M4 depends on
 them. They belong to the M3 prompt:
 
-- **M3 STEP 3** — client pairing (`src/lib/circle/api.ts`, `store.ts`,
-  `pairing.ts`, `scripts/verify-circle-pairing.mjs`).
+- **M3 STEP 3 — DONE** (`03d1b05`): `api.ts`, `pairing.ts`, `store.ts`,
+  `verify:circle-pairing` 17/17 against a real local Worker.
 - **M3 STEP 4** — the zero-knowledge proof and `scripts/verify-zero-knowledge.mjs`
   (the gate that M4 STEP 8's claim flip is forbidden without).
 - **M3 STEP 5** — the `/?circle=dev` surface.
