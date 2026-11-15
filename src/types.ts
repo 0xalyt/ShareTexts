@@ -103,6 +103,9 @@ export interface SessionState {
   createdAt?: number;
   isCreator: boolean;
   partnerConnected: boolean;
+  /** OD-4: when the peer's typing state expires (ms since epoch). 0 = not
+   *  typing. Ephemeral: never persisted, never logged, cleared by its own TTL. */
+  peerTypingUntil?: number;
   /** True from the moment a peer joins until the data channel actually opens —
    *  lets the creator's pairing screen react the instant the joiner arrives. */
   partnerConnecting: boolean;

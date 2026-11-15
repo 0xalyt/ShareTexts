@@ -427,6 +427,8 @@ export class PeerManager {
   private channelOpenedAt = 0;
 
   public onMessage: ((data: string) => void) | null = null;
+  /** OD-4 typing: an ephemeral control frame, never content, never stored. */
+  public onTyping: ((state: 'start' | 'stop') => void) | null = null;
   public onFileProgress: ((transferId: string, progress: number, total: number) => void) | null = null;
   public onFileComplete: ((transferId: string, blob: Blob) => void) | null = null;
   public onCancel: ((transferId: string) => void) | null = null;
@@ -831,6 +833,9 @@ export class PeerManager {
       case 'seen':
         if (typeof inner.messageId === 'string' && this.onSeen) this.onSeen(inner.messageId);
         return;
+      case 'typing':
+        if (inner.state === 'start' || inner.state === 'stop') this.onTyping?.(inner.state);
+        return;
       case 'reaction':
         if (typeof inner.messageId === 'string' && typeof inner.emoji === 'string'
             && inner.emoji.length > 0 && inner.emoji.length <= 8) {
@@ -1071,7 +1076,7 @@ export class PeerManager {
                 // Legacy control packets route through the SAME table as the
                 // dedicated channel — one semantics, two transports.
                 if (inner && typeof inner.type === 'string' &&
-                    ['hello', 'cancel', 'ack', 'pause', 'resume', 'file_hash', 'receipt', 'seen', 'reaction', 'queued_start'].includes(inner.type)) {
+                    ['hello', 'cancel', 'ack', 'pause', 'resume', 'file_hash', 'receipt', 'seen', 'reaction', 'typing', 'queued_start'].includes(inner.type)) {
                   this.routeControl(inner);
                   return;
                 }
@@ -1464,6 +1469,13 @@ export class PeerManager {
    * and never delayed by bulk traffic. The emoji is a bounded string
    * (≤ 8 UTF-16 units) — validation lives here so every caller is safe.
    */
+  /** Typing rides the control channel: tiny, ordered, never queued behind
+   *  bulk traffic — the same reason reactions do. */
+  public sendTyping(state: 'start' | 'stop') {
+    if (state !== 'start' && state !== 'stop') return;
+    void this.sendControl({ type: 'typing', state });
+  }
+
   public sendReaction(messageId: string, emoji: string, on: boolean) {
     if (typeof messageId !== 'string' || !messageId) return;
     if (typeof emoji !== 'string' || !emoji || emoji.length > 8) return;

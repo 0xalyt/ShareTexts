@@ -27,6 +27,8 @@ import { cn, formatBytes, sanitizeDeviceName } from '../lib/utils';
 import { hapticSuccess } from '../lib/haptics';
 import { Attachment } from '../types';
 import { MessageCard, pureLinkUrl } from '../components/MessageCard';
+import { TypingGhostBubble } from '../components/TypingIndicator';
+import { createTypingSender, typingIndicatorEnabled, TYPING_TIMING } from '../lib/typing';
 import { DeviceLinkIllustration, PacketTrain } from '../components/DeviceLinkIllustration';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
 import { SettingsOverlay } from '../components/SettingsOverlay';
@@ -72,7 +74,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // lands later still speaks the CURRENT language.
   const tRef = useRef(t);
   tRef.current = t;
-  const { session, sendMessage, closeSession, cancelTransfer, requestReconnect, setDeviceName, registerRoomViewer, claimSeen, peers, recipients, toggleRecipient, selectAllRecipients, clearRecipients, retryRecipient, cancelRecipient } = useSession();
+  const { session, sendMessage, closeSession, cancelTransfer, requestReconnect, setDeviceName, registerRoomViewer, claimSeen, peers, recipients, toggleRecipient, selectAllRecipients, clearRecipients, retryRecipient, cancelRecipient , sendTyping } = useSession();
   // Multi-device room state (calm defaults): the picker opens on demand; the
   // rest of the room doesn't change just because the roster grew.
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -298,6 +300,26 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // DESIGN §19: one state word, on the most recent own message. Computed once
   // per render over the whole thread rather than per bubble, so a 300-message
   // thread does one pass, not 300.
+  // Typing (OD-4): one ephemeral frame each way, nothing stored. The engine
+  // writes the expiry into session state, so the UI has one source of truth
+  // and no listener to lose; the tick makes the TTL visible without a frame.
+  const [typingTick, setTypingTick] = useState(0);
+  const peerTypingUntil = session.peerTypingUntil ?? 0;
+  const peerTyping = peerTypingUntil > Date.now();
+  const typingSender = useRef<ReturnType<typeof createTypingSender> | null>(null);
+  if (!typingSender.current) {
+    typingSender.current = createTypingSender((state) => {
+      if (!typingIndicatorEnabled()) return;
+      sendTyping(state);
+    });
+  }
+  useEffect(() => {
+    // A tick, not a listener: session state carries the expiry, and this only
+    // re-renders often enough for the TTL to become visible when a `stop`
+    // never arrives.
+    const timer = setInterval(() => setTypingTick((n) => n + 1), TYPING_TIMING.ttl / 2);
+    return () => clearInterval(timer);
+  }, []);
   const lastOwnId = useMemo(() => {
     for (let i = session.messages.length - 1; i >= 0; i--) {
       if (session.messages[i].sender === 'me') return session.messages[i].id;
@@ -819,6 +841,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     } else {
       sendMessage(inputText);
     }
+    typingSender.current?.stop();
     setInputText('');
     setAttachments([]);
     if (fanout) clearRecipients();
@@ -1112,6 +1135,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   })()
                 : disconnected
                   ? t('chat.disconnected')
+                  : peerTyping
+                    ? (session.partnerName ? t('chat.typingName', { name: session.partnerName }) : t('chat.typing'))
                   : session.connectionType === 'connecting'
                     ? t('chat.reconnecting')
                     : session.connectionType === 'direct' || session.connectionType === 'local'
@@ -1537,6 +1562,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     </React.Fragment>
                   );
                 })}
+                <AnimatePresence>{peerTyping && <TypingGhostBubble align="left" />}</AnimatePresence>
               </AnimatePresence>
             </>
           )}
@@ -1838,7 +1864,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 data-testid="composer"
                 value={inputText}
                 rows={1}
-                onChange={(e) => { setComposerTouched(true); setInputText(e.target.value); }}
+                onChange={(e) => { setComposerTouched(true); setInputText(e.target.value); typingSender.current?.pulse(); }}
+                onBlur={() => typingSender.current?.stop()}
                 onPaste={(e) => { setComposerTouched(true); handlePaste(e); }}
                 onKeyDown={(e) => {
                   // Formatting shortcuts, the ones every editor shares.

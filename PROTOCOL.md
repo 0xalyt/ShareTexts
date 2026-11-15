@@ -52,6 +52,27 @@ ChunkEnvelope {
 Receivers reassemble by `transferId`, verify `sequence`/`total`, and surface
 progress. A transfer is complete only when all chunks arrive.
 
+## Ephemeral control frames: typing
+
+One frame, one meaning, nothing stored anywhere:
+
+```json
+{ "type": "typing", "state": "start" }
+{ "type": "typing", "state": "stop" }
+```
+
+`start` and `stop` are the only values; anything else is ignored. The frame
+rides the control lane beside `seen` and `reaction` — small, ordered, never
+queued behind bulk transfer — and carries no message id, text or timestamp, so
+it can say "someone is writing" and nothing about what.
+
+Receivers treat it as advisory: a `start` expires on its own after 6 s, a
+`stop` clears it immediately, a disconnect clears it, and a lost frame is a
+missing hint rather than a broken room. Nothing is persisted or logged, so a
+room snapshot cannot replay it. Protocol version stays **1**: the frame is
+additive, and unknown `type` values fall through the control table exactly as
+they always have.
+
 ## Session lifecycle
 
 1. **Create** — client emits `create_room` → server creates a room, joins the

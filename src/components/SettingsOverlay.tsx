@@ -9,6 +9,7 @@ import { readNoGlassPreference, setNoGlass } from '../lib/device';
 import { HAPTICS_IOS, HAPTICS_STORE, haptic } from '../lib/haptics';
 import { isPresenceHidden, setPresenceHidden } from '../lib/nearby';
 import { isAutoConnectEnabled, setAutoConnectEnabled } from './NearbyDevices';
+import { typingIndicatorEnabled, setTypingIndicatorEnabled } from '../lib/typing';
 import { cn } from '../lib/utils';
 
 /**
@@ -137,6 +138,7 @@ export function SettingsOverlay({
   });
   const [visible, setVisible] = useState(() => !isPresenceHidden());
   const [autoConnect, setAutoConnect] = useState(() => isAutoConnectEnabled());
+  const [typingOn, setTypingOn] = useState(() => typingIndicatorEnabled());
 
 
   useEffect(() => {
@@ -355,6 +357,21 @@ export function SettingsOverlay({
                           } catch {
                             /* private mode */
                           }
+                        }}
+                      />
+                    </Row>
+                    <Row as="div" className="justify-between">
+                      <span className="flex flex-col">
+                        <span>{t('settings.typing')}</span>
+                        <span className="mt-0.5 text-[12px] text-apple-ink-muted dark:text-white/60">{t('settings.typingHint')}</span>
+                      </span>
+                      <Switch
+                        checked={typingOn}
+                        label={t('settings.typing')}
+                        testId="settings-typing"
+                        onChange={(v) => {
+                          setTypingOn(v);
+                          setTypingIndicatorEnabled(v);
                         }}
                       />
                     </Row>

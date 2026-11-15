@@ -77,6 +77,8 @@ const applyReaction = (
   return Object.keys(next).length ? next : undefined;
 };
 
+const TYPING_TTL_MS = 6000;
+
 export interface MessageEngine {
   updateMessageAttachment(messageId: string, updates: Partial<NonNullable<ChatMessage['attachment']>>): void;
   /** Retry ONE failed recipient of a multi-recipient message (never resends
@@ -88,6 +90,10 @@ export interface MessageEngine {
    *  to receive — and tell every live link in the room. Tapping the same
    *  emoji again removes it. */
   reactToMessage(messageId: string, emoji: string): void;
+  /** Send the ephemeral typing frame to every live link (OD-4). */
+  sendTyping(state: 'start' | 'stop'): void;
+  /** Hear the peer's typing frames. Returns an unsubscribe function. */
+  onTyping(listener: (state: 'start' | 'stop') => void): () => void;
   /** Remove ONE message from THIS device's thread. Nothing is recalled from
    *  the other device — the protocol has no recall, so the menu says exactly
    *  that instead of implying the message disappears for everyone. */
@@ -257,6 +263,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
   };
 
   const wirePeerHandlers = (pm: PeerManager) => {
+    pm.onTyping = (state) => {
+      setSession(s => ({ ...s, peerTypingUntil: state === 'start' ? Date.now() + TYPING_TTL_MS : 0 }));
+    };
     pm.onMessage = (dataStr) => {
       try {
         const parsed = JSON.parse(dataStr);
@@ -265,6 +274,14 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         // no longer holds the bytes so we can fail honestly instead of waiting.
         if (parsed.kind === 'resend_request') { void handleResendRequest(parsed.id); return; }
         if (parsed.kind === 'resend_unavailable') { updateMessageAttachment(parsed.id, { status: 'failed', note: 'resend-unavailable' }); return; }
+        // OD-4: typing is a control frame, never content. Nothing is stored or
+        // logged; the receiver keeps it only as long as its TTL allows.
+        if (parsed.kind === 'typing') {
+          if (parsed.state === 'start' || parsed.state === 'stop') {
+            setSession(s => ({ ...s, peerTypingUntil: parsed.state === 'start' ? Date.now() + TYPING_TTL_MS : 0 }));
+          }
+          return;
+        }
         if (parsed.id && parsed.sender) {
           // New structured format. Dedupe by message id so a retried transfer
           // (metadata re-sent after a failure) doesn't create a duplicate
@@ -1147,6 +1164,22 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     setSession(s => ({ ...s, messages: s.messages.filter(m => m.id !== messageId) }));
   };
 
+  const onTyping = (_listener: (state: 'start' | 'stop') => void): (() => void) => () => {};
+  const sendTyping = (state: 'start' | 'stop'): void => {
+    const told = new Set<string>();
+    const direct = getPeer();
+    if (direct && !direct.isDestroyed()) {
+      if (direct.boundId) told.add(direct.boundId);
+      try { direct.sendTyping(state); } catch { /* channel closed; TTL covers it */ }
+    }
+    for (const e of roomRoster.otherEntries()) {
+      if (told.has(e.id)) continue;
+      const pm = getPeerForRecipient(e.id);
+      if (!pm) continue;
+      try { pm.sendTyping(state); } catch { /* best-effort */ }
+    }
+  };
+
   /** Toggle our reaction under one message. Reactions are room-wide and
    *  attach to the message id (shared on the wire), so they land on every
    *  device's copy of that bubble regardless of who sent it. Returns nothing
@@ -1223,5 +1256,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     cancelRecipient,
     reactToMessage,
     deleteLocalMessage,
+    sendTyping,
+    onTyping,
   };
 }
