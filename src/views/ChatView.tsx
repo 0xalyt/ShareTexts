@@ -295,6 +295,15 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // fine (two string builds), and they must be fresh so midnight rolls over.
   const now = Date.now();
   const todayKey = dateKeyOf(now);
+  // DESIGN §19: one state word, on the most recent own message. Computed once
+  // per render over the whole thread rather than per bubble, so a 300-message
+  // thread does one pass, not 300.
+  const lastOwnId = useMemo(() => {
+    for (let i = session.messages.length - 1; i >= 0; i--) {
+      if (session.messages[i].sender === 'me') return session.messages[i].id;
+    }
+    return null;
+  }, [session.messages]);
   const yesterdayKey = dateKeyOf(now - 86_400_000);
   // Keep the composer exactly as tall as its content (1 line = 44px), growing
   // smoothly up to 30vh. Without this the textarea sits at its default
@@ -1401,7 +1410,13 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             instead of hanging from the top of the pane with a dead plane
             underneath. min-height (not a fixed height) is what keeps the
             first message reachable once the thread overflows. */}
-        <div className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col min-h-full">
+        <div
+          className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col min-h-full"
+          role="log"
+          aria-live="polite"
+          aria-relevant="additions"
+          aria-label={t('chat.threadAria')}
+        >
           {session.messages.length === 0 ? (
             // Empty room: the room's first real surface, and the one every
             // session sees. It used to be a 168px drawing centred in a 400px
@@ -1473,6 +1488,13 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               <div aria-hidden className="grow" />
               <AnimatePresence initial={false}>
                 {session.messages.map((msg, idx) => {
+                  const prev = idx > 0 ? session.messages[idx - 1] : undefined;
+                  // §19 grouping: a run of messages from one sender is one
+                  // block. A five-minute silence breaks the block even when
+                  // the sender has not changed, because the time has.
+                  const silentFor = prev ? (msg.timestamp - prev.timestamp) / 60000 : Infinity;
+                  const showMeta = !prev || prev.sender !== msg.sender || silentFor >= 5;
+                  const isLastOwn = msg.id === lastOwnId;
                   // Date separators: a quiet chip between days. Today is the
                   // common case (no separator at all); Yesterday and older
                   // dates get an honest localized label.
@@ -1490,6 +1512,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       )}
                       <MessageCard
                         msg={msg}
+                        showMeta={showMeta}
+                        showStateWord={isLastOwn}
                         isGroupStart={idx === 0 || session.messages[idx - 1].sender !== msg.sender}
                         isGroupEnd={idx === session.messages.length - 1 || session.messages[idx + 1].sender !== msg.sender}
                         selectMode={selectMode}

@@ -265,6 +265,7 @@ const fr: Dict = {
   'chat.peerOffline.title': 'L’autre appareil est hors ligne',
   'chat.peerOffline.body': 'Il se reconnecte tout seul quand l’appareil revient.',
   'chat.ready': 'Prêt quand vous l’êtes',
+  'chat.threadAria': 'Fil de messages',
   'chat.empty.body': 'Tapez, collez ou déposez n’importe quoi — texte, liens, photos, fichiers. Ça va directement sur l’autre appareil.',
   'chat.suggest.hi': 'Dis bonjour 👋',
   'chat.suggest.photo': 'Envoyer une photo',

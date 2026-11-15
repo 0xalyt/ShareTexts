@@ -265,6 +265,7 @@ const hi: Dict = {
   'chat.peerOffline.title': 'दूसरा डिवाइस ऑफ़लाइन है',
   'chat.peerOffline.body': 'डिवाइस लौटते ही यह अपने आप फिर जुड़ जाएगा।',
   'chat.ready': 'जब आप तैयार हों',
+  'chat.threadAria': 'संदेश थ्रेड',
   'chat.empty.body': 'कुछ भी टाइप करें, पेस्ट करें या छोड़ें — टेक्स्ट, लिंक, फ़ोटो, फ़ाइलें। सीधा दूसरे डिवाइस पर पहुँचता है।',
   'chat.suggest.hi': 'नमस्ते कहें 👋',
   'chat.suggest.photo': 'फ़ोटो भेजें',

@@ -265,6 +265,7 @@ const pt: Dict = {
   'chat.peerOffline.title': 'O outro dispositivo está offline',
   'chat.peerOffline.body': 'Ele reconecta sozinho quando o dispositivo voltar.',
   'chat.ready': 'Pronto quando você estiver',
+  'chat.threadAria': 'Conversa',
   'chat.empty.body': 'Digite, cole ou solte qualquer coisa — texto, links, fotos, arquivos. Vai direto para o outro dispositivo.',
   'chat.suggest.hi': 'Diga olá 👋',
   'chat.suggest.photo': 'Enviar uma foto',

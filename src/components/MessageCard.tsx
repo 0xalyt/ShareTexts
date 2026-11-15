@@ -11,7 +11,7 @@ import { motion } from 'motion/react';
 import { useSession } from '../lib/SessionContext';
 import { formatSpeed, formatEta } from '../lib/speedEngine';
 import { renderRichText } from '../lib/richText';
-import { messageState, ITEM_STATE_LABEL, type ItemState } from '../lib/itemState';
+import { messageState, isFailed, ITEM_STATE_LABEL, type ItemState } from '../lib/itemState';
 type DictKey = Parameters<ReturnType<typeof useI18n>['t']>[0];
 // lucide icons under the local names this file already uses (all icons are
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
@@ -310,7 +310,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
   const label = t(ITEM_STATE_LABEL[state] as DictKey);
   if (state === 'seen') {
     return (
-      <span className="flex items-center gap-1 text-apple-blue">
+      <span data-testid="msg-state" data-state="seen" className="flex items-center gap-1 text-apple-blue">
         <motion.span
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -328,7 +328,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
   }
   if (state === 'delivered') {
     return (
-      <span className="flex items-center gap-1 text-status-success">
+      <span data-testid="msg-state" data-state="delivered" className="flex items-center gap-1 text-status-success">
         {/* The check pops in when the peer's receipt arrives — a tiny
             confirmation that lands, not just a static icon. */}
         <motion.span
@@ -344,7 +344,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
     );
   }
   return (
-    <span className="flex items-center gap-1 text-apple-ink-muted">
+    <span data-testid="msg-state" data-state="sent" className="flex items-center gap-1 text-apple-ink-muted">
       <motion.span
         initial={{ scale: 0.4, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -368,9 +368,16 @@ export interface MessageCardProps {
   onToggleSelect?: () => void;
   /** Long-press enters selection mode with THIS message pre-selected. */
   onLongPressStart?: (messageId: string) => void;
+  /** DESIGN §19: device name and time appear only when the sender changes or
+   *  after five minutes of silence — never inside every bubble. Computed by
+   *  ChatView, which is the only place that can see the neighbours. */
+  showMeta?: boolean;
+  /** DESIGN §19: the delivery state word belongs to the most recent own
+   *  message only. Older ones speak only when something is wrong. */
+  showStateWord?: boolean;
 }
 
-export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart }) => {
+export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart, showMeta = true, showStateWord = true }) => {
   const { t, lang } = useI18n();
   const { retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, session } = useSession();
   const isMe = msg.sender === 'me';
@@ -511,9 +518,9 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         onClick={selectMode ? handleBubbleTap : undefined}
       >
         {selectMode && <SelectionRing selected={selected} />}
-        <div className={cn("flex flex-col min-w-0 max-w-[85%] sm:max-w-[65%]", isMe ? "items-end" : "items-start")}>
+        <div className={cn("flex flex-col min-w-0 max-w-[82%]", isMe ? "items-end" : "items-start")}>
         <div className={cn(
-          "px-[15px] py-[10px] rounded-[16px] transition-shadow",
+          "px-[15px] py-[10px] rounded-[18px] transition-shadow",
           selected && "ring-2 ring-azure-500/60",
           isMe
             /* Sent: a real ember wash — the old #fff4ea was within two
@@ -591,7 +598,11 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               <>
                 <span className="text-[12px] font-medium flex items-center gap-1 text-apple-ink-muted">
                   {isMe ? (
-                    <DeliveryTick state={messageState(msg)} onBlue />
+                    // One state word, one bubble: the newest own message carries
+                    // the receipt; older ones stay silent unless they failed.
+                    (showStateWord || isFailed(messageState(msg))) && (
+                      <DeliveryTick state={messageState(msg)} onBlue />
+                    )
                   ) : msg.source === 'push' ? (
                     <span className="font-semibold flex items-center gap-1">
                       <Terminal className="w-3 h-3" /> {t('msg.fromPush')}
@@ -601,7 +612,11 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                         from a DEVICE — the name makes the bridge concrete. */
                     <span className="font-semibold">{session.partnerName ? t('msg.fromDevice', { name: session.partnerName }) : t('msg.received')}</span>
                   )}
-                  {' • '}<span data-testid="msg-time" className="whitespace-nowrap">{fmtTime(lang, msg.timestamp)}</span>
+                  {showMeta && (
+                    <>
+                      {' • '}<span data-testid="msg-time" className="whitespace-nowrap">{fmtTime(lang, msg.timestamp)}</span>
+                    </>
+                  )}
                 </span>
                 <BookmarkButton msg={msg} />
                 <button

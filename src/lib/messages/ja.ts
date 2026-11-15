@@ -265,6 +265,7 @@ const ja: Dict = {
   'chat.peerOffline.title': '相手のデバイスがオフラインです',
   'chat.peerOffline.body': 'デバイスが戻ると、自動的に再接続します。',
   'chat.ready': '準備はいつでも',
+  'chat.threadAria': 'メッセージスレッド',
   'chat.empty.body': '入力・貼り付け・ドロップしたもの（テキスト、リンク、写真、ファイル）はそのまま相手へ届きます。',
   'chat.suggest.hi': 'こんにちは 👋',
   'chat.suggest.photo': '写真を送る',

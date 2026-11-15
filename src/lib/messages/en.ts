@@ -350,6 +350,7 @@ const en = {
   'chat.peerOffline.title': 'Other device is offline',
   'chat.peerOffline.body': 'It reconnects on its own when the device comes back.',
   'chat.ready': 'Ready when you are',
+  'chat.threadAria': 'Message thread',
   'chat.empty.body': 'Type, paste, or drop anything. Text, links, photos, files. It goes straight to the other device.',
   'chat.suggest.hi': 'Say hello',
   'chat.suggest.photo': 'Send a photo',

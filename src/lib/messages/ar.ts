@@ -265,6 +265,7 @@ const ar: Dict = {
   'chat.peerOffline.title': 'الجهاز الآخر غير متصل',
   'chat.peerOffline.body': 'يعود الاتصال تلقائيًا عند عودة الجهاز.',
   'chat.ready': 'جاهز وقتما تشاء',
+  'chat.threadAria': 'سلسلة الرسائل',
   'chat.empty.body': 'اكتب أو الصق أو أسقط أي شيء — نص، روابط، صور، ملفات. يصل مباشرة إلى الجهاز الآخر.',
   'chat.suggest.hi': 'قل مرحبًا 👋',
   'chat.suggest.photo': 'أرسل صورة',

@@ -265,6 +265,7 @@ const de: Dict = {
   'chat.peerOffline.title': 'Das andere Gerät ist offline',
   'chat.peerOffline.body': 'Es verbindet sich von selbst, sobald das Gerät wieder da ist.',
   'chat.ready': 'Bereit, wenn du es bist',
+  'chat.threadAria': 'Nachrichtenverlauf',
   'chat.empty.body': 'Tippe, füge ein oder lege etwas ab – Text, Links, Fotos, Dateien. Es geht direkt auf das andere Gerät.',
   'chat.suggest.hi': 'Sag Hallo 👋',
   'chat.suggest.photo': 'Foto senden',

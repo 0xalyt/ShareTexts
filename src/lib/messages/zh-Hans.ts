@@ -265,6 +265,7 @@ const zh: Dict = {
   'chat.peerOffline.title': '另一台设备处于离线状态',
   'chat.peerOffline.body': '设备回来后会自动重新连接。',
   'chat.ready': '随时可以开始',
+  'chat.threadAria': '消息记录',
   'chat.empty.body': '输入、粘贴或拖放任何内容——文字、链接、图片、文件，都会直接传到另一台设备。',
   'chat.suggest.hi': '打个招呼 👋',
   'chat.suggest.photo': '发送照片',
