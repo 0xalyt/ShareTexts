@@ -27,7 +27,8 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | --- | --- |
 | M1 — Solid ground | shipped (`M1-report.md`), with three carry-over items completed after the report: `src/lib/itemState.ts`, `scripts/verify-no-flash.mjs`, this file. Bundle gate still red. |
 | M2 — The Room | prerequisites cleared (`661f99e`); STEP 0 (`f9e74a4`) and STEP 1 feed (`f3e07f8`) shipped; STEPs 2–6 untouched (`M2-report.md`). |
-| M3+ | not started. |
+| M3 — Circle Core | STEP 0 ADR + pending claim and STEP 1 crypto (`ef9e4b8`) shipped; STEPs 2–6 untouched (`M3-report.md`). Worker deploy pending for STEP 2. |
+| M4+ | not started. |
 
 ## 4. Gates — current truth
 
@@ -41,6 +42,7 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `npm run verify:claims` | no forbidden product claim | 8 rules, 43 files, 0 findings, 1 declared exemption |
 | `npm run verify:chaos` | four reliability promises, measured | 4/4 PASS (S2, S3, S11, S12) |
 | `npm run verify:room-feed` | §19 feed rules: grouping, one state word, geometry, log semantics | GREEN, 6/6 |
+| `npm run verify:circle-crypto` | Circle seal: pins, tamper, wrap, SAS, chain | GREEN, 24 assertions |
 | `node scripts/verify-no-flash.mjs` | no blank gap, no white frame, no mid-session SW takeover | clean |
 | `npm run verify:icons` | every icon reference resolves and matches its size | 12 references |
 | `npm run verify:bundle` | entry ≤ 180 KB gzip | **PASS — 179.0 KB** (was 219.9) |
@@ -56,6 +58,9 @@ the room secret, so the product does **not** claim end-to-end encryption.
 4. **Space file storage** disabled; the claims linter forbids describing it.
 5. **`home.roomsMade` still says "rooms made"** while the counter measures
    two-device connections.
+6. **Circle has no server yet.** `src/lib/circle/*` is client crypto only; no
+   `/circle/*` route exists and no client calls one, so nothing is broken by
+   the gap — but the mailbox (M3 STEP 2) needs `npm run worker:deploy`.
 
 ## 6. Environment
 
