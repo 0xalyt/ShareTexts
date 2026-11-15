@@ -36,7 +36,7 @@ unproven or untouched.
 | `npm run verify:claims` | 8 rules, 43 files, **0 findings**, 1 declared exemption (a WhatsApp comparison line, printed on every run) |
 | `npm run verify:icons` | 12 references resolve and match |
 | `npm run verify:chaos` | **4/4 PASS** — S2, S3, S11, S12 |
-| `npm run verify:bundle` | **FAIL** — see §3 |
+| `npm run verify:bundle` | **PASS — 179.0 KB** (was 219.9; fixed in `661f99e`, see §3) |
 
 The chaos run found its own two bugs before it found the app's:
 
@@ -51,8 +51,12 @@ The chaos run found its own two bugs before it found the app's:
 
 ## 3. NOT VERIFIED — and the one gate that fails
 
-**Bundle budget: FAIL.** Entry chunk `index-CWorB8yT.js` is **219.9 KB gzip**
-against a 180 KB budget — **39.9 KB over**. Next largest: `QRScanner-*` 98.2 KB,
+**Bundle budget: FIXED after this report was first written.** At the original
+commit the entry chunk was **219.9 KB gzip** against a 180 KB budget, 39.9 KB
+over, and this section said so rather than re-basing the number. It is now
+**179.0 KB** (`661f99e`): SpaceView's sheets, the QR art, the command palette and
+three overlays became lazy chunks. The paragraph below is kept because it is
+what the failure was. Next largest: `QRScanner-*` 98.2 KB,
 `vendor-motion-*` 47.3 KB. The budget was not raised to make the gate pass; the
 honest number is the one above. Reducing it is real work (route-splitting the
 chat view, replacing or deferring `motion`), not a config edit, and it needs its
@@ -64,9 +68,9 @@ Not run at all, and therefore not claimed:
   tab sleep, clock skew, storage quota, backgrounded transfers, reconnect
   storms). They need CDP lifecycle control and network priming; the matrix file
   says plainly that they are unmeasured.
-- **No `verify-no-flash.mjs`.** The `skipWaiting` removal addresses the cause of
-  the mid-session swap, but no harness asserts "no flash on update". The
-  service-worker change was reviewed and built, not measured under an update.
+- `scripts/verify-no-flash.mjs` now exists (`c6bfcb0`) and is clean: it samples
+every animation frame across landing → room and on a dark cold load, and asserts
+statically that `sw.js` has no `skipWaiting()`.
 - **Temporary Space file storage.** The R2 binding is commented out; Spaces are
   text and links only. The claims ruleset forbids describing them as holding
   files, but no capability flag or UI gate was added (plan STEP 3b).

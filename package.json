@@ -44,7 +44,8 @@
     "verify:icons": "node scripts/verify-icons.mjs",
     "verify:chaos": "node scripts/verify-chaos.mjs",
     "verify:no-flash": "node scripts/verify-no-flash.mjs",
-    "verify:room-feed": "node scripts/verify-room-feed.mjs"
+    "verify:room-feed": "node scripts/verify-room-feed.mjs",
+    "verify:circle-crypto": "node scripts/verify-circle-crypto.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",

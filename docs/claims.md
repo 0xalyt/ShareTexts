@@ -51,6 +51,12 @@ No string ships that is not TRUE after the fix column lands.
 > channel so no server-held secret can derive content keys. Until then, public
 > copy says "encrypted in transit", never "end-to-end".
 
+## Pending — M3 Circle (do not use in public copy)
+
+| # | Draft claim | Status | Why it stays off |
+| --- | --- | --- | --- |
+| P1 | "Linked devices are end-to-end encrypted." | **PENDING — not claimable** | The Circle design (`docs/adr/0001-circle.md`) makes it true by construction: the server never receives `K`, and `scripts/verify-circle-crypto.mjs` proves the seal refuses tampering, reordering and cross-circle replay. It becomes claimable only when `scripts/verify-zero-knowledge.mjs` (M3 STEP 4) shows nothing readable is stored or logged. Until then `docs/claims.forbidden.json` keeps the phrase forbidden and no public copy changes. |
+
 Also listed under PR "UNVERIFIED for owner decision": repo website field +
 `sharetext-phi.vercel.app` DNS-side 301 (vercel.json redirect shipped; DNS
 record needs dashboard access).
