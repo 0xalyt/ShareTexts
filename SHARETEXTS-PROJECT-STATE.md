@@ -26,7 +26,7 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | Milestone | State |
 | --- | --- |
 | M1 — Solid ground | shipped (`M1-report.md`), with three carry-over items completed after the report: `src/lib/itemState.ts`, `scripts/verify-no-flash.mjs`, this file. Bundle gate still red. |
-| M2 — The Room | prerequisites cleared (`661f99e`); STEP 0 shipped (tag `before-M2`, `docs/redesign/room-audit.md`, six before-shots); STEPs 1–5 untouched (`M2-report.md`). |
+| M2 — The Room | prerequisites cleared (`661f99e`); STEP 0 (`f9e74a4`) and STEP 1 feed (`f3e07f8`) shipped; STEPs 2–6 untouched (`M2-report.md`). |
 | M3+ | not started. |
 
 ## 4. Gates — current truth
@@ -40,6 +40,7 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `npm run smoke:local` | the built server serves the real routes | GREEN |
 | `npm run verify:claims` | no forbidden product claim | 8 rules, 43 files, 0 findings, 1 declared exemption |
 | `npm run verify:chaos` | four reliability promises, measured | 4/4 PASS (S2, S3, S11, S12) |
+| `npm run verify:room-feed` | §19 feed rules: grouping, one state word, geometry, log semantics | GREEN, 6/6 |
 | `node scripts/verify-no-flash.mjs` | no blank gap, no white frame, no mid-session SW takeover | clean |
 | `npm run verify:icons` | every icon reference resolves and matches its size | 12 references |
 | `npm run verify:bundle` | entry ≤ 180 KB gzip | **PASS — 179.0 KB** (was 219.9) |
