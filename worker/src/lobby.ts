@@ -20,14 +20,15 @@ import { type Env } from './types';
  *     connection always flows through the EXISTING create/join room path;
  *   · pool is capped — this is a pairing lobby, not a directory.
  *
- * One DO instance serves the whole deployment (idFromName('lobby')): presence
- * is a handful of tiny JSON frames every ~45s per device, far below any DO
- * limit for realistic landing-page concurrency.
+ * One DO instance serves one NETWORK SHARD (idFromName('lobby:' + shard), see
+ * shard.ts): presence is a handful of tiny JSON frames every ~45s per device,
+ * and scoping by network is what makes "nearby" mean nearby. The shard id is
+ * an HMAC of the network key against a daily salt — never the IP itself.
  */
 
 const PRESENCE_TTL = 90_000;        // dies after 90s without a keepalive announce
 const PRESENCE_SWEEP_MS = 30_000;   // sweep cadence (also expires + broadcasts removals)
-const PRESENCE_MAX_DEVICES = 24;    // pool cap
+const PRESENCE_MAX_DEVICES = 64;    // pool cap PER NETWORK SHARD (see shard.ts)
 const PRESENCE_NAME_MAX = 32;
 const SECRET_MAX = 64;
 const SECRET_MIN = 16;

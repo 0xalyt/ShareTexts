@@ -50,7 +50,8 @@
     "verify:desktop": "node scripts/verify-desktop.mjs",
     "verify:circle-worker": "node scripts/verify-circle-worker.mjs",
     "verify:circle-pairing": "node scripts/verify-circle-pairing.mjs",
-    "verify:zero-knowledge": "node scripts/verify-zero-knowledge.mjs"
+    "verify:zero-knowledge": "node scripts/verify-zero-knowledge.mjs",
+    "verify:lobby-shard": "node scripts/verify-lobby-shard.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",

@@ -6,6 +6,9 @@ export interface Env {
   STATS: DurableObjectNamespace;
   /** Landing-page presence pool (nearby-device discovery). */
   LOBBY: DurableObjectNamespace;
+  /** Secret that salts the per-network Lobby shard (rotated daily). Optional:
+   *  when unset, a random salt is generated once and kept in the Stats DO. */
+  LOBBY_SALT?: string;
   /** Temporary Spaces (F14) — one Space DO per space id. */
   SPACES: DurableObjectNamespace;
   /** Circle (M3) — one mailbox DO per circle id (sealed bytes only). */

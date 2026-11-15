@@ -6,6 +6,30 @@ import { Lobby } from './lobby';
 import { Space } from './space';
 import { Circle } from './circle';
 import { CIRCLE_LIMITS } from './limits';
+import { shardFor } from './shard';
+
+/**
+ * The salt for today's shard. Owner-set LOBBY_SALT wins; otherwise a random
+ * salt generated once inside the Stats DO (so it survives isolate restarts).
+ * Cached for a minute to keep the hot path off the DO.
+ */
+let lobbySecretCache: { value: string; expires: number } | null = null;
+async function lobbySecret(env: Env): Promise<string> {
+  if (env.LOBBY_SALT) return env.LOBBY_SALT;
+  if (lobbySecretCache && lobbySecretCache.expires > Date.now()) return lobbySecretCache.value;
+  try {
+    const res = await env.STATS.get(env.STATS.idFromName('stats')).fetch(
+      new Request('https://stats.internal/lobby-salt'),
+    );
+    const body = (await res.json()) as { salt?: string };
+    if (body.salt) {
+      lobbySecretCache = { value: body.salt, expires: Date.now() + 60_000 };
+      return body.salt;
+    }
+  } catch { /* fall through to the ephemeral salt below */ }
+  // Last resort: still sharded, just not stable across isolate restarts.
+  return 'sharetext-lobby-fallback';
+}
 import { json, dayKey, type Env } from './types';
 
 // Durable Object classes must be exported from the entrypoint.
@@ -157,7 +181,10 @@ export default {
       if (!(await rateLimited(env, 'ws', clientIp(request)))) {
         return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);
       }
-      const id = env.LOBBY.idFromName('lobby');
+      // One Lobby per NETWORK, not one per planet. The IP never leaves this
+      // function: it is hashed into a shard id and dropped.
+      const shard = await shardFor(clientIp(request), await lobbySecret(env));
+      const id = env.LOBBY.idFromName('lobby:' + shard);
       return env.LOBBY.get(id).fetch(request);
     }
 

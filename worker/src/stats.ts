@@ -20,6 +20,18 @@ export class Stats extends DurableObject<Env> {
     if (url.pathname === '/event' && request.method === 'POST') {
       return this.event(request);
     }
+    // Internal only (index.ts calls it); never exposed on a public route.
+    // Generated once, so sharding is stable across Worker isolates even
+    // before the owner sets LOBBY_SALT.
+    if (url.pathname === '/lobby-salt') {
+      let salt = await this.ctx.storage.get<string>('lobbySalt');
+      if (!salt) {
+        salt = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+        await this.ctx.storage.put('lobbySalt', salt);
+      }
+      return json({ salt });
+    }
+
     if (url.pathname === '/' || url.pathname === '/stats') {
       const users = (await this.ctx.storage.get<number>('users')) ?? 0;
       return json({
