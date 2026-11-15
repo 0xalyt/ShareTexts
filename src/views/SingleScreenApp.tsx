@@ -21,7 +21,10 @@ import { hapticSuccess } from '../lib/haptics';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
-import { QrArt } from '../components/qr/QrArt';
+// Lazy: the QR art carries qrcode-generator (~11 KB gzip) and only one
+// segment of one screen ever draws a code. Static import put it in the entry
+// chunk, where every visitor paid for it before seeing anything.
+const QrArt = lazy(() => import('../components/qr/QrArt').then(m => ({ default: m.QrArt })));
 import { BrandLockup } from '../components/BrandLockup';
 import { IconButton3D } from '../components/IconButton3D';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -45,7 +48,9 @@ import { PresenceDock, type PresenceEntry } from '../components/PresenceDock';
 import { InlineConfirm } from '../components/InlineConfirm';
 import { BookOpen } from 'lucide-react';
 import { ConnectHandshake } from '../components/ConnectHandshake';
-import { CommandBar, CommandBarChip } from '../components/CommandBar';
+import { CommandBarChip } from '../components/CommandBarChip';
+// The palette is 6 KB gzip that exists only after a keystroke or a click.
+const CommandBar = lazy(() => import('../components/CommandBar').then(m => ({ default: m.CommandBar })));
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
 import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
@@ -57,10 +62,10 @@ import { useLiveStats } from '../lib/useLiveStats';
 import { useSavedCount } from '../lib/savedItems';
 import { useOverscroll } from '../lib/useOverscroll';
 import { ConfirmSheet } from '../components/ConfirmSheet';
-import { SettingsOverlay } from '../components/SettingsOverlay';
-import { SavedItemsOverlay } from '../components/SavedItemsOverlay';
+const SettingsOverlay = lazy(() => import('../components/SettingsOverlay').then(m => ({ default: m.SettingsOverlay })));
+const SavedItemsOverlay = lazy(() => import('../components/SavedItemsOverlay').then(m => ({ default: m.SavedItemsOverlay })));
 import { StayConnectedToggle, StayBadge } from '../components/StayConnectedToggle';
-import { NearbyDevices } from '../components/NearbyDevices';
+const NearbyDevices = lazy(() => import('../components/NearbyDevices').then(m => ({ default: m.NearbyDevices })));
 import { SkeletonScreen } from '../components/SkeletonScreen';
 import { productEvent } from '../lib/telemetry';
 import { useI18n } from '../lib/i18n';
@@ -82,7 +87,10 @@ import {
   Search, Compass, ShieldCheck, FileText,
 } from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages } from 'lucide-react';
-import { SpaceCreateSheet, SpaceJoinSheet } from './SpaceView';
+// The Space sheets live in SpaceView, which is already a lazy route. Importing
+// the sheets statically dragged the WHOLE view (10.7 KB gzip) into the entry.
+const SpaceCreateSheet = lazy(() => import('./SpaceView').then(m => ({ default: m.SpaceCreateSheet })));
+const SpaceJoinSheet = lazy(() => import('./SpaceView').then(m => ({ default: m.SpaceJoinSheet })));
 import { recentSpaces } from '../lib/space/api';
 import { Bar } from '../components/SkeletonScreen';
 import { remainingShort as remainingShortOf } from '../lib/space/time';
@@ -2165,14 +2173,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           boolean, so the command palette could open on top of the Nearby
           sheet (two live dialogs, two Escape handlers, an ambiguous tab
           order). Opening any of them now closes the others. */}
-      <CommandBar
-        open={cmdOpen}
-        onOpenChange={(open) => {
-          if (open) { setSpaceSheet(null); setNearbySheet(false); setShowQRScan(false); }
-          setCmdOpen(open);
-        }}
-        onSpace={(which) => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet(which); }}
-      />
+      <Suspense fallback={null}>
+        <CommandBar
+          open={cmdOpen}
+          onOpenChange={(open) => {
+            if (open) { setSpaceSheet(null); setNearbySheet(false); setShowQRScan(false); }
+            setCmdOpen(open);
+          }}
+          onSpace={(which) => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet(which); }}
+        />
+      </Suspense>
       {/* Only the ACTIVE layout is mounted — the other branch stays unmounted
           so components (ChatView, composer, pairing input) exist exactly once
           in the DOM instead of twice with one hidden copy. */}
@@ -2334,13 +2344,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         )}
       </AnimatePresence>
       {/* Settings — theme, language, saved items, stay connected, reconnection. */}
+      <Suspense fallback={null}>
       <SettingsOverlay
         open={showSettings}
         onClose={() => setShowSettings(false)}
         onOpenSaved={() => { setShowSettings(false); setShowSaved(true); }}
       />
+      </Suspense>
       {/* The ONE Saved Items library — landing header and settings both open it. */}
-      <SavedItemsOverlay open={showSaved} onClose={() => setShowSaved(false)} />
+      <Suspense fallback={null}>
+        <SavedItemsOverlay open={showSaved} onClose={() => setShowSaved(false)} />
+      </Suspense>
       {/* More — the phone header's overflow (§18). A sheet on phones, and the
           same rows on a desktop popover-sized sheet; every destination the
           capsule can't hold without becoming a toolbar. */}
@@ -2387,7 +2401,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           and the AirDrop-style detect popup (which portals out on its own and
           keeps working while the sheet is shut). Closed = hidden, not gone. */}
       <OverlaySheet open={nearbySheet} onClose={() => setNearbySheet(false)} label={t('nearby.title')} maxWidth={460} testId="nearby-sheet" keepMounted>
-        <NearbyDevices onStatus={setNearbyStatus} />
+        <Suspense fallback={null}>
+          <NearbyDevices onStatus={setNearbyStatus} />
+        </Suspense>
       </OverlaySheet>
       {/* Temporary Space chooser — the two verbs and the recents that used to
           live in the hero, one level down. */}
@@ -2411,8 +2427,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           ))}
         </div>
       </OverlaySheet>
-      <SpaceCreateSheet open={spaceSheet === 'create'} onClose={() => setSpaceSheet(null)} />
-      <SpaceJoinSheet open={spaceSheet === 'join'} onClose={() => setSpaceSheet(null)} initialCode={initialSpaceCode} />
+      <Suspense fallback={null}>
+        <SpaceCreateSheet open={spaceSheet === 'create'} onClose={() => setSpaceSheet(null)} />
+        <SpaceJoinSheet open={spaceSheet === 'join'} onClose={() => setSpaceSheet(null)} initialCode={initialSpaceCode} />
+      </Suspense>
       {/* Apple-style bottom-sheet confirmation before really ending the session. */}
       <ConfirmSheet
         open={confirmDisconnect}
@@ -2431,5 +2449,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
 /*  Sub-components                                                    */
 /* ------------------------------------------------------------------ */
 function QROverlayInner({ value, label }: { value: string; label: string }) {
-  return <QrArt value={value} size={236} label={label} />;
+  return (
+    <Suspense fallback={<div className="w-[236px] h-[236px]" aria-hidden />}>
+      <QrArt value={value} size={236} label={label} />
+    </Suspense>
+  );
 }

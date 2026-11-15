@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { QrArt } from '../qr/QrArt';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+const QrArt = lazy(() => import('../qr/QrArt').then(m => ({ default: m.QrArt })));
 import { AnimatePresence } from 'motion/react';
 import { Check, Copy, Link2, QrCode, Share2, WifiOff } from 'lucide-react';
 import { Segmented } from '../ui/Segmented';

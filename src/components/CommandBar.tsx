@@ -619,12 +619,6 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
 }
 
 /** Quiet header chip advertising the shortcut (desktop pointers only). */
-export function CommandBarChip({ onClick }: { onClick: () => void }) {
-  const { t } = useI18n();
-  // The chip uses the same quiet 40px icon slot as the other header actions.
-  return (
-    <IconButton3D label={t('command.openAria')} onClick={onClick} className="hidden lg:flex">
-      <Search className="w-[18px] h-[18px]" strokeWidth={1.5} />
-    </IconButton3D>
-  );
-}
+// The chip moved to `CommandBarChip.tsx` so the landing header stops dragging
+// this whole palette into the entry chunk. Re-exported for existing callers.
+export { CommandBarChip } from './CommandBarChip';
