@@ -438,6 +438,8 @@ const fr: Dict = {
   'nearby.visibleTitle': 'Visibilité à proximité',
   'nearby.visibleWhileOpen': 'Visible tant que ShareTexts est ouvert',
   'nearby.visibleWhileOpenHint': 'Les autres appareils à proximité peuvent voir celui-ci',
+  'nearby.visibleFor': 'Visible pendant {time}',
+  'nearby.visibleForHint': 'Les autres appareils de votre réseau peuvent le trouver jusqu’à la fin',
   'nearby.hiddenTitle': 'Masqué',
   'nearby.hiddenHint': 'Vous n’apparaîtrez sur aucun autre appareil',
   'nearby.searching': 'Recherche des appareils à proximité…',

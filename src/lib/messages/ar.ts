@@ -437,6 +437,8 @@ const ar: Dict = {
   'nearby.visibleTitle': 'الظهور للأجهزة القريبة',
   'nearby.visibleWhileOpen': 'مرئي طالما ShareTexts مفتوح',
   'nearby.visibleWhileOpenHint': 'يمكن للأجهزة القريبة الأخرى رؤية هذا الجهاز',
+  'nearby.visibleFor': 'مرئي لمدة {time}',
+  'nearby.visibleForHint': 'يمكن لأجهزة أخرى على شبكتك العثور عليه حتى ينتهي',
   'nearby.hiddenTitle': 'مخفي',
   'nearby.hiddenHint': 'لن يظهر هذا الجهاز على الأجهزة الأخرى',
   'nearby.searching': 'جارٍ البحث عن الأجهزة القريبة…',

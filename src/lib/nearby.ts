@@ -29,19 +29,72 @@ import { diag } from './diag';
  *  persistence, rotating tokens on the wire, cleared with site data). */
 const DEVICE_ID_KEY = 'sharetext.deviceId.v1';
 
-/** Nearby visibility — the user's own discoverability switch (default ON:
- *  "Visible while ShareTexts is open", which is privacy-friendly by design —
- *  close the tab and the announce loop dies with it, so the server's TTL
- *  silently expires the entry). Hidden means this device never announces:
- *  it can still SEE others and invite them, it just can't be found. */
-const PRESENCE_HIDDEN_KEY = 'sharetext.presenceHidden.v1';
+/**
+ * Nearby visibility — AirDrop's "Everyone for 10 minutes", with the honest
+ * default of OFF for strangers.
+ *
+ * The window is stored as an ABSOLUTE DEADLINE in sessionStorage, never as a
+ * countdown: phone browsers freeze timers when the tab is backgrounded, so a
+ * window kept in an interval would say "4 minutes left" hours later. The
+ * deadline also survives a reload of that tab, which is what "for 10 minutes"
+ * has to mean to be true.
+ *
+ * While Off this device never announces — it can still SEE others and invite
+ * them, it just cannot be found.
+ */
+const VISIBLE_UNTIL_KEY = 'sharetext.presenceVisibleUntil.v1';
 
-export function isPresenceHidden(): boolean {
-  try { return localStorage.getItem(PRESENCE_HIDDEN_KEY) === '1'; } catch { return false; }
+/** The visibility window. Ten minutes is the owner decision (OD-7). */
+export const NEARBY_VISIBLE_MS = 10 * 60_000;
+
+function readDeadline(): number {
+  try {
+    const raw = sessionStorage.getItem(VISIBLE_UNTIL_KEY);
+    const until = raw ? Number(raw) : 0;
+    return Number.isFinite(until) && until > 0 ? until : 0;
+  } catch { return 0; }
 }
 
-export function setPresenceHidden(v: boolean): void {
-  try { localStorage.setItem(PRESENCE_HIDDEN_KEY, v ? '1' : '0'); } catch { /* private mode */ }
+/** Epoch ms when visibility ends, or 0 when this device is Off. */
+export function visibleUntil(): number {
+  const until = readDeadline();
+  if (until && until <= Date.now()) {
+    // Expired while the tab was asleep: clean up so the UI cannot show a
+    // negative countdown after a reload.
+    try { sessionStorage.removeItem(VISIBLE_UNTIL_KEY); } catch { /* private mode */ }
+    return 0;
+  }
+  return until;
+}
+
+export function isPresenceVisible(): boolean {
+  return visibleUntil() > 0;
+}
+
+/** Turn visibility on for `ms` (default 10 minutes) and return the deadline. */
+export function startVisibleFor(ms: number = NEARBY_VISIBLE_MS): number {
+  const until = Date.now() + ms;
+  try { sessionStorage.setItem(VISIBLE_UNTIL_KEY, String(until)); } catch { /* private mode */ }
+  return until;
+}
+
+export function stopVisible(): void {
+  try {
+    sessionStorage.removeItem(VISIBLE_UNTIL_KEY);
+    // A new visibility session is a new presence participant: dropping the
+    // device id here is what rotates the token other devices see.
+    sessionStorage.removeItem(DEVICE_ID_KEY);
+  } catch { /* private mode */ }
+}
+
+/** Kept for the card's existing call sites; "hidden" is simply "not visible". */
+export function isPresenceHidden(): boolean {
+  return !isPresenceVisible();
+}
+
+export function setPresenceHidden(hidden: boolean): void {
+  if (hidden) stopVisible();
+  else startVisibleFor();
 }
 
 export function getOrCreateDeviceId(): string {
@@ -79,8 +132,6 @@ export interface NearbyDevice {
   /** Exact model when the platform exposes one (Android builds); otherwise
    *  empty — the UI renders platform art and never invents a model. */
   model?: string;
-  /** GPU vendor hint (desktops only): NVIDIA / AMD / Intel / Apple. */
-  gpu?: string;
 }
 
 const TOKEN_RE = /^[0-9a-f]{32}$/;
@@ -90,7 +141,6 @@ const MODEL_MAX = 40;
 const MAX_DEVICES = 24;
 
 const KINDS = new Set(['phone', 'tablet', 'desktop']);
-const GPU_VENDORS = new Set(['NVIDIA', 'AMD', 'Intel', 'Apple']);
 
 /** Coarse device kind from the user agent — display hint only. */
 export function detectDeviceKind(ua: string): 'phone' | 'tablet' | 'desktop' {
@@ -134,29 +184,6 @@ export function detectDeviceModel(ua: string): string {
   return model.length >= 2 ? model : '';
 }
 
-/**
- * GPU vendor via WebGL's renderer string — the one honest hardware hint a
- * desktop browser exposes ("NVIDIA GeForce RTX 4070", "Apple M2", Intel
- * iGPU…). Powers the desktop-tile vendor badge; empty when the browser
- * withholds it (Firefox Phase-2/3 privacy hardening returns a generic
- * "Mozilla" string that matches nothing, which correctly yields '').
- */
-export function detectGpuVendor(): string {
-  try {
-    const canvas = document.createElement('canvas');
-    const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
-    if (!gl) return '';
-    const ext = gl.getExtension('WEBGL_debug_renderer_info');
-    const renderer = ext ? (gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) as string | null) : null;
-    if (!renderer) return '';
-    if (/nvidia|geforce|\brtx\b|\bgtx\b/i.test(renderer)) return 'NVIDIA';
-    if (/radeon|\brx\b|\bamd\b/i.test(renderer)) return 'AMD';
-    if (/apple (m\d|gpu)/i.test(renderer)) return 'Apple';
-    if (/intel|iris|uhd|hd graphics/i.test(renderer)) return 'Intel';
-    return '';
-  } catch { return ''; }
-}
-
 /** Server → UI validation. Strips control characters, caps lengths, drops
  *  malformed entries. Device names render as React text (never HTML), so this
  *  is defense-in-depth against XSS-by-name, not the only line. */
@@ -183,10 +210,8 @@ export function parsePresenceList(payload: unknown): NearbyDevice[] {
     const model = typeof modelRaw === 'string'
       ? modelRaw.replace(/[\x00-\x1F\x7F<>]/g, '').trim().slice(0, MODEL_MAX)
       : '';
-    const gpuRaw = (item as { gpu?: unknown }).gpu;
-    const gpu = typeof gpuRaw === 'string' && GPU_VENDORS.has(gpuRaw) ? gpuRaw : '';
     seen.add(id);
-    out.push({ id, name: clean, kind, browser, model: model || undefined, gpu: gpu || undefined });
+    out.push({ id, name: clean, kind, browser, model: model || undefined });
   }
   return out;
 }
@@ -195,7 +220,7 @@ const ANNOUNCE_INTERVAL_MS = 45_000; // comfortably inside the server's 90s TTL
 const ACK_TIMEOUT_MS = 8000;
 
 type ChangeListener = (devices: NearbyDevice[], selfToken: string | null) => void;
-export interface IncomingInvitation { from: string; name: string; kind: NearbyDevice['kind']; browser: string; model?: string; gpu?: string }
+export interface IncomingInvitation { from: string; name: string; kind: NearbyDevice['kind']; browser: string; model?: string }
 export interface InviteResult { accepted: boolean; roomId?: string; secret?: string }
 type InvitationListener = (inv: IncomingInvitation) => void;
 type InviteResultListener = (r: InviteResult) => void;
@@ -253,6 +278,7 @@ export class NearbyPresence {
   /** Leave the pool (state moved into a room / component unmounted). */
   stop(socket: SignalingSocket): void {
     this.clearTimer();
+    if (this.expiryTimer) { clearTimeout(this.expiryTimer); this.expiryTimer = null; }
     if (this.retryTimer) { clearTimeout(this.retryTimer); this.retryTimer = null; }
     try { socket.emit('presence_withdraw'); } catch { /* best effort */ }
     this.detach();
@@ -311,6 +337,7 @@ export class NearbyPresence {
   private detach(): void {
     const socket = this.socket;
     this.clearTimer();
+    if (this.expiryTimer) { clearTimeout(this.expiryTimer); this.expiryTimer = null; }
     if (this.visHandler && typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.visHandler);
       this.visHandler = null;
@@ -327,15 +354,14 @@ export class NearbyPresence {
   }
 
   private handleIncoming = (payload: unknown): void => {
-    const p = payload as { from?: unknown; name?: unknown; kind?: unknown; browser?: unknown; model?: unknown; gpu?: unknown } | null;
+    const p = payload as { from?: unknown; name?: unknown; kind?: unknown; browser?: unknown; model?: unknown } | null;
     if (!p || typeof p.from !== 'string' || !TOKEN_RE.test(p.from) || typeof p.name !== 'string') return;
     const name = p.name.replace(/[\x00-\x1F\x7F]/g, '').trim().replace(/\s+/g, ' ').slice(0, NAME_MAX);
     if (!name) return;
     const kind = typeof p.kind === 'string' && KINDS.has(p.kind) ? (p.kind as NearbyDevice['kind']) : 'desktop';
     const browser = typeof p.browser === 'string' ? p.browser.replace(/[\x00-\x1F\x7F]/g, '').trim().slice(0, BROWSER_MAX) : '';
     const model = typeof p.model === 'string' ? p.model.replace(/[\x00-\x1F\x7F<>]/g, '').trim().slice(0, MODEL_MAX) : '';
-    const gpu = typeof p.gpu === 'string' && GPU_VENDORS.has(p.gpu) ? p.gpu : '';
-    for (const fn of this.invitationListeners) fn({ from: p.from, name, kind, browser, model: model || undefined, gpu: gpu || undefined });
+    for (const fn of this.invitationListeners) fn({ from: p.from, name, kind, browser, model: model || undefined });
   };
 
   private handleResult = (payload: unknown): void => {
@@ -383,8 +409,26 @@ export class NearbyPresence {
   }
 
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private expiryTimer: ReturnType<typeof setTimeout> | null = null;
   private announceRetries = 0;
   private visHandler: (() => void) | null = null;
+
+  /** Withdraw exactly when the visibility window ends, rather than at the next
+   *  45s keepalive (which would keep us findable for up to 45s too long). */
+  private scheduleExpiry(): void {
+    if (this.expiryTimer) { clearTimeout(this.expiryTimer); this.expiryTimer = null; }
+    const until = visibleUntil();
+    if (!until) return;
+    const wait = Math.max(0, until - Date.now()) + 250;
+    this.expiryTimer = setTimeout(() => {
+      this.expiryTimer = null;
+      const socket = this.socket;
+      this.selfToken = null;
+      this.clearTimer();
+      if (socket) { try { socket.emit('presence_withdraw'); } catch { /* best effort */ } }
+      this.emit();
+    }, wait);
+  }
   /** Quick bounded retry after a failed announce (transport couldn't dial
    *  the lobby). 3s→6s→12s→15s cap; resets on success. This is what turns a
    *  stale-worker boot into a self-heal in seconds instead of waiting for
@@ -407,14 +451,16 @@ export class NearbyPresence {
   private async announce(): Promise<void> {
     const socket = this.socket;
     if (!socket) return;
-    // The user asked to be Hidden: never announce. If a keepalive fires
-    // after the flag flipped, withdraw so the server's TTL drops us fast.
-    if (isPresenceHidden()) {
+    // Visibility is OFF (the default) or the 10 minutes ran out: never
+    // announce. If a keepalive fires after the window closed, withdraw so the
+    // server's TTL drops us fast instead of leaving us listed.
+    if (!isPresenceVisible()) {
       this.selfToken = null;
       this.clearTimer();
       try { socket.emit('presence_withdraw'); } catch { /* best effort */ }
       return;
     }
+    this.scheduleExpiry();
     await new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, ACK_TIMEOUT_MS);
       try {
@@ -425,7 +471,6 @@ export class NearbyPresence {
           kind: detectDeviceKind(typeof navigator !== 'undefined' ? navigator.userAgent : ''),
           browser: detectBrowser(typeof navigator !== 'undefined' ? navigator.userAgent : ''),
           model: detectDeviceModel(typeof navigator !== 'undefined' ? navigator.userAgent : ''),
-          gpu: detectDeviceKind(typeof navigator !== 'undefined' ? navigator.userAgent : '') === 'desktop' ? detectGpuVendor() : '',
         }, (res: { success?: boolean; ok?: boolean; token?: string; error?: string; code?: string }) => {
           clearTimeout(timer);
           if (res?.success && res.token) {

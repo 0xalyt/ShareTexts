@@ -437,6 +437,8 @@ const ja: Dict = {
   'nearby.visibleTitle': '付近での表示',
   'nearby.visibleWhileOpen': 'ShareTexts を開いている間は表示',
   'nearby.visibleWhileOpenHint': '付近の他のデバイスからこのデバイスが見えます',
+  'nearby.visibleFor': '{time} のあいだ表示',
+  'nearby.visibleForHint': '終わるまで、同じネットワークの他の端末から見つかります',
   'nearby.hiddenTitle': '非表示',
   'nearby.hiddenHint': '他のデバイスには表示されません',
   'nearby.searching': '付近のデバイスを探しています…',

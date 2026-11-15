@@ -45,7 +45,6 @@ interface LobbyEntry {
   kind: string;         // display hint: phone | tablet | desktop
   browser: string;      // display hint: short browser label
   model: string;        // display hint: exact model where the web knows one
-  gpu: string;          // display hint: GPU vendor (desktops)
 }
 
 interface LobbyConnMeta {
@@ -76,7 +75,6 @@ function sanitizeName(raw: unknown): string {
 const PRESENCE_KINDS = new Set(['phone', 'tablet', 'desktop']);
 const PRESENCE_BROWSER_MAX = 20;
 const PRESENCE_MODEL_MAX = 40;
-const PRESENCE_GPU = new Set(['NVIDIA', 'AMD', 'Intel', 'Apple']);
 function sanitizeKind(raw: unknown): string {
   return typeof raw === 'string' && PRESENCE_KINDS.has(raw) ? raw : 'desktop';
 }
@@ -87,9 +85,6 @@ function sanitizeBrowser(raw: unknown): string {
 function sanitizeModel(raw: unknown): string {
   const s = typeof raw === 'string' ? raw : '';
   return s.replace(/[\x00-\x1F\x7F<>]/g, '').trim().slice(0, PRESENCE_MODEL_MAX);
-}
-function sanitizeGpu(raw: unknown): string {
-  return typeof raw === 'string' && PRESENCE_GPU.has(raw) ? raw : '';
 }
 
 export class Lobby extends DurableObject<Env> {
@@ -194,7 +189,7 @@ export class Lobby extends DurableObject<Env> {
     return [...entries.values()]
       .sort((a, b) => a.announcedAt - b.announcedAt)
       .slice(0, PRESENCE_MAX_DEVICES)
-      .map(e => ({ id: e.token, name: e.name, kind: e.kind, browser: e.browser, model: e.model, gpu: e.gpu }));
+      .map(e => ({ id: e.token, name: e.name, kind: e.kind, browser: e.browser, model: e.model }));
   }
 
   private async ensureAlarm() {
@@ -264,7 +259,7 @@ export class Lobby extends DurableObject<Env> {
     }
 
     const token = await this.tokenFor(deviceId);
-    await this.ctx.storage.put('dev:' + deviceId, { cid, name, token, announcedAt: now, kind: sanitizeKind(payload?.kind), browser: sanitizeBrowser(payload?.browser), model: sanitizeModel(payload?.model), gpu: sanitizeGpu(payload?.gpu) } satisfies LobbyEntry);
+    await this.ctx.storage.put('dev:' + deviceId, { cid, name, token, announcedAt: now, kind: sanitizeKind(payload?.kind), browser: sanitizeBrowser(payload?.browser), model: sanitizeModel(payload?.model) } satisfies LobbyEntry);
     conns.set(cid, { deviceId });
     await this.ctx.storage.put('conn:' + cid, { deviceId } satisfies LobbyConnMeta);
     await this.ensureAlarm();
@@ -330,7 +325,7 @@ export class Lobby extends DurableObject<Env> {
     if (!target || this.ctx.getWebSockets(target.cid)[0]?.readyState !== 1) {
       return this.ackErr(cid, id, 'DEVICE_GONE', 'Device no longer available');
     }
-    this.sendTo(target.cid, { type: 'event', event: 'presence_invitation', payload: { from: from.entry.token, name: from.entry.name, kind: from.entry.kind, browser: from.entry.browser, model: from.entry.model, gpu: from.entry.gpu } });
+    this.sendTo(target.cid, { type: 'event', event: 'presence_invitation', payload: { from: from.entry.token, name: from.entry.name, kind: from.entry.kind, browser: from.entry.browser, model: from.entry.model } });
     this.ackOk(cid, id, { success: true });
   }
 

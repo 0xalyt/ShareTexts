@@ -437,6 +437,8 @@ const hi: Dict = {
   'nearby.visibleTitle': 'आस-पास दिखना',
   'nearby.visibleWhileOpen': 'ShareTexts खुला होने पर दिखें',
   'nearby.visibleWhileOpenHint': 'आस-पास के अन्य डिवाइस इसे देख सकते हैं',
+  'nearby.visibleFor': '{time} तक दिखाई देगा',
+  'nearby.visibleForHint': 'इसके ख़त्म होने तक आपके नेटवर्क के दूसरे डिवाइस इसे ढूँढ सकते हैं',
   'nearby.hiddenTitle': 'छिपा हुआ',
   'nearby.hiddenHint': 'आप दूसरे डिवाइसों पर नहीं दिखेंगे',
   'nearby.searching': 'आस-पास के डिवाइस खोजे जा रहे हैं…',

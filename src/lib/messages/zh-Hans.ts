@@ -437,6 +437,8 @@ const zh: Dict = {
   'nearby.visibleTitle': '附近可见性',
   'nearby.visibleWhileOpen': 'ShareTexts 打开时可见',
   'nearby.visibleWhileOpenHint': '附近的其他设备可以看到此设备',
+  'nearby.visibleFor': '可见 {time}',
+  'nearby.visibleForHint': '结束前，同一网络中的其他设备可以找到它',
   'nearby.hiddenTitle': '隐藏',
   'nearby.hiddenHint': '你不会出现在其他设备上',
   'nearby.searching': '正在寻找附近的设备…',

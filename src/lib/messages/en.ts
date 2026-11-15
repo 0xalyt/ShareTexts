@@ -534,6 +534,8 @@ const en = {
   'nearby.visibleTitle': 'Nearby visibility',
   'nearby.visibleWhileOpen': 'Visible while ShareTexts is open',
   'nearby.visibleWhileOpenHint': 'Other devices with ShareTexts open can see this one',
+  'nearby.visibleFor': 'Visible for {time}',
+  'nearby.visibleForHint': 'Other devices on your network can find this one until it ends',
   'nearby.hiddenTitle': 'Hidden',
   'nearby.hiddenHint': 'You won\'t appear on other devices',
   'nearby.searching': 'Looking for nearby devices…',

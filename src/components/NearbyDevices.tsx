@@ -7,7 +7,7 @@ import { ArrowRight, Zap, Eye, EyeOff, RefreshCw, Search, Check, X, QrCode, Link
 import { Wifi } from 'lucide-react';
 import { LogoTraceLoader } from './LogoTraceLoader';
 import { getSocket } from '../lib/socket';
-import { nearbyPresence, isPresenceHidden, setPresenceHidden, type NearbyDevice, type IncomingInvitation } from '../lib/nearby';
+import { nearbyPresence, isPresenceHidden, setPresenceHidden, visibleUntil, type NearbyDevice, type IncomingInvitation } from '../lib/nearby';
 import { getRecentDevices, recordRecentDevice, isTrustedToken, forgetRecentDevice, resolveLiveToken, lastSeenParts } from '../lib/pairing';
 import { useI18n } from '../lib/i18n';
 import { useSession } from '../lib/SessionContext';
@@ -163,6 +163,22 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
   // Nearby visibility: who can find THIS device. Default is the simple,
   // privacy-friendly default — visible only while ShareTexts is open.
   const [presenceHidden, setPresenceHiddenState] = useState<boolean>(() => isPresenceHidden());
+
+  /* Visibility is a DEADLINE, not a countdown: `visibleUntil()` decides
+     whether we announce, and this tick only re-renders the time left. If the
+     window closed while the tab was asleep, the first tick notices and drops
+     the switch back to Off — no negative timer, no lying label. */
+  const [visitTick, setVisitTick] = useState<number>(() => Date.now());
+  useEffect(() => {
+    if (presenceHidden) return;
+    const tick = setInterval(() => {
+      if (!visibleUntil()) { setPresenceHiddenState(true); return; }
+      setVisitTick(Date.now());
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [presenceHidden]);
+  const remainingMs = Math.max(0, visibleUntil() - visitTick);
+  const countdown = `${Math.floor(remainingMs / 60_000)}:${String(Math.floor((remainingMs % 60_000) / 1000)).padStart(2, '0')}`;
   // Recents memory: re-read whenever a pairing lands or another tab changes it.
   const [recents, setRecents] = useState(() => getRecentDevices());
   // The fallback ("Can't see your device?") appears only after the search
@@ -378,7 +394,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
     }
     if (overlayTarget) return; // a different popup is up — leave it
     setOverlayMode('incoming');
-    setOverlayTarget({ id: inv.from, name: inv.name, kind: inv.kind, browser: inv.browser, model: inv.model, gpu: inv.gpu });
+    setOverlayTarget({ id: inv.from, name: inv.name, kind: inv.kind, browser: inv.browser, model: inv.model });
     productEvent('product.method_nearby');
   }), [phase.kind, overlayTarget, session.roomId]);
 
@@ -851,8 +867,8 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                 ? <EyeOff className="w-3.5 h-3.5" strokeWidth={2.2} />
                 : <Eye className="w-3.5 h-3.5" strokeWidth={2.2} />}
               active={!presenceHidden}
-              title={presenceHidden ? t('nearby.hiddenTitle') : t('nearby.visibleWhileOpen')}
-              hint={presenceHidden ? t('nearby.hiddenHint') : t('nearby.visibleWhileOpenHint')}
+              title={presenceHidden ? t('nearby.hiddenTitle') : t('nearby.visibleFor', { time: countdown })}
+              hint={presenceHidden ? t('nearby.hiddenHint') : t('nearby.visibleForHint')}
               ariaLabel={t('nearby.visibleTitle')}
               onClick={() => { setPresenceHiddenState(h => { setPresenceHidden(!h); return !h; }); }}
             />
