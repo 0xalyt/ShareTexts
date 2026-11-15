@@ -244,7 +244,7 @@ export function InstallNudge() {
             type="button"
             aria-label={t('install.later')}
             onClick={() => close(false)}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-apple-ink-muted transition-colors hover:bg-black/[0.05] hover:text-apple-ink dark:text-white/40 dark:hover:bg-white/[0.08] dark:hover:text-white"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-apple-ink-muted transition-colors hover:bg-black/[0.05] hover:text-apple-ink dark:text-white/40 dark:hover:bg-white/[0.08] dark:hover:text-white"
           >
             <X className="h-3.5 w-3.5" aria-hidden />
           </button>

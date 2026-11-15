@@ -3,6 +3,43 @@
 /* Class-based dark mode */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Hover means a pointer that can hover ────────────────────────────────
+   On a touch screen `:hover` STICKS after a tap until you touch something
+   else: the row stays lit, an action stays revealed, a card keeps its raised
+   shadow — and the user concludes the app is broken, because nothing they do
+   turns it off. Every Tailwind hover utility in this app is therefore
+   wrapped in the pointer query here, once, instead of at 297 call sites.
+
+   :active and :focus-visible are untouched and keep working on touch and
+   keyboard: a tap still answers (see the press rules) and a keyboard focus
+   ring is still drawn. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+@custom-variant group-hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:is(:where(.group):hover *) {
+      @slot;
+    }
+  }
+}
+
+/* ── Tap targets on a phone ──────────────────────────────────────────────
+   44px minimum for anything shaped like a control and holding an icon —
+   header buttons, sheet closers, row actions, the message toolbar. It sets
+   the hit area only: no font-size is reduced anywhere to make room, and the
+   layout around it does not shrink. */
+@media (pointer: coarse) {
+  :where(button, [role='button'], summary, [data-press]):has(svg) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 /* ── Self-hosted Inter 4 (variable, Latin subsets) ─────────────────────────
    One variable file covers 100–900, so a single @font-face per subset serves
    every weight we use — no per-weight requests, no Google Fonts round-trip.
@@ -604,10 +641,16 @@
      (--color-ember-ink, docs/design-tokens.md §4). Fills, chips, focus
      rings, gradients and artwork keep bright ember — the brand material
      stays bright; only FOREGROUNDS on light deepen. Dark mode untouched. */
-  html:not(.dark) .text-ember,
-  html:not(.dark) .hover\:text-ember:hover,
-  html:not(.dark) .group:hover .group-hover\:text-ember {
+  html:not(.dark) .text-ember {
     color: var(--color-ember-ink);
+  }
+  /* The two hover forms of the same rule live inside the pointer query: on a
+     phone they used to darken a row on tap and stay that way. */
+  @media (hover: hover) and (pointer: fine) {
+    html:not(.dark) .hover\:text-ember:hover,
+    html:not(.dark) .group:hover .group-hover\:text-ember {
+      color: var(--color-ember-ink);
+    }
   }
 
   .transition-motion {
@@ -818,9 +861,14 @@ html.dark .st-dotfield::after {
 .st-marquee {
   animation: st-marquee 48s linear infinite;
 }
-.st-marquee:hover,
-.st-marquee:focus-within {
+.st-marquee:focus-within,
+.st-marquee:active {
   animation-play-state: paused;
+}
+@media (hover: hover) and (pointer: fine) {
+  .st-marquee:hover {
+    animation-play-state: paused;
+  }
 }
 @keyframes st-marquee {
   from { transform: translate3d(0, 0, 0); }

@@ -366,14 +366,19 @@ html.dark .st-btn--secondary {
   font-weight: 600;
   padding-inline: 8px;
 }
-.st-btn--tertiary:hover {
-  color: var(--color-text);
+/* Gated: a tertiary label must not stay lit after a tap. */
+@media (hover: hover) and (pointer: fine) {
+  .st-btn--tertiary:hover {
+    color: var(--color-text);
+  }
 }
 html.dark .st-btn--tertiary {
   color: rgb(255 255 255 / 0.55);
 }
-html.dark .st-btn--tertiary:hover {
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  html.dark .st-btn--tertiary:hover {
+    color: #fff;
+  }
 }
 
 /* Destructive: text in the danger ink, always inside a confirm sheet. */
@@ -435,8 +440,10 @@ html.dark .st-btn--destructive {
     transform var(--st-t-press) var(--st-ease-enter),
     box-shadow var(--st-t-press) var(--st-ease-enter);
 }
-.st-pill-brand:hover {
-  background: #e85e10;
+@media (hover: hover) and (pointer: fine) {
+  .st-pill-brand:hover {
+    background: #e85e10;
+  }
 }
 .st-pill-brand:active {
   transform: scale(var(--st-press-scale));
