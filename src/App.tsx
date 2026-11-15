@@ -54,7 +54,7 @@ function DisconnectToast({ reason, onDone }: { reason: string, onDone: () => voi
     <div
       role="status"
       data-testid="disconnect-toast"
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-[90] overflow-hidden max-w-[min(92vw,460px)] flex items-start gap-3 pl-3.5 pr-2 py-3 rounded-[16px] bg-white dark:bg-apple-tile-2 border border-black/[0.08] dark:border-white/[0.1] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] animate-[toast-in_0.28s_cubic-bezier(0.22,1,0.36,1)]"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-[90] overflow-hidden max-w-[min(92vw,460px)] flex items-start gap-3 pl-3.5 pr-2 py-3 rounded-[16px] bg-white dark:bg-apple-tile-2 border border-black/[0.08] dark:border-white/[0.1] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] motion-safe:animate-[toast-in_0.28s_cubic-bezier(0.22,1,0.36,1)]"
     >
       <span className="shrink-0 w-8 h-8 rounded-full bg-apple-parchment dark:bg-white/[0.07] flex items-center justify-center">
         <DoorOpen className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />

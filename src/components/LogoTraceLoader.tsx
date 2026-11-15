@@ -95,7 +95,13 @@ const CSS = `
 .st-logo-ring { animation: st-logo-ring var(--st-logo-loop, 1.6s) cubic-bezier(0.22, 0.61, 0.36, 1) infinite; }
 .st-logo-fill { animation: st-logo-fade var(--st-logo-fill, 450ms) ease-out both; }
 @media (prefers-reduced-motion: reduce) {
+  /* No motion, but the logo must still BE there: the outline is drawn by
+     animating stroke-dashoffset, so stopping the animation without settling
+     it would leave an empty ring. Final states are pinned instead. */
   .st-logo-run, .st-logo-draw, .st-logo-wave, .st-logo-ring, .st-logo-fill { animation: none !important; }
+  .st-logo-draw { stroke-dashoffset: 0; }
+  .st-logo-fill { opacity: 1; }
+  .st-logo-wave, .st-logo-ring { opacity: 0; }
 }
 `;
 

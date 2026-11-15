@@ -1018,6 +1018,25 @@ html[st-theme-vt] {
   to { opacity: 1; filter: blur(0px); }
 }
 
+/* Reduced motion keeps the CROSSFADE and drops the blur travel: the theme
+   still changes visibly, the screen does not smear while it does. Same two
+   pseudo-elements, shorter, opacity only. */
+@keyframes st-theme-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes st-theme-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[st-theme-vt] {
+    --st-vt-out: st-theme-fade-out;
+    --st-vt-in: st-theme-fade-in;
+    --st-vt-dur: 140ms;
+  }
+}
+
 
 /* ── Scrollbar — desktop only, quiet ─────────────────────────────────── */
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
@@ -1208,8 +1227,9 @@ html.dark .st-horizon {
 }
 
 /* The toast's lifetime bar: the 5.5s auto-dismiss becomes visible instead of
-   surprising. Reduced motion drops the bar entirely — a frozen timer reads
-   as a stuck toast. */
+   surprising. Under reduced motion it is not hidden and not frozen (a frozen
+   bar says "never"), it fades from 1 to 0.35 instead of shrinking: same
+   information, no movement. */
 @keyframes toast-timer {
   from { transform: scaleX(1); }
   to { transform: scaleX(0); }
@@ -1218,14 +1238,31 @@ html.dark .st-horizon {
   transform-origin: left;
   animation: toast-timer 5.5s linear forwards;
 }
-@media (prefers-reduced-motion: reduce) {
-  .st-toast-timer { display: none; }
+@keyframes toast-timer-fade {
+  from { opacity: 1; }
+  to { opacity: 0.35; }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .st-toast-timer {
+    animation: toast-timer-fade 5.5s linear forwards;
+    transform: none;
+  }
+}
+/* ── Reduced motion is not a blackout ────────────────────────────────────
+   This used to be a blanket `animation-duration: 0.01ms; transition-duration:
+   0.01ms` on every element — the "zero" shortcut. It made colour and opacity
+   changes instant too, which is the opposite of the rule: FEWER and GENTLER.
+   A state change still has to read as a change; it just must not travel.
+
+   So the blanket is gone. Every moving animation now has its own branch that
+   drops the transform and keeps an opacity/colour answer, and the two facts
+   that must survive do survive: the toast still lands and still shows its
+   lifetime, and the theme still crossfades. Only smooth scrolling, which is
+   movement by definition, is forced off globally. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
     scroll-behavior: auto !important;
   }
 }
