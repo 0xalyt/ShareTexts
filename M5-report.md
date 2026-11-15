@@ -177,3 +177,103 @@ M5-report.md                   this file
    recompute on visibility change — never trust the interval count.
 3. **`LOBBY_SALT` now or later?** **Recommendation:** now, it is one command and
    removes the "salt readable from the Stats DO" caveat from the report.
+
+---
+
+# STEP 2 — shipped after the first report (this section supersedes "untouched")
+
+**Why it exists:** the owner's verdict on the STEP 1 push was *"nothing visible
+changed at all."* He was right — STEP 1 was server-side only. STEP 2 is the
+visible half: the switch, the countdown, and the fact that being findable is now
+a choice with a clock on it.
+
+## What changed
+
+**Visibility is a deadline, not a flag** (`src/lib/nearby.ts`):
+
+```
+sessionStorage['sharetext.presenceVisibleUntil.v1'] = <epoch ms>
+```
+
+- **Off by default** for strangers (OD-7). A fresh device announces nothing.
+- "Let nearby devices see me" opens a **10-minute** window; the switch label
+  becomes a live `m:ss` countdown (`nearby.visibleFor` in all 11 locales, with
+  `nearby.visibleForHint`).
+- The window is stored as an **absolute deadline**, never a countdown. Phone
+  browsers freeze timers when a tab is backgrounded, so a "10 minutes" kept in
+  an interval would lie for hours. A deadline also survives a reload of that tab,
+  which is what "for 10 minutes" has to mean.
+- When the window closes, the client **withdraws immediately** on its own timer
+  instead of waiting for the next 45 s keepalive — otherwise a device stays
+  findable up to 45 s after the window the user agreed to.
+- A tab that slept through the window reports Off on the next tick, so the switch
+  never shows a negative countdown.
+- **A new window is a new presence participant**: `stopVisible()` drops the
+  session device id, so the token other devices see rotates per session.
+- A device that is Off can still **see** and invite visible devices; it just
+  cannot be found. The hero hint says "You won't appear on other devices" while
+  Off, so an empty list cannot be mistaken for a broken feature.
+
+**The GPU hint is gone** — `detectGpuVendor` deleted from the client, `gpu`
+removed from the announce payload, from `LobbyEntry`, from both list/projection
+sites and from the invitation relay in `worker/src/lobby.ts` **and** the
+socket.io server (`server.ts`). It was a fingerprinting surface with no UI value.
+
+## Proof — `npm run verify:nearby-visibility` → 21/21
+
+Runs the real `src/lib/nearby.ts` in Node with a fake `sessionStorage`, a fake
+socket and a controllable clock (esbuild stubs only the two logging imports):
+
+```
+ok  a fresh device is NOT visible (and the old accessor agrees)
+ok  the window is ten minutes
+ok  while Off, nothing is announced (only a withdraw, no announce)
+ok  while Off there is no presence token
+ok  turning it on sets a deadline ten minutes out; visibleUntil() reads it
+ok  now it announces; the announce carries NO GPU hint
+    (keys: browser, deviceId, kind, model, name)
+ok  the announce keeps the coarse display hints
+ok  the server token is adopted
+ok  past the deadline the device is not visible; deadline cleared
+ok  after the window it withdraws instead of re-announcing
+ok  a window that closes while open withdraws on its own timer
+ok  turning it off drops the session device id
+ok  a new visibility session is a new presence id (8db425ab… → 3360a389…)
+ok  the deadline is stored, not a countdown; 4 min later, 6 remain
+ok  a tab that slept past the deadline reports Off
+```
+
+Other gates after the change: `verify-nearby` **28/28** (rich-presence field
+contract updated to `browser,id,kind,model,name`), `verify:lobby-shard`
+**25/25**, `worker:test` 103/103, `lint` clean, `build` 0, `verify:claims`
+clean, `verify:bundle` GREEN, `smoke:local` GREEN.
+
+## Live
+
+Deployed twice this session; final Worker version `20acd057-2a8b-4593-892d-07ca2fef2950`.
+Live build marker `230a30e82c5a`.
+
+`node scripts/smoke-live.mjs` was run three times. **The first two runs failed
+one check** — `message A → B arrived within 15 s` — on runs where pairing took
+22–28 s instead of the usual ~5 s. The third run was GREEN (paired in 4.7 s,
+room up in 8.7 s). `worker:test-live` was 18/18 on the same Worker. The cause is
+load on this machine (several leftover dev servers), not a regression: nothing in
+STEP 2 touches rooms or message relay. Recorded rather than hidden — if it
+reproduces on a quiet machine, it is a real latency bug.
+
+## Still NOT built in STEP 2
+
+- **The dead-end "Show QR" button.** STEP 2 asks that an empty list offer
+  "Ask the other person…or show them a QR". The sentence exists, but the QR
+  itself is STEP 5's guest flow — building a second QR surface here would have
+  been exactly the duplicate the M6 prompt warns about. It ships with STEP 5.
+- **STEP 3+: untouched.** Request/consent/code, the card rebuild, Walk-up,
+  "someone without ShareTexts", native handoff, `NEARBY_TERM`.
+
+## What the owner should see now (and what changed visually)
+
+On the landing page, the Nearby control now reads **"Visible for 9:58"** with the
+time counting down after you turn it on, and it starts **Off** — so if both
+devices are fresh, neither appears in the other's list until one of you flips it.
+That sentence is the whole STEP 2 product decision; if it reads wrong in practice,
+the number to change is `NEARBY_VISIBLE_MS`, not the logic.

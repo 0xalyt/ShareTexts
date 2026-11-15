@@ -55,7 +55,7 @@ the room secret, so the product does **not** claim end-to-end encryption.
    destination. M4's original blockers (deploy, zero-knowledge gate) are both
    cleared — see `M6-blocked.md`. Run M4, then M6.
 
-0. **Nearby is scoped but not yet private.** STEP 1 gave presence a network
+0. **Nearby is scoped and time-boxed, but consent is not built yet.** STEP 1 gave presence a network
    shard; visibility is still implicit (any open tab is listed) and there is no
    code for a stranger. M5 STEPs 2–3 fix that. Until then the honest sentence is
    "devices on your network can see that ShareTexts is open", not "nearby".

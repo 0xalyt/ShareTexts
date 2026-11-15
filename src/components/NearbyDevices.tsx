@@ -838,7 +838,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{t('nearby.hint')}</span>
               <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45 flex items-center gap-1">
                 {searchExpired
-                  ? <><Wifi className="w-3 h-3" aria-hidden /> {t('nearby.searchingHint')}</>
+                  ? <><Wifi className="w-3 h-3" aria-hidden /> {presenceHidden ? t('nearby.hiddenHint') : t('nearby.searchingHint')}</>
                   : t('nearby.waitingOther')}
               </span>
             </span>
