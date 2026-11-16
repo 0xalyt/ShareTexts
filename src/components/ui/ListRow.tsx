@@ -70,7 +70,7 @@ export function ListRow({
       {trailing ? <span className="shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/50">{trailing}</span> : null}
       {chevron ? (
         <ChevronRight
-          className="h-4 w-4 shrink-0 text-apple-ink-muted/60 transition-transform duration-200 group-hover:translate-x-0.5 dark:text-white/30 motion-reduce:transition-none"
+          className="h-4 w-4 shrink-0 text-apple-ink-muted/60 transition-colors duration-200 dark:text-white/30 motion-reduce:transition-none"
           strokeWidth={1.8}
           aria-hidden
         />

@@ -734,7 +734,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                         className="st-chip st-chip-ember shrink-0 gap-1 px-2.5"
                         aria-hidden
                       >
-                        <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" />
+                        <ArrowRight className="w-3 h-3 transition-colors duration-200" />
                       </span>
                     ) : (
                       <span className="st-chip shrink-0" aria-hidden>

@@ -1,5 +1,4 @@
-import type { Key, ReactNode } from 'react';
-import { motion } from 'motion/react';
+import type { ReactNode } from 'react';
 import {
   Radar,
   QrCode,
@@ -27,39 +26,6 @@ import { LOOPS } from '../../lib/loops.generated';
  * Copy rules: short sentences, verbs, no marketing slop, no "!", every claim
  * backed by docs/redesign/claims.md. Strings live in messages/en.ts.
  * ------------------------------------------------------------------------- */
-
-const EASE = [0.22, 1, 0.36, 1] as const;
-
-/** Motion on the list item itself: <ul> children must be <li> for screen
- *  readers to announce a list, so a wrapper div is not an option here. */
-const revealItem = {
-  initial: { opacity: 0, y: 14 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-10% 0px' },
-  transition: { duration: 0.5, ease: EASE },
-} as const;
-
-/** Reveal-on-scroll: quiet, once. Reduced motion resolves to the same final
- *  state with no travel (motion/react honors prefers-reduced-motion via
- *  MotionConfig at the app root; `once` keeps replay out of the story). */
-function Reveal({ children, className }: {
-  children: ReactNode;
-  className?: string;
-  /** Declared so keyed map usage typechecks; React strips it before props. */
-  key?: Key;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-10% 0px' }}
-      transition={{ duration: 0.5, ease: EASE }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 /* No eyebrow. A section's heading is its own label; "What it does" over
  * "Three things it does." said the same thing twice in two sizes, and it is
@@ -104,9 +70,8 @@ export function ThreeThings() {
           // an empty frame would be decoration pretending to be the product.
           const hasLoop = LOOPS[loop] !== null;
           return (
-          <motion.li
+          <li
             key={key}
-            {...revealItem}
             className={cn(
               'flex border-t border-black/[0.10] pt-5 dark:border-white/[0.14]',
               hasLoop
@@ -127,7 +92,7 @@ export function ThreeThings() {
                 label={t(`home.three.${key}.lead`)}
                 className="w-[108px] shrink-0 sm:w-[132px] lg:w-[168px]"
               />
-          </motion.li>
+          </li>
           );
         })}
       </ul>
@@ -155,7 +120,7 @@ export function SmallThings() {
       <SectionHead id="features-title" heading={t('home.small.heading')} />
       <ul className="grid grid-cols-2 gap-x-6 gap-y-0 sm:grid-cols-4">
         {SMALL.map(({ key, Icon }) => (
-          <motion.li key={key} {...revealItem} className="flex items-start gap-2.5 border-t border-black/[0.10] py-4 dark:border-white/[0.14]">
+          <li key={key} className="flex items-start gap-2.5 border-t border-black/[0.10] py-4 dark:border-white/[0.14]">
               <Icon
                 className="mt-0.5 h-[17px] w-[17px] shrink-0 text-ember dark:text-azure-400"
                 strokeWidth={1.5}
@@ -164,7 +129,7 @@ export function SmallThings() {
               <span className="text-[13px] font-medium leading-snug text-apple-ink dark:text-white">
                 {t(`home.small.${key}`)}
               </span>
-          </motion.li>
+          </li>
         ))}
         {/* The eighth item used to be "Open source on GitHub". The owner
             took the repository link out of the product in P7, so the list is
@@ -235,7 +200,7 @@ export function LandingCta({
     <section aria-labelledby="cta-title" className="w-full py-12">
       {/* A tone shift instead of a bordered card: the CTA is the last calm
           moment on the page, so it gets room, not a frame. */}
-      <Reveal className="rounded-[24px] bg-apple-parchment/70 px-6 py-10 text-center dark:bg-white/[0.04] sm:py-12">
+      <div className="rounded-[24px] bg-apple-parchment/70 px-6 py-10 text-center dark:bg-white/[0.04] sm:py-12">
         <h2 id="cta-title" className="st-h2 text-apple-ink dark:text-white">
           {t('home.cta.heading')}
         </h2>
@@ -271,7 +236,7 @@ export function LandingCta({
         <p className="mt-5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
           {t('footer.trust')}
         </p>
-      </Reveal>
+      </div>
     </section>
   );
 }

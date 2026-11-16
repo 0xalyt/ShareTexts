@@ -1330,7 +1330,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                             Two circles in one row (ember glyph left, grey
                             button right) made the card read as a pair of
                             buttons rather than one thing you tap. */}
-                        <ArrowRightLeft className="shrink-0 w-4 h-4 text-apple-ink-muted/70 dark:text-white/40 group-hover:text-ember dark:group-hover:text-azure-400 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
+                        <ArrowRightLeft className="shrink-0 w-4 h-4 text-apple-ink-muted/70 dark:text-white/40 group-hover:text-ember dark:group-hover:text-azure-400 transition-colors duration-200" aria-hidden />
                       </button>
                     </motion.div>
                   );

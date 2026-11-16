@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -54,6 +54,10 @@ export function FaqSection({
   pinFirst?: boolean;
 }) {
   const [open, setOpen] = useState<number | null>(defaultOpen);
+  // Reduced motion: the answer appears open. Height is the one property here
+  // that still moves under MotionConfig (it is not a transform), so the
+  // branch is explicit rather than assumed.
+  const reduce = useReducedMotion();
   const panelId = (i: number) => `faq-panel-${i}`;
 
   return (
@@ -125,7 +129,7 @@ export function FaqSection({
                   >
                     <ChevronRight
                       className={cn(
-                        'h-4 w-4 shrink-0 text-apple-ink-muted transition-transform duration-200 dark:text-white/40',
+                        'h-4 w-4 shrink-0 text-apple-ink-muted transition-transform duration-200 motion-reduce:transition-none dark:text-white/40',
                         isOpen && 'rotate-90 text-ember dark:text-azure-400',
                       )}
                       aria-hidden
@@ -149,7 +153,7 @@ export function FaqSection({
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: reduce ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
                       <p className="pb-5 pl-7 pr-2 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/55">
