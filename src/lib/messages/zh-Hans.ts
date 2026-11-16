@@ -126,6 +126,7 @@ const zh: Dict = {
   'create.codeCopied': '代码已复制',
   'receive.title': '输入你的代码。',
   'receive.titleShort': '接收',
+  'receive.codeLabel': '房间代码',
   'receive.subtitle': '输入另一台设备上的代码。',
   'receive.join': '加入',
   'receive.joining': '正在加入…',

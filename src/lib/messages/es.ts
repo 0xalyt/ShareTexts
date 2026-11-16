@@ -126,6 +126,7 @@ const es: Dict = {
   'create.codeCopied': 'Código copiado',
   'receive.title': 'Introduce tu código.',
   'receive.titleShort': 'Recibir',
+  'receive.codeLabel': 'Código de la sala',
   'receive.subtitle': 'Escribe el código del otro dispositivo.',
   'receive.join': 'Unirse',
   'receive.joining': 'Uniéndose…',

@@ -132,6 +132,15 @@ export type OtpInputProps = Omit<
   /** Accessibility label for each slot (localized, e.g. "Digit 1 of 6"). */
   slotLabel?: (index: number, length: number) => string;
   /**
+   * Marks every slot invalid for assistive tech when the field is wrong.
+   * Deliberately separate from `status`: the red tint is a visual beat that the
+   * user retires the moment they start retyping, while "this field is invalid"
+   * has to stay true until the value actually changes.
+   */
+  invalid?: boolean;
+  /** id(s) of the message that explains the current error, read with each slot. */
+  describedBy?: string;
+  /**
    * 'capsule' (default) is the pill: one container, adjoining cells.
    * 'flat' is §18's Receive entry: six separate cells on the canvas — no
    * container at all, 48×56 (44×52 under 360px), radius 12, an 8px gap with
@@ -156,6 +165,8 @@ export function OtpInput({
   className,
   slotClassName,
   slotLabel,
+  invalid,
+  describedBy,
   variant = 'capsule',
   ...props
 }: OtpInputProps) {
@@ -388,6 +399,8 @@ export function OtpInput({
                 autoComplete={index === 0 ? 'one-time-code' : 'off'}
                 autoFocus={autoFocus && index === 0}
                 disabled={disabled}
+                aria-invalid={invalid || undefined}
+                aria-describedby={describedBy}
                 aria-label={
                   slotLabel
                     ? slotLabel(index, length)

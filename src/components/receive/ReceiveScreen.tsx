@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { QrCode } from 'lucide-react';
+import { AlertCircle, QrCode } from 'lucide-react';
 import { OtpInput } from '../spaceui/OtpInput';
 import { haptic } from '../../lib/haptics';
 import { useI18n } from '../../lib/i18n';
@@ -85,6 +85,17 @@ export function ReceiveScreen({
 
   const full = code.length === 6;
 
+  /* FOCUS MOVES TO THE INVALID FIELD, not to the message. A rejected or dead
+     code is the field's problem, so the caret goes back into the first cell and
+     the user can retype without hunting. A transport failure is not the field's
+     problem — the code may be perfect — so focus stays on the button that
+     retries it and we do not pretend the input is what is broken. */
+  const fieldRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!error || error.kind === 'offline') return;
+    fieldRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+  }, [error]);
+
   return (
     <div
       ref={rootRef}
@@ -101,7 +112,19 @@ export function ReceiveScreen({
         </p>
 
         {/* The cells sit on the canvas by themselves — no card around them. */}
-        <div className="mt-8 [@media(max-height:520px)]:mt-3">
+        <div className="mt-8 [@media(max-height:520px)]:mt-3" ref={fieldRef}>
+          {/* A label that is always on screen. Six empty cells say "type" but
+              never what to type; the heading above is the screen's name, not
+              the field's. */}
+          <label
+            id="receive-code-label"
+            className="mb-2 block text-[13px] font-medium text-apple-ink-muted dark:text-white/70 [@media(max-height:520px)]:mb-1"
+          >
+            {t('receive.codeLabel')}
+          </label>
+          {/* The instruction a sighted user gets from the layout, in words for
+              a screen reader that lands straight in the first cell. */}
+          <span id="receive-code-hint" className="sr-only">{t('receive.hint')}</span>
           <OtpInput
             variant="flat"
             length={6}
@@ -111,8 +134,30 @@ export function ReceiveScreen({
             disabled={isJoining || accepted}
             autoFocus
             status={accepted ? 'success' : wrong ? 'error' : 'idle'}
+            invalid={Boolean(error)}
+            describedBy={error ? 'receive-code-hint receive-code-error' : 'receive-code-hint'}
+            aria-labelledby="receive-code-label"
             slotLabel={(index) => t('code.digitOf', { n: index + 1 })}
           />
+
+          {/* THE ERROR BELONGS TO THE FIELD, so it sits under the field — not in
+              a banner above it, and not after the button where the eye is
+              already past the thing that is wrong. Its slot is the same height
+              whether or not a message is in it, so nothing below moves when an
+              error lands and nothing jumps back when the user starts retyping. */}
+          <div className="min-h-[42px] pt-2" data-testid="receive-error-slot">
+            {error && (
+              <p
+                id="receive-code-error"
+                role="alert"
+                data-testid="receive-field-error"
+                className="flex items-start gap-1.5 text-[13px] font-medium leading-[1.35] text-status-danger-ink dark:text-status-danger-ink-dark [text-wrap:pretty]"
+              >
+                <AlertCircle className="mt-[1px] h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span>{error.kind === 'code' ? t('receive.wrongCode') : error.text}</span>
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Screen-reader progress mirrors the cells: the field itself is the sighted progress bar. */}
@@ -124,7 +169,7 @@ export function ReceiveScreen({
         <button
           onClick={submit}
           disabled={!full || isJoining || accepted}
-          aria-describedby="receive-status"
+          aria-busy={isJoining || undefined}
           className={cn(
             'press mt-6 w-full min-h-[52px] rounded-[16px] text-[17px] font-semibold transition-colors [@media(max-height:520px)]:mt-3 [@media(max-height:520px)]:min-h-[44px]',
             // Disabled is a NEUTRAL fill, not a faded ember: white on 40% orange
@@ -137,27 +182,6 @@ export function ReceiveScreen({
         >
           {isJoining ? t('receive.joining') : t('receive.join')}
         </button>
-
-        <div id="receive-status" className="min-h-[20px]">
-          {failed && (
-            <p
-              role="alert"
-              className="mt-3 text-center text-[13px] font-medium text-status-danger-ink dark:text-status-danger-ink-dark [text-wrap:balance]"
-              data-testid="receive-error"
-            >
-              {t('receive.wrongCode')}
-            </p>
-          )}
-          {error && error.kind !== 'code' && (
-            <p
-              role="alert"
-              className="mt-3 text-center text-[13px] font-medium text-status-danger-ink dark:text-status-danger-ink-dark [text-wrap:balance]"
-              data-testid="receive-error"
-            >
-              {error.text}
-            </p>
-          )}
-        </div>
 
         <button
           onClick={onScan}

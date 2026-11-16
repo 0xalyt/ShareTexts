@@ -126,6 +126,7 @@ const hi: Dict = {
   'create.codeCopied': 'कोड कॉपी हो गया',
   'receive.title': 'अपना कोड दर्ज करें।',
   'receive.titleShort': 'प्राप्त करें',
+  'receive.codeLabel': 'रूम कोड',
   'receive.subtitle': 'दूसरे डिवाइस से कोड डालें।',
   'receive.join': 'जुड़ें',
   'receive.joining': 'जुड़ रहे हैं…',

@@ -126,6 +126,7 @@ const ar: Dict = {
   'create.codeCopied': 'تم نسخ الرمز',
   'receive.title': 'أدخل الرمز الخاص بك.',
   'receive.titleShort': 'استقبال',
+  'receive.codeLabel': 'رمز الغرفة',
   'receive.subtitle': 'أدخل الرمز من الجهاز الآخر.',
   'receive.join': 'انضمام',
   'receive.joining': 'جارٍ الانضمام…',

@@ -203,6 +203,7 @@ const en = {
   'create.codeCopied': 'Code copied',
   'receive.title': 'Enter your code.',
   'receive.titleShort': "Receive",
+  'receive.codeLabel': 'Room code',
   'receive.subtitle': "Enter the code from your other device.",
   'receive.join': "Join",
   'receive.joining': "Joining…",

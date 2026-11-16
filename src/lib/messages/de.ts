@@ -126,6 +126,7 @@ const de: Dict = {
   'create.codeCopied': 'Code kopiert',
   'receive.title': 'Gib deinen Code ein.',
   'receive.titleShort': 'Empfangen',
+  'receive.codeLabel': 'Raumcode',
   'receive.subtitle': 'Gib den Code vom anderen Gerät ein.',
   'receive.join': 'Beitreten',
   'receive.joining': 'Trete bei…',

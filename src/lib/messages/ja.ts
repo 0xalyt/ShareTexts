@@ -126,6 +126,7 @@ const ja: Dict = {
   'create.codeCopied': 'コードをコピーしました',
   'receive.title': 'コードを入力してください。',
   'receive.titleShort': '受信',
+  'receive.codeLabel': 'ルームコード',
   'receive.subtitle': 'もう一方の端末のコードを入力します。',
   'receive.join': '参加',
   'receive.joining': '参加しています…',
