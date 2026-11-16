@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ChevronRight, X } from 'lucide-react';
 import { Sheet } from './ui/Sheet';
+import { Segmented } from './ui/Segmented';
 import { useI18n, LANGS, type Lang } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { useSession } from '../lib/SessionContext';
@@ -287,32 +288,17 @@ export function SettingsOverlay({
                   <Group title={t('settings.theme')} testId="settings-appearance">
                     <Row first as="div" className="justify-between pr-3">
                       <span className="text-apple-ink-muted dark:text-white/70">{t('settings.themeMode')}</span>
-                      <div className="flex rounded-full bg-black/[0.05] dark:bg-white/[0.09] p-[3px]" role="tablist" aria-label={t('settings.theme')}>
-                        {(
-                          [
-                            ['light', t('settings.light')],
-                            ['system', t('settings.auto')],
-                            ['dark', t('settings.dark')],
-                          ] as const
-                        ).map(([value, label]) => (
-                          <button
-                            key={value}
-                            role="tab"
-                            type="button"
-                            aria-selected={choice === value}
-                            onClick={() => setChoice(value)}
-                            data-testid={`theme-${value}`}
-                            className={cn(
-                              'min-h-[44px] rounded-full px-3 text-[13px] font-semibold transition-colors',
-                              choice === value
-                                ? 'bg-white text-apple-ink shadow-[0_1px_2px_rgba(0,0,0,0.12)] dark:bg-white/[0.9] dark:text-[#1d1d1f]'
-                                : 'text-apple-ink-muted dark:text-white/70',
-                            )}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
+                      <Segmented<'light' | 'system' | 'dark'>
+                        label={t('settings.theme')}
+                        value={choice}
+                        onChange={setChoice}
+                        testId="theme-segments"
+                        options={[
+                          { value: 'light', label: t('settings.light') },
+                          { value: 'system', label: t('settings.auto') },
+                          { value: 'dark', label: t('settings.dark') },
+                        ]}
+                      />
                     </Row>
                     <Row as="div" className="justify-between">
                       <span className="text-apple-ink-muted dark:text-white/70">{t('settings.reduceTransparency')}</span>

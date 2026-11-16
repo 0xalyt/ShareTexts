@@ -1,6 +1,5 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 const QrArt = lazy(() => import('../qr/QrArt').then(m => ({ default: m.QrArt })));
-import { AnimatePresence } from 'motion/react';
 import { Check, Copy, Link2, QrCode, Share2, WifiOff } from 'lucide-react';
 import { Segmented } from '../ui/Segmented';
 import { generateTOTP, getTOTPRemainingSeconds } from '../../lib/totp';
@@ -160,10 +159,17 @@ export function SendScreen({
   const spokenCode = code ? `${code.slice(0, 3).split('').join(' ')}, ${code.slice(3).split('').join(' ')}` : '';
 
   const body = (
-    <>
+    <div
+      key={segment}
+      role="tabpanel"
+      id={`send-panel-${segment}`}
+      aria-labelledby={`send-segments-tab-${segment}`}
+      tabIndex={0}
+      className="animate-[st-fade-in_180ms_var(--st-ease-move)_both] focus-visible:outline-none"
+    >
       {/* ── Code ─────────────────────────────────────────────────────── */}
       {segment === 'code' && (
-        <div key="code" className="animate-[st-fade-in_var(--st-t-mode)_var(--st-ease-enter)_both]">
+        <div>
           <div
             className={cn(
               'rounded-2xl bg-apple-parchment dark:bg-apple-tile-1 px-5 py-5 [@media(max-height:520px)]:py-2 [@media(max-height:520px)]:px-4',
@@ -233,7 +239,7 @@ export function SendScreen({
 
       {/* ── QR ───────────────────────────────────────────────────────── */}
       {segment === 'qr' && (
-        <div key="qr" className="animate-[st-fade-in_var(--st-t-mode)_var(--st-ease-enter)_both]">
+        <div>
           <QrPlate value={shareUrl} label={t('qr.art.label')} />
           <p className="mt-3 text-center text-[13px] text-apple-ink-muted dark:text-white/70">{t('send.qrCaption')}</p>
         </div>
@@ -241,7 +247,7 @@ export function SendScreen({
 
       {/* ── Link ─────────────────────────────────────────────────────── */}
       {segment === 'link' && (
-        <div key="link" className="animate-[st-fade-in_var(--st-t-mode)_var(--st-ease-enter)_both]">
+        <div>
           <div className="flex items-center gap-3 rounded-2xl bg-apple-parchment dark:bg-apple-tile-1 px-4 py-3.5 min-h-[52px]">
             <Link2 className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/70" aria-hidden />
             <p className="min-w-0 flex-1 truncate text-[16px] text-apple-ink dark:text-white" title={shareUrl}>
@@ -258,7 +264,7 @@ export function SendScreen({
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 
   return (
@@ -290,6 +296,8 @@ export function SendScreen({
             value={segment}
             onChange={choose}
             testId="send-segments"
+            id="send-segments"
+            panelId={(v) => `send-panel-${v}`}
             options={[
               { value: 'code', label: t('send.tab.code') },
               { value: 'qr', label: t('send.tab.qr'), ariaLabel: t('send.tab.qr') },
@@ -297,9 +305,7 @@ export function SendScreen({
             ]}
           />
           <div className="mt-5 [@media(max-height:520px)]:mt-2">
-            <AnimatePresence mode="wait" initial={false}>
-              {body}
-            </AnimatePresence>
+            {body}
           </div>
 
           {/* Unreachable server: the code stays visible (a joiner may still be

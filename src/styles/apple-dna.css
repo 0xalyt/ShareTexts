@@ -19,7 +19,7 @@
     --st-t-press: 160ms;
     --st-t-release: 160ms;
     --st-t-popover: 175ms;
-    --st-t-thumb: 240ms;
+    --st-t-thumb: 200ms;
     --st-t-mode: 190ms;
     --st-t-push: 280ms;
     --st-t-sheet: 320ms;
@@ -146,9 +146,11 @@ html.dark .segmented {
   border-radius: 9999px;
   background: var(--color-apple-canvas);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), inset 0 0 0 1px rgb(0 0 0 / 0.04);
+  /* Movement, so ease-in-out: the thumb leaves and arrives, it does not
+     decelerate into place like an entrance. */
   transition:
-    transform var(--st-t-thumb) var(--st-ease-enter),
-    width var(--st-t-thumb) var(--st-ease-enter);
+    transform var(--st-t-thumb) var(--st-ease-move),
+    width var(--st-t-thumb) var(--st-ease-move);
   pointer-events: none;
 }
 html.dark .segmented-thumb {
@@ -182,6 +184,13 @@ html.dark .segmented [role='tab'] {
 }
 html.dark .segmented [role='tab'][aria-selected='true'] {
   color: #fff;
+}
+
+/* Reduced motion: the selection still changes, it just does not travel. The
+   thumb is redrawn under the new tab instead of flying across the control. */
+@media (prefers-reduced-motion: reduce) {
+  .segmented-thumb { transition: none; }
+  .segmented [role='tab'] { transition: none; }
 }
 
 /* ── Route stack ────────────────────────────────────────────────────────
