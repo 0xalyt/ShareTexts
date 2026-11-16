@@ -58,7 +58,9 @@
     "verify:lobby-shard": "node scripts/verify-lobby-shard.mjs",
     "verify:nearby-visibility": "node scripts/verify-nearby-visibility.mjs",
     "verify:states": "node scripts/verify-states.mjs",
-    "verify:form": "node scripts/verify-form.mjs"
+    "verify:form": "node scripts/verify-form.mjs",
+    "verify:chaos2": "node scripts/verify-chaos-2.mjs",
+    "verify:link-join": "node scripts/verify-link-join.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
