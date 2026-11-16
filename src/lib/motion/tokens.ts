@@ -45,7 +45,24 @@ export const EASE = {
   out: [0.23, 1, 0.32, 1] as [number, number, number, number],
   /** Symmetric moves, longer sequences (index.css --ease-in-out). */
   inOut: [0.77, 0, 0.175, 1] as [number, number, number, number],
+  /**
+    * The drawer curve — vaul / iOS sheet settle: starts fast while it carries
+    * the release speed, then eases out into place. Published value, not an
+    * invented bounce: cubic-bezier(0.32, 0.72, 0, 1) (index.css --ease-drawer).
+    */
+  drawer: [0.32, 0.72, 0, 1] as [number, number, number, number],
 } as const;
+
+/**
+ * How long a released sheet takes to settle: the distance still to travel at
+ * the speed the finger left with, clamped to the range a hand reads as
+ * "carried through" rather than "animated". A short flick settles in ~180ms,
+ * a long lazy drag in ~450ms.
+ */
+export function settleSeconds(distance: number, velocityPxPerMs: number): number {
+  const speed = Math.max(Math.abs(velocityPxPerMs) * 1000, 260); // px/s, floored
+  return Math.min(0.45, Math.max(0.18, Math.abs(distance) / speed));
+}
 
 /**
  * Named spring presets — physical, interruptible, bounded (no overshoot

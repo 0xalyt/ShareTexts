@@ -47,6 +47,7 @@
     "verify:room-feed": "node scripts/verify-room-feed.mjs",
     "verify:circle-crypto": "node scripts/verify-circle-crypto.mjs",
     "verify:sheets": "node scripts/verify-sheets.mjs",
+    "verify:sheet-drag": "node scripts/verify-sheet-drag.mjs",
     "verify:desktop": "node scripts/verify-desktop.mjs",
     "verify:circle-worker": "node scripts/verify-circle-worker.mjs",
     "verify:circle-pairing": "node scripts/verify-circle-pairing.mjs",

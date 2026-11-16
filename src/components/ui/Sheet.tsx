@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 import { useFocusTrap } from '../../lib/useFocusTrap';
 import { hapticTick } from '../../lib/haptics';
-import { DUR, EASE, SPRING } from '../../lib/motion/tokens';
+import { DUR, EASE, settleSeconds } from '../../lib/motion/tokens';
 import { cn } from '../../lib/utils';
 
 /**
@@ -96,6 +96,26 @@ function unlockBodyScroll() {
   const root = document.documentElement;
   root.style.overflow = savedOverflow;
   root.style.paddingRight = savedPadding;
+}
+
+function unlockBodyScrollSafely() {
+  unlockBodyScroll();
+  if (lockCount === 0) clearLockStyles();
+}
+
+/**
+ * Belt and braces for the one bug nobody forgives: a page that will not scroll
+ * after a sheet closed. If the component is torn down while open (an error
+ * boundary, a route swap during the exit animation), the effect cleanup still
+ * runs — but a stray count can survive a hot reload, so the unlock clears the
+ * inline values when they are empty rather than leaving `overflow: ''` behind
+ * as an owned property.
+ */
+function clearLockStyles() {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  if (!root.style.overflow) root.style.removeProperty('overflow');
+  if (!root.style.paddingRight) root.style.removeProperty('padding-right');
 }
 
 const vh = () => (typeof window === 'undefined' ? 800 : window.innerHeight);
@@ -217,7 +237,7 @@ export function Sheet({
   useEffect(() => {
     if (!open) return;
     lockBodyScroll();
-    return unlockBodyScroll;
+    return unlockBodyScrollSafely;
   }, [open]);
 
   useEffect(() => {
@@ -299,6 +319,10 @@ export function Sheet({
     let base = 0;
     const el = panelRef.current;
     if (el) {
+      // A CSS transition is how a release settles; catching the panel mid-flight
+      // must stop it first, or the drag would be animated by the position it is
+      // trying to leave.
+      el.style.transition = 'none';
       const moving = el.getAnimations();
       if (moving.length) {
         for (const a of moving) a.pause();
@@ -435,16 +459,48 @@ export function Sheet({
     const landed = Math.max(0, g.base + raw + velocity * 160);
     const bd = backdropRef.current;
 
+    /* ── release → settle ─────────────────────────────────────────────────
+       vaul's rule, and the only one that feels right: the sheet KEEPS the
+       speed the finger left with, then decelerates on the published drawer
+       curve (0.32, 0.72, 0, 1). Not a spring with a bounce we invented, and
+       not a fixed duration: a 40px flick should not take as long as a 300px
+       drag, so the duration comes from distance ÷ speed, 180–450ms.
+       Reduced motion never flings: it lands where it belongs, instantly. */
+    const settle = (node: HTMLElement | null, toY: number) => {
+      if (!node) return;
+      const painted = getComputedStyle(node).transform;
+      const fromY = painted && painted !== 'none' ? new DOMMatrixReadOnly(painted).m42 : 0;
+      // Start from where the finger left it, with no transition in the way.
+      node.style.transition = 'none';
+      node.style.transform = `translate3d(0, ${Math.round(fromY)}px, 0)`;
+      void node.offsetHeight; // flush: the next write must be the start of the transition
+      if (reduced) {
+        // No fling, no travel: land instantly. The close itself is an opacity
+        // fade in the exit transition, so nothing is lost.
+        node.style.transition = '';
+        node.style.transform = toY === 0 ? '' : `translate3d(0, ${Math.round(toY)}px, 0)`;
+        return;
+      }
+      node.style.transition = `transform ${settleSeconds(toY - fromY, velocity)}s cubic-bezier(0.32, 0.72, 0, 1)`;
+      node.style.transform = toY === 0 ? '' : `translate3d(0, ${Math.round(toY)}px, 0)`;
+      const done = () => {
+        node.style.transition = '';
+        node.removeEventListener('transitionend', done);
+      };
+      node.addEventListener('transitionend', done, { once: true });
+    };
+
     const home = () => {
       if (!el) return;
-      animate(el, { y: 0 }, SPRING.sheet);
+      settle(el, 0);
       if (bd) animate(bd, { opacity: 1 }, { duration: DUR.short / 1000 });
       physics.current.y = 0;
     };
 
     if (cancelled) {
       home();
-      if (el) animate(el, { maxHeight: `${g.startMax}px` }, SPRING.sheet);
+      if (el && !reduced) animate(el, { maxHeight: `${g.startMax}px` }, { duration: settleSeconds(physics.current.max - g.startMax, velocity), ease: EASE.drawer });
+      else if (el) el.style.maxHeight = `${g.startMax}px`;
       physics.current.max = g.startMax;
       return;
     }
@@ -467,7 +523,8 @@ export function Sheet({
     const room = fullMax() - g.startMax;
     const projected = grew + Math.abs(velocity) * 160;
     const next = (grew > Math.max(24, room * 0.35) || projected > room * 0.5) ? fullMax() : g.startMax;
-    if (el) animate(el, { maxHeight: `${next}px` }, SPRING.sheet);
+    if (el && !reduced) animate(el, { maxHeight: `${next}px` }, { duration: settleSeconds(next - physics.current.max, velocity), ease: EASE.drawer });
+    else if (el) el.style.maxHeight = `${next}px`;
     physics.current.max = next;
     home();
   };
