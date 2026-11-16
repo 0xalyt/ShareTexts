@@ -41,12 +41,14 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `npm run smoke:local` | the built server serves the real routes | GREEN |
 | `npm run verify:claims` | no forbidden product claim | 8 rules, 43 files, 0 findings, 1 declared exemption |
 | `npm run verify:chaos` | four reliability promises, measured | 4/4 PASS (S2, S3, S11, S12) |
+| `npm run verify:chaos2` | the other eleven reliability promises | 6 PASS, 5 NOT VERIFIED (S6–S8, S10, S14) — 2026-11-16 |
+| `npm run verify:link-join` | a /s/ link or QR joins, and every failure names itself with one action | 8/8 PASS, 6 NOT VERIFIED (webkit/firefox not installed; stale SW, stale cache, TTL, full room) |
 | `npm run verify:room-feed` | §19 feed rules: grouping, one state word, geometry, log semantics | GREEN, 6/6 |
 | `npm run verify:circle-crypto` | Circle seal: pins, tamper, wrap, SAS, chain | GREEN, 24 assertions |
 | `node scripts/verify-no-flash.mjs` | no blank gap, no white frame, no mid-session SW takeover | clean |
 | `npm run verify:icons` | every icon reference resolves and matches its size | 12 references |
 | `npm run verify:lobby-shard` | Nearby is scoped by network: shard = HMAC(dailySalt, IPv4 or IPv6 /64), 64 devices per shard, no IP stored | **25/25** (emulator, real DO) |
-| `npm run verify:bundle` | entry ≤ 180 KB gzip | **PASS — 179.0 KB** (was 219.9) |
+| `npm run verify:bundle` | entry ≤ 180 KB gzip | **PASS — 179.8 KB** (was 181.3 KB at `6991c46`; five room-only surfaces split out) |
 
 ## 5. Known debt (ordered by what it costs the owner)
 
@@ -62,13 +64,25 @@ the room secret, so the product does **not** claim end-to-end encryption.
    Related: a carrier-grade-NAT shard can be large, so consent per transfer
    (STEP 3) is the real boundary, not the shard.
 
-1. **Bundle: 179.0 KB, 1.0 KB under the ceiling.** The cut was real deferral
-   (sheets, QR art, palette, overlays). M2 STEP 1 adds code and will need a
-   re-measure.
-2. **Reliability matrix is partial.** S1, S4–S10, S13–S15 unmeasured.
+1. **Bundle: 179.8 KB, 0.2 KB under the ceiling.** The ceiling was already
+   breached at `6991c46` (181.3 KB) before M1b; the fix was deferral (room rail,
+   presence dock, handshake drawing, room empty-state scene, system alert). Any
+   new entry code needs a matching split, not a budget bump.
+2. **Reliability matrix: 10 of 15 measured.** S1, S4, S5, S9, S13, S15 measured
+   on 2026-11-16 (all PASS); S2, S3, S11, S12 from 2026-11-14. Still
+   **NOT VERIFIED**: S6–S8 (20 MB resume across a reload), S10 (service-worker
+   swap), S14 (three-hour Stay Connected clock).
 3. **Item state is now centralised but not yet the only reader.** `MessageCard`
    uses `itemState.ts`; `ChatView` and the sheets still derive some words inline.
-4. **Space file storage** disabled; the claims linter forbids describing it.
+4. **Space file storage** disabled and now structural: `FEATURE_SPACE_FILES`
+   (false) owns the button, paste, drop and overlay, the composer says "Text and
+   links for now.", and the Worker answers `/space/capabilities` with the truth
+   (`files: Boolean(env.SPACE_BUCKET)`). The claims linter forbids describing it.
+4b. **Link joins no longer blame the room for a broken connection.**
+   `resolveShortCode` returns a reason (`not_found | unreachable | timeout |
+   config`), one retry covers a phone that has no route yet, and the notice's
+   single action is "Try the six-digit code" (dead) or "Try again"
+   (unreachable). Five `link.*` diag stages make the next failure self-explaining.
 5. **`home.roomsMade` still says "rooms made"** while the counter measures
    two-device connections.
 6. **Circle has no server yet.** `src/lib/circle/*` is client crypto only; no
@@ -87,7 +101,13 @@ the room secret, so the product does **not** claim end-to-end encryption.
 
 Push to `main` → the host builds. Wait for the live build marker, then
 `node scripts/smoke-live.mjs`. If live breaks, revert first and diagnose after.
-Worker changes require `npm run worker:deploy` (owner action).
+Worker changes require `npm run worker:deploy` (owner action) — the new
+`/space/capabilities` route is in that category.
+
+2026-11-16: `smoke-live` failed once with `ERR_NAME_NOT_RESOLVED` on the
+signaling Worker and passed on a rerun (message in 4 ms). A live failure whose
+console shows a name-resolution or network-changed error is this machine's
+network, not the deploy — rerun before reverting.
 
 ## 8. Conventions
 
