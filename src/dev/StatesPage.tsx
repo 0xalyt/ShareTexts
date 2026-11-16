@@ -66,7 +66,7 @@ export function StatesPage() {
             kind="error"
             testId="demo-error"
             title="This browser is out of space."
-            body="This device is out of storage space. Remove some saved items and try again."
+            body="Remove a few saved items, then try again."
             action={{ label: 'Try again', onClick: () => {} }}
           />
         </Frame>
