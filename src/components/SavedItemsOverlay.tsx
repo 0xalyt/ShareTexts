@@ -18,7 +18,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X, Search, Trash2, Copy, Check, Download, ExternalLink,
-  FileText, Link as Link2, ChevronDown, ChevronUp, AlertCircle, Bookmark,
+  FileText, Link as Link2, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { fmtDateTime } from '../lib/format';
@@ -26,6 +26,7 @@ import type { I18nApi } from '../lib/i18n';
 import { useScrollFade } from '../lib/useScrollFade';
 import { DUR } from '../lib/motion/tokens';
 import { Sheet } from './ui/Sheet';
+import { StatePanel, StateSkeletonRow } from './ui/StatePanel';
 import { cn, formatBytes } from '../lib/utils';
 import { FileTypeIcon } from './FileTypeIcon';
 import { ConfirmSheet } from './ConfirmSheet';
@@ -461,57 +462,50 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
 
   const body = (() => {
     if (snapshot.status === 'loading') {
-      // Skeleton rows, not a centred word: the list's real shape arrives
-      // already in place, so nothing jumps when the items land. aria-hidden
-      // because the sheet announces the busy state itself.
+      // Same frame, same anatomy, same floor as the other two states — and the
+      // skeleton keeps the real row's geometry so the list fills in place.
       return (
-        <div className="py-2 flex flex-col gap-2.5" data-testid="saved-loading" role="status" aria-label={t('common.loading')}>
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="rounded-[16px] border border-black/[0.06] dark:border-white/[0.07] p-3 flex gap-3" aria-hidden>
-              <span className="st-skeleton h-12 w-12 rounded-[12px] shrink-0" />
-              <span className="flex-1 min-w-0 flex flex-col gap-2 pt-0.5">
-                <span className="st-skeleton h-3 rounded-full" style={{ width: `${72 - i * 9}%` }} />
-                <span className="st-skeleton h-2.5 rounded-full w-2/5" />
-              </span>
-            </div>
-          ))}
-        </div>
+        <StatePanel
+          kind="loading"
+          testId="saved-loading"
+          title={t('saved.loadingTitle')}
+          body={t('saved.loadingBody')}
+        >
+          <div className="mt-5 flex w-full flex-col gap-2.5">
+            <StateSkeletonRow index={0} />
+          </div>
+        </StatePanel>
       );
     }
     if (snapshot.status === 'error') {
+      // Name the problem in the title, name the fix in the body, offer the one
+      // action that can resolve it. No apology, no "something went wrong".
+      const code = snapshot.errorCode;
       return (
-        <div className="py-8 px-4 flex flex-col items-center gap-3 text-center" data-testid="saved-error">
-          <AlertCircle className="w-6 h-6 text-status-danger" aria-hidden />
-          <p className="text-[13px] text-apple-ink dark:text-white">{errText(snapshot.errorCode)}</p>
-          <button
-            type="button"
-            onClick={() => { void reloadSavedItems(); }}
-            className="px-4 min-h-[40px] rounded-full bg-apple-parchment dark:bg-apple-tile-2 text-[13px] font-semibold text-apple-ink dark:text-white"
-          >
-            {t('common.tryAgain')}
-          </button>
-        </div>
+        <StatePanel
+          kind="error"
+          testId="saved-error"
+          title={t(
+            code === 'quota' ? 'saved.errQuotaTitle'
+              : code === 'unavailable' ? 'saved.errUnavailableTitle'
+                : 'saved.errLoadTitle'
+          )}
+          body={t(errKey(code))}
+          action={{ label: t('common.tryAgain'), onClick: () => { void reloadSavedItems(); } }}
+        />
       );
     }
     if (items.length === 0) {
+      // A door, not a dead end: name the place and hand over the action that
+      // fills it (close the sheet and share something).
       return (
-        <div className="py-8 px-5 flex flex-col items-center text-center" data-testid="saved-empty">
-          <span className="w-12 h-12 rounded-full bg-ember/10 text-ember flex items-center justify-center" aria-hidden>
-            <Bookmark className="w-5 h-5" />
-          </span>
-          <p className="mt-3 text-[16px] font-semibold text-apple-ink dark:text-white">{t('saved.emptyTitle')}</p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55 max-w-[300px]">
-            {t('saved.emptyBody')}
-          </p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="mt-4 px-5 min-h-[40px] rounded-full bg-ember hover:bg-brand-strong text-white text-[13px] font-semibold transition-colors"
-            data-testid="saved-empty-cta"
-          >
-            {t('saved.emptyCta')}
-          </button>
-        </div>
+        <StatePanel
+          kind="empty"
+          testId="saved-empty"
+          title={t('saved.emptyTitle')}
+          body={t('saved.emptyBody')}
+          action={{ label: t('saved.emptyCta'), onClick: onClose, testId: 'saved-empty-cta' }}
+        />
       );
     }
     return (

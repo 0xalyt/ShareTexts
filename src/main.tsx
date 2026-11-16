@@ -109,6 +109,10 @@ function mount() {
     void import('./dev/ArtPage').then(({ ArtPage }) => {
       createRoot(kitRoot).render(<StrictMode><ArtPage /></StrictMode>);
     });
+  } else if (import.meta.env.DEV && window.location.pathname === '/__kit/states') {
+    void import('./dev/StatesPage').then(({ StatesPage }) => {
+      createRoot(kitRoot).render(<StrictMode><StatesPage /></StrictMode>);
+    });
   } else if (import.meta.env.DEV && window.location.pathname === '/__kit') {
     void import('./dev/KitPage').then(({ KitPage }) => {
       createRoot(kitRoot).render(<StrictMode><KitPage /></StrictMode>);
