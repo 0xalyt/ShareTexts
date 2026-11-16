@@ -2291,9 +2291,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               >
                 <QRScanner onScan={handleQRScan} onErrorFallback={() => { setShowQRScan(false); }} />
               </Suspense>
+              {/* Underlined always, not on hover: a touch screen has no hover,
+                  so the only escape from a dead camera looked like a caption. */}
               <button
                 onClick={() => setShowQRScan(false)}
-                className="mt-4 text-[13px] font-semibold text-apple-ink-muted hover:text-apple-ink dark:hover:text-white underline-offset-2 hover:underline transition-colors"
+                className="mt-4 text-[13px] font-semibold text-apple-ink-muted underline underline-offset-2 hover:text-apple-ink dark:hover:text-white transition-colors"
               >
                 {t('qr.scan.typeCode')}
               </button>

@@ -146,12 +146,14 @@ export function ReceiveScreen({
               whether or not a message is in it, so nothing below moves when an
               error lands and nothing jumps back when the user starts retyping. */}
           <div className="min-h-[42px] pt-2" data-testid="receive-error-slot">
+            {/* balanced, not pretty: at 390 the message fits two lines and
+                `pretty` still left "new one." alone on the second one. */}
             {error && (
               <p
                 id="receive-code-error"
                 role="alert"
                 data-testid="receive-field-error"
-                className="flex items-start gap-1.5 text-[13px] font-medium leading-[1.35] text-status-danger-ink dark:text-status-danger-ink-dark [text-wrap:pretty]"
+                className="flex items-start gap-1.5 text-[13px] font-medium leading-[1.35] text-status-danger-ink dark:text-status-danger-ink-dark [text-wrap:balance]"
               >
                 <AlertCircle className="mt-[1px] h-3.5 w-3.5 shrink-0" aria-hidden />
                 <span>{error.kind === 'code' ? t('receive.wrongCode') : error.text}</span>
@@ -191,7 +193,7 @@ export function ReceiveScreen({
           <QrCode className="w-4 h-4 text-apple-ink-muted dark:text-white/70" aria-hidden /> {t('receive.scan')}
         </button>
 
-        <p className="mt-4 text-center text-[12px] text-apple-ink-muted dark:text-white/70">{t('receive.note')}</p>
+        <p className="mt-4 text-center text-[12px] text-apple-ink-muted dark:text-white/70 [text-wrap:balance]">{t('receive.note')}</p>
         {accepted && <p role="status" className="sr-only">{t('code.accepted')}</p>}
       </div>
     </div>

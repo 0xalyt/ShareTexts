@@ -214,7 +214,10 @@ html.dark .segmented [role='tab'][aria-selected='true'] {
   grid-area: stack;
   min-width: 0;
 }
-.route-screen {
+/* Only while a screen is actually moving. Every screen used to hold a
+   compositor layer for its whole life — on a phone that meant a layer the
+   size of the landing page, kept around to animate for 300 ms, once. */
+.route-screen[data-route-state]:not([data-route-state='active']) {
   will-change: transform, opacity;
 }
 .route-screen[data-route-state='incoming'] {
