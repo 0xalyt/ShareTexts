@@ -44,19 +44,26 @@ import { OverlaySheet } from '../components/OverlaySheet';
 import { TactileButton } from '../components/TactileButton';
 import { SlideToConfirm } from '../components/SlideToConfirm';
 import { ShareMenu } from '../components/ShareMenu';
-import { SystemAlert } from '../components/SystemAlert';
-import { PresenceDock, type PresenceEntry } from '../components/PresenceDock';
+const SystemAlert = lazy(() => import('../components/SystemAlert').then(m => ({ default: m.SystemAlert })));
+/* type-only: the component itself is lazy above */
+type PresenceEntry = PresenceEntryType;
 import { InlineConfirm } from '../components/InlineConfirm';
-import { RoomRail } from '../components/RoomRail';
+/* Room-only surfaces, split out of the entry: neither can appear until a room
+   exists, and both were shipping to every first paint of the landing. */
+const RoomRail = lazy(() => import('../components/RoomRail').then(m => ({ default: m.RoomRail })));
+const PresenceDockLazy = lazy(() => import('../components/PresenceDock').then(m => ({ default: m.PresenceDock })));
+import type { PresenceEntry as PresenceEntryType } from '../components/PresenceDock';
 import { BookOpen } from 'lucide-react';
-import { ConnectHandshake } from '../components/ConnectHandshake';
+/* The handshake drawing and the room's empty-state scene are decoration in
+   transit: heavy, and only ever needed after a tap. Split out of the entry. */
+const ConnectHandshake = lazy(() => import('../components/ConnectHandshake').then(m => ({ default: m.ConnectHandshake })));
+const HeroTransferScene = lazy(() => import('../components/HeroTransferScene').then(m => ({ default: m.HeroTransferScene })));
 import { CommandBarChip } from '../components/CommandBarChip';
 // The palette is 6 KB gzip that exists only after a keystroke or a click.
 const CommandBar = lazy(() => import('../components/CommandBar').then(m => ({ default: m.CommandBar })));
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
 import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
-import { HeroTransferScene } from '../components/HeroTransferScene';
 import { HeroFilm } from '../components/HeroFilm';
 import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
@@ -1543,7 +1550,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   breathe. */}
               {/* The room list heads the rail: this is the master pane, and
                   the first thing it says is where you are. */}
-              <RoomRail className="mb-5" />
+              <Suspense fallback={null}>
+                <RoomRail className="mb-5" />
+              </Suspense>
               {/* Your device: name row (tap to rename) — the only identity
                   element here; the pair visual lives in the room header. */}
               <div className="flex items-center gap-2.5 mb-5">
@@ -1618,7 +1627,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* Who is here — the rail answers "who else is in this room"
                   before it offers any action: tiles for each seated device,
                   each with its own link state. */}
-              <PresenceDock
+              <PresenceDockLazy
                 className="mb-4 px-1"
                 title={roomRosterCount === 1 ? t('room.oneDevice') : t('room.deviceCount', { count: roomRosterCount })}
                 subtitle={session.partnerConnected || roomRosterCount > 1 ? t('room.readyCount', { count: roomRosterCount }) : t('room.waiting')}
