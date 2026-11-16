@@ -95,6 +95,24 @@ for (let i = 0; i < 12; i++) {
   if (!inside) { escaped = true; break; }
 }
 out('Tab stays inside Devices', !escaped);
+
+// Focus must not be able to LEAVE by other means either: a programmatic focus
+// on something behind the dialog (an app-chrome button, an assistive-tech
+// jump) is pulled straight back in. A trap that only handles Tab is a
+// suggestion.
+const recaptured = await a.evaluate(() => {
+  const dialog = document.querySelector('[data-testid="devices-sheet"]');
+  if (!dialog) return false;
+  const outside = document.createElement('button');
+  outside.id = 'gate-outside-focus';
+  outside.textContent = 'outside';
+  document.body.appendChild(outside);
+  outside.focus();
+  const inside = dialog.contains(document.activeElement);
+  outside.remove();
+  return inside;
+});
+out('focus that escapes programmatically is pulled back in', recaptured === true);
 await closeWithEscape(a);
 const devicesClosed = await a.evaluate(() => !document.querySelector('[data-testid="devices-sheet"]'));
 out('Escape closes Devices', devicesClosed);
@@ -160,6 +178,16 @@ const focusAfter = await home.evaluate(() => {
 out('focus returns to the control that opened it',
   focusAfter.testId === 'header-more',
   `${focusAfter.tag} testid=${focusAfter.testId} label=${focusAfter.name}`);
+
+// ── the scrim is a second door out ─────────────────────────────────────────
+// Escape is the keyboard's exit; the dimmer behind the panel is everyone
+// else's. Both must work on a dismissable sheet.
+await homeTrigger.click();
+await home.waitForTimeout(400);
+await home.mouse.click(8, 8); // top-left: backdrop, well clear of a bottom sheet
+await home.waitForTimeout(500);
+const scrimClosed = await home.evaluate(() => !document.querySelector('[data-testid="more-sheet"]'));
+out('a scrim click closes the dialog', scrimClosed);
 
 await homeCtx.close();
 await ctxA.close();

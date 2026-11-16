@@ -17,6 +17,21 @@ import React, { useEffect, useRef } from 'react';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/**
+ * Only things a person can actually reach. `querySelectorAll` happily returns
+ * the ✕ of a collapsed section, a control inside a hidden tab panel, or the
+ * off-screen copy a sheet keeps mounted — and then Tab "focuses" something
+ * invisible, which looks like the keyboard stopped working.
+ */
+function focusablesIn(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => {
+    if (el.hasAttribute('disabled') || el.getAttribute('aria-hidden') === 'true') return false;
+    const style = getComputedStyle(el);
+    if (style.visibility === 'hidden' || style.display === 'none') return false;
+    return el.getClientRects().length > 0;
+  });
+}
+
 export function useFocusTrap(
   isOpen: boolean,
   onClose?: () => void,
@@ -73,17 +88,24 @@ export function useFocusTrap(
         explicit.focus({ preventScroll: true });
         return;
       }
-      const focusable = container.querySelectorAll<HTMLElement>(FOCUSABLE);
-      if (focusable.length > 0) {
-        focusable[0].focus();
-      }
+      const focusable = focusablesIn(container);
+      if (focusable.length > 0) focusable[0].focus();
+      // A dialog with nothing focusable is still a dialog: park focus on the
+      // container (it carries tabIndex={-1}) so the page behind cannot be
+      // reached with the keyboard and Escape still lands somewhere sane.
+      else container.focus({ preventScroll: true });
     }, 50);
 
     // Trap Tab
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Tab') {
-        const focusable = container.querySelectorAll<HTMLElement>(FOCUSABLE);
-        if (focusable.length === 0) return;
+        const focusable = focusablesIn(container);
+        if (focusable.length === 0) {
+          // Nothing to cycle through: keep focus on the dialog itself.
+          e.preventDefault();
+          container.focus({ preventScroll: true });
+          return;
+        }
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
@@ -109,9 +131,22 @@ export function useFocusTrap(
 
     container.addEventListener('keydown', onKeyDown);
 
+    /* Focus can leave without a Tab: a programmatic .focus() elsewhere, a
+       click on a surface the scrim does not cover, an assistive-tech jump.
+       Pulling it back is the difference between a trap and a suggestion. The
+       trigger is restored by the effect above, after this listener is gone. */
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target as Node | null;
+      if (target && container.contains(target)) return;
+      const list = focusablesIn(container);
+      (list[0] ?? container).focus({ preventScroll: true });
+    };
+    document.addEventListener('focusin', onFocusIn);
+
     return () => {
       clearTimeout(timer);
       container.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('focusin', onFocusIn);
     };
   }, [isOpen, onClose]);
 

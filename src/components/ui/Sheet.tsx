@@ -525,7 +525,7 @@ export function Sheet({
           onClick={onClose}
           aria-label={t('common.close')}
           data-sheet-no-drag
-          className="absolute top-3.5 right-3.5 z-10 w-10 h-10 -m-1 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.97] transition-all"
+          className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.97] transition-all"
         >
           <X className="w-4 h-4" />
         </button>
@@ -541,7 +541,9 @@ export function Sheet({
     <div
       ref={setPanel}
       role="dialog"
-      aria-modal={held ? open || undefined : true}
+      // Only a dialog that is actually open is modal; a held (closed) sheet must
+      // not announce itself as one.
+      aria-modal={open || undefined}
       aria-label={label}
       aria-labelledby={labelledBy}
       // The dialog itself is where focus starts: a screen reader announces
