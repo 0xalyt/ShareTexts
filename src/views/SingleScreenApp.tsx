@@ -17,6 +17,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useSession } from '../lib/SessionContext';
 import { hasOpenLayer } from '../lib/layers';
+import { diag } from '../lib/diag';
 import { hapticSuccess } from '../lib/haptics';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
@@ -320,6 +321,36 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // the effect re-runs only when the path changes, and a failed join shows
   // the normal idle screen where the user can enter a code manually.
   const joinedShortCodeRef = useRef<string | null>(null);
+  /** One attempt at the /s/<code> join. Shared by the mount effect and the
+   *  notice's single action, so a retry is the same code path as the first
+   *  try rather than a second, subtly different one. */
+  const attemptLinkJoin = useCallback(
+    (code: string) => {
+      setPanelMode('connecting');
+      return joinWithShortCode(code)
+        .then((res) => {
+          if (res.success) {
+            diag('link.joined', true);
+            setDeadLink(null);
+          } else {
+            diag('link.failed', false, res.reason ?? 'unknown');
+            if (session.roomId === null) {
+              setPanelMode('idle');
+              // The distinction the copy depends on: a room that is gone needs
+              // a new code, a room we could not reach needs one more try.
+              setDeadLink(res.reason === 'not_found' ? 'dead' : 'unreachable');
+            }
+          }
+          return res;
+        })
+        .catch(() => {
+          diag('link.failed', false, 'exception');
+          if (session.roomId === null) { setPanelMode('idle'); setDeadLink('unreachable'); }
+          return { success: false as const, reason: 'unreachable' as const };
+        });
+    },
+    [joinWithShortCode, session.roomId],
+  );
   // Prewarm the signaling socket the moment the landing mounts: by the time
   // a user taps Send, the WebSocket is already open — the code appears
   // instantly instead of waiting for a handshake.
@@ -333,14 +364,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     const code = m[1].toLowerCase();
     if (joinedShortCodeRef.current === code) return;
     joinedShortCodeRef.current = code;
-    setPanelMode('connecting');
-    void joinWithShortCode(code).then((res) => {
-      if (!res.success) {
-        // Dead link — say so, then let the landing stand. Silence here was the
-        // bug: the URL answered 404 and the page pretended nothing happened.
-        if (session.roomId === null) { setPanelMode('idle'); setDeadLinkNotice(true); }
-      }
-    }).catch(() => { if (session.roomId === null) { setPanelMode('idle'); setDeadLinkNotice(true); } });
+    // Link vs QR, never the code itself: the diagnostics ring is copyable and
+    // must stay identifier-free.
+    diag('link.opened', true, new URLSearchParams(window.location.search).has('c') ? 'qr' : 'link');
+    diag('link.parsed', true);
+    void attemptLinkJoin(code);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [window.location.pathname]);
   // Set when the creator deliberately backs out of the connecting screen.
@@ -1061,7 +1089,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   /** A /s/<code> link that resolved to nothing. Its own state, because the
    *  alternative — silently landing on the marketing page — leaves the person
    *  who tapped a dead link with no idea what happened. */
-  const [deadLinkNotice, setDeadLinkNotice] = useState(false);
+  const [deadLink, setDeadLink] = useState<null | 'dead' | 'unreachable'>(null);
   /** Current path, for the menu's aria-current marker. Client-rendered, so
    *  window exists by the time a sheet can open. */
   const here = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -1077,19 +1105,30 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
             <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
-              {deadLinkNotice && (
+              {deadLink && (
                 <div
                   data-testid="dead-link"
+                  data-kind={deadLink}
                   role="status"
                   className="order-0 mb-4 flex items-start gap-3 rounded-[12px] bg-apple-parchment dark:bg-white/[0.06] px-3.5 py-3"
                 >
-                  <span className="text-[13px] font-medium leading-snug text-apple-ink-muted dark:text-white/70">{t('link.dead')}</span>
+                  <span className="text-[13px] font-medium leading-snug text-apple-ink-muted dark:text-white/70">
+                    {deadLink === 'dead' ? t('link.dead') : t('link.unreachable')}
+                  </span>
+                  {/* One action, and it is a way forward rather than "dismiss":
+                      the old Close left the person exactly where they started. */}
                   <button
                     type="button"
-                    onClick={() => setDeadLinkNotice(false)}
+                    data-testid="dead-link-action"
+                    onClick={() => {
+                      const m = window.location.pathname.match(/^\/s\/([0-9a-f]{8})$/i);
+                      setDeadLink(null);
+                      if (deadLink === 'unreachable' && m) void attemptLinkJoin(m[1].toLowerCase());
+                      else handleReceive();
+                    }}
                     className="press ms-auto shrink-0 min-h-[44px] text-[13px] font-semibold text-ember-ink dark:text-azure-400 underline decoration-ember-ink/30 dark:decoration-azure-400/30 underline-offset-2 motion-reduce:transition-none"
                   >
-                    {t('common.close')}
+                    {deadLink === 'unreachable' ? t('common.tryAgain') : t('link.tryCode')}
                   </button>
                 </div>
               )}

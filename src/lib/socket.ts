@@ -361,41 +361,50 @@ export function activeSignalingBase(): string | null {
  * transport is active: the Cloudflare Worker's POST /resolve-short endpoint,
  * or a socket.io `resolve_short_code` event on the Node server.
  */
-export async function resolveShortCode(
-  code: string
-): Promise<{ success: boolean; roomId?: string; secret?: string; createdAt?: number }> {
+/** Why a link did not resolve. The difference matters to the person holding
+ *  the phone: a dead link needs a fresh code, an unreachable server needs one
+ *  more try. Both used to arrive as the same `success: false`, which is how a
+ *  flaky mobile connection produced the sentence "this link isn't active". */
+export type ShortCodeFailure = 'not_found' | 'unreachable' | 'timeout' | 'config';
+export type ShortCodeResult =
+  | { success: true; roomId: string; secret: string; createdAt?: number }
+  | { success: false; reason: ShortCodeFailure };
+
+export async function resolveShortCode(code: string): Promise<ShortCodeResult> {
   const normalized = code.toLowerCase().trim();
   if (mode === 'cloudflare' && url) {
     // Route through signalingHttpBase() so a boot-probe redirect is honored
     // — code/QR joins must reach the SAME worker the transport uses.
     const httpBase = signalingHttpBase();
-    if (!httpBase) return { success: false };
+    if (!httpBase) return { success: false, reason: 'config' };
     try {
       const res = await fetch(httpBase + '/resolve-short', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ code: normalized }),
       });
+      if (res.status === 404) return { success: false, reason: 'not_found' };
       if (res.ok) {
         const data = (await res.json()) as { roomId?: string; secret?: string; createdAt?: number };
         if (data.roomId && data.secret) {
           return { success: true, roomId: data.roomId, secret: data.secret, createdAt: data.createdAt };
         }
+        return { success: false, reason: 'not_found' };
       }
-      return { success: false };
+      return { success: false, reason: 'unreachable' };
     } catch {
-      return { success: false };
+      return { success: false, reason: 'unreachable' };
     }
   }
   return new Promise((resolve) => {
     const socket = getSocket();
-    const timer = setTimeout(() => resolve({ success: false }), 10000);
+    const timer = setTimeout(() => resolve({ success: false, reason: 'timeout' }), 10000);
     socket.emit('resolve_short_code', { code: normalized }, (res: any) => {
       clearTimeout(timer);
       if (res?.success && res.roomId && res.secret) {
         resolve({ success: true, roomId: res.roomId, secret: res.secret, createdAt: res.createdAt });
       } else {
-        resolve({ success: false });
+        resolve({ success: false, reason: 'not_found' });
       }
     });
   });

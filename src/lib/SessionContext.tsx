@@ -32,7 +32,12 @@ interface SessionContextValue {
   createSession: () => Promise<{ roomId: string; secret: string }>;
   joinWithCode: (code: string) => Promise<{ success: boolean; error?: string }>;
   joinWithLink: (roomId: string) => Promise<{ success: boolean; error?: string }>;
-  joinWithShortCode: (code: string) => Promise<{ success: boolean; error?: string }>;
+  joinWithShortCode: (code: string) => Promise<{
+    success: boolean;
+    error?: string;
+    /** 'not_found' = the room is gone; anything else = we could not ask. */
+    reason?: 'not_found' | 'unreachable' | 'timeout' | 'config';
+  }>;
   sendMessage: (text: string, attachment?: import('../types').Attachment, file?: File) => void;
   updateMessageAttachment: (messageId: string, updates: Partial<ChatMessage['attachment']>) => void;
   retryTransfer: (messageId: string) => Promise<void>;
@@ -1059,12 +1064,31 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const joinWithShortCode = async (code: string) => {
     productEvent('product.method_link'); // /s/<code> short links resolve here
     await ensureSocketConnected();
-    const res = await resolveShortCode(code);
-    diag('room.join_short', !!res.success, res.success ? 'ok' : 'not found');
-    if (!res.success || !res.roomId) {
-      return { success: false, error: "This link isn't active anymore. Ask for a fresh code." };
+    diag('link.join_sent', true);
+    let res = await resolveShortCode(code);
+    // A phone that just woke up has no route yet. One retry turns "we could not
+    // ask" into a room, instead of telling the person their link is dead when
+    // it is fine — the sentence a slow mobile connection used to produce.
+    if ('reason' in res && res.reason !== 'not_found' && res.reason !== 'config') {
+      await new Promise((r) => setTimeout(r, 1200));
+      diag('link.retry', true, res.reason);
+      res = await resolveShortCode(code);
     }
-    return joinWithLink(res.roomId);
+    if ('reason' in res) {
+      diag('link.failed', false, res.reason);
+      return {
+        success: false,
+        reason: res.reason,
+        error:
+          res.reason === 'not_found'
+            ? "This link isn't active anymore. Ask for a fresh code."
+            : "Couldn't reach the room.",
+      };
+    }
+    diag('link.resolved', true);
+    const joined = await joinWithLink(res.roomId);
+    diag('link.joined', !!joined.success, joined.success ? 'ok' : 'refused');
+    return joined.success ? joined : { ...joined, reason: 'not_found' as const };
   };
 
   const setupJoiner = (roomId: string, secret: string, createdAt?: number, myPid?: string, roster?: { participants?: unknown[]; seq?: number } | null) => {
