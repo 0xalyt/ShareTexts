@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { EASE } from '../lib/motion/tokens';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ClipboardPaste, KeyRound, SendHorizontal } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -123,10 +124,10 @@ export function IntentField({
           <AnimatePresence initial={false} mode="wait">
             <motion.span
               key={Glyph.displayName || intent.kind}
-              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.7, y: 4 }}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 4 }}
               animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.7, y: -4 }}
-              transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -4 }}
+              transition={{ duration: 0.16, ease: EASE.out }}
               className="absolute inset-0 flex items-center justify-center"
             >
               <Glyph className={cn('h-[18px] w-[18px]', intent.kind === 'join' && 'text-ember dark:text-azure-400')} strokeWidth={1.8} />

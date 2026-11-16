@@ -6,6 +6,7 @@
  * The card owns nothing about the transport: it renders `ChatMessage` state
  * and calls back into SessionContext for retry/cancel/send actions.
  */
+import { EASE } from '../lib/motion/tokens';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { useSession } from '../lib/SessionContext';
@@ -86,7 +87,7 @@ function SelectionRing({ selected }: { selected: boolean }) {
     <motion.span
       initial={false}
       animate={{ scale: selected ? 1 : 0.85, opacity: 1 }}
-      transition={{ type: 'spring', bounce: 0.45, duration: 0.35 }}
+      transition={{ duration: 0.2, ease: EASE.out }}
       className={cn(
         'absolute top-1/2 -translate-y-1/2 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 pointer-events-none',
         selected
@@ -96,9 +97,9 @@ function SelectionRing({ selected }: { selected: boolean }) {
     >
       {selected && (
         <motion.span
-          initial={{ scale: 0.3, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', bounce: 0.55, duration: 0.35 }}
+          transition={{ duration: 0.2, ease: EASE.out }}
         >
           <Check className="w-3 h-3 text-white" strokeWidth={3.2} />
         </motion.span>
@@ -139,9 +140,9 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
         <motion.button
           key={emoji}
           type="button"
-          initial={{ scale: 0.55, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 520, damping: 24 }}
+          transition={{ duration: 0.22, ease: EASE.out }}
           disabled={disabled}
           onPointerDown={(e) => { e.preventDefault(); if (!disabled) pick(emoji); }}
           aria-pressed={r.mine}
@@ -313,9 +314,9 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
     return (
       <span data-testid="msg-state" data-state="seen" className="flex items-center gap-1 text-apple-blue">
         <motion.span
-          initial={{ scale: 0.6, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', bounce: 0.35, duration: 0.32 }}
+          transition={{ duration: 0.2, ease: EASE.out }}
           className="flex"
         >
           <CheckCheck className="w-3.5 h-3.5" />
@@ -333,9 +334,9 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
         {/* The check pops in when the peer's receipt arrives — a tiny
             confirmation that lands, not just a static icon. */}
         <motion.span
-          initial={{ scale: 0.6, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', bounce: 0.35, duration: 0.32 }}
+          transition={{ duration: 0.2, ease: EASE.out }}
           className="flex"
         >
           <CheckCheck className="w-3.5 h-3.5" />
@@ -347,9 +348,9 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
   return (
     <span data-testid="msg-state" data-state="sent" className="flex items-center gap-1 text-apple-ink-muted">
       <motion.span
-        initial={{ scale: 0.4, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
+        transition={{ duration: 0.2, ease: EASE.out }}
         className="flex"
       >
         <Check className="w-3.5 h-3.5" />
@@ -1156,9 +1157,9 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
     >
       <motion.span
         key={active ? 'check' : 'icon'}
-        initial={{ scale: 0.5, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', bounce: 0, duration: 0.25 }}
+        transition={{ duration: 0.18, ease: EASE.out }}
         className="[&>svg]:w-3.5 [&>svg]:h-3.5"
       >
         {active ? (activeIcon ?? <Check />) : icon}

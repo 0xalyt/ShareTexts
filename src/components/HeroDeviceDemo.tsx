@@ -776,9 +776,9 @@ function PairCode({
           >
             {on && (
               <motion.span
-                initial={{ opacity: 0, y: -2, scale: 0.7 }}
+                initial={{ opacity: 0, y: -2, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: stagger ? i * 0.15 : 0, type: 'spring', stiffness: 520, damping: 28 }}
+                transition={{ delay: stagger ? i * 0.15 : 0, duration: 0.16, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}
               >
                 {d}
               </motion.span>
@@ -1135,7 +1135,7 @@ function FileChip({
       {out && (
         <AnimatePresence mode="wait" initial={false}>
           {arrived ? (
-            <motion.span key="tick" className="flex leading-none" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }}>
+            <motion.span key="tick" className="flex leading-none" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }}>
               <CheckDouble className={compact ? 'h-[9px] w-[9px]' : 'h-[10px] w-[10px]'} />
             </motion.span>
           ) : (

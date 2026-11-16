@@ -176,6 +176,7 @@ const BurstEmoji = memo(function BurstEmoji({
         marginLeft: -size / 2,
         marginTop: -size / 2,
       }}
+      // entrance-exempt: burst particle flying outward; its scale is the spark
       initial={{
         x: particle.x,
         y: 0,
@@ -468,7 +469,7 @@ export function EmojiReaction({
               initial={{
                 opacity: 0,
                 y: top ? 10 : -10,
-                scale: 0.85,
+                scale: 0.9,
                 x: centering,
               }}
               animate={{ opacity: 1, y: 0, scale: 1, x: centering }}
@@ -522,14 +523,13 @@ export function EmojiReaction({
                       react(name, event.currentTarget.getBoundingClientRect())
                     }
                     className="relative z-10 rounded-full p-1 outline-none focus-visible:ring-2 focus-visible:ring-ember/60"
-                    initial={reduced ? false : { scale: 0.4, opacity: 0 }}
+                    initial={reduced ? false : { scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{
-                      type: 'spring',
-                      stiffness: 800,
-                      damping: 25,
+                      duration: 0.18,
+                      ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
                       delay: reduced ? 0 : 0.04 + i * 0.035,
-                    }}
+                      }}
                     whileHover={reduced ? undefined : { scale: 1.22 }}
                     whileTap={{ scale: 0.92 }}
                   >

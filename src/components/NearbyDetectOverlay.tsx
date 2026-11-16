@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { EASE } from '../lib/motion/tokens';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, Infinity as InfinityIcon } from 'lucide-react';
@@ -97,9 +98,9 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
   const { t } = useI18n();
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.4, y: 10 }}
+      initial={{ opacity: 0, scale: 0.9, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ type: 'spring', bounce: 0.55, duration: 0.7, delay: 0.12 + index * 0.11 }}
+      transition={{ duration: 0.28, ease: EASE.out, delay: 0.12 + index * 0.11 }}
       className="absolute flex flex-col items-center gap-1.5"
       style={{ left: slot.left, top: slot.top, transform: 'translate(-50%, -50%)' }}
     >
@@ -233,9 +234,9 @@ export function NearbyDetectOverlay({
               {/* Core glow + the broadcast glyph. */}
               <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-ember/10 dark:bg-azure-400/10 blur-xl" />
               <motion.span
-                initial={{ scale: 0.6, opacity: 0 }}
+                initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', bounce: 0.4, duration: 0.6 }}
+                transition={{ duration: 0.26, ease: EASE.out }}
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
               >
                 <BroadcastGlyph className="w-12 h-12 text-ember dark:text-azure-400 drop-shadow-[0_2px_10px_rgba(240,100,19,0.35)]" />
@@ -280,9 +281,9 @@ export function NearbyDetectOverlay({
                       so the absolute ✕ never lands on the device art. */}
                   <div className="flex items-center gap-3.5 pr-9">
                     <motion.span
-                      initial={{ scale: 0.5, opacity: 0, rotate: -12 }}
-                      animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                      transition={{ type: 'spring', bounce: 0.5, duration: 0.6, delay: 0.05 }}
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.24, ease: EASE.out, delay: 0.05 }}
                       className="shrink-0 w-12 h-12 rounded-[16px] flex items-center justify-center bg-ember/10 dark:bg-azure-400/12 border border-ember/20 dark:border-azure-400/20"
                       aria-hidden
                     >
@@ -321,9 +322,9 @@ export function NearbyDetectOverlay({
                         tile the landing rows use (the card's "preview"
                         slot). */}
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.7 }}
+                      initial={{ opacity: 0, scale: 0.92 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: 'spring', bounce: 0.4, duration: 0.55, delay: 0.12 }}
+                      transition={{ duration: 0.22, ease: EASE.out, delay: 0.12 }}
                       className="shrink-0"
                     >
                       <DeviceArt

@@ -489,7 +489,7 @@ html.dark .st-btn--destructive {
   animation: st-check-in 280ms var(--st-ease-enter) both;
 }
 @keyframes st-check-in {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 @keyframes st-check-fade {

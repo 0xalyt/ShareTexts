@@ -162,6 +162,7 @@ export function PacketTrain({
           left: direction === 'right' ? width * 0.24 - 7 : -width * 0.106 - 7,
           background: 'radial-gradient(circle, rgba(52,199,89,0.35), transparent 70%)',
         }}
+        // entrance-exempt: looping glow pulse (opacity 0 → 0.9 → 0), not an arrival
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: [0, 0.9, 0], scale: [0.6, 1.15, 0.9] }}
         transition={{ duration: 2.2, times: [0, 0.2, 0.5], repeat: Infinity, ease: 'easeOut', delay: 0.1 }}

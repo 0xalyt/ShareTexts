@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { EASE } from '../lib/motion/tokens';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
 import { useOverscroll } from '../lib/useOverscroll';
@@ -1890,10 +1891,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     {sentPulse ? (
                       <motion.span
                         key="check"
-                        initial={{ scale: 0.3, opacity: 0, rotate: -30 }}
+                        initial={{ scale: 0.9, opacity: 0, rotate: -30 }}
                         animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                        exit={{ scale: 0.5, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        transition={{ duration: 0.18, ease: EASE.out }}
                         className="absolute inset-0 flex items-center justify-center"
                       >
                         <Check className="w-5 h-5 text-status-success dark:text-status-success" strokeWidth={2.8} />
