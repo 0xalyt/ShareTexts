@@ -214,6 +214,14 @@ export default {
     // then hand off to the space's DO /code-join which completes the join
     // with the stored access token and returns the same snapshot a link
     // join produces (+ x-space-token so the device can rejoin later).
+    // What this deployment can honestly promise. The client keeps file
+    // affordances hidden behind a build flag (OD-2); this is the server's own
+    // answer, so a stale client that asks anyway learns the truth here rather
+    // than at upload time, where the reply would be a bare 503.
+    if (path === '/space/capabilities' && request.method === 'GET') {
+      return json({ files: Boolean(env.SPACE_BUCKET) }, 200, cors);
+    }
+
     if (path === '/space/join-code' && request.method === 'POST') {
       if (!(await rateLimited(env, 'space-code', clientIp(request)))) {
         return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);

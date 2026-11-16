@@ -24,6 +24,7 @@ import { QrArt } from '../components/qr/QrArt';
 import { Bar } from '../components/SkeletonScreen';
 import { Inbox } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
+import { FEATURE_SPACE_FILES } from '../lib/space/capabilities';
 import { fmtShortDate, fmtTime, fmtWeekdayTime } from '../lib/format';
 import { TactileButton } from '../components/TactileButton';
 import type { MsgKey } from '../lib/messages/types';
@@ -775,6 +776,10 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
   const [composer, setComposer] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  /* OD-2: no file affordance until storage is really on (R2 is off on the
+     owner's account). One switch for the button, the paste and the drop, so
+     the three can never disagree about what this Space can do. */
+  const canUploadFiles = FEATURE_SPACE_FILES;
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const myPid = snapshot?.participantId;
@@ -810,7 +815,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
     const onPaste = (e: ClipboardEvent) => {
       if (!(e.clipboardData)) return;
       const files = [...e.clipboardData.files];
-      if (files.length) {
+      if (files.length && canUploadFiles) {
         e.preventDefault();
         for (const f of files) client.startUpload(f);
         return;
@@ -886,6 +891,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       onDrop={e => {
         e.preventDefault();
         setDragOver(false);
+        if (!canUploadFiles) return;
         for (const f of e.dataTransfer.files) client.startUpload(f);
       }}
     >
@@ -1071,24 +1077,28 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       {/* ── composer ── */}
       <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas dark:bg-night-900 border-t border-apple-divider/50 dark:border-white/[0.06]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
-          <button
-            onClick={() => fileInput.current?.click()}
-            aria-label={t('space.addFile')}
-            className="shrink-0 w-11 h-11 rounded-full bg-white dark:bg-white/[0.06] border border-apple-divider dark:border-white/[0.1] flex items-center justify-center hover:border-apple-ink/30 dark:hover:border-white/30 transition-colors"
-            data-testid="space-add-file"
-          >
-            <Plus className="w-5 h-5 text-apple-ink dark:text-white/80" />
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            multiple
-            className="hidden"
-            onChange={e => {
-              for (const f of e.target.files ?? []) client.startUpload(f);
-              e.target.value = '';
-            }}
-          />
+          {canUploadFiles && (
+            <>
+              <button
+                onClick={() => fileInput.current?.click()}
+                aria-label={t('space.addFile')}
+                className="shrink-0 w-11 h-11 rounded-full bg-white dark:bg-white/[0.06] border border-apple-divider dark:border-white/[0.1] flex items-center justify-center hover:border-apple-ink/30 dark:hover:border-white/30 transition-colors"
+                data-testid="space-add-file"
+              >
+                <Plus className="w-5 h-5 text-apple-ink dark:text-white/80" />
+              </button>
+              <input
+                ref={fileInput}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={e => {
+                  for (const f of e.target.files ?? []) client.startUpload(f);
+                  e.target.value = '';
+                }}
+              />
+            </>
+          )}
           <textarea
             ref={composerRef}
             value={composer}
@@ -1125,10 +1135,20 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             <ArrowUp className="w-5 h-5" strokeWidth={2.4} />
           </button>
         </div>
+        {/* One honest line instead of an affordance that would 503. Sits in
+            the footer so it never competes with the items themselves. */}
+        {!canUploadFiles && (
+          <p
+            data-testid="space-text-only"
+            className="max-w-3xl mx-auto px-4 sm:px-6 pb-2 text-[12px] leading-snug text-apple-ink-muted dark:text-white/50"
+          >
+            {t('space.textOnly')}
+          </p>
+        )}
       </footer>
 
       {/* drop overlay */}
-      {dragOver && (
+      {dragOver && canUploadFiles && (
         <div className="fixed inset-0 z-[70] pointer-events-none flex items-center justify-center">
           <div className="absolute inset-0 bg-azure-600/[0.06] dark:bg-azure-400/[0.08] border-2 border-dashed border-azure-500/50 rounded-none" />
           <span className="relative rounded-full bg-white dark:bg-surface-dark shadow-lg px-5 py-2.5 text-[16px] font-semibold text-apple-ink dark:text-white">
