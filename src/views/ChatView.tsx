@@ -1726,7 +1726,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       hangs ~10px past the chip's top edge, and without this
                       headroom the outer overflow-hidden clips it (screenshot
                       audit: X buttons sliced in half on staged files). */}
-                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                  <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 -mx-1 px-1">
                     <AnimatePresence initial={false}>
                       {attachments.map((a) => (
                         <motion.div

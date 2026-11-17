@@ -213,6 +213,26 @@ export function SendScreen({
             >
               {expired ? t('send.expired') : t('send.validFor', { t: mmss })}
             </p>
+            {/* Lifecycle indicator: the same information the caption gives in
+                words, as a bar you can read without parsing "1:24". It drains
+                in real time against the code's actual 90 s window, so it can
+                never promise more life than the code has; it turns amber with
+                the caption does, at 15 s. Width, not scale — a scaling bar
+                would have soft ends and lie about its length. */}
+            <div
+              className="mx-auto mt-2 h-[3px] w-[132px] overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.10] [@media(max-height:520px)]:mt-1"
+              role="presentation"
+              aria-hidden
+              data-testid="code-lifecycle"
+            >
+              <div
+                className={cn(
+                  'h-full rounded-full motion-reduce:transition-none transition-[width] duration-[250ms] ease-linear',
+                  expired || urgent ? 'bg-status-warning' : 'bg-status-success/80',
+                )}
+                style={{ width: `${Math.max(0, Math.min(100, (remaining / 90) * 100))}%` }}
+              />
+            </div>
           </div>
 
           {expired ? (

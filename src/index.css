@@ -621,7 +621,7 @@
   /* Headlines sit on the display drawing (opsz 32) even when the clamp lands
      under 32 px, and small type sits on the text drawing (opsz 11) — Allo's
      axes are the whole reason the ramp is legible at both ends. */
-  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.036em; line-height: 1.03; text-wrap: balance; font-variation-settings: "opsz" 32; }
+  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.036em; line-height: 1.03; text-wrap: balance; font-variation-settings: "opsz" 32; text-box-trim: trim-both; text-box-edge: cap alphabetic; }
   .st-h2      { font-size: clamp(26px, 3.2vw, 34px); font-weight: 680; letter-spacing: -0.033em; line-height: 1.1; text-wrap: balance; font-variation-settings: "opsz" 32; }
   .st-h3      { font-size: 22px;   font-weight: 650; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; font-variation-settings: "opsz" 32; }
   .st-title   { font-size: 16px;   font-weight: 620; letter-spacing: -0.019em; line-height: 1.25; }
@@ -641,6 +641,13 @@
      typed, a rendering that quietly disagrees with the clipboard is a bug, not
      a flourish. Everything that renders another person's characters opts out:
      message bodies, drafts, the code field. */
+  /* CJK has no spaces, so the browser breaks between any two characters and
+     can leave a particle stranded at the start of a line. auto-phrase lets the
+     engine break at phrase boundaries where it is supported; everywhere else
+     the declaration is simply ignored. */
+  @supports (word-break: auto-phrase) {
+    .st-body, .st-support, .st-meta { word-break: auto-phrase; }
+  }
   .st-verbatim {
     font-variant-ligatures: no-contextual;
     font-feature-settings: "ss02" 1, "case" 1, "calt" 0, "liga" 0;
@@ -940,6 +947,34 @@ html.dark .st-dotfield::after {
 }
 @media (prefers-reduced-motion: reduce) {
   .st-halo-ring { animation: none; opacity: 0; }
+}
+
+/* Dead-end feedback. A wrong code is the one place in this app where the user
+   is stuck and nothing moved: the screen says no, and saying it with a small,
+   fast lateral shake is faster to read than a colour change or a line of text
+   appearing under the field. Three 6 px beats, decaying, on ease-out — an
+   announcement, not a tantrum. It is paired with the error text and the
+   haptic, never the only signal, and it is off under reduced motion (where
+   the text and the red brackets carry it). */
+@keyframes st-shake {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-6px); }
+  35%      { transform: translateX(5px); }
+  55%      { transform: translateX(-3px); }
+  75%      { transform: translateX(2px); }
+}
+.st-shake { animation: st-shake 360ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .st-shake { animation: none; }
+}
+
+/* text-box-trim, progressively: where the browser supports it, a headline's
+   box ends at the cap and the baseline instead of at the font's ascent and
+   descent, so optically equal spacing stops being hand-tuned per size. Ignored
+   by browsers that do not parse it — no fallback needed. */
+.st-trim {
+  text-box-trim: trim-both;
+  text-box-edge: cap alphabetic;
 }
 }
 

@@ -51,7 +51,7 @@ export function DataFlow({ className }: { className?: string }) {
         <span className="h-px flex-1 bg-apple-divider/70 dark:bg-white/[0.07]" aria-hidden />
       </div>
 
-      <div className="relative overflow-x-auto overflow-y-hidden">
+      <div className="relative overflow-x-auto overflow-y-hidden overscroll-x-contain">
         {/* The wire. Non-scaling stroke keeps it 1.5px at any width; the
             second path is the packet riding it (transform-free, dashoffset
             only — one cheap paint per frame on a small area). */}

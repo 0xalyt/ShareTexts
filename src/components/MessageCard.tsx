@@ -588,7 +588,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 ? // Code / table shape: monospace + pre + horizontal scroll.
                   // overflow-x keeps columns aligned instead of wrapping and
                   // mangling the table the user pasted. break-words is OFF here.
-                  "font-mono text-[13px] whitespace-pre overflow-x-auto"
+                  "font-mono text-[13px] whitespace-pre overflow-x-auto overscroll-x-contain"
                 : "break-words",
             )}
           >

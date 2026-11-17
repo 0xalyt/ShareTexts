@@ -56,7 +56,7 @@ function CodeBlock({ code, language = 'bash' }: { code: string; language?: strin
           Copy
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto text-[13px] leading-relaxed text-white/70 font-mono">
+      <pre className="p-4 overflow-x-auto overscroll-x-contain text-[13px] leading-relaxed text-white/70 font-mono">
         <code>{code}</code>
       </pre>
     </div>
@@ -782,7 +782,7 @@ export function Docs() {
           {/* Mobile Navigation — horizontal scrollable pills at top of content.
               The edge mask makes a cut-off pill read as "more this way",
               not as a broken layout. */}
-          <div className="md:hidden st-edge-fade -mx-6 px-6 mb-6 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <div className="md:hidden st-edge-fade -mx-6 px-6 mb-6 overflow-x-auto overscroll-x-contain" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
             <div className="flex gap-2 min-w-max">
               {NAV_ITEMS.map((item) => (
                 <button

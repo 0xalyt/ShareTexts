@@ -118,7 +118,12 @@ export function ReceiveScreen({
               the field's. */}
           <label
             id="receive-code-label"
-            className="mb-2 block text-[13px] font-medium text-apple-ink-muted dark:text-white/70 [@media(max-height:520px)]:mb-1"
+            // A label that cannot be clicked is a lost hit area. Six cells look
+            // tappable, the words above them are the biggest thing on the
+            // screen, and people reach for the words. htmlFor cannot point at a
+            // group of inputs, so the label forwards focus to the first cell.
+            onClick={() => fieldRef.current?.querySelector('input')?.focus()}
+            className="mb-2 block cursor-text text-[13px] font-medium text-apple-ink-muted dark:text-white/70 [@media(max-height:520px)]:mb-1"
           >
             {t('receive.codeLabel')}
           </label>
@@ -138,6 +143,10 @@ export function ReceiveScreen({
             describedBy={error ? 'receive-code-hint receive-code-error' : 'receive-code-hint'}
             aria-labelledby="receive-code-label"
             slotLabel={(index) => t('code.digitOf', { n: index + 1 })}
+            // The class is added on each rejection and removed the moment the
+            // user starts retyping, so the animation restarts per attempt
+            // instead of only ever firing once.
+            className={wrong ? 'st-shake' : undefined}
           />
 
           {/* THE ERROR BELONGS TO THE FIELD, so it sits under the field — not in
