@@ -52,6 +52,8 @@
     "verify:tabs": "node scripts/verify-tabs.mjs",
     "verify:landing-motion": "node scripts/verify-landing-motion.mjs",
     "verify:desktop": "node scripts/verify-desktop.mjs",
+    "verify:room-paint": "node scripts/verify-room-paint.mjs",
+    "verify:layout": "node scripts/verify-browser.mjs desktop,sheets,no-flash,room-paint",
     "verify:circle-worker": "node scripts/verify-circle-worker.mjs",
     "verify:circle-pairing": "node scripts/verify-circle-pairing.mjs",
     "verify:zero-knowledge": "node scripts/verify-zero-knowledge.mjs",

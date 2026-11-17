@@ -12,7 +12,7 @@
  */
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { resolveChrome } from './lib.mjs';
+import { resolveChrome, clickStable } from './lib.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const SHOTS = 'docs/redesign/shots';
@@ -33,8 +33,8 @@ const a = await ctxA.newPage();
 const b = await ctxB.newPage();
 await a.goto(BASE, { waitUntil: 'domcontentloaded' });
 await b.goto(BASE, { waitUntil: 'domcontentloaded' });
-await a.getByRole('button', { name: /^send$/i }).first().click();
-await b.getByRole('button', { name: /^receive$/i }).first().click();
+await clickStable(a, a.getByRole('button', { name: /^send$/i }).first());
+await clickStable(b, b.getByRole('button', { name: /^receive$/i }).first());
 const code = (await a.getByTestId('pairing-code').innerText()).replace(/\D/g, '').slice(0, 6);
 await b.getByTestId('join-code-input').click();
 await b.keyboard.type(code, { delay: 30 });

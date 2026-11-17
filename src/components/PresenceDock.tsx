@@ -45,7 +45,7 @@ const STATE_DOT: Record<PresenceEntry['state'], string> = {
 export function PresenceDock({ entries, title, subtitle, className }: PresenceDockProps) {
   if (entries.length === 0) return null;
   return (
-    <div className={cn('flex items-center gap-3', className)}>
+    <div data-testid="presence-dock" className={cn('flex items-center gap-3', className)}>
       <div className="flex items-center shrink-0" aria-hidden>
         {entries.map((entry, i) => (
           <span

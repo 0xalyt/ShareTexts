@@ -1,16 +1,46 @@
 #!/bin/sh
-# The entry-chunk budget, checked before code leaves the machine.
+# The two gates a push must not skip: the entry budget, and the layout.
 #
-# The last four commits of M3 walked the entry from 179.9 KB to 180.4 KB and
-# nobody noticed until an independent re-run. A gate that a person has to
-# remember is not a gate, so this runs it: about 20 s (build + measure).
+# 1. verify:bundle — the entry-chunk budget. The last four commits of M3 walked
+#    the entry from 179.9 KB to 180.4 KB and nobody noticed until an independent
+#    re-run. A gate a person has to remember is not a gate.
+# 2. verify:layout — desktop geometry, the sheets, no-flash and the room's
+#    first frame. Added after 0ebc470 shipped a lazy-loaded rail that left the
+#    1024 px room with no rail for a frame or two; nothing before this caught it.
 #
-# Emergency skip, documented in DESIGN.md §0:
-#   SKIP_BUNDLE_HOOK=1 git push
-[ "$SKIP_BUNDLE_HOOK" = "1" ] && { echo "[pre-push] bundle check skipped by SKIP_BUNDLE_HOOK=1"; exit 0; }
-echo "[pre-push] npm run verify:bundle"
-npm run verify:bundle || {
-  echo "[pre-push] the entry chunk is over budget — split it, do not push it."
-  echo "[pre-push] emergency skip: SKIP_BUNDLE_HOOK=1 git push"
-  exit 1
+# The layout half only runs when the push touches src/ or public/, because that
+# is the only thing that can change what paints; a docs-only push stays fast.
+#
+# Emergency skips, documented in DESIGN.md §0:
+#   SKIP_PREPUSH=1 git push        # both
+#   SKIP_BUNDLE_HOOK=1 git push    # bundle only
+[ "$SKIP_PREPUSH" = "1" ] && { echo "[pre-push] layout + bundle checks skipped by SKIP_PREPUSH=1"; exit 0; }
+[ "$SKIP_BUNDLE_HOOK" = "1" ] && echo "[pre-push] bundle check skipped by SKIP_BUNDLE_HOOK=1" || {
+  echo "[pre-push] npm run verify:bundle"
+  npm run verify:bundle || {
+    echo "[pre-push] the entry chunk is over budget — split it, do not push it."
+    echo "[pre-push] emergency skip: SKIP_PREPUSH=1 git push"
+    exit 1
+  }
 }
+
+# Read the refs git hands us on stdin: "<local ref> <local sha> <remote ref> <remote sha>".
+touches_ui=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # A brand-new branch has no remote sha; there is nothing to diff against, so
+  # be conservative and run the layout gate.
+  [ "$remote_sha" = "0000000000000000000000000000000000000000" ] && { touches_ui=1; continue; }
+  if git diff --name-only "$remote_sha..$local_sha" 2>/dev/null | grep -qE '^(src|public)/'; then
+    touches_ui=1
+  fi
+done
+
+if [ "$touches_ui" = "1" ]; then
+  echo "[pre-push] npm run verify:layout (this push touches src/ or public/)"
+  npm run verify:layout || {
+    echo "[pre-push] a layout gate failed — fix it, or SKIP_PREPUSH=1 git push in an emergency."
+    exit 1
+  }
+else
+  echo "[pre-push] no src/ or public/ change — layout gate skipped"
+fi

@@ -48,12 +48,24 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `node scripts/verify-no-flash.mjs` | no blank gap, no white frame, no mid-session SW takeover | clean |
 | `npm run verify:icons` | every icon reference resolves and matches its size | 12 references |
 | `npm run verify:lobby-shard` | Nearby is scoped by network: shard = HMAC(dailySalt, IPv4 or IPv6 /64), 64 devices per shard, no IP stored | **25/25** (emulator, real DO) |
-| `npm run verify:bundle` | entry ≤ 180 KB gzip; target 177 | **PASS — 175.1 KB** (179.8 before `0f87288`, which removed `otpauth` from the entry) |
+| `npm run verify:bundle` | entry ≤ 180 KB gzip; target 177 | **PASS — 171.9 KB** (`index-DWy_6QAd.js`, after H1) |
 | `npm run verify:fast` | every non-browser gate in one command | **EXIT 0** (2026-11-17) |
-| `npm run verify:browser` | starts its own dev server on 3010, then typing, sheets, desktop, room-feed, no-flash, chaos | written and registered; **not yet run end to end** |
+| `npm run verify:browser` | starts its own dev server on 3010, then typing, sheets, desktop, room-feed, no-flash, room-paint, chaos, key-at-rest | **GREEN ×3 consecutive** (2026-11-17, with `room-paint` in the list) |
+| `npm run verify:room-paint` | the room's first frame is the whole room (rail, room list, dock, composer in-frame at 1024 and 1440), CLS ≤ 0.02, no `fallback={null}` around a first-paint surface | **clean**; **7 failures on `0ebc470`'s shape** (H1 report) |
+| `npm run verify:layout` | desktop + sheets + no-flash + room-paint, own dev server | **GREEN** — runs in `.githooks/pre-push` when `src/` or `public/` changes |
 | `npm run verify:totp-parity` | the hand-written client TOTP equals node:crypto, the Worker and otpauth | **5/5** |
 
 ## 5. Known debt (ordered by what it costs the owner)
+
+0. **H1 (2026-11-17): the desktop rail was lazy-loaded and vanished at 1024 px.**
+   `0ebc470` moved `RoomRail` and `PresenceDock` behind `lazy()` with
+   `Suspense fallback={null}` to trim the entry chunk; for a frame or two the
+   desktop room had no rail, no room list and no way out. Fixed by static
+   imports (+0.7 KB, entry 171.2 → 171.9 KB). Two things now make it unrepeatable:
+   `npm run verify:room-paint` samples every frame and fails if a first-paint
+   surface lags the room pane, and `npm run verify:layout` runs in the pre-push
+   hook for any `src/` or `public/` change. Full proof in `H1-report.md`.
+
 
 -1. **M6 is blocked on M4, and M4 is blocked on nothing now.** Linked devices,
    the outbox/inbox and push do not exist yet, so "Send from anywhere" has no

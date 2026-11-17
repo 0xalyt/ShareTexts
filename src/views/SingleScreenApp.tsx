@@ -48,10 +48,15 @@ const SystemAlert = lazy(() => import('../components/SystemAlert').then(m => ({ 
 /* type-only: the component itself is lazy above */
 type PresenceEntry = PresenceEntryType;
 import { InlineConfirm } from '../components/InlineConfirm';
-/* Room-only surfaces, split out of the entry: neither can appear until a room
-   exists, and both were shipping to every first paint of the landing. */
-const RoomRail = lazy(() => import('../components/RoomRail').then(m => ({ default: m.RoomRail })));
-const PresenceDockLazy = lazy(() => import('../components/PresenceDock').then(m => ({ default: m.PresenceDock })));
+/* These two paint in the FIRST FRAME of a room at ≥1024 px — the master pane's
+   room list and the presence dock are the first things the desktop layout
+   renders — so they are static imports. They were split out in 0ebc470 to buy
+   1.3 KB of entry, and that cost the desktop room its rail: the chunk arrived a
+   frame or two after the layout, under a `Suspense fallback={null}`, and a
+   ~500 ms measure saw a 1024 px line with no rail, no rooms and no way out.
+   A first-paint surface is not lazy-loadable, whatever it saves. */
+import { RoomRail } from '../components/RoomRail';
+import { PresenceDock } from '../components/PresenceDock';
 import type { PresenceEntry as PresenceEntryType } from '../components/PresenceDock';
 import { BookOpen } from 'lucide-react';
 /* The handshake drawing and the room's empty-state scene are decoration in
@@ -1550,9 +1555,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   breathe. */}
               {/* The room list heads the rail: this is the master pane, and
                   the first thing it says is where you are. */}
-              <Suspense fallback={null}>
-                <RoomRail className="mb-5" />
-              </Suspense>
+              <RoomRail className="mb-5" />
               {/* Your device: name row (tap to rename) — the only identity
                   element here; the pair visual lives in the room header. */}
               {/* px-2.5 matches RoomRail's rows: the room name above and this
@@ -1631,7 +1634,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* Who is here — the rail answers "who else is in this room"
                   before it offers any action: tiles for each seated device,
                   each with its own link state. */}
-              <PresenceDockLazy
+              <PresenceDock
                 className="mb-4 px-1"
                 title={roomRosterCount === 1 ? t('room.oneDevice') : t('room.deviceCount', { count: roomRosterCount })}
                 subtitle={session.partnerConnected || roomRosterCount > 1 ? t('room.readyCount', { count: roomRosterCount }) : t('room.waiting')}

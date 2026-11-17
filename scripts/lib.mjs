@@ -129,3 +129,29 @@ export function imageInfo(buf) {
   }
   return { format: 'unknown', w: 0, h: 0 };
 }
+
+/**
+ * Click something that the dev server may still be re-rendering.
+ *
+ * A cold Vite server optimises dependencies once and full-reloads the page
+ * when it finishes, so a click that starts on the mount can find its target
+ * detached a frame later — Playwright then retries forever against a node that
+ * no longer exists and the gate dies with `element was detached from the DOM`.
+ * That is how `verify:layout` failed its first pre-push run while passing three
+ * times by hand. Wait for the load to settle, then retry the click itself
+ * across a reload instead of trusting one attempt.
+ */
+export async function clickStable(page, locator, attempts = 6) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await locator.click({ timeout: 8000 });
+      return;
+    } catch (err) {
+      const msg = String(err && err.message);
+      if (!/detached|stable|Timeout|not attached/i.test(msg)) throw err;
+      await page.waitForLoadState('networkidle').catch(() => {});
+      await page.waitForTimeout(300);
+    }
+  }
+  throw new Error('could not click an element that stayed attached');
+}
