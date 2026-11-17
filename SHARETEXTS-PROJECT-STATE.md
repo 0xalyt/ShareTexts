@@ -135,6 +135,15 @@ network, not the deploy — rerun before reverting.
 ## 8. Conventions
 
 - Every user-visible string through `t()` in all 11 locales, natural wording.
+- **Type is Allo** (`2fd5069`): `public/fonts/AlloVariableFriendly.woff2` (229 KB,
+  SIL OFL 1.1, licence beside it), preloaded, `font-display: swap`, Inter behind it
+  as the offline fallback. One `@font-face` and two tokens (`--font-sans`,
+  `--font-display`) name the face — to change it, change those three places.
+  Features are deliberate: `ss02` for code legibility, `case` beside capitals,
+  `calt` for arrows, `font-optical-sizing: auto` so sizes are drawn, not scaled.
+- **M4 has not started** (prerequisite cleared at `4a0421d`; STEP 1 is the outbox)
+  and **M5 STEPs 3–8 have not started**; M5 STEPs 0–2 shipped earlier (`0e92cc8`,
+  `230a30e`). No report claims otherwise.
 - No invented numbers; a number on screen comes from a counter, never from copy.
 - Every claim must be allowed by `docs/claims.md`; `verify:claims` enforces it.
 - Small commits; `git tag before-<milestone>` first; never weaken a gate.
