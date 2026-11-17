@@ -69,6 +69,17 @@ const CAPTIONS: Record<DemoPhase, MsgKey> = {
 /** Where the machine walks on its own, and how long each beat is worth. The
  *  dwell at `done` is the longest in the cycle: the pause after the room
  *  closes is the point being made. */
+/** The line under the headline: what is happening, in the plainest words the
+ *  product can use. Written per beat, not per component, so the caption never
+ *  drifts from what the two surfaces are actually doing. */
+const SUBLINES: Record<DemoPhase, MsgKey> = {
+  open: 'demo.s1',
+  connecting: 'demo.s2',
+  sending: 'demo.s5',
+  received: 'demo.s6',
+  done: 'demo.s7',
+};
+
 const AUTO: Record<DemoPhase, { next: DemoPhase; ms: number }> = {
   open: { next: 'connecting', ms: 2200 },
   connecting: { next: 'sending', ms: 1900 },
@@ -367,7 +378,10 @@ export function HeroDeviceDemo({
   /* ── the caption: state output, never decoration ───────────────────── */
   const captionBlock = (
     <div
-      className={panel ? 'relative min-h-[1.45em]' : 'relative mt-2.5 min-h-[1.6em]'}
+      // Two lines now: the beat name and the sentence under it. The box is
+      // reserved for both, so the rail above never jumps when a longer beat
+      // swaps in and nothing is clipped mid-transition.
+      className={panel ? 'relative min-h-[3.1em]' : 'relative mt-2.5 min-h-[3.4em]'}
       role="status"
       // A looping caption in a live region is an announcement every few
       // seconds, forever. The words stay in the tree; only the automatic
@@ -389,10 +403,23 @@ export function HeroDeviceDemo({
               'font-medium leading-snug',
               panel
                 ? 'text-left text-[13.5px] font-medium leading-snug text-white'
-                : 'text-center text-[13px] text-apple-ink-muted dark:text-white/55',
+                : 'text-center text-[13.5px] leading-snug text-apple-ink dark:text-white',
             )}
           >
             {caption}
+          </p>
+          {/* The second line says what the first one means. A beat name alone
+              ("Arrived.") is a label on a picture; a person who has never seen
+              the product needs the sentence under it. */}
+          <p
+            className={cn(
+              'mt-1 leading-snug',
+              panel
+                ? 'text-left text-[12px] text-white/60'
+                : 'text-center text-[12.5px] text-apple-ink-muted dark:text-white/55',
+            )}
+          >
+            {t(SUBLINES[phase])}
           </p>
         </motion.div>
       </AnimatePresence>
@@ -1162,7 +1189,11 @@ function RoomClosedVeil({ closed }: { closed: boolean }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: EASE }}
-          className="absolute inset-0 flex items-center justify-center bg-apple-canvas/45 dark:bg-night-950/55"
+          // The scrim dims and softens what is behind it so the stamp reads as
+          // "this room is closed" rather than as a badge dropped on top of a
+          // message — without the blur the pill sat on a bubble and looked like
+          // a layering bug.
+          className="absolute inset-0 flex items-center justify-center bg-apple-canvas/60 backdrop-blur-[2px] dark:bg-night-950/65"
         >
           {/* Dark side: a white stamp needs INK-dark text — but
               --color-apple-ink FLIPS to near-white inside .dark, so the token
