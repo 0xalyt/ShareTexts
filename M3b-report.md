@@ -2,7 +2,7 @@
 
 **Tag:** `before-M3b` · **Branch:** `main` · **Date:** 2026-11-17
 
-**Shipped: STEP 0 and STEP 1. STEPs 2 and 3 untouched. STEP 4 is this file.**
+**Shipped: STEP 0, STEP 1, STEP 3 (`6fc6273`). STEP 2 untouched. STEP 4 is this file.**
 
 Why the two stopped: STEP 2 is a crypto migration on the key that protects every
 Circle item, and STEP 3 is a copy change across 11 locales plus the prerendered
@@ -76,11 +76,15 @@ unchanged.** It was not started because a rushed crypto migration is worse than 
 documented one: it needs `verify:circle-pairing` against the deployed Worker, a
 migration test from a real old record, and a rotation check, all in one run.
 
-## STEP 3 — the page telling the truth about Nearby: NOT DONE
+## STEP 3 — the page telling the truth about Nearby: SHIPPED (`6fc6273`)
 
-Exact inventory of the sentences that are now false (every one says the device
-appears while the app is merely open; Nearby is off by default for 10 minutes at
-a time):
+The owner's decision (pasted before this prompt): **keep Nearby Off, keep the 10
+minutes, fix the copy.** Every sentence that said the device appears while the
+app is merely open was replaced with: *turn Nearby on, on the device you want to
+send to, for 10 minutes, and it then appears on devices on the same network.*
+
+The inventory as it stood before the change (kept here so the next reader can
+see what was actually wrong):
 
 | File | Line | Text |
 |---|---|---|
@@ -95,10 +99,39 @@ a time):
 | `src/lib/messages/*.ts` (11) | `nearby.visibleWhileOpen`, `nearby.visibleWhileOpenHint`, `nearby.hint` | "Visible while ShareTexts is open" |
 | `src/components/NearbyDevices.tsx` | ~838 | the empty state |
 
-Also missing: the two forbid rules in `docs/claims.forbidden.json`
-(`appears automatically`, `appears under Available while`), and the one-line
-empty state — "Ask the other person to turn on Nearby for 10 minutes, or connect
-with a code." with a button into the existing code flow.
+**What changed, and what the gates said**
+
+- Nine base locales (`pt-PT` and `zh-Hant` inherit): `nearby.hint`,
+  `nearby.visibleWhileOpen`, `nearby.visibleWhileOpenHint`, `nearby.searchingHint`,
+  `nearby.failBody`, and `home.features.nearby.body` — the last one was **not on
+  the punch list**; the new forbid rule found it in all nine.
+- `index.html` (JSON-LD `featureList`, “How ShareTexts works”, the discovery FAQ,
+  the privacy FAQ), `scripts/seo-routes.mjs` (the prerendered FAQ and the
+  how-it-works list), `src/views/Docs.tsx` (two answers and the nearby-disclosure
+  paragraph), `public/llms.txt` (four sentences), and two guides.
+- The privacy answer now says only what `verify-lobby-shard` and
+  `verify-nearby-visibility` prove: a coarse label like “iPhone · Safari”, only
+  while Nearby is on, only on the same network, gone when the 10 minutes end.
+- `docs/claims.forbidden.json` gained `nearby-appears` and `nearby-while-open`.
+- `scripts/verify-claims-selftest.mjs` (**7/7**) feeds each new rule a retired
+  sentence it must reject and a new sentence it must accept, so a regex that
+  cannot match fails loudly instead of passing forever.
+- Found while doing it: the prerendered “How ShareTexts works” line said *“The
+  room is end-to-end encrypted between your devices.”* Rooms are encrypted in
+  transit — the e2e forbid rule never covered `scripts/`, which is how it
+  survived. Fixed to “encrypted in transit”.
+
+**Proof:** `verify-claims` clean — **10 rules over 43 files**, 1 declared
+(WhatsApp) exemption · claims selftest 7/7 · `gen-locale-status` up to date ·
+`lint` clean · `build` 0 · `verify:bundle` GREEN (175.1 KB) · `smoke:local` GREEN
+· live marker `6fc6273d9908` · `smoke-live` GREEN (14 ms).
+
+**NOT VERIFIED:** the new wording is **not visible to me on a phone**; I did not
+screenshot the Nearby sheet or the guides. And the second half of STEP 3 — the
+one-button empty state (“Ask the other person to turn on Nearby for 10 minutes,
+or connect with a code.” with a button into the code flow) — is **not built**:
+`NearbyDevices` has no callback to the code entry and the line that exists now
+(`nearby.searchingHint`) names the code without being tappable.
 
 ## Files changed
 

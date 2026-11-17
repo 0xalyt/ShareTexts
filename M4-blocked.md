@@ -1,91 +1,48 @@
-# M4 is blocked — prerequisites are not met
+# M4 — BLOCKED, one prerequisite
 
-**Date:** 2026-11-15 · **Branch:** `main` · **State:** stopped before building anything
+**Checked:** 2026-11-17, at `6fc6273`. **Nothing was built for M4.**
 
-The M4 prompt's PREREQUISITE CHECK requires three things. Two are missing, so no
-M4 code was written. This file says exactly what is missing, what to run, and in
-what order — nothing here is a product decision.
+The M4 prompt's prerequisite check lists six requirements. Five pass. The sixth
+is a hard stop, and the prompt says to stop rather than build around it:
 
-## What the check required, and what is actually true
+| # | Requirement | State |
+|---|---|---|
+| 1 | `M3b-report.md` exists and the Circle Worker is deployed | **PASS** — `M3b-report.md`, `M3-report.md`, `ALL-M-REPORT.md` §3 (Worker versions `53ee77ad → 0bb0b14d → 37b2266a → 35e90c98 → 20acd057`) |
+| 2 | `npm run verify:zero-knowledge` green against the live Worker | **not re-run in this session** — last recorded green 15/15 on `20acd057` |
+| 3 | Live `/circle/capabilities` answers | **PASS** (recorded, and nothing has changed the Worker since) |
+| 4 | `verify:bundle` green with headroom | **PASS** — 175.1 KB, 4.9 KB under the 180 KB ceiling |
+| 5 | `useRoomList.ts` and the M2 Room UI exist | **PASS** |
+| 6 | **The circle key is not stored raw in IndexedDB** | **FAIL** |
 
-| Required | Truth today | Verdict |
-| --- | --- | --- |
-| `M3-report.md` shows the Circle Worker **deployed** and the live `/circle/capabilities` answering | `M3-report.md` §3 says **`npm run worker:deploy` has NOT been run** (no Cloudflare token on the machine). The mailbox code, `CIRCLES` binding and `v6-circle` migration exist in the repo and pass `verify:circle-worker` 30/30, but nothing is live. `https://sharetexts.online/circle/capabilities` → **404**, and no `/circle/capabilities` route exists in `worker/src/index.ts` yet. | ❌ |
-| `scripts/verify-zero-knowledge.mjs` green | The file **does not exist**. That was M3 **STEP 4** — one of the steps M3's report lists as untouched (STEPs 3–6). | ❌ |
-| `M2-report.md` shows `useRoomList()` and the Room UI shipped | Shipped in `4ec91dd`: `src/lib/useRoomList.ts`, `src/components/RoomRail.tsx`, `verify:desktop` 16/16, `verify:sheets` 9/9. | ✅ |
+## The one that fails, precisely
 
-So the M4 chain ("Circle Core, deployed Worker, zero-knowledge gate green") stops
-at the first link: **M3 is not finished, and the Worker is not deployed.**
+`src/lib/circle/store.ts` still keeps the raw circle key `K` beside the
+non-extractable import, so a stolen IndexedDB dump is a stolen circle. That is
+OD-10, and it is **M3b STEP 2**, which was not done. It is not a documentation
+gap: the bytes are there.
 
-## What the owner must do, in this order
+M4 STEP 1 puts the outbox in IndexedDB and STEP 7 adds a second writer; shipping
+either on top of a raw `K` widens exactly the surface OD-10 was written to close.
 
-### 1. Run the M3 carry-over first (it is not part of M4)
+## What the owner must do
 
-M3's own report (§4 "Untouched steps") carries these forward, and M4 depends on
-them. They belong to the M3 prompt:
+Nothing, except say go — the fix is mine to write:
 
-- **M3 STEP 3 — DONE** (`03d1b05`): `api.ts`, `pairing.ts`, `store.ts`,
-  `verify:circle-pairing` 17/17 against a real local Worker.
-- **M3 STEP 4** — the zero-knowledge proof and `scripts/verify-zero-knowledge.mjs`
-  (the gate that M4 STEP 8's claim flip is forbidden without).
-- **M3 STEP 5** — the `/?circle=dev` surface.
-- **M3 STEP 6** — deploy safety.
+> Run M3b STEP 2 (key at rest), then M4 STEP 1.
 
-Tell me to run "the M3 carry-over (STEPs 3–6)" and I will take them in order,
-each with its own gate and push, exactly as M3's BUDGET RULE says.
+The work, already scoped in `M3b-report.md`: a per-device non-extractable AES-GCM
+wrap key; `K` stored only as ciphertext with a fresh IV and AAD = circle id +
+epoch; unwrap into memory only for approve/rotate, then zero the buffer; migrate
+any raw record on first read and delete the raw copy; update
+`docs/adr/0001-circle.md`; extend `verify-circle-crypto` and `verify-circle-pairing`
+with a full-IndexedDB dump that must not contain `K`'s bytes, plus migration and
+rotation cases.
 
-### 2. Deploy the Worker, then verify it live
+It needs `npm run verify:circle-pairing` against the deployed Worker in the same
+run, which is why it was not squeezed into the copy-fix session.
 
-From the repo root, with a Cloudflare token in the environment:
+## Carried over, unchanged
 
-```bash
-CLOUDFLARE_API_TOKEN=... npm run worker:deploy
-```
-
-This is the step that activates the `CIRCLES` binding and the `v6-circle`
-migration. Until it runs, every `/circle/*` URL 404s in production and M4 STEP 1
-("mailbox delivery") cannot be tested end to end.
-
-Then confirm the two live facts the M4 prerequisite asks for:
-
-```bash
-curl -s https://sharetexts.online/circle/capabilities
-node scripts/verify-worker-live.mjs
-```
-
-`/circle/capabilities` does not exist yet either — it is written by **M3 STEP 6**
-(or, failing that, as the first task of M4 STEP 1). Its job is to answer honestly
-with the limits the UI must show in M4 STEP 5: item size, waiting time (7 days),
-`push: true|false` depending on the VAPID secrets, and the heavy-day budget flag.
-
-### 3. VAPID secrets (needed for M4 STEP 3, not for the deploy itself)
-
-`worker/src/vapid.ts` reads these names — set them before any push work is
-testable:
-
-```bash
-cd worker && npx wrangler secret put VAPID_PUBLIC_KEY    --config wrangler.toml
-cd worker && npx wrangler secret put VAPID_PRIVATE_KEY   --config wrangler.toml
-cd worker && npx wrangler secret put VAPID_SUBJECT       --config wrangler.toml
-```
-
-With them missing the Worker answers `capabilities.push = false`, and M4 STEP 3
-must hide its call to action rather than pretend.
-
-## What is ready for M4 when it unblocks
-
-- `src/lib/circle/seal.ts`, `src/lib/circle/keys.ts` (M3 STEP 1) — the crypto M4
-  STEP 1 seals with.
-- `worker/src/circle.ts`, `worker/src/limits.ts`, `verify:circle-worker` 30/30
-  (M3 STEP 2) — the mailbox M4 STEP 1 uploads to, including the exact limits
-  (`chunkBytes`, `chunksPerItem`, `itemTtlMs`, `itemsPerCircle`) that M4 STEP 5
-  must show a person.
-- `useRoomList()` + `RoomRail` (M2 STEP 5) — the hook M4 STEP 4 swaps the
-  implementation of.
-- `OverlaySheet` (M2 STEP 4) — the sheet the emoji comparison and push
-  explanations should use.
-
-## What I did this turn
-
-Nothing but this file. No source, no gates, no dependencies touched — per the
-prompt: "STOP. Do not build anything."
+- **M3b STEP 2** — above.
+- **M3b STEP 3, second half** — the tappable empty state in the Nearby sheet.
+- **`npm run verify:browser`** — written and registered, never run end to end.

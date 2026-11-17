@@ -83,14 +83,19 @@ the room secret, so the product does **not** claim end-to-end encryption.
    (false) owns the button, paste, drop and overlay, the composer says "Text and
    links for now.", and the Worker answers `/space/capabilities` with the truth
    (`files: Boolean(env.SPACE_BUCKET)`). The claims linter forbids describing it.
+4e. **M4 is blocked on 4c — see `M4-blocked.md`.** The outbox and the linked-device
+   UI cannot ship on top of a raw `K`; the fix is M3b STEP 2 and it is next.
 4c. **The Circle key still sits in IndexedDB in the clear** (OD-10).
    `src/lib/circle/store.ts` keeps the raw `K`; the fix is a non-extractable
    AES-GCM wrap key, ciphertext-only storage, a migration of the raw record and
    two extended gates — M3b STEP 2, not done. This is the largest open risk in
    the project: a stolen phone's IndexedDB is a stolen circle.
-4d. **The site still describes Nearby as always-on.** Every sentence listed in
-   `M3b-report.md` §STEP 3 says the other device appears while the app is open;
-   Nearby is off by default for 10 minutes at a time. M3b STEP 3, not done.
+4d. **Nearby copy now matches the switch** (`6fc6273`): the shell FAQ, JSON-LD,
+   the prerendered pages, the in-app Docs, `llms.txt`, two guides and nine
+   locales say “turn Nearby on, for 10 minutes, on the device you want to send
+   to”. Two forbid rules (`nearby-appears`, `nearby-while-open`) plus
+   `verify:claims-selftest` keep the old sentences from coming back. Still open:
+   the sheet's empty state names the code but is not tappable.
 4b. **Link joins no longer blame the room for a broken connection.**
    `resolveShortCode` returns a reason (`not_found | unreachable | timeout |
    config`), one retry covers a phone that has no route yet, and the notice's
