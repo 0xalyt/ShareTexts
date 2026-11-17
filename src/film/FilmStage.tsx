@@ -61,26 +61,35 @@ const key = (t: number, keys: { t: number; v: number }[]) => {
 
 /* ── world geometry (frame pixels) ─────────────────────────────────────── */
 
-const LAPTOP = { left: 120, top: 118, width: 1120 };
+/* Framing, third pass. The pair used to sit left of centre with a 192 px dead
+   margin on the right, the phone half out of frame, and a third of the frame
+   empty black between them — a screenshot with air, not a shot. Now the two
+   devices fill the width, the phone overlaps the laptop's right edge by 96 px
+   (it is nearer the camera, so it may), and both stand on the same desk line. */
+const LAPTOP = { left: 196, top: 74, width: 1152 };
 const LAPTOP_BEZEL = 8;
 const LAPTOP_GLASS_W = LAPTOP.width - LAPTOP_BEZEL * 2;
 const LAPTOP_GLASS_H = Math.round(LAPTOP_GLASS_W * 0.625); // 16:10
 const LAPTOP_DECK = 17;
 
-const PHONE = { left: 1500, top: 113, width: 352 };
+const PHONE = { left: 1252, top: 0, width: 352 };
 const PHONE_BEZEL = Math.round(PHONE.width * 0.042);
 const PHONE_GLASS_W = PHONE.width - PHONE_BEZEL * 2;
 const PHONE_GLASS_H = Math.round(PHONE_GLASS_W * (19.5 / 9));
 
 const LAPTOP_BOTTOM = LAPTOP.top + LAPTOP_GLASS_H + LAPTOP_BEZEL * 2 + LAPTOP_DECK;
-const PHONE_BOTTOM = PHONE.top + PHONE_GLASS_H + PHONE_BEZEL * 2;
-/* Both devices stand ON the desk line, not above it: PHONE.top above is derived
+/* The phone's top is derived, never typed: it stands on the same desk line as
+   the laptop, so the two bottoms are equal by construction. */
+const PHONE_HEIGHT = PHONE_GLASS_H + PHONE_BEZEL * 2;
+const PHONE_BOTTOM = LAPTOP_BOTTOM;
+const PHONE_TOP = PHONE_BOTTOM - PHONE_HEIGHT;
+/* Both devices stand ON the desk line, not above it: PHONE_TOP above is derived
    from DESK_Y for exactly that reason, and any change here has to keep the
    two bottoms equal or the phone floats. */
 const DESK_Y = LAPTOP_BOTTOM;
 
 const PACKET_A = { x: LAPTOP.left + LAPTOP.width + 14, y: LAPTOP.top + 340 };
-const PACKET_B = { x: PHONE.left + 20, y: PHONE.top + 400 };
+const PACKET_B = { x: PHONE.left + 20, y: PHONE_TOP + 400 };
 
 /* ── camera ────────────────────────────────────────────────────────────── */
 
@@ -90,6 +99,11 @@ const cam = (s: number, x = 0, y = 0, ry = 0): Cam => ({ s, x, y, ry });
 /* 32 seconds, four movements: establish (0–4), connect (4–11), value
    (11–24), close (24–32). Every move is a single slow ease — no whip, no
    bump, nothing that says "generated". */
+/* NOTE (2026-11-17): the loop was re-cut for a new stage layout — the laptop
+   moved to 196 and widened to 1152, the phone to 1252 — so these twelve camera
+   positions still assume the OLD world and will frame past their subject until
+   they are re-aimed. The hero uses the loop, not this cut: re-aim before the
+   next `render-film.mjs frames`. */
 const SHOTS: { from: number; to: number; a: Cam; b: Cam }[] = [
   // 0–4 establish: a push so slow you notice it only at the cut.
   { from: 0.0, to: 4.0, a: cam(1.0, 0, 14, 1.0), b: cam(1.04, -10, 2, 0.2) },
@@ -122,11 +136,23 @@ const SHOTS: { from: number; to: number; a: Cam; b: Cam }[] = [
 /* The loop returns to its own first frame exactly: same camera, same focus,
    same UI state. The packet is the only thing that appears and disappears. */
 const LOOP_SHOTS: { from: number; to: number; a: Cam; b: Cam }[] = [
-  // x stays small and positive: at 1.075 with a +56 drift the phone's right
-  // edge lands past the frame, and a hero loop cannot show half a phone.
-  { from: 0.0, to: 4.4, a: cam(1.01, -8, 8, 0.4), b: cam(1.05, 6, -10, -0.8) },
-  { from: 4.4, to: 7.2, a: cam(1.05, 6, -10, -0.8), b: cam(1.03, -14, 0, -0.1) },
-  { from: 7.2, to: 10.0, a: cam(1.04, -16, 0, -0.1), b: cam(1.01, -8, 8, 0.4) },
+  // Four beats, not three drifts: establish — the send — the arrival — the
+  // settle home. Each beat has a HOLD built into its curve (easeInOut spends
+  // most of its time near the ends), which is what separates a camera that is
+  // being operated from one that is merely moving. The last beat lands exactly
+  // on the first frame's camera, so the loop has no seam.
+  //
+  // Wide enough that both devices are whole (a crop through the rail's labels
+  // reads as a mistake, not as a composition) and tight enough that the pair
+  // fills the frame: the pair spans 196–1604, the camera centre sits on it.
+  { from: 0.0, to: 3.0, a: cam(1.022, 38, 10, 0.3), b: cam(1.056, 50, 4, -0.5) },
+  // The send: a touch closer and a hair left, so the packet has open frame to
+  // cross into instead of a wall.
+  { from: 3.0, to: 5.0, a: cam(1.056, 50, 4, -0.5), b: cam(1.064, 40, 0, -0.15) },
+  // The arrival: settle right and up a hair — the laptop thread is the subject.
+  { from: 5.0, to: 7.2, a: cam(1.064, 40, 0, -0.15), b: cam(1.05, 56, 6, 0.18) },
+  // Settle home, ending on frame 0's camera exactly.
+  { from: 7.2, to: 10.0, a: cam(1.05, 56, 6, 0.18), b: cam(1.022, 38, 10, 0.3) },
 ];
 
 function readCam(shots: typeof SHOTS, t: number): Cam {
@@ -196,6 +222,17 @@ function LaptopShell({ children, glow }: { children: React.ReactNode; glow: numb
             boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.9), inset 0 0 30px rgba(0,0,0,0.5)',
           }}
         >
+          {/* One reflection, at the angle the key light already comes from, at
+              the alpha a matte display actually reflects (~3%). A screen with
+              no reflection is a printed sheet. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-20"
+            style={{
+              background: 'linear-gradient(122deg, rgba(255,244,228,0) 34%, rgba(255,244,228,0.035) 47%, rgba(255,244,228,0.06) 52%, rgba(255,244,228,0.02) 60%, rgba(255,244,228,0) 72%)',
+              mixBlendMode: 'screen',
+            }}
+          />
           {/* The grade wrapper must carry the full size: a filter creates a
               containing block, and without explicit height the app's h-full
               resolves against a zero-height box and collapses. */}
@@ -330,17 +367,43 @@ function PhoneShell({ children, glow }: { children: React.ReactNode; glow: numbe
 /* ── flight ─────────────────────────────────────────────────────────────── */
 
 function Flight({ t, flights }: { t: number; flights: { from: number; to: number; kind: 'text' | 'photo' | 'file' }[] }) {
-  const f = flights.find((x) => t >= x.from - 0.18 && t <= x.to + 0.1);
+  // The arrival ring needs a beat AFTER the card has landed, so the window runs
+  // half a second past `to`. Everything else is the same geometry as before.
+  const f = flights.find((x) => t >= x.from - 0.18 && t <= x.to + 0.5);
   if (!f) return null;
   const p = clamp01((t - f.from) / (f.to - f.from));
   const e = easeInOut(p);
-  const x = lerp(PACKET_A.x, PACKET_B.x, e);
-  const y = lerp(PACKET_A.y, PACKET_B.y, e) - Math.sin(e * Math.PI) * 64;
+  const pos = (ee: number) => ({
+    x: lerp(PACKET_A.x, PACKET_B.x, ee),
+    y: lerp(PACKET_A.y, PACKET_B.y, ee) - Math.sin(ee * Math.PI) * 64,
+  });
+  const { x, y } = pos(e);
   const o = Math.min(1, clamp01((t - (f.from - 0.18)) / 0.22), clamp01((f.to + 0.1 - t) / 0.16));
   const scale = f.kind === 'text' ? lerp(0.94, 1, e) : lerp(0.88, 0.96, e);
 
+  /* Direction of travel, in degrees, from the path itself rather than from the
+     chord: the arc bends, and a streak drawn on the chord would point away from
+     the card it is meant to be dragging behind. */
+  const ahead = pos(Math.min(1, e + 0.02));
+  const speed = Math.hypot(ahead.x - x, ahead.y - y);
+  const angle = (Math.atan2(ahead.y - y, ahead.x - x) * 180) / Math.PI;
+  // Streak length follows speed, and speed is zero at both ends: nothing
+  // smears while the card is sitting on a screen.
+  const streak = Math.min(1, speed / 16) * 240;
+
+  /* Arrival. A ring leaves the card's landing point once, expands with a cubic
+     out, and is gone in half a second — the visual "saved" after the card has
+     already arrived. */
+  const ringT = clamp01((t - f.to) / 0.5);
+  const ringOn = t >= f.to - 0.02;
+  const ringR = lerp(26, 128, easeOut(ringT));
+  const ringO = ringOn ? (1 - ringT) * 0.5 : 0;
+
+  const kindW = f.kind === 'photo' ? 62 : f.kind === 'file' ? 56 : 42;
+
   return (
-    <div className="pointer-events-none absolute inset-0" style={{ opacity: o }}>
+    <div className="pointer-events-none absolute inset-0" style={{ opacity: Math.max(o, ringO > 0 ? 1 : 0) }}>
+      {/* glow that travels with the card */}
       <div
         className="absolute rounded-full"
         style={{
@@ -351,29 +414,68 @@ function Flight({ t, flights }: { t: number; flights: { from: number; to: number
           transform: 'translate(-30%, 0)',
           background: 'radial-gradient(ellipse at center, rgba(255,138,54,0.42) 0%, rgba(255,120,40,0) 70%)',
           filter: 'blur(12px)',
+          opacity: o,
         }}
       />
-      {[0.06, 0.12].map((lag, i) => {
-        const ep = easeInOut(clamp01(p - lag));
-        const tx = lerp(PACKET_A.x, PACKET_B.x, ep);
-        const ty = lerp(PACKET_A.y, PACKET_B.y, ep) - Math.sin(ep * Math.PI) * 64;
+
+      {/* the trail: four ghosts on the path behind the card, not two. Two read
+          as a duplicate; four at falling alpha read as motion. */}
+      {[0.045, 0.085, 0.13, 0.185].map((lag, i) => {
+        const g = pos(easeInOut(clamp01(p - lag)));
         return (
           <div
             key={lag}
-            className="absolute rounded-[8px]"
+            className="absolute"
             style={{
-              left: tx,
-              top: ty,
-              width: f.kind === 'photo' ? 62 : 42,
-              height: 26,
+              left: g.x,
+              top: g.y,
+              width: kindW - i * 4,
+              height: 26 - i * 3,
               transform: 'translate(-50%, -50%)',
-              background: `rgba(255,126,44,${0.22 - i * 0.08})`,
-              filter: 'blur(4px)',
+              borderRadius: 10,
+              background: `rgba(255,126,44,${0.2 - i * 0.042})`,
+              filter: `blur(${3 + i * 2.4}px)`,
+              opacity: o,
             }}
           />
         );
       })}
-      <div className="absolute" style={{ left: x, top: y, transform: `translate(-50%, -50%) rotate(${lerp(-3, 2.5, e)}deg)` }}>
+
+      {/* a lit edge along the direction of travel — the card is cutting air */}
+      {streak > 4 && (
+        <div
+          className="absolute"
+          style={{
+            left: x,
+            top: y,
+            width: streak,
+            height: 2,
+            transformOrigin: '0 50%',
+            transform: `translate(0, -50%) rotate(${angle}deg) translateX(-${streak}px)`,
+            background: 'linear-gradient(90deg, rgba(255,196,120,0) 0%, rgba(255,206,146,0.5) 70%, rgba(255,232,190,0.72) 100%)',
+            filter: 'blur(1.6px)',
+            opacity: o * Math.min(1, streak / 120),
+          }}
+        />
+      )}
+
+      {ringO > 0.002 && (
+        <div
+          className="absolute rounded-full"
+          style={{
+            left: PACKET_B.x,
+            top: PACKET_B.y,
+            width: ringR * 2,
+            height: ringR * 2,
+            transform: 'translate(-50%, -50%)',
+            border: '1.5px solid rgba(255,176,104,0.9)',
+            boxShadow: '0 0 22px rgba(255,150,70,0.35), inset 0 0 18px rgba(255,150,70,0.2)',
+            opacity: ringO,
+          }}
+        />
+      )}
+
+      <div className="absolute" style={{ left: x, top: y, transform: `translate(-50%, -50%) rotate(${lerp(-3, 2.5, e)}deg)`, opacity: o }}>
         <PacketCard kind={f.kind} scale={scale} />
       </div>
     </div>
@@ -399,15 +501,25 @@ export function FilmStage() {
 
   const c = readCam(loop ? LOOP_SHOTS : SHOTS, t);
 
+  // One rack, three places: on the laptop as the loop opens, through to the
+  // phone as the packet leaves it, back onto the laptop thread as the message
+  // lands, then home. Blur is the cheapest depth cue there is and the only one
+  // that reads at 8 px on a landing page — 0.12 is glass-sharp, 1.3 is gone.
   const laptopBlur = loop
-    ? key(t, [{ t: 0, v: 0.6 }, { t: 3.2, v: 1.7 }, { t: 5.6, v: 0.45 }, { t: 10, v: 0.6 }])
+    ? key(t, [
+        { t: 0, v: 0.5 }, { t: 3.0, v: 0.12 }, { t: 4.6, v: 1.25 },
+        { t: 6.0, v: 0.16 }, { t: 7.4, v: 0.5 }, { t: 10, v: 0.5 },
+      ])
     : key(t, [
         { t: 0, v: 0.9 }, { t: 4, v: 1.5 }, { t: 7.2, v: 1.7 }, { t: 8.6, v: 1.6 }, { t: 11.6, v: 1.25 },
         { t: 13.2, v: 0.55 }, { t: 14.2, v: 0.2 }, { t: 16.2, v: 0.45 }, { t: 18.4, v: 0.18 },
         { t: 21.4, v: 0.6 }, { t: 24, v: 0.78 }, { t: 26.3, v: 0.7 },
       ]);
   const phoneBlur = loop
-    ? key(t, [{ t: 0, v: 0.6 }, { t: 3.2, v: 0.3 }, { t: 5.6, v: 1.7 }, { t: 10, v: 0.6 }])
+    ? key(t, [
+        { t: 0, v: 0.9 }, { t: 3.0, v: 0.22 }, { t: 4.6, v: 1.3 },
+        { t: 6.0, v: 1.45 }, { t: 7.4, v: 0.9 }, { t: 10, v: 0.9 },
+      ])
     : key(t, [
         { t: 0, v: 1.0 }, { t: 4, v: 0.6 }, { t: 7.2, v: 0.14 }, { t: 8.6, v: 0.18 }, { t: 11.6, v: 0.95 },
         { t: 13.4, v: 1.25 }, { t: 16.2, v: 1.4 }, { t: 18.4, v: 1.85 },
@@ -416,7 +528,10 @@ export function FilmStage() {
 
   const land = (start: number) => (loop ? 1 : at(t, start, 0.4));
   const pulse = loop
-    ? key(t, [{ t: 0, v: 0 }, { t: 3.9, v: 0 }, { t: 4.3, v: 1 }, { t: 5.6, v: 0.3 }, { t: 7.4, v: 0 }, { t: 10, v: 0 }])
+    ? key(t, [
+        { t: 0, v: 0 }, { t: 4.4, v: 0 }, { t: 4.55, v: 1 },
+        { t: 5.4, v: 0.28 }, { t: 7.0, v: 0 }, { t: 10, v: 0 },
+      ])
     : Math.max(
         key(t, [{ t: 0, v: 0 }, { t: 14.0, v: 0 }, { t: 14.2, v: 1 }, { t: 15.2, v: 0.22 }, { t: 15.9, v: 0 }]),
         key(t, [{ t: 0, v: 0 }, { t: 17.1, v: 0 }, { t: 17.3, v: 1 }, { t: 18.4, v: 0.22 }, { t: 19.1, v: 0 }]),
@@ -454,7 +569,7 @@ export function FilmStage() {
       };
 
   const flights = loop
-    ? [{ from: 2.6, to: 3.9, kind: 'text' as const }]
+    ? [{ from: 3.0, to: 4.4, kind: 'text' as const }]
     : [
         { from: 13.2, to: 14.05, kind: 'text' as const },
         { from: 16.25, to: 17.1, kind: 'photo' as const },
@@ -465,8 +580,18 @@ export function FilmStage() {
   const worldOut = loop ? 1 : 1 - clamp01((t - 25.9) / 0.85);
   const endIn = loop ? 0 : at(t, 26.4, 0.95);
 
-  const glowLaptop = loop ? 0.6 : Math.max(0.3, pulse);
-  const glowPhone = loop ? 0.5 : 0.35;
+  // Panel glow answers the story: the laptop lights as the message lands, the
+  // phone dims once it has given the message away.
+  const glowLaptop = loop ? 0.46 + pulse * 0.55 : Math.max(0.3, pulse);
+  const glowPhone = loop ? 0.5 - pulse * 0.16 : 0.35;
+
+  // One studio light move per loop: a wide, soft band of key light travelling
+  // across the set from upper left, screen-blended, windowed so it is invisible
+  // at t=0 and t=10 (a loop cannot have a light that is somewhere else at the
+  // seam). This is the single cheapest trick that makes CSS metal look lit
+  // rather than coloured.
+  const sweepX = lerp(-1100, 2500, easeInOut(clamp01((t - 5.2) / 3.6)));
+  const sweepAlpha = loop ? Math.min(at(t, 5.0, 0.55), 1 - at(t, 8.8, 0.5)) : 0;
 
   return (
     <div style={{ width: STAGE_W, height: STAGE_H }} className="relative select-none overflow-hidden bg-[#0a0908]">
@@ -545,7 +670,7 @@ export function FilmStage() {
               width: 3320,
               height: 900,
               background:
-                'linear-gradient(180deg, rgba(255,216,180,0.22) 0%, rgba(196,140,96,0.15) 5%, rgba(28,18,12,0.16) 17%, rgba(0,0,0,0.46) 34%, rgba(0,0,0,0.82) 56%, #0a0908 78%, #0a0908 100%)',
+                'linear-gradient(180deg, rgba(255,216,180,0) 0%, rgba(255,216,180,0.13) 2.5%, rgba(196,140,96,0.10) 8%, rgba(28,18,12,0.14) 19%, rgba(0,0,0,0.46) 36%, rgba(0,0,0,0.82) 58%, #0a0908 78%, #0a0908 100%)',
             }}
           />
           <div
@@ -564,11 +689,14 @@ export function FilmStage() {
             className="absolute"
             style={{
               left: -700,
-              top: DESK_Y - 6,
+              top: DESK_Y - 30,
               width: 3320,
-              height: 12,
-              background: 'linear-gradient(180deg, rgba(255,196,146,0) 0%, rgba(255,196,146,0.12) 60%, rgba(255,196,146,0) 100%)',
-              filter: 'blur(4px)',
+              height: 60,
+              // A 12px band at 0.12 alpha drew a cream line under the devices —
+              // the tell that the desk is a rectangle pasted behind them. Light
+              // meets the wall as a wide, low haze, not as an edge.
+              background: 'linear-gradient(180deg, rgba(255,196,146,0) 0%, rgba(255,196,146,0.05) 55%, rgba(255,196,146,0) 100%)',
+              filter: 'blur(26px)',
             }}
           />
           {/* the specular streak across a real surface */}
@@ -619,7 +747,9 @@ export function FilmStage() {
               height: 170,
               transform: 'scaleY(-1)',
               transformOrigin: 'top center',
-              background: 'linear-gradient(180deg, rgba(168,150,138,0.30) 0%, rgba(90,78,70,0.14) 30%, rgba(0,0,0,0) 74%)',
+              // Was 0.30 — a grey shelf under the laptop. A reflection of a
+              // black chassis on dark oak is mostly the two lit edges.
+              background: 'linear-gradient(180deg, rgba(168,150,138,0.17) 0%, rgba(90,78,70,0.09) 26%, rgba(0,0,0,0) 66%)',
               filter: 'blur(9px)',
               maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.24) 42%, transparent 84%)',
               borderRadius: 10,
@@ -639,6 +769,23 @@ export function FilmStage() {
               filter: 'blur(10px)',
               maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 44%, transparent 86%)',
               borderRadius: 24,
+            }}
+          />
+
+          {/* Contact shadow across the whole device line. The per-device
+              shadow is tight; this is the wide one that a surface under a lit
+              object actually carries, and without it the pair reads as pasted
+              onto the desk. */}
+          <div
+            aria-hidden
+            className="absolute"
+            style={{
+              left: LAPTOP.left - 120,
+              top: DESK_Y - 22,
+              width: PHONE.left + PHONE.width - LAPTOP.left + 240,
+              height: 78,
+              background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.4) 48%, rgba(0,0,0,0) 78%)',
+              filter: 'blur(20px)',
             }}
           />
 
@@ -662,13 +809,29 @@ export function FilmStage() {
           </div>
 
           {/* ── phone ───────────────────────────────────────────────────── */}
-          <div className="absolute" style={{ left: PHONE.left, top: PHONE.top, filter: phoneBlur > 0.04 ? `blur(${phoneBlur}px)` : undefined }}>
+          {/* The phone is NEARER the camera, so it must fall on the laptop:
+              a soft dark band where the two overlap. Without it the devices
+              read as two flat cards at the same depth. */}
+          <div
+            aria-hidden
+            className="absolute"
+            style={{
+              left: PHONE.left - 74,
+              top: PHONE_TOP + 24,
+              width: 118,
+              height: PHONE_HEIGHT - 40,
+              background: 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.34) 62%, rgba(0,0,0,0.5) 100%)',
+              filter: 'blur(18px)',
+            }}
+          />
+
+          <div className="absolute" style={{ left: PHONE.left, top: PHONE_TOP, filter: phoneBlur > 0.04 ? `blur(${phoneBlur}px)` : undefined }}>
             <div
               aria-hidden
               className="absolute"
               style={{
                 left: -26,
-                top: PHONE_BOTTOM - PHONE.top - 12,
+                top: PHONE_BOTTOM - PHONE_TOP - 12,
                 width: PHONE.width + 52,
                 height: 50,
                 background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0) 70%)',
@@ -679,6 +842,26 @@ export function FilmStage() {
               <PhoneApp {...phone} />
             </PhoneShell>
           </div>
+
+          {/* the light move */}
+          {sweepAlpha > 0.001 && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute"
+              style={{
+                left: 0,
+                top: -260,
+                width: 760,
+                height: 1700,
+                transform: `translateX(${sweepX}px) rotate(14deg)`,
+                background:
+                  'linear-gradient(90deg, rgba(255,232,200,0) 0%, rgba(255,232,200,0.055) 28%, rgba(255,240,214,0.13) 50%, rgba(255,232,200,0.05) 72%, rgba(255,232,200,0) 100%)',
+                filter: 'blur(48px)',
+                mixBlendMode: 'screen',
+                opacity: sweepAlpha,
+              }}
+            />
+          )}
 
           <Flight t={t} flights={flights} />
         </div>
@@ -715,7 +898,7 @@ export function FilmStage() {
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background: `radial-gradient(40% 38% at ${LAPTOP.left + LAPTOP.width / 2}px ${LAPTOP.top + 300}px, rgba(255,196,148,0.09) 0%, rgba(0,0,0,0) 70%), radial-gradient(24% 32% at ${PHONE.left + PHONE.width / 2}px ${PHONE.top + 300}px, rgba(255,196,148,0.08) 0%, rgba(0,0,0,0) 72%)`,
+          background: `radial-gradient(40% 38% at ${LAPTOP.left + LAPTOP.width / 2}px ${LAPTOP.top + 300}px, rgba(255,196,148,0.09) 0%, rgba(0,0,0,0) 70%), radial-gradient(24% 32% at ${PHONE.left + PHONE.width / 2}px ${PHONE_TOP + 300}px, rgba(255,196,148,0.08) 0%, rgba(0,0,0,0) 72%)`,
           mixBlendMode: 'screen',
         }}
       />

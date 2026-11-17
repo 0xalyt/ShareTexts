@@ -47,10 +47,24 @@ is kept.*
 
 `?mode=loop` renders a self-contained version of the same set: both devices
 already connected with all three payloads in the thread, one text packet
-crossing at 2.6–3.9 s with a receive pulse that decays to nothing, and a
-camera drift that returns to its exact starting position at 10.0 s. Focus,
-exposure and UI state are identical at t=0 and t=10, so there is no cut —
-nothing persists across the seam, which is why it can loop forever.
+crossing at 3.0–4.4 s. It is cut as four beats with holds, not as a drift:
+
+| Time | Beat |
+| --- | --- |
+| 0.0–3.0 | Establish. A slow push in on the whole set; the lens settles on the laptop. |
+| 3.0–5.0 | The send. The rack pulls through to the phone as the card leaves it; the camera follows a hair left. |
+| 5.0–7.2 | The arrival. Focus returns to the laptop thread as the card lands, with a ring leaving the landing point, a four-ghost trail behind the card and a lit edge along its direction of travel. |
+| 7.2–10.0 | Settle home to frame 0's camera, exactly. |
+
+One studio light move runs across the set (5.0–9.3 s), windowed to zero at both
+ends, so the aluminium and the desk take a highlight without the loop showing a
+seam. Focus, exposure and UI state are identical at t=0 and t=10; nothing
+persists across the seam, which is why it can loop forever.
+
+The set was reframed with this cut: both devices fill the frame (196–1604 px of
+a 1920 px stage), the phone overlaps the laptop by 96 px and casts a shadow onto
+it, both bottoms sit on `DESK_Y` by construction, and the desk's cream seam line
+— a 12 px band at 0.12 alpha that read as a pasted rectangle — is a wide haze.
 
 ## Render it
 
@@ -82,7 +96,9 @@ which sets the scene to an exact time and resolves after two committed frames;
 - `SHOTS` — the camera. One entry per move.
 - `LOOP_SHOTS` — the loop's camera, which returns to its own start.
 - `LAPTOP` / `PHONE` / `DESK_Y` — world layout in frame pixels. `DESK_Y` is
-  derived from the laptop, and `PHONE.top` is derived so both sit on the line.
+  derived from the laptop, and `PHONE_TOP` is derived from `DESK_Y` and the
+  phone's own height, so both stand on the line by construction rather than by
+  matching numbers.
 - `flights` — when a payload crosses, and what it is.
 - `CAPTIONS` — the lower-third lines and their windows.
 - device state is derived from `t` near the bottom of the component.
