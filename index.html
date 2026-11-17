@@ -31,10 +31,10 @@
          demo, which is DOM, not a file. Preloading the retired composition
          image spent the first bytes of the connection on something the first
          screen no longer asks for. -->
-    <!-- No webfont preload: the type system is the platform's own UI face
-         (SF on Apple, Segoe on Windows — see --font-sans/--font-display in
-         index.css). There is no font file to fetch, so a preload would only
-         spend bytes on nothing and trip a "preloaded but not used" warning. -->
+    <!-- Allo, preloaded: it is the product's face on every screen, and a
+         swap at first paint is the one moment type can visibly jump. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/AlloVariableFriendly.woff2" crossorigin />
+
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
