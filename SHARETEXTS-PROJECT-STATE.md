@@ -83,9 +83,14 @@ the room secret, so the product does **not** claim end-to-end encryption.
    (false) owns the button, paste, drop and overlay, the composer says "Text and
    links for now.", and the Worker answers `/space/capabilities` with the truth
    (`files: Boolean(env.SPACE_BUCKET)`). The claims linter forbids describing it.
-4e. **M4 is blocked on 4c — see `M4-blocked.md`.** The outbox and the linked-device
-   UI cannot ship on top of a raw `K`; the fix is M3b STEP 2 and it is next.
-4c. **The Circle key still sits in IndexedDB in the clear** (OD-10).
+4e. **M4 was blocked on 4c and is cleared** (`4a0421d`) — `M4-blocked.md` records
+   the check and the proof. M4 starts at STEP 1.
+4c. **The Circle key is sealed at rest** (`4a0421d`): AES-GCM ciphertext under a
+   per-device non-extractable wrap key, AAD = circle id + epoch, v1 records
+   migrate on read, `withCircleKey()` zeroes the bytes. `verify:key-at-rest` 9/9
+   in a real browser; `verify:circle-pairing` 17/17 against the deployed Worker.
+   Not covered: code execution inside the origin (XSS/extension) can use the
+   wrap key exactly as the app does.
    `src/lib/circle/store.ts` keeps the raw `K`; the fix is a non-extractable
    AES-GCM wrap key, ciphertext-only storage, a migration of the raw record and
    two extended gates — M3b STEP 2, not done. This is the largest open risk in

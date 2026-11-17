@@ -2,7 +2,7 @@
 
 **Tag:** `before-M3b` · **Branch:** `main` · **Date:** 2026-11-17
 
-**Shipped: STEP 0, STEP 1, STEP 3 (`6fc6273`). STEP 2 untouched. STEP 4 is this file.**
+**Shipped: STEP 0 (`f265d22`), STEP 1 (`0f87288`), STEP 3 (`6fc6273`), STEP 2 (`4a0421d`). STEP 4 is this file. All four steps are done.**
 
 Why the two stopped: STEP 2 is a crypto migration on the key that protects every
 Circle item, and STEP 3 is a copy change across 11 locales plus the prerendered
@@ -64,17 +64,46 @@ must be synchronous and WebCrypto is not.
 **Entry chunk: 179.8 KB → 175.1 KB gzip.** Budget 180 KB, working target 177 KB,
 headroom 4.9 KB. `npm run smoke:local` **GREEN** before the push.
 
-## STEP 2 — key at rest (OD-10): NOT DONE
+## STEP 2 — key at rest (OD-10): SHIPPED (`4a0421d`)
 
 The work is: a non-extractable AES-GCM wrap key per device, `K` stored only as
 ciphertext (fresh IV, AAD = circle id + epoch), unwrap-on-approve/rotate with the
 buffer zeroed after, migration of any raw record on first read, ADR update, and
 two extended gates (full IndexedDB dump must not contain `K`'s bytes).
 
-`src/lib/circle/store.ts` still stores the raw `K`. **The debt is real and
-unchanged.** It was not started because a rushed crypto migration is worse than a
-documented one: it needs `verify:circle-pairing` against the deployed Worker, a
-migration test from a real old record, and a rotation check, all in one run.
+`src/lib/circle/store.ts` no longer writes `keyRaw`. K is AES-GCM ciphertext
+under a per-device **non-extractable** wrap key (generated once, `AES-GCM 256`),
+AAD = `circleId | epoch`, so a moved or replayed record fails to decrypt instead
+of opening the wrong items. K's bytes exist only inside `withCircleKey()`, which
+zeroes the buffer in a `finally`; v1 records migrate on first read, and
+`listCircles` migrates too, so no circle can stay raw because nobody loaded it.
+
+**Proof.** `npm run verify:key-at-rest` (**9/9**, real Chromium against a real
+IndexedDB, Vite serving the real module):
+
+```
+PASS the device wrap key is non-extractable
+PASS after saveCircle, K's 32 bytes appear nowhere in IndexedDB
+PASS a v1 record does hold raw K before migration (the test can see it)
+PASS after the migration read, raw K is gone from IndexedDB
+PASS the migrated record has no keyRaw field
+PASS the migrated record carries keySealed
+PASS openStoredCircle still opens a sealed circle
+PASS withCircleKey still returns K's exact bytes
+PASS the database has both stores — circles, device
+```
+
+`npm run verify:circle-pairing` — **17/17 against the deployed Worker**, so the
+protocol is untouched: a wrap still exists for the joiner at epoch 1, a spent
+invite still fails, a wrong code still fails, a non-member still cannot read.
+`docs/adr/0001-circle.md` gained the threat-model addendum, including what this
+does **not** cover: an attacker with code execution inside the origin can call
+the wrap key the way the app does.
+
+**NOT VERIFIED:** the “rotation still works” half — there is no rotation function
+in the store yet (M3 STEP 5 never shipped one), so the gate proves re-sealing at
+a new epoch would be bound by AAD, not that an epoch change completes end to end.
+And no real phone: this ran in desktop Chromium, not the Redmi's Chrome.
 
 ## STEP 3 — the page telling the truth about Nearby: SHIPPED (`6fc6273`)
 

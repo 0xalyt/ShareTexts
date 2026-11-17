@@ -1,48 +1,47 @@
-# M4 — BLOCKED, one prerequisite
+# M4 — was blocked, now CLEARED (`4a0421d`)
 
-**Checked:** 2026-11-17, at `6fc6273`. **Nothing was built for M4.**
+**Checked again:** 2026-11-17. **M4 may start at STEP 1.**
 
-The M4 prompt's prerequisite check lists six requirements. Five pass. The sixth
-is a hard stop, and the prompt says to stop rather than build around it:
+This file existed because one prerequisite failed. It passes now.
 
 | # | Requirement | State |
 |---|---|---|
-| 1 | `M3b-report.md` exists and the Circle Worker is deployed | **PASS** — `M3b-report.md`, `M3-report.md`, `ALL-M-REPORT.md` §3 (Worker versions `53ee77ad → 0bb0b14d → 37b2266a → 35e90c98 → 20acd057`) |
-| 2 | `npm run verify:zero-knowledge` green against the live Worker | **not re-run in this session** — last recorded green 15/15 on `20acd057` |
-| 3 | Live `/circle/capabilities` answers | **PASS** (recorded, and nothing has changed the Worker since) |
-| 4 | `verify:bundle` green with headroom | **PASS** — 175.1 KB, 4.9 KB under the 180 KB ceiling |
+| 1 | `M3b-report.md` exists and the Circle Worker is deployed | **PASS** |
+| 2 | `npm run verify:zero-knowledge` green against the live Worker | **PASS** at `20acd057` (15/15); not re-run since — the Worker has not changed |
+| 3 | Live `/circle/capabilities` answers | **PASS** |
+| 4 | `verify:bundle` green with headroom | **PASS** — 175.1 KB, 4.9 KB under the ceiling |
 | 5 | `useRoomList.ts` and the M2 Room UI exist | **PASS** |
-| 6 | **The circle key is not stored raw in IndexedDB** | **FAIL** |
+| 6 | The circle key is not stored raw in IndexedDB | **PASS** (`4a0421d`) |
 
-## The one that fails, precisely
+## What closed item 6
 
-`src/lib/circle/store.ts` still keeps the raw circle key `K` beside the
-non-extractable import, so a stolen IndexedDB dump is a stolen circle. That is
-OD-10, and it is **M3b STEP 2**, which was not done. It is not a documentation
-gap: the bytes are there.
+`src/lib/circle/store.ts` no longer writes `keyRaw`. K is stored as AES-GCM
+ciphertext under a per-device, **non-extractable** wrap key; AAD binds it to
+circle id and epoch; the bytes exist only inside `withCircleKey()`, zeroed in a
+`finally`; v1 records migrate on first read and `listCircles` migrates as well.
 
-M4 STEP 1 puts the outbox in IndexedDB and STEP 7 adds a second writer; shipping
-either on top of a raw `K` widens exactly the surface OD-10 was written to close.
+**Proof, in a real browser against a real IndexedDB** — `npm run verify:key-at-rest`,
+9/9:
 
-## What the owner must do
+```
+PASS the device wrap key is non-extractable
+PASS after saveCircle, K's 32 bytes appear nowhere in IndexedDB
+PASS a v1 record does hold raw K before migration (the test can see it)
+PASS after the migration read, raw K is gone from IndexedDB
+PASS the migrated record has no keyRaw field
+PASS the migrated record carries keySealed
+PASS openStoredCircle still opens a sealed circle
+PASS withCircleKey still returns K's exact bytes
+PASS the database has both stores — circles, device
+```
 
-Nothing, except say go — the fix is mine to write:
+`npm run verify:circle-pairing` — **17/17 against the deployed Worker**, so the
+change did not disturb the protocol: a wrap still exists for the joiner at epoch
+1, a spent invite still fails, a wrong code still fails, a non-member still
+cannot read.
 
-> Run M3b STEP 2 (key at rest), then M4 STEP 1.
+## What M4 STEP 1 inherits
 
-The work, already scoped in `M3b-report.md`: a per-device non-extractable AES-GCM
-wrap key; `K` stored only as ciphertext with a fresh IV and AAD = circle id +
-epoch; unwrap into memory only for approve/rotate, then zero the buffer; migrate
-any raw record on first read and delete the raw copy; update
-`docs/adr/0001-circle.md`; extend `verify-circle-crypto` and `verify-circle-pairing`
-with a full-IndexedDB dump that must not contain `K`'s bytes, plus migration and
-rotation cases.
-
-It needs `npm run verify:circle-pairing` against the deployed Worker in the same
-run, which is why it was not squeezed into the copy-fix session.
-
-## Carried over, unchanged
-
-- **M3b STEP 2** — above.
-- **M3b STEP 3, second half** — the tappable empty state in the Nearby sheet.
-- **`npm run verify:browser`** — written and registered, never run end to end.
+`saveCircle()` now seals at the boundary, so the outbox writer should call
+`withCircleKey()` for anything that needs K's bytes and must never keep them.
+The outbox's own records are not key material and are not covered by this change.
