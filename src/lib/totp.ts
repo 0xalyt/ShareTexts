@@ -1,4 +1,4 @@
-import * as OTPAuth from 'otpauth';
+import { totpAt } from './totp-sha1';
 
 /**
  * Pairing code window: 90 seconds, anchored to the room's creation time.
@@ -13,22 +13,11 @@ import * as OTPAuth from 'otpauth';
  */
 const PERIOD = 90; // seconds per code window (generous so the code doesn't refresh while being typed)
 
-function totpFor(secret: string, createdAt?: number): OTPAuth.TOTP {
-  return new OTPAuth.TOTP({
-    issuer: "ShareTexts",
-    label: "Session",
-    algorithm: "SHA1",
-    digits: 6,
-    period: PERIOD,
-    secret: secret
-  });
-}
-
 export function generateTOTP(secret: string, createdAt?: number): string {
-  const totp = totpFor(secret, createdAt);
   // Shift the epoch to the room's creation time. Without createdAt (legacy
   // sessions mid-rollout) this degrades to wall-clock — same formula.
-  return totp.generate({ timestamp: createdAt ? Date.now() - createdAt : Date.now() });
+  const ts = createdAt ? Date.now() - createdAt : Date.now();
+  return totpAt(secret, Math.floor(ts / 1000 / PERIOD));
 }
 
 /** Ring progress 0..1 within the current window. */

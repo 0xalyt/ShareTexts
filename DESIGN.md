@@ -18,7 +18,8 @@ Read this before every task. If code and this file disagree, tell the owner; do 
  c) One idea per commit. Push after each finished step, not at the end.
  d) After each push, wait until the live page shows your build marker (meta sharetexts-build — added in P0, stamped by scripts/seo-routes.mjs), then run `node scripts/smoke-live.mjs` and record the result.
  e) If a push breaks the live site: `git revert <sha>`, push at once, write it in the report. Do not debug on live.
-11. Every task ends with a report file (F-number): files changed, proof, NOT VERIFIED list, questions for the owner (max 5, each with your recommendation), what you would do next. No adjectives. Evidence only.
+11. Every push keeps `npm run verify:bundle` green; a change that spends headroom pays it back in the same push. The entry budget is 180 KB gzip; the working target is **177 KB**, so an ordinary change does not walk the gate to its ceiling — that is how M3's last four commits (179.9 → 180.4 KB) slipped past an independent re-run. `.githooks/pre-push` now runs the gate itself (installed by `npm install` via the `prepare` script, or by `git config core.hooksPath .githooks`). Emergency skip: `SKIP_BUNDLE_HOOK=1 git push`, and say in the report why. `npm run build:analyze` writes `audit/bundle.html` and `audit/bundle.json`.
+12. Every task ends with a report file (F-number): files changed, proof, NOT VERIFIED list, questions for the owner (max 5, each with your recommendation), what you would do next. No adjectives. Evidence only.
 
 ## 1. What we are making
 A calm, fast, honest tool for moving things between your own devices. It should feel like Apple made it, with Duolingo's warmth and Blinkit's speed.

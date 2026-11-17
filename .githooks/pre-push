@@ -1,0 +1,16 @@
+#!/bin/sh
+# The entry-chunk budget, checked before code leaves the machine.
+#
+# The last four commits of M3 walked the entry from 179.9 KB to 180.4 KB and
+# nobody noticed until an independent re-run. A gate that a person has to
+# remember is not a gate, so this runs it: about 20 s (build + measure).
+#
+# Emergency skip, documented in DESIGN.md §0:
+#   SKIP_BUNDLE_HOOK=1 git push
+[ "$SKIP_BUNDLE_HOOK" = "1" ] && { echo "[pre-push] bundle check skipped by SKIP_BUNDLE_HOOK=1"; exit 0; }
+echo "[pre-push] npm run verify:bundle"
+npm run verify:bundle || {
+  echo "[pre-push] the entry chunk is over budget — split it, do not push it."
+  echo "[pre-push] emergency skip: SKIP_BUNDLE_HOOK=1 git push"
+  exit 1
+}
