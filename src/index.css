@@ -621,7 +621,7 @@
   /* Headlines sit on the display drawing (opsz 32) even when the clamp lands
      under 32 px, and small type sits on the text drawing (opsz 11) — Allo's
      axes are the whole reason the ramp is legible at both ends. */
-  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.036em; line-height: 1.03; text-wrap: balance; font-variation-settings: "opsz" 32; text-box-trim: trim-both; text-box-edge: cap alphabetic; }
+  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.036em; line-height: 1.03; text-wrap: balance; font-variation-settings: "opsz" 32; }
   .st-h2      { font-size: clamp(26px, 3.2vw, 34px); font-weight: 680; letter-spacing: -0.033em; line-height: 1.1; text-wrap: balance; font-variation-settings: "opsz" 32; }
   .st-h3      { font-size: 22px;   font-weight: 650; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; font-variation-settings: "opsz" 32; }
   .st-title   { font-size: 16px;   font-weight: 620; letter-spacing: -0.019em; line-height: 1.25; }

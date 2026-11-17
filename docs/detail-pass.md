@@ -55,20 +55,30 @@ New gate: `scripts/verify-details.mjs` — 6/6 (lifecycle bar renders and agrees
 with its caption, the bar moves with the clock, label focus, rejection shake,
 horizontal scrollers contain the gesture).
 
-## The device demo — shipped
+## The device demo — reverted
 
-The brief's device story is mounted: the MacBook-derived `LaptopFrame` and
-`PhoneFrame` run the real product, the payload crosses between them on a beam,
-and one caption pair under the picture names the beat and explains it
-(`demo.h*` + `demo.s*`), with a rail that shows where the loop is. It pauses off
-screen and in a hidden tab, and reduced motion opens on the arrived state with a
-restart.
+The two-device demo was mounted in the hero for one pass and removed on the
+owner's call: the hero is the film (`HeroFilm`, `/film/sharetexts-hero.mp4`)
+and stays that way. `HeroDeviceDemo.tsx` is left in the tree unused.
 
-`HeroFilm` — the recorded video the hero used — is now unreferenced. It is left
-in the tree deliberately: it is a working, poster-first film player and the
-recording pipeline (`scripts/record-loops.mjs`) that feeds the rest of the page
-still uses the same pattern.
+What was kept from that pass: the caption pair (headline + explanation line per
+beat), the caption box height that fits both lines, and the scrim on the "room
+closed" stamp. They are improvements to a component that is not currently
+mounted, so nothing on the page depends on them.
 
-Verified by `scripts/verify-demo.mjs` (10/10): one demo per width, caption
-matches its beat at 390 and 1280, both caption lines fit their box, the loop
-wraps through all five states, reduced motion stills on `received`.
+## Footers — one language across the site
+
+The long-form pages now share one footer design:
+
+- `/docs`, `/privacy`, `/terms` (React) use `SiteFooter`. Privacy and Terms had
+  no footer at all — the two pages a cautious reader opens were the only ones
+  with no way forward except the back button.
+- `/about` and all 24 guide pages (static HTML) now carry the same three
+  columns. Two real defects were fixed in every one of them: the column headed
+  "Terms" also contained a "Terms of use" link (the duplicate the React footer
+  had already been cured of), and "Temporary Space" pointed at `/docs` instead
+  of its own guide.
+- Column headings are sentence case at 12 px instead of 11 px uppercase at
+  0.09em — the last tracked-out all-caps labels on the site.
+- Link rows are 44 px, and the bottom line says the same promise in the same
+  words as the app footer.

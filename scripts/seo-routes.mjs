@@ -99,10 +99,52 @@ const SHELL_CSS = `
       .st-seo p, .st-seo li { font-size: 14.5px; line-height: 1.7; color: #3d3a34; }
       html.dark .st-seo p, html.dark .st-seo li { color: rgba(245,244,240,0.75); }
       .st-seo ul, .st-seo ol { padding-left: 20px; margin: 8px 0; }
+      /* Footer: the same three-column idea as the app's long-form footer,
+         expressed in static HTML. The old version was one wrapped row of
+         seven links — a sitemap with no hierarchy, at the exact point a reader
+         has finished the page and is deciding whether to trust the site. */
       .st-seo-footer { border-top: 1px solid rgba(30,28,24,0.08);
-        padding: 18px 24px 28px; display: flex; flex-wrap: wrap; gap: 8px 22px;
-        font-size: 13px; }
+        margin-top: 8px; padding: 34px 24px 28px; }
       html.dark .st-seo-footer { border-top-color: rgba(255,255,255,0.08); }
+      .st-seo-footer .sf-brand { max-width: 30ch; }
+      .st-seo-footer .sf-name { display: flex; align-items: center; gap: 8px;
+        font-size: 14px; font-weight: 650; color: #1d1d1f; }
+      html.dark .st-seo-footer .sf-name { color: #f5f5f7; }
+      .st-seo-footer .sf-promise { margin-top: 10px; font-size: 13px;
+        line-height: 1.55; color: #6e6e73; }
+      html.dark .st-seo-footer .sf-promise { color: rgba(255,255,255,0.6); }
+      .st-seo-footer .sf-status { margin-top: 12px; display: flex;
+        align-items: center; gap: 7px; font-size: 12px; font-weight: 500;
+        color: #6e6e73; }
+      .st-seo-footer .sf-status i { width: 6px; height: 6px; border-radius: 50%;
+        background: #34c759; display: block; }
+      html.dark .st-seo-footer .sf-status { color: rgba(255,255,255,0.55); }
+      .st-seo-footer .sf-grid { display: grid; gap: 26px 42px; margin-top: 26px;
+        grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      @media (min-width: 760px) {
+        .st-seo-footer { display: grid; align-content: start;
+          grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+          gap: 0 42px; }
+        .st-seo-footer .sf-grid { display: contents; }
+        .st-seo-footer .sf-col { grid-row: 2; }
+        .st-seo-footer .sf-brand { grid-row: 1; }
+        .st-seo-footer .sf-legal { grid-column: 1 / -1; }
+      }
+      .st-seo-footer .sf-col h2 { font-size: 12px; font-weight: 600;
+        letter-spacing: 0.02em; color: #6e6e73; margin: 0 0 4px; }
+      html.dark .st-seo-footer .sf-col h2 { color: rgba(255,255,255,0.5); }
+      .st-seo-footer .sf-col a { display: flex; align-items: center;
+        min-height: 40px; font-size: 13px; font-weight: 500; color: #1d1d1f;
+        text-decoration: none; }
+      .st-seo-footer .sf-col a:hover { color: #f06413; }
+      html.dark .st-seo-footer .sf-col a { color: rgba(255,255,255,0.75); }
+      html.dark .st-seo-footer .sf-col a:hover { color: #ff8a3d; }
+      .st-seo-footer .sf-legal { margin-top: 26px; padding-top: 18px;
+        border-top: 1px solid rgba(30,28,24,0.07); display: flex;
+        flex-wrap: wrap; gap: 6px 18px; align-items: center;
+        font-size: 12px; color: #6e6e73; }
+      html.dark .st-seo-footer .sf-legal { border-top-color: rgba(255,255,255,0.07);
+        color: rgba(255,255,255,0.55); }
       .st-seo .muted { color: #6e6e73; font-size: 13px; }
       html.dark .st-seo .muted { color: rgba(255,255,255,0.5); }
     </style>`;
@@ -120,14 +162,31 @@ function shellBody({ overline, h1, subtitle, main, footerNote }) {
           ${main}
         </main>
         <footer class="st-seo-footer">
-          <a href="/">ShareTexts</a>
-          <a href="/docs">Docs</a>
-          <a href="/guides">Guides</a>
-          <a href="/about">About</a>
-          <a href="/privacy">Privacy</a>
-          <a href="/terms">Terms</a>
-          <a href="https://x.com/0xalyt" rel="noopener">x.com/0xalyt</a>
-          ${footerNote ? `<span class="muted">${footerNote}</span>` : ''}
+          <div class="sf-brand">
+            <span class="sf-name">${LOGO_SVG} ShareTexts</span>
+            <p class="sf-promise">Send text, links and files between your own devices. No app to install, no account, nothing kept after the room closes.</p>
+            <p class="sf-status"><i aria-hidden="true"></i>iPhone · Android · Windows · macOS · Linux</p>
+          </div>
+          <div class="sf-grid">
+            <nav class="sf-col" aria-label="Use it">
+              <h2>Use it</h2>
+              <a href="/">Open ShareTexts</a>
+              <a href="/#main-content">Join with a code</a>
+            </nav>
+            <nav class="sf-col" aria-label="Read">
+              <h2>Read</h2>
+              <a href="/docs">Docs</a>
+              <a href="/guides">Guides</a>
+              <a href="/about">About</a>
+            </nav>
+          </div>
+          <div class="sf-legal">
+            <span>© ${new Date().getFullYear()} ShareTexts · No app · No account · Nothing stored</span>
+            <a href="/privacy" style="color:inherit">Privacy</a>
+            <a href="/terms" style="color:inherit">Terms</a>
+            <a href="https://x.com/0xalyt" rel="noopener" style="color:inherit">x.com/0xalyt</a>
+            ${footerNote ? `<span class="muted">${footerNote}</span>` : ''}
+          </div>
         </footer>
       </div>
     </div>`;

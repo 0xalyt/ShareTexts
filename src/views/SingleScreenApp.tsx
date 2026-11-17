@@ -64,7 +64,7 @@ const CommandBar = lazy(() => import('../components/CommandBar').then(m => ({ de
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
 import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
-import { HeroDeviceDemo } from '../components/HeroDeviceDemo';
+import { HeroFilm } from '../components/HeroFilm';
 import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
@@ -1211,13 +1211,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   so the hidden one never downloads the body. */}
               <div className="st-hide-landscape order-2 lg:hidden mt-5 sm:mt-6 mb-1 flex justify-center">
                 <div className="w-full max-w-[560px] px-1">
-                  {/* The demo, not a recording of it: two device surfaces with
-                      the transfer actually crossing between them, one caption
-                      under it that names the beat and one that explains it,
-                      and a rail that shows where the loop is. It pauses when
-                      it scrolls out or the tab hides, and reduced motion gets
-                      the arrived state with the caption that says so. */}
-                  <HeroDeviceDemo variant="stacked" />
+                  <HeroFilm />
                 </div>
               </div>
               {/* Live activity tracker — bare (NO pill): a breathing dot, the
@@ -2201,12 +2195,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 device screens, with a caption on the same clock. On a very
                 short window the landing simply scrolls to it. */}
             <div className="w-full max-w-[620px] mx-auto">
-              {/* Full width buys the side-by-side composition: the window and
-                  the phone as two lit objects, the beam and the packet between
-                  them, and the caption on the same clock as the motion — the
-                  component falls back to the stacked composition on its own if
-                  the pane is narrower than the two-up needs. */}
-              <HeroDeviceDemo variant="full" />
+              <HeroFilm />
             </div>
           </div>
           {/* Phase 5 scroll tail — the demo is the illustration, so these

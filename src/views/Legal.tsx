@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
 import { PageHeader } from '../components/PageHeader';
+import { SiteFooter } from '../components/marketing/SiteFooter';
 import { ThemeToggle } from '../components/ThemeToggle';
 // Gravity UI icons aliased onto the names this file already uses (Cookie has
 // no Gravity equivalent — it stays on lucide).
@@ -219,6 +220,12 @@ export function Legal({ page }: { page: LegalPage }) {
           </a>
         </div>
       </div>
+
+      {/* The same footer every long-form page carries. Privacy and Terms used to
+          end in a one-line "read also" row and nothing else, so the two pages a
+          cautious reader opens to decide whether to trust the product were the
+          only pages with no way forward but the browser's back button. */}
+      <SiteFooter />
     </div>
   );
 }

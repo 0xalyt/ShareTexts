@@ -5,6 +5,7 @@ import { BrandLockup } from '../BrandLockup';
 import { XProfileLink } from '../XProfileLink';
 import { LanguageMenu } from '../LanguageMenu';
 import { useI18n } from '../../lib/i18n';
+import { LANGS } from '../../lib/messages/registry';
 import type { MsgKey } from '../../lib/messages/types';
 
 /**
@@ -35,7 +36,9 @@ const COLUMNS: { title: MsgKey; links: { label: MsgKey; href: string; external?:
     links: [
       { label: 'footer.open', href: '/' },
       { label: 'footer.withCode', href: '/#main-content' },
-      { label: 'space.title', href: '/docs' },
+      // The third link here used to be `/docs` again — the same destination as
+      // the first link of the next column, so the footer offered a choice
+      // between two doors that opened onto the same room.
     ],
   },
   {
@@ -58,7 +61,7 @@ const COLUMNS: { title: MsgKey; links: { label: MsgKey; href: string; external?:
 ];
 
 export function SiteFooter({ className }: { className?: string }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const year = new Date().getFullYear();
   return (
     <footer
@@ -137,18 +140,28 @@ export function SiteFooter({ className }: { className?: string }) {
               and the maker sit together on the left, the deal on the right.
               A long page and the app should not read as two different sites
               that happen to share a wordmark. */}
-          <span className="flex items-center gap-x-5">
-            <span className="inline-flex min-h-[44px] items-center">
-              <LanguageMenu />
-            </span>
-            <XProfileLink className="-my-1" />
-          </span>
+          {/* The promise leads, the controls follow — the same order the
+              guides' footer uses, so the two footers read as one site.
+              Reading left to right it says what the product is, then shows
+              where the two things a reader might still want live. */}
           <p className="min-w-0 text-[11.5px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 sm:text-[12px]">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.temporary')}
           </p>
-          {/* The person behind it, not a handle. One component owns the
-              target, the 44px floor, the reduced-motion opt-out and the
-              press feedback, so the three footers cannot drift again. */}
+          <span className="flex items-center gap-x-4">
+            {/* A bare globe and a bare portrait side by side read as two
+                unlabelled icons. The language control names itself in its own
+                language — the only label a speaker can find. */}
+            <span className="inline-flex min-h-[44px] items-center gap-1.5">
+              <LanguageMenu />
+              <span aria-hidden className="text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
+                {(LANGS.find((l) => l.code === lang) ?? LANGS[0]).native}
+              </span>
+            </span>
+            {/* The person behind it, not a handle. One component owns the
+                target, the 44px floor, the reduced-motion opt-out and the
+                press feedback, so the three footers cannot drift again. */}
+            <XProfileLink className="-my-1" />
+          </span>
         </div>
       </div>
     </footer>

@@ -443,7 +443,7 @@ li strong { color: var(--text); }
 }
 .footer-brand {
   display: inline-flex; align-items: center; gap: 8px;
-  min-height: 40px;
+  min-height: 44px;
   font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none;
 }
 .footer-brand svg, .footer-brand img { width: 20px; height: 20px; flex-shrink: 0; }
@@ -451,15 +451,20 @@ li strong { color: var(--text); }
   margin: 10px 0 0; font-size: 13px; line-height: 1.55;
   color: var(--text-secondary); max-width: 30ch;
 }
+/* Column headings are captions, not shouts: 11px uppercase at 0.09em tracking
+   was the one piece of the site that still looked like a template. Sentence
+   case at 12px carries the same hierarchy without asking the eye to decode
+   letter-spaced capitals. */
 .footer-col h2 {
-  margin: 4px 0 8px; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-muted);
+  margin: 4px 0 6px; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.02em; color: var(--text-muted);
 }
 .footer-col ul { list-style: none; margin: 0; padding: 0; }
 .footer-col a {
   /* 40px hit box both ways — short labels pad outward without shifting
       the column's visual alignment (same trick as the app's footer). */
-  display: inline-flex; align-items: center; min-height: 40px;
+  /* 44px on touch, 40px where a pointer is precise — the app's own rule. */
+  display: inline-flex; align-items: center; min-height: 44px;
   padding: 0 8px; margin: 0 -8px;
   font-size: 13.5px; font-weight: 500; color: var(--text-secondary); text-decoration: none;
 }
