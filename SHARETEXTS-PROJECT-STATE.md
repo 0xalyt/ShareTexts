@@ -64,7 +64,8 @@ the room secret, so the product does **not** claim end-to-end encryption.
    imports (+0.7 KB, entry 171.2 → 171.9 KB). Two things now make it unrepeatable:
    `npm run verify:room-paint` samples every frame and fails if a first-paint
    surface lags the room pane, and `npm run verify:layout` runs in the pre-push
-   hook for any `src/` or `public/` change. Full proof in `H1-report.md`.
+   hook for any `src/` or `public/` change. Shipped as `dc128b1`; live marker
+   `dc128b138099`, `smoke-live` GREEN. Full proof in `H1-report.md`.
 
 
 -1. **M6 is blocked on M4, and M4 is blocked on nothing now.** Linked devices,

@@ -261,8 +261,26 @@ Logs: `audit/tmp/vb74-1.log`, `-2.log`, `-3.log` (git-ignored scratch).
   attempt, which is how the third flake above was found, and passed the second).
   It was not exercised against a deliberately failing `verify:bundle`; the skip
   variables were checked by reading the hook, not by running it with each one.
-- **Live site**: the build marker is checked after the push; see the state doc
-  for the marker and `smoke-live` result.
+- **Live smoke needed two attempts.** The first `node scripts/smoke-live.mjs`
+  after the deploy failed pairing: the console showed
+  `WebSocket … /ws?room=… failed: WebSocket is closed before the connection is
+  established` against the canonical signaling worker
+  (`sharetext-signaling.alighttt.workers.dev`), so no room came up. The second
+  run passed everything — pairing took 13.3 s and the message arrived in 11 ms —
+  which reads as a cold signaling worker, not this change (the client bundle for
+  the room path is byte-identical apart from the rail/dock placement). Flagged
+  rather than buried: if it recurs, the worker's cold start is the thing to
+  measure.
+
+## Live
+
+- Pushed: `2cbabd0..dc128b1` on `main`; the pre-push hook ran `verify:bundle`
+  (GREEN) and `verify:layout` (GREEN) inside the push itself.
+- Live build marker: **`dc128b138099`** (matches `HEAD`).
+- `node scripts/smoke-live.mjs` against https://sharetexts.online:
+  **GREEN** — 200, marker present, meta/OG/Twitter checks pass, two devices
+  paired (code …578), message A → B in 11 ms, sender sees its own message, no
+  console errors.
 
 ## Three questions
 
