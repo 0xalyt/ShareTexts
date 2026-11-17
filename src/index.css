@@ -577,6 +577,11 @@
   .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: -0.01em; line-height: 1.55; }
   .st-support { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.45; }
   .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.35; }
+  /* Numbers get their own role because they are read differently: counts, sizes,
+     timers and codes must not reflow when a digit changes. Tabular figures are
+     the whole point of the role — a proportional 1 is narrower than a 6, and a
+     counter that jitters on every update is the tell. */
+  .st-numeric { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
   /* Quiet section labels use sentence case and a small size step rather than
      shouting in all caps. One weight, tracking, and color across the app.

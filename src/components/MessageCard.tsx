@@ -330,7 +330,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
   }
   if (state === 'delivered') {
     return (
-      <span data-testid="msg-state" data-state="delivered" className="flex items-center gap-1 text-status-success">
+      <span data-testid="msg-state" data-state="delivered" className="flex items-center gap-1 text-status-success-ink dark:text-status-success-ink-dark">
         {/* The check pops in when the peer's receipt arrives — a tiny
             confirmation that lands, not just a static icon. */}
         <motion.span
@@ -877,7 +877,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                       when we hold both timestamps; otherwise the classic
                       tick line. */}
                   {a.startedAt && a.completedAt && a.completedAt > a.startedAt ? (
-                    <span className="font-semibold flex items-center gap-1 text-status-success">
+                    <span className="font-semibold flex items-center gap-1 text-status-success-ink dark:text-status-success-ink-dark">
                       <Check className="w-3 h-3" /> {isMe
                         ? t('xfer.doneIn', { size: formatBytes(a.size), time: formatElapsed(a.completedAt - a.startedAt) })
                         // Receivers get the full story in one line: the object
@@ -895,7 +895,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                       proof, so the footer never grows a footnote line. */}
                   {a.verified && (
                     <AnnotatedHint
-                      className="text-status-success font-semibold"
+                      className="text-status-success-ink dark:text-status-success-ink-dark font-semibold"
                       note={t('msg.verifiedTitle')}
                     >
                       <ShieldCheck className="w-3 h-3 mr-0.5" /> {t('msg.verified')}

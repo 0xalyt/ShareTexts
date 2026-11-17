@@ -44,7 +44,7 @@ export function PageHeader({
         // bottom rule. A 1px border here made the long pages start with a
         // bright seam, and the two headers sat at different widths (6xl vs
         // 1200px) so crossing into Docs moved the brand sideways.
-        'sticky top-0 z-40 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150',
+        'sticky top-0 z-40 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150 border-b border-black/[0.055] dark:border-white/[0.07]',
         className,
       )}
     >

@@ -1001,7 +1001,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       >
         {t('app.skip')}
       </a>
-    <header className="shrink-0 sticky top-0 z-30 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150">
+    <header className="shrink-0 sticky top-0 z-30 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150 border-b border-black/[0.055] dark:border-white/[0.07]">
       {/* One max-width, shared with the hero, the scroll tail and the footer:
           the wordmark, the headline and the section rules all start on the
           same left edge at every width (they used to start 80px apart). */}
@@ -1955,7 +1955,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     })()}
                   </span>
                 ) : (
-                <span className={cn("text-[12px] font-medium", session.connectionType === 'disconnected' ? "text-status-warning-ink dark:text-status-warning-ink-dark" : session.connectionType === 'connecting' ? "text-status-warning-ink dark:text-status-warning-ink-dark" : "text-status-success")}>
+                <span key="conn-word" className={cn("text-[12px] font-medium", session.connectionType === 'disconnected' ? "text-status-warning-ink dark:text-status-warning-ink-dark" : session.connectionType === 'connecting' ? "text-status-warning-ink dark:text-status-warning-ink-dark" : "text-status-success-ink dark:text-status-success-ink-dark")}>
                   {session.connectionType === 'disconnected'
                     ? t('chat.offline')
                     : session.connectionType === 'connecting'
