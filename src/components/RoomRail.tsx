@@ -37,7 +37,12 @@ export function RoomRail({ className = '' }: { className?: string }) {
                 room.active ? 'bg-ember/[0.07] dark:bg-azure-400/10' : 'hover:bg-black/[0.035] dark:hover:bg-white/[0.05]',
               )}
             >
-              <MessageSquare className="h-4 w-4 shrink-0 text-ember dark:text-azure-400" aria-hidden />
+              {/* A 36 px leading slot, like the device row below it, so both
+                  names start at the same x. The glyph stays 16 px; the slot is
+                  what lines the column up. */}
+              <span className="shrink-0 w-9 h-9 flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-ember dark:text-azure-400" aria-hidden />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14px] font-medium text-apple-ink dark:text-white">
                   {room.label || t('chat.pairedDevice')}

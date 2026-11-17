@@ -1555,7 +1555,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               </Suspense>
               {/* Your device: name row (tap to rename) — the only identity
                   element here; the pair visual lives in the room header. */}
-              <div className="flex items-center gap-2.5 mb-5">
+              {/* px-2.5 matches RoomRail's rows: the room name above and this
+                  device name below are the same kind of row, and without the
+                  shared inset their labels sat 10 px apart — two names on one
+                  axis read as a mistake long before anyone can say why. */}
+              <div className="flex items-center gap-2.5 px-2.5 mb-5">
                 <span className="flex items-center justify-center w-9 h-9 rounded-[12px] bg-ember/10 dark:bg-azure-400/10 border border-ember/15 dark:border-azure-400/15 shrink-0" aria-hidden>
                   <ThisDeviceIcon className="w-4.5 h-4.5 text-ember dark:text-azure-400" />
                 </span>
@@ -1644,16 +1648,23 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <div className="st-card overflow-hidden">
                 <StayConnectedToggle className="rounded-none" />
                 <div className="h-px bg-apple-divider/50 dark:bg-white/[0.07]" aria-hidden />
+                {/* Same row template as the Stay Connected setting above it:
+                    px-1, a 36 px leading slot, gap-3. The link glyph moved
+                    from the far right into that slot — it was the only row in
+                    the card whose label started 36 px left of its neighbour's,
+                    and a settings card is a column or it is noise. */}
                 <button
                   type="button"
                   onClick={copyLink}
-                  className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-1 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors text-left"
                 >
-                  <span className="flex flex-col min-w-0">
+                  <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-black/[0.055] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/45">
+                    <Link2 className="w-4 h-4" />
+                  </span>
+                  <span className="flex flex-col min-w-0 flex-1">
                     <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{copiedLink ? t('conn.inviteCopied') : t('conn.invite')}</span>
                     <span className="text-[12px] text-apple-ink-muted dark:text-white/60 truncate">{t('conn.inviteHint')}</span>
                   </span>
-                  <Link2 className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/50" />
                 </button>
                 <div className="h-px bg-apple-divider/50 dark:bg-white/[0.07]" aria-hidden />
               </div>
