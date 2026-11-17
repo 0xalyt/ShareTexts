@@ -8,7 +8,8 @@
  *   1. grouping   — device name and time only on a sender change or after five
  *                   minutes of silence, never inside every bubble
  *   2. state word — one delivery word, on the most recent own message
- *   3. geometry   — bubble radius 18, max width 82%
+ *   3. geometry   — bubble radius 16 (the card tier of the 8/12/16/24
+ *                   scale, DESIGN.md §0.12), max width 82%
  *   4. semantics  — the thread is role="log", polite, additions only
  *   5. no noise   — no aria-live region ever contains a percentage
  *
@@ -78,11 +79,11 @@ const statesOnA = await a.evaluate(() => {
 if (statesOnA.count === 1) pass('state word on the most recent own message only', `${statesOnA.states[0]}`);
 else fail('state word on the most recent own message only', `${statesOnA.count} state words for 4 own messages`);
 
-/* 3. Geometry — radius 18, max width 82% of the thread. */
+/* 3. Geometry — radius 16, max width 82% of the thread. */
 const geometry = await b.evaluate(() => {
   const first = document.querySelector('[data-testid="msg-time"]')?.closest('.group\\/msg');
   if (!first) return null;
-  const bubble = first.querySelector('[class*="rounded-[18px]"]') || first.querySelector('div > div > div');
+  const bubble = first.querySelector('[class*="rounded-[16px]"]') || first.querySelector('div > div > div');
   const thread = first.parentElement;
   const cs = bubble ? getComputedStyle(bubble) : null;
   const w = bubble && thread ? bubble.getBoundingClientRect().width / thread.getBoundingClientRect().width : 0;
@@ -90,8 +91,8 @@ const geometry = await b.evaluate(() => {
 });
 if (!geometry) fail('geometry', 'no bubble found');
 else {
-  if (geometry.radius === '18px') pass('bubble radius 18', geometry.radius);
-  else fail('bubble radius 18', geometry.radius);
+  if (geometry.radius === '16px') pass('bubble radius 16', geometry.radius);
+  else fail('bubble radius 16', geometry.radius);
   if (geometry.widthPct <= 83) pass('bubble max width 82%', `${geometry.widthPct}%`);
   else fail('bubble max width 82%', `${geometry.widthPct}%`);
 }

@@ -902,7 +902,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             transition={{ type: 'spring', bounce: 0, duration: 0.3, x: { duration: 0.45, ease: 'easeInOut' } }}
             role="alert"
             data-testid="nearby-failure-card"
-            className="mt-2.5 w-full px-3.5 py-3 rounded-[14px] bg-status-danger/[0.06] dark:bg-status-danger/[0.08] border border-status-danger/25"
+            className="mt-2.5 w-full px-3.5 py-3 rounded-[12px] bg-status-danger/[0.06] dark:bg-status-danger/[0.08] border border-status-danger/25"
           >
             {/* The two-device composition in its error state: the link is
                 cut, ember-tinted, partner dimmed. It explains "the two of
@@ -972,7 +972,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <div className="mt-1.5 px-3.5 py-3 rounded-[14px] bg-apple-parchment/60 dark:bg-white/[0.03] border border-apple-divider/40 dark:border-white/[0.06]">
+                <div className="mt-1.5 px-3.5 py-3 rounded-[12px] bg-apple-parchment/60 dark:bg-white/[0.03] border border-apple-divider/40 dark:border-white/[0.06]">
                   {(['why1', 'why2', 'why3', 'why4', 'why5'] as const).map((k, i) => (
                     <li key={k} className="flex items-start gap-2.5 py-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 leading-snug">
                       <span className="shrink-0 w-4 h-4 mt-px rounded-full bg-apple-divider/50 dark:bg-white/[0.08] flex items-center justify-center text-[12px] font-bold text-apple-ink-muted dark:text-white/50 tnum" aria-hidden>{i + 1}</span>

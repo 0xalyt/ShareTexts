@@ -238,7 +238,7 @@ export function SendScreen({
           {expired ? (
             <button
               onClick={onNewCode}
-              className="press mt-3 w-full min-h-[44px] rounded-[14px] bg-[#f06413] text-white text-[16px] font-semibold [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:min-h-[34px] [@media(max-height:520px)]:text-[13px]"
+              className="press mt-3 w-full min-h-[44px] rounded-[12px] bg-[#f06413] text-white text-[16px] font-semibold [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:min-h-[34px] [@media(max-height:520px)]:text-[13px]"
               data-testid="new-code"
             >
               {t('send.newCode')}
@@ -247,7 +247,7 @@ export function SendScreen({
             <button
               onClick={handleCopy}
               disabled={!code}
-              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[14px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[13px]"
+              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[13px]"
               data-testid="copy-code"
             >
               {justCopied ? <Check className="w-4 h-4 text-status-success" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />}
@@ -276,7 +276,7 @@ export function SendScreen({
           </div>
           <button
             onClick={onShareLink}
-            className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[14px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white"
+            className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white"
             data-testid="share-link"
           >
             {linkCopied ? <Check className="w-4 h-4 text-status-success" aria-hidden /> : <Share2 className="w-4 h-4" aria-hidden />}

@@ -157,7 +157,14 @@ async function browserChecks() {
   page.on('console', m => { if (m.type() === 'error' && !WORKER_NOISE.test(m.text()) && !/Failed to load resource.*403/.test(m.text())) errors.push(m.text()); });
 
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
-  ok('home renders hero H1', await page.locator('h1').first().textContent().then(t => t.includes('Move anything')), 'h1 not found');
+  // The hero H1 types a rotating noun into "Share ___", and every word is
+  // decorative: its single accessible sentence is the sr-only line. The old
+  // assertion looked for "Move anything", copy the hero stopped using, so it
+  // failed on a page that was correct. Assert the heading the page really has:
+  // exactly one h1, and the accessible sentence names the product's job.
+  const homeH1s = await page.locator('h1').allTextContents();
+  const homeH1 = (homeH1s[0] || '').replace(/\s+/g, ' ').trim();
+  ok('home renders hero H1', homeH1s.length === 1 && /share anything/i.test(homeH1), `${homeH1s.length} h1(s): “${homeH1.slice(0, 60)}”`);
   ok('home boots interactive (Send button)', await page.getByRole('button', { name: 'Send' }).first().isVisible().catch(() => false));
 
   await page.goto(BASE + '/docs', { waitUntil: 'networkidle' });

@@ -360,7 +360,7 @@ function Flight({ t, flights }: { t: number; flights: { from: number; to: number
         return (
           <div
             key={lag}
-            className="absolute rounded-[10px]"
+            className="absolute rounded-[8px]"
             style={{
               left: tx,
               top: ty,

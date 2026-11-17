@@ -373,7 +373,7 @@ export function UploadFolder({
           animate={{ rotateX: open ? -22 : 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 24 }}
           style={{ transformOrigin: 'bottom center', transformPerspective: 700, zIndex: 2 }}
-          className="absolute inset-x-0 bottom-0 h-[64px] rounded-[14px] bg-gradient-to-b from-[#ffd2b0] to-ember/85 shadow-[0_-2px_8px_-4px_rgba(240,100,19,0.5)] dark:from-[#7a3a12] dark:to-[#b64f10]"
+          className="absolute inset-x-0 bottom-0 h-[64px] rounded-[12px] bg-gradient-to-b from-[#ffd2b0] to-ember/85 shadow-[0_-2px_8px_-4px_rgba(240,100,19,0.5)] dark:from-[#7a3a12] dark:to-[#b64f10]"
         >
           <span className="absolute inset-x-0 top-2 mx-auto h-1 w-8 rounded-full bg-white/45" />
         </motion.div>

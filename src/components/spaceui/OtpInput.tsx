@@ -46,7 +46,7 @@ const SIZES = {
     width: 150,
   },
   md: {
-    box: 'h-[52px] rounded-[14px] sm:h-14',
+    box: 'h-[52px] rounded-[12px] sm:h-14',
     text: 'text-2xl sm:text-3xl',
     caret: 'h-7 sm:h-9',
     gap: 'gap-1.5 sm:gap-2',

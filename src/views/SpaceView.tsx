@@ -639,7 +639,7 @@ export function SpaceJoinSheet({ open, onClose, initialCode }: { open: boolean; 
           maxLength={9}
           aria-label={t('space.codeLabel')}
           aria-describedby="space-join-status"
-          className="mt-4 w-full rounded-[14px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-4 py-3.5 text-[20px] font-mono font-semibold tracking-[0.14em] uppercase text-center text-apple-ink dark:text-white placeholder:text-apple-ink-muted/40 dark:placeholder:text-white/25 outline-none focus:ring-2 focus:ring-azure-500/40"
+          className="mt-4 w-full rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-4 py-3.5 text-[20px] font-mono font-semibold tracking-[0.14em] uppercase text-center text-apple-ink dark:text-white placeholder:text-apple-ink-muted/40 dark:placeholder:text-white/25 outline-none focus:ring-2 focus:ring-azure-500/40"
           data-testid="space-join-code-input"
           autoFocus
         />
@@ -857,7 +857,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
   if (conn === 'closed') {
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center bg-apple-canvas dark:bg-night-900">
-        <div className="w-[64px] h-[64px] rounded-[20px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] flex items-center justify-center mb-5">
+        <div className="w-[64px] h-[64px] rounded-[24px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] flex items-center justify-center mb-5">
           <Clock className="w-7 h-7 text-apple-ink-muted dark:text-white/50" />
         </div>
         <h1 className="st-h3 text-apple-ink dark:text-white">{t('space.closedTitle')}</h1>
@@ -1023,7 +1023,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             data-testid="space-empty"
             style={{ minHeight: 'min(52vh, 460px)' }}
           >
-            <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-[20px] st-glyph st-glyph-ember" aria-hidden>
+            <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-[24px] st-glyph st-glyph-ember" aria-hidden>
               <Inbox className="w-6 h-6" strokeWidth={2} />
             </span>
             <p className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.015em]">{t('space.empty')}</p>
@@ -1031,7 +1031,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             {/* The drop affordance — the SAME surface the real shelf uses,
                 so “nothing here” and “something is here” never look like
                 two different products. */}
-            <div className="st-tile mt-6 w-full max-w-[420px] flex items-center justify-center gap-2.5 rounded-[14px] px-4 py-4 text-[13px] font-semibold text-apple-ink-muted dark:text-white/55">
+            <div className="st-tile mt-6 w-full max-w-[420px] flex items-center justify-center gap-2.5 rounded-[12px] px-4 py-4 text-[13px] font-semibold text-apple-ink-muted dark:text-white/55">
               <span className="st-glyph w-8 h-8 shrink-0" aria-hidden>
                 <Plus className="w-4 h-4" />
               </span>
@@ -1111,7 +1111,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             }}
             rows={1}
             placeholder={t('space.composerPlaceholder')}
-            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[20px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25"
+            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[24px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25"
             data-testid="space-composer"
           />
           {/* Composer share is a convenience duplicate of the header share —

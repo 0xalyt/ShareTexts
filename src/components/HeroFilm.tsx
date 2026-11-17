@@ -69,7 +69,7 @@ export function HeroFilm({ className }: { className?: string }) {
         // laptop on a desk, and a 26px radius made the whole hero read as a
         // rounded card with a video pasted in it. 10px keeps the frame crisp at
         // every width without turning into a sharp rectangle.
-        'relative w-full overflow-hidden rounded-[10px] bg-[#0b0908]',
+        'relative w-full overflow-hidden rounded-[8px] bg-[#0b0908]',
         // Three shadows, not one: a 1px contact line that seats the panel on
         // the page, a tight ambient that gives it thickness, and a wide soft
         // one that says "this is a lit object, not a screenshot". A single

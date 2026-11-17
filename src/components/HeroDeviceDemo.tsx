@@ -461,7 +461,7 @@ export function HeroDeviceDemo({
           // run past the floor.
           panel
             ? cn(
-                'aspect-[16/10] overflow-hidden rounded-[26px]',
+                'aspect-[16/10] overflow-hidden rounded-[24px]',
                 'bg-[radial-gradient(125%_110%_at_18%_0%,#2b241c_0%,#191412_52%,#100d0c_100%)]',
                 'ring-1 ring-black/50',
                 'shadow-[0_60px_100px_-52px_rgba(20,16,10,0.72),0_16px_36px_-26px_rgba(20,16,10,0.5)]',
@@ -619,7 +619,7 @@ export function HeroDeviceDemo({
                 its own reads as an object in a dark room. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-[48px] -z-10 rounded-[32px] bg-[radial-gradient(ellipse_at_55%_40%,rgba(255,226,196,0.14),transparent_68%)] blur-[14px]"
+              className="pointer-events-none absolute -inset-[48px] -z-10 rounded-[24px] bg-[radial-gradient(ellipse_at_55%_40%,rgba(255,226,196,0.14),transparent_68%)] blur-[14px]"
             />
             <LaptopFrame label={t('demo.laptopAlt')}>
               <div ref={windowRef} className="h-full w-full">
@@ -665,8 +665,8 @@ export function HeroDeviceDemo({
             }
           >
             <div className="-translate-x-1/2 -translate-y-1/2">
-              <div className="flex items-center gap-1.5 rounded-[9px] border border-black/[0.06] bg-white/95 py-[5px] pl-[5px] pr-2 shadow-[0_10px_24px_-10px_rgba(20,16,10,0.6),0_0_22px_-4px_rgba(240,100,19,0.45)] backdrop-blur-sm dark:border-white/10 dark:bg-night-800/95">
-                <span className="flex h-[17px] w-[17px] items-center justify-center rounded-[6px] bg-ember text-[7px] font-bold leading-none text-white">PDF</span>
+              <div className="flex items-center gap-1.5 rounded-[8px] border border-black/[0.06] bg-white/95 py-[5px] pl-[5px] pr-2 shadow-[0_10px_24px_-10px_rgba(20,16,10,0.6),0_0_22px_-4px_rgba(240,100,19,0.45)] backdrop-blur-sm dark:border-white/10 dark:bg-night-800/95">
+                <span className="flex h-[17px] w-[17px] items-center justify-center rounded-[8px] bg-ember text-[7px] font-bold leading-none text-white">PDF</span>
                 <span className="text-[10px] font-semibold leading-none text-apple-ink dark:text-white">plan.pdf</span>
                 <SpinLoader size={10} className="text-ember" />
               </div>
@@ -719,7 +719,7 @@ export function HeroDeviceDemo({
                 the same beat the bubbles spring in. */}
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute -inset-[38px] -z-10 rounded-[44px] bg-[radial-gradient(ellipse_at_center,rgba(255,171,48,0.20),transparent_66%)] blur-[18px]"
+              className="pointer-events-none absolute -inset-[38px] -z-10 rounded-[24px] bg-[radial-gradient(ellipse_at_center,rgba(255,171,48,0.20),transparent_66%)] blur-[18px]"
               animate={{ opacity: arrived ? 1 : 0.45 }}
               transition={{ duration: 0.55, ease: EASE }}
             />
@@ -789,7 +789,7 @@ function PairCode({
             key={i}
             style={{ transitionDelay: `${stagger && on ? i * 150 : 0}ms` }}
             className={cn(
-              'flex items-center justify-center rounded-[5px] font-semibold tabular-nums transition-colors duration-300',
+              'flex items-center justify-center rounded-[8px] font-semibold tabular-nums transition-colors duration-300',
               size === 'md' ? 'h-[19px] text-[10px]' : 'h-[17px] text-[9.5px]',
               on
                 ? cn(
@@ -918,7 +918,7 @@ export function RoomWindow({
               transition={{ type: 'spring', stiffness: 420, damping: 30 }}
               className="flex shrink-0 flex-col items-end gap-1"
             >
-              <span className="max-w-[78%] rounded-[11px] rounded-br-[3px] bg-ember px-2.5 py-1 text-[11px] leading-snug text-white shadow-[0_3px_10px_-4px_rgba(240,100,19,0.6)]">
+              <span className="max-w-[78%] rounded-[12px] rounded-br-[3px] bg-ember px-2.5 py-1 text-[11px] leading-snug text-white shadow-[0_3px_10px_-4px_rgba(240,100,19,0.6)]">
                 {note}
               </span>
               <FileChip arrived={arrived} compact={compact} />
@@ -1072,7 +1072,7 @@ export function PhoneScreen({
                         initial={{ opacity: 0, y: 10, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ type: 'spring', stiffness: 420, damping: 29 }}
-                        className="max-w-[88%] self-start rounded-[11px] rounded-bl-[3px] bg-white px-2.5 py-1.5 text-[10.5px] leading-snug text-apple-ink shadow-[0_2px_6px_-2px_rgba(20,16,10,0.14)] dark:bg-white/[0.09] dark:text-white"
+                        className="max-w-[88%] self-start rounded-[12px] rounded-bl-[3px] bg-white px-2.5 py-1.5 text-[10.5px] leading-snug text-apple-ink shadow-[0_2px_6px_-2px_rgba(20,16,10,0.14)] dark:bg-white/[0.09] dark:text-white"
                       >
                         {t('demo.note')}
                       </motion.span>
@@ -1142,13 +1142,13 @@ function FileChip({
         'flex items-center gap-1.5 shadow-[0_2px_8px_-3px_rgba(20,16,10,0.3)]',
         out ? 'bg-ember text-white' : 'bg-white text-apple-ink dark:bg-white/[0.09] dark:text-white',
         compact
-          ? 'rounded-[11px] rounded-bl-[3px] px-2 py-1.5'
-          : 'rounded-[11px] rounded-br-[3px] px-2.5 py-[7px]',
+          ? 'rounded-[12px] rounded-bl-[3px] px-2 py-1.5'
+          : 'rounded-[12px] rounded-br-[3px] px-2.5 py-[7px]',
       )}
     >
       <span
         className={cn(
-          'flex items-center justify-center rounded-[5px] font-bold leading-none',
+          'flex items-center justify-center rounded-[8px] font-bold leading-none',
           compact ? 'h-[15px] w-[15px] text-[6px]' : 'h-[17px] w-[17px] text-[6.5px]',
           out ? 'bg-white/25' : 'bg-ember/12 text-ember',
         )}

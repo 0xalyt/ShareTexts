@@ -84,7 +84,7 @@ export function ProductLoop({
   return (
     <div
       className={
-        'relative shrink-0 overflow-hidden rounded-[14px] border border-black/[0.08] bg-apple-parchment dark:border-white/[0.10] dark:bg-white/[0.04] ' +
+        'relative shrink-0 overflow-hidden rounded-[12px] border border-black/[0.08] bg-apple-parchment dark:border-white/[0.10] dark:bg-white/[0.04] ' +
         (className ?? '')
       }
       style={{ aspectRatio: `${loop.width} / ${loop.height}` }}

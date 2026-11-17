@@ -25,7 +25,7 @@ import { PhoneStatusBar } from '../components/mockups/PhoneFrame';
 const EMBER = '#f06413';
 
 function Glass({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`absolute inset-[6px] overflow-hidden rounded-[10px] bg-[#0b0a09] ${className}`}>{children}</div>;
+  return <div className={`absolute inset-[6px] overflow-hidden rounded-[8px] bg-[#0b0a09] ${className}`}>{children}</div>;
 }
 
 function Dot({ tone = 'success' }: { tone?: 'success' | 'mute' }) {
@@ -69,7 +69,7 @@ export function LaptopApp(s: LaptopState) {
           <span className="h-[11px] w-[11px] rounded-full bg-[#febc2e]" />
           <span className="h-[11px] w-[11px] rounded-full bg-[#28c840]" />
         </span>
-        <span className="ml-2 flex h-[27px] flex-1 max-w-[420px] items-center gap-2 rounded-[7px] bg-white/[0.055] px-3">
+        <span className="ml-2 flex h-[27px] flex-1 max-w-[420px] items-center gap-2 rounded-[8px] bg-white/[0.055] px-3">
           <svg viewBox="0 0 12 12" className="h-[9px] w-[9px] text-white/40" fill="none" stroke="currentColor" strokeWidth="1.6">
             <rect x="2.4" y="5.2" width="7.2" height="5.4" rx="1.4" />
             <path d="M4.1 5.2V3.7a1.9 1.9 0 0 1 3.8 0v1.5" />
@@ -93,7 +93,7 @@ export function LaptopApp(s: LaptopState) {
             <span className="text-[14.5px] font-bold tracking-[-0.02em]">ShareTexts</span>
           </div>
           <span
-            className="mb-2 flex h-[36px] items-center justify-center gap-2 rounded-[10px] text-[13px] font-semibold text-white"
+            className="mb-2 flex h-[36px] items-center justify-center gap-2 rounded-[8px] text-[13px] font-semibold text-white"
             style={{ background: EMBER, boxShadow: '0 6px 18px -8px rgba(240,100,19,0.8)' }}
           >
             <svg viewBox="0 0 14 14" className="h-[11px] w-[11px]" fill="none" stroke="currentColor" strokeWidth="1.9">
@@ -205,7 +205,7 @@ function RailRow({ label, hint, icon, active }: { label: string; hint: string; i
 function DeviceChip({ kind, name }: { kind: 'laptop' | 'phone'; name: string }) {
   return (
     <span className="flex items-center gap-2">
-      <span className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] border border-white/[0.09] bg-white/[0.05] text-white/70">
+      <span className="flex h-[26px] w-[26px] items-center justify-center rounded-[8px] border border-white/[0.09] bg-white/[0.05] text-white/70">
         {kind === 'laptop' ? (
           <svg viewBox="0 0 16 16" className="h-[13px] w-[13px]" fill="none" stroke="currentColor" strokeWidth="1.4">
             <rect x="2.6" y="3.6" width="10.8" height="7.2" rx="1.3" />
@@ -228,18 +228,18 @@ function JoinCard({ nearby }: { nearby: number }) {
     <div className="flex h-full flex-col items-center justify-center px-6">
       {/* One designed object, not four things floating in a black rectangle:
           the code card is the app's own card, with its segmented control. */}
-      <div className="w-[660px] rounded-[18px] border border-white/[0.075] bg-white/[0.025] p-7 shadow-[0_44px_90px_-52px_rgba(0,0,0,1)]">
+      <div className="w-[660px] rounded-[16px] border border-white/[0.075] bg-white/[0.025] p-7 shadow-[0_44px_90px_-52px_rgba(0,0,0,1)]">
         <div className="flex items-center justify-between">
           <p className="text-[11.5px] font-semibold uppercase tracking-[0.1em] text-white/45">Room code</p>
-          <div className="flex items-center gap-0.5 rounded-[9px] bg-white/[0.055] p-[3px] text-[11.5px] font-semibold">
-            <span className="flex h-[24px] items-center rounded-[7px] px-2.5 text-white/45">Code</span>
-            <span className="flex h-[24px] items-center rounded-[7px] bg-white/[0.1] px-2.5 text-white">QR</span>
-            <span className="flex h-[24px] items-center rounded-[7px] px-2.5 text-white/45">Link</span>
+          <div className="flex items-center gap-0.5 rounded-[8px] bg-white/[0.055] p-[3px] text-[11.5px] font-semibold">
+            <span className="flex h-[24px] items-center rounded-[8px] px-2.5 text-white/45">Code</span>
+            <span className="flex h-[24px] items-center rounded-[8px] bg-white/[0.1] px-2.5 text-white">QR</span>
+            <span className="flex h-[24px] items-center rounded-[8px] px-2.5 text-white/45">Link</span>
           </div>
         </div>
 
         <div className="mt-6 flex items-center gap-8">
-          <div className="rounded-[13px] bg-[#f8f6f3] p-3.5 shadow-[0_20px_44px_-24px_rgba(0,0,0,1)]">
+          <div className="rounded-[12px] bg-[#f8f6f3] p-3.5 shadow-[0_20px_44px_-24px_rgba(0,0,0,1)]">
             <QrArt value="https://sharetexts.online/r/8QK2LM" size={150} label="Room QR code" />
           </div>
           <div className="min-w-0 flex-1">
@@ -261,7 +261,7 @@ function JoinCard({ nearby }: { nearby: number }) {
               </svg>
               Valid for 4:59 · scan it or type it
             </p>
-            <span className="mt-4 flex h-[36px] w-[164px] items-center justify-center gap-2 rounded-[10px] border border-white/[0.13] bg-white/[0.06] text-[12.5px] font-semibold text-white/85">
+            <span className="mt-4 flex h-[36px] w-[164px] items-center justify-center gap-2 rounded-[8px] border border-white/[0.13] bg-white/[0.06] text-[12.5px] font-semibold text-white/85">
               <svg viewBox="0 0 16 16" className="h-[11px] w-[11px]" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <rect x="5.4" y="5.4" width="8" height="8" rx="1.6" />
                 <path d="M10.6 5.4V4a1.6 1.6 0 0 0-1.6-1.6H4A1.6 1.6 0 0 0 2.4 4v5a1.6 1.6 0 0 0 1.6 1.6h1.4" strokeLinecap="round" />
@@ -274,10 +274,10 @@ function JoinCard({ nearby }: { nearby: number }) {
 
       {/* discovery: the other device shows up on its own */}
       <div
-        className="mt-5 flex w-[560px] items-center gap-3.5 rounded-[14px] border border-white/[0.1] bg-white/[0.045] px-4 py-3.5"
+        className="mt-5 flex w-[560px] items-center gap-3.5 rounded-[12px] border border-white/[0.1] bg-white/[0.045] px-4 py-3.5"
         style={{ opacity: nearby, transform: `translateY(${(1 - nearby) * 10}px)` }}
       >
-        <span className="flex h-[38px] w-[38px] items-center justify-center rounded-[10px]" style={{ background: 'rgba(240,100,19,0.16)' }}>
+        <span className="flex h-[38px] w-[38px] items-center justify-center rounded-[8px]" style={{ background: 'rgba(240,100,19,0.16)' }}>
           <svg viewBox="0 0 16 16" className="h-[16px] w-[16px]" fill="none" stroke={EMBER} strokeWidth="1.5">
             <rect x="4.6" y="1.6" width="6.8" height="12.8" rx="1.9" />
             <path d="M7 12.3h2" strokeLinecap="round" />
@@ -290,7 +290,7 @@ function JoinCard({ nearby }: { nearby: number }) {
             Nearby · direct on this network
           </span>
         </span>
-        <span className="flex h-[34px] items-center rounded-[10px] px-4 text-[13px] font-semibold text-white" style={{ background: EMBER }}>
+        <span className="flex h-[34px] items-center rounded-[8px] px-4 text-[13px] font-semibold text-white" style={{ background: EMBER }}>
           Connect
         </span>
       </div>
@@ -317,14 +317,14 @@ function Thread({ s }: { s: LaptopState }) {
       </div>
 
       <div className="flex flex-col items-start" style={item(s.text, 0)}>
-        <span className="max-w-[440px] rounded-[14px] rounded-bl-[5px] bg-white/[0.07] px-3.5 py-2.5 text-[13.5px] leading-snug text-white/90">
+        <span className="max-w-[440px] rounded-[12px] rounded-bl-[5px] bg-white/[0.07] px-3.5 py-2.5 text-[13.5px] leading-snug text-white/90">
           {NOTE}
         </span>
         <span className="mt-1 pl-1 text-[10.5px] text-white/30">{NOTE_TIME} · received</span>
       </div>
 
       <div className="flex flex-col items-start" style={item(s.photo, 1)}>
-        <div className="w-[268px] overflow-hidden rounded-[13px] border border-white/[0.08] bg-white/[0.04]">
+        <div className="w-[268px] overflow-hidden rounded-[12px] border border-white/[0.08] bg-white/[0.04]">
           <img src="/demo/photo-4x3.jpg" alt="Photo received on the laptop" className="block aspect-[4/3] w-full object-cover" />
           <div className="flex items-center gap-2 px-3 py-2">
             <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-white/80">Above the clouds.jpg</span>
@@ -334,8 +334,8 @@ function Thread({ s }: { s: LaptopState }) {
       </div>
 
       <div className="flex flex-col items-start" style={item(s.file, 2)}>
-        <div className="flex w-[330px] items-center gap-3 rounded-[13px] border border-white/[0.08] bg-white/[0.04] px-3 py-2.5">
-          <span className="flex h-[34px] w-[30px] items-center justify-center rounded-[7px] text-[9px] font-bold text-white" style={{ background: EMBER }}>
+        <div className="flex w-[330px] items-center gap-3 rounded-[12px] border border-white/[0.08] bg-white/[0.04] px-3 py-2.5">
+          <span className="flex h-[34px] w-[30px] items-center justify-center rounded-[8px] text-[9px] font-bold text-white" style={{ background: EMBER }}>
             PDF
           </span>
           <span className="min-w-0 flex-1">
@@ -409,7 +409,7 @@ function PhoneConnect({ press }: { press: number }) {
       <p className="mt-2 text-[12.5px] leading-snug text-white/45">No app. No account. Nothing to install.</p>
 
       {/* discovery */}
-      <div className="mt-5 rounded-[15px] border border-white/[0.09] bg-white/[0.035] p-3">
+      <div className="mt-5 rounded-[16px] border border-white/[0.09] bg-white/[0.035] p-3">
         <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/40">
           <span className="relative flex h-[7px] w-[7px]">
             <span className="absolute inset-0 rounded-full" style={{ background: 'rgba(52,199,89,0.35)', transform: `scale(${1 + press * 2.2})` }} />
@@ -418,7 +418,7 @@ function PhoneConnect({ press }: { press: number }) {
           Nearby
         </div>
         <div className="mt-2.5 flex items-center gap-2.5">
-          <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] border border-white/[0.08] bg-white/[0.05]">
+          <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-white/[0.08] bg-white/[0.05]">
             <svg viewBox="0 0 16 16" className="h-[15px] w-[15px] text-white/75" fill="none" stroke="currentColor" strokeWidth="1.4">
               <rect x="2.6" y="3.6" width="10.8" height="7.2" rx="1.3" />
               <path d="M1 13h14" strokeLinecap="round" />
@@ -429,7 +429,7 @@ function PhoneConnect({ press }: { press: number }) {
             <span className="block text-[11px] leading-tight text-white/40">Same network · 1 m away</span>
           </span>
           <span
-            className="flex h-[30px] items-center rounded-[9px] px-3 text-[12px] font-semibold text-white"
+            className="flex h-[30px] items-center rounded-[8px] px-3 text-[12px] font-semibold text-white"
             style={{
               background: press > 0.05 ? '#d85a10' : EMBER,
               transform: `scale(${1 - 0.04 * press})`,
@@ -472,7 +472,7 @@ function PhoneRoom({ p }: { p: PhoneState }) {
   return (
     <>
       <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.07] px-3.5 py-2.5">
-        <span className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] border border-white/[0.09] bg-white/[0.05]">
+        <span className="flex h-[24px] w-[24px] items-center justify-center rounded-[8px] border border-white/[0.09] bg-white/[0.05]">
           <svg viewBox="0 0 16 16" className="h-[12px] w-[12px] text-white/70" fill="none" stroke="currentColor" strokeWidth="1.4">
             <rect x="4.6" y="1.6" width="6.8" height="12.8" rx="1.9" />
           </svg>
@@ -492,7 +492,7 @@ function PhoneRoom({ p }: { p: PhoneState }) {
         <div className="mb-2.5 text-center text-[10px] font-medium text-white/30">Connected · encrypted, device to device</div>
 
         <div className="flex flex-col items-end" style={row(p.text, 0)}>
-          <span className="max-w-[230px] rounded-[14px] rounded-br-[5px] px-3 py-2 text-[12.5px] leading-snug text-white" style={{ background: EMBER }}>
+          <span className="max-w-[230px] rounded-[12px] rounded-br-[5px] px-3 py-2 text-[12.5px] leading-snug text-white" style={{ background: EMBER }}>
             {NOTE}
           </span>
           <span className="mt-1 flex items-center gap-1 pr-1 text-[9.5px] text-white/30">
@@ -504,15 +504,15 @@ function PhoneRoom({ p }: { p: PhoneState }) {
         </div>
 
         <div className="flex flex-col items-end" style={row(p.photo, 1)}>
-          <span className="w-[168px] overflow-hidden rounded-[14px] rounded-br-[5px] border border-white/[0.1]">
+          <span className="w-[168px] overflow-hidden rounded-[12px] rounded-br-[5px] border border-white/[0.1]">
             <img src="/demo/photo-4x3.jpg" alt="Photo sent from the phone" className="block aspect-[4/3] w-full object-cover" />
           </span>
           <span className="mt-1 pr-1 text-[9.5px] text-white/30">9:41 · 2.4 MB</span>
         </div>
 
         <div className="flex flex-col items-end" style={row(p.file, 2)}>
-          <span className="flex w-[214px] items-center gap-2 rounded-[14px] rounded-br-[5px] border border-white/[0.1] bg-white/[0.06] px-2.5 py-2">
-            <span className="flex h-[26px] w-[23px] items-center justify-center rounded-[6px] text-[8px] font-bold text-white" style={{ background: EMBER }}>
+          <span className="flex w-[214px] items-center gap-2 rounded-[12px] rounded-br-[5px] border border-white/[0.1] bg-white/[0.06] px-2.5 py-2">
+            <span className="flex h-[26px] w-[23px] items-center justify-center rounded-[8px] text-[8px] font-bold text-white" style={{ background: EMBER }}>
               PDF
             </span>
             <span className="min-w-0 flex-1">
@@ -528,8 +528,8 @@ function PhoneRoom({ p }: { p: PhoneState }) {
       <div className="shrink-0 px-3 pb-3">
         <div style={{ opacity: p.attachOn, transform: `translateY(${(1 - p.attachOn) * 8}px)` }}>
           {p.attach === 'photo' && (
-            <div className="mb-2 flex items-center gap-2 rounded-[11px] border border-white/[0.09] bg-white/[0.04] p-2">
-              <img src="/demo/photo-4x3.jpg" alt="" className="h-[34px] w-[34px] rounded-[6px] object-cover" />
+            <div className="mb-2 flex items-center gap-2 rounded-[12px] border border-white/[0.09] bg-white/[0.04] p-2">
+              <img src="/demo/photo-4x3.jpg" alt="" className="h-[34px] w-[34px] rounded-[8px] object-cover" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[11px] font-semibold">Above the clouds.jpg</span>
                 <span className="block text-[9.5px] text-white/35">2.4 MB</span>
@@ -538,8 +538,8 @@ function PhoneRoom({ p }: { p: PhoneState }) {
             </div>
           )}
           {p.attach === 'file' && (
-            <div className="mb-2 flex items-center gap-2 rounded-[11px] border border-white/[0.09] bg-white/[0.04] p-2">
-              <span className="flex h-[26px] w-[23px] items-center justify-center rounded-[6px] text-[8px] font-bold text-white" style={{ background: EMBER }}>
+            <div className="mb-2 flex items-center gap-2 rounded-[12px] border border-white/[0.09] bg-white/[0.04] p-2">
+              <span className="flex h-[26px] w-[23px] items-center justify-center rounded-[8px] text-[8px] font-bold text-white" style={{ background: EMBER }}>
                 PDF
               </span>
               <span className="min-w-0 flex-1">
@@ -577,15 +577,15 @@ function PhoneRoom({ p }: { p: PhoneState }) {
 export function PacketCard({ kind, scale = 1 }: { kind: 'text' | 'photo' | 'file'; scale?: number }) {
   if (kind === 'photo') {
     return (
-      <div className="overflow-hidden rounded-[11px] border border-white/20 bg-[#16140f] shadow-[0_26px_60px_-14px_rgba(0,0,0,0.9)]" style={{ transform: `scale(${scale})` }}>
+      <div className="overflow-hidden rounded-[12px] border border-white/20 bg-[#16140f] shadow-[0_26px_60px_-14px_rgba(0,0,0,0.9)]" style={{ transform: `scale(${scale})` }}>
         <img src="/demo/photo-4x3.jpg" alt="" className="block aspect-[4/3] w-[126px] object-cover" />
       </div>
     );
   }
   if (kind === 'file') {
     return (
-      <div className="flex items-center gap-2 rounded-[11px] border border-white/20 bg-[#16140f] px-2.5 py-2 shadow-[0_26px_60px_-14px_rgba(0,0,0,0.9)]" style={{ transform: `scale(${scale})` }}>
-        <span className="flex h-[24px] w-[21px] items-center justify-center rounded-[5px] text-[8px] font-bold text-white" style={{ background: EMBER }}>
+      <div className="flex items-center gap-2 rounded-[12px] border border-white/20 bg-[#16140f] px-2.5 py-2 shadow-[0_26px_60px_-14px_rgba(0,0,0,0.9)]" style={{ transform: `scale(${scale})` }}>
+        <span className="flex h-[24px] w-[21px] items-center justify-center rounded-[8px] text-[8px] font-bold text-white" style={{ background: EMBER }}>
           PDF
         </span>
         <span className="text-[11px] font-semibold text-white/90">Q3-budget.pdf</span>

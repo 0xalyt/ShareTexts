@@ -96,7 +96,7 @@ function OverviewSection() {
           { icon: <Monitor className="w-5 h-5" />, title: 'Universal', desc: 'Any browser, any device. No install.' },
           { icon: <Lock className="w-5 h-5" />, title: 'Verified', desc: 'SHA-256 on every transfer. Bit-perfect.' },
         ].map((f, i) => (
-          <div key={i} className="flex gap-3.5 p-4 rounded-[14px] st-card">
+          <div key={i} className="flex gap-3.5 p-4 rounded-[12px] st-card">
             <div className="w-10 h-10 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center shrink-0 text-ember dark:text-azure-400">{f.icon}</div>
             <div>
               <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{f.title}</p>
@@ -286,7 +286,7 @@ function PrivacySection() {
           { icon: <Clock className="w-4 h-4" />, title: 'Temporary rooms', desc: 'Rooms expire automatically. Nothing you share is ever stored on our servers.' },
           { icon: <Check className="w-4 h-4" />, title: 'Verified transfers', desc: 'SHA-256 on every transfer. What you send is exactly what arrives.' },
         ].map((item, i) => (
-          <div key={i} className="flex gap-3.5 p-4 rounded-[14px] st-card">
+          <div key={i} className="flex gap-3.5 p-4 rounded-[12px] st-card">
             <div className="text-status-success shrink-0 mt-0.5">{item.icon}</div>
             <div>
               <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{item.title}</p>

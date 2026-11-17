@@ -351,7 +351,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={SPRING.panel}
-            className="w-full max-w-[560px] rounded-[20px] bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet overflow-hidden"
+            className="w-full max-w-[560px] rounded-[24px] bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet overflow-hidden"
             onPointerDown={(e) => e.stopPropagation()}
           >
             {statsOpen ? (
@@ -578,14 +578,14 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
       <div ref={bodyRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-4">
         {/* Lifetime totals */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="rounded-[14px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">              <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{fmtNumber(lang, totals.transfers)}</div>
+          <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">              <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{fmtNumber(lang, totals.transfers)}</div>
             <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.transfers')}</div>
           </div>
-          <div className="rounded-[14px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
+          <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
             <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{formatBytes(totals.bytes, 1)}</div>
             <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.dataMoved')}</div>
           </div>
-          <div className="rounded-[14px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
+          <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
             <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{speed(totals.bestBytesPerSec)}</div>
             <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.bestSpeed')}</div>
           </div>

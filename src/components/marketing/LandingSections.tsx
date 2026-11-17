@@ -33,7 +33,7 @@ import { LOOPS } from '../../lib/loops.generated';
  * designed. The heading alone carries the rank. */
 function SectionHead({ heading, id }: { heading: string; id?: string }) {
   return (
-    <div className="mb-7 max-w-[560px]">
+    <div className="mb-8 max-w-[560px]">
       <h2 id={id} className="st-h2 text-apple-ink dark:text-white">
         {heading}
       </h2>
@@ -52,7 +52,7 @@ const STORIES = [
 export function ThreeThings() {
   const { t } = useI18n();
   return (
-    <section aria-labelledby="how-title" className="w-full pt-14 pb-10">
+    <section aria-labelledby="how-title" className="w-full pt-16 pb-12">
       <SectionHead id="how-title" heading={t('home.three.heading')} />
       {/* Three stories. On phones each is a row (words left, recording right);
           from lg it becomes three columns with the recording on top.
@@ -116,7 +116,7 @@ const SMALL = [
 export function SmallThings() {
   const { t } = useI18n();
   return (
-    <section aria-labelledby="features-title" className="w-full py-10">
+    <section aria-labelledby="features-title" className="w-full py-16">
       <SectionHead id="features-title" heading={t('home.small.heading')} />
       <ul className="grid grid-cols-2 gap-x-6 gap-y-0 sm:grid-cols-4">
         {SMALL.map(({ key, Icon }) => (
@@ -161,7 +161,7 @@ export function LandingFaq() {
     { q: t('home.faq.q7'), a: t('home.faq.a7') },
   ];
   return (
-    <section aria-labelledby="faq-title" className="w-full py-10">
+    <section aria-labelledby="faq-title" className="w-full py-16">
       <FaqSection
         items={items}
         heading={t('home.faq.heading')}
@@ -197,10 +197,10 @@ export function LandingCta({
 }) {
   const { t } = useI18n();
   return (
-    <section aria-labelledby="cta-title" className="w-full py-12">
+    <section aria-labelledby="cta-title" className="w-full pt-16 pb-20">
       {/* A tone shift instead of a bordered card: the CTA is the last calm
           moment on the page, so it gets room, not a frame. */}
-      <div className="rounded-[24px] bg-apple-parchment/70 px-6 py-10 text-center dark:bg-white/[0.04] sm:py-12">
+      <div className="rounded-[24px] bg-apple-parchment/70 px-6 py-12 text-center dark:bg-white/[0.04] sm:py-16">
         <h2 id="cta-title" className="st-h2 text-apple-ink dark:text-white">
           {t('home.cta.heading')}
         </h2>

@@ -555,7 +555,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           // an auto-width box, so a child that refuses to shrink (a 140-char
           // URL, an unbroken word) sets its width from max-content and blows
           // past the 82% column — measured at 1022 px inside a 390 px phone.
-          "px-[15px] py-[10px] rounded-[18px] transition-shadow min-w-0 max-w-full",
+          "px-[15px] py-[10px] rounded-[16px] transition-shadow min-w-0 max-w-full",
           selected && "ring-2 ring-azure-500/60",
           isMe
             /* Sent: a real ember wash — the old #fff4ea was within two
@@ -1334,7 +1334,7 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
       // doing one job — the link now reads as a row inside the message, with
       // the hover tint doing the "clickable" talking.
       className={cn(
-        'group/link mt-0.5 -mx-1 block w-[calc(100%+0.5rem)] max-w-[calc(100%+0.5rem)] min-w-0 overflow-hidden rounded-[10px] px-1 transition-colors',
+        'group/link mt-0.5 -mx-1 block w-[calc(100%+0.5rem)] max-w-[calc(100%+0.5rem)] min-w-0 overflow-hidden rounded-[8px] px-1 transition-colors',
         onBlue
           ? 'hover:bg-black/[0.045] dark:hover:bg-white/[0.07]'
           : 'hover:bg-black/[0.035] dark:hover:bg-white/[0.06]'
@@ -1360,7 +1360,7 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
       <span className="flex items-center gap-2.5 py-1 min-h-[44px]">
         <span
           className={cn(
-            'shrink-0 w-9 h-9 rounded-[11px] flex items-center justify-center',
+            'shrink-0 w-9 h-9 rounded-[12px] flex items-center justify-center',
             onBlue
               ? 'bg-ember/15 text-brand-strong dark:bg-white/10 dark:text-azure-400'
               : 'bg-apple-blue/10 text-apple-blue dark:bg-white/[0.08] dark:text-azure-400',

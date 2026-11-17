@@ -72,7 +72,7 @@ function renderInline(text: string, keyBase: string, out: Node[]) {
     else if (isCode && code.length > 0) {
       node = React.createElement(
         'code',
-        { className: 'rounded-[5px] bg-black/[0.07] px-1 py-[1px] font-mono text-[0.92em] dark:bg-white/[0.12]' },
+        { className: 'rounded-[8px] bg-black/[0.07] px-1 py-[1px] font-mono text-[0.92em] dark:bg-white/[0.12]' },
         code,
       );
     } else if (isLink) {

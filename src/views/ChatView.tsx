@@ -1188,7 +1188,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               {/* The two devices — tap your name to rename; the other device
                   sees the change immediately. */}
               <div className="flex items-center gap-2">
-                <div className="flex-1 flex flex-col items-center gap-1 rounded-[14px] bg-ember/5 dark:bg-azure-400/5 border border-apple-divider/60 dark:border-apple-tile-3 p-2.5 min-w-0">
+                <div className="flex-1 flex flex-col items-center gap-1 rounded-[12px] bg-ember/5 dark:bg-azure-400/5 border border-apple-divider/60 dark:border-apple-tile-3 p-2.5 min-w-0">
                   <ThisDeviceIcon className="w-5 h-5 text-ember dark:text-azure-400" />
                   {editingName ? (
                     <input
@@ -1218,7 +1218,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   <span className="text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">{t('chat.you')}</span>
                 </div>
                 <ArrowRightLeft className="w-4 h-4 shrink-0 text-apple-ink-muted/40 dark:text-white/25" />
-                <div className="flex-1 flex flex-col items-center gap-1 rounded-[14px] bg-status-success/5 dark:bg-status-success/5 border border-apple-divider/60 dark:border-apple-tile-3 p-2.5 min-w-0">
+                <div className="flex-1 flex flex-col items-center gap-1 rounded-[12px] bg-status-success/5 dark:bg-status-success/5 border border-apple-divider/60 dark:border-apple-tile-3 p-2.5 min-w-0">
                   <PartnerDeviceIcon className="w-5 h-5 text-status-success" />
                   <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-full">
                     {session.partnerName || t('chat.pairedDevice')}
@@ -1603,8 +1603,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           )}
         </AnimatePresence>
         {dragOver && (
-          <div className="absolute inset-0 z-20 m-2 rounded-[20px] border-2 border-dashed border-ember dark:border-azure-400 bg-ember/10 dark:bg-azure-400/10 pointer-events-none flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2 px-8 py-6 bg-white dark:bg-surface-dark rounded-[20px] border border-ember/20 dark:border-azure-400/20">
+          <div className="absolute inset-0 z-20 m-2 rounded-[24px] border-2 border-dashed border-ember dark:border-azure-400 bg-ember/10 dark:bg-azure-400/10 pointer-events-none flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2 px-8 py-6 bg-white dark:bg-surface-dark rounded-[24px] border border-ember/20 dark:border-azure-400/20">
               <div className="w-12 h-12 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center">
                 <ArrowUp className="w-5 h-5 text-ember dark:text-azure-400" />
               </div>
@@ -1738,7 +1738,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                           className="relative shrink-0"
                         >
                           {a.type === 'video' && a.file && previewUrls.has(a.id) ? (
-                            <div className="relative w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[14px] overflow-hidden bg-black border border-apple-divider dark:border-apple-tile-3 shadow-sm">
+                            <div className="relative w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[12px] overflow-hidden bg-black border border-apple-divider dark:border-apple-tile-3 shadow-sm">
                               <video src={previewUrls.get(a.id)} muted playsInline preload="metadata" className="w-full h-full object-cover" />
                               <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                 <span className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center">
@@ -1747,11 +1747,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                               </span>
                             </div>
                           ) : a.type === 'image' && a.file && previewUrls.has(a.id) ? (
-                            <div className="w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[14px] overflow-hidden bg-apple-canvas dark:bg-black border border-apple-divider dark:border-apple-tile-3 shadow-sm">
+                            <div className="w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[12px] overflow-hidden bg-apple-canvas dark:bg-black border border-apple-divider dark:border-apple-tile-3 shadow-sm">
                               <DraggableImage src={previewUrls.get(a.id)!} name={a.name} className="w-full h-full object-cover" />
                             </div>
                           ) : (
-                            <div className="w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[14px] bg-apple-parchment dark:bg-surface-dark-2 border border-apple-divider dark:border-apple-tile-3 flex flex-col items-center justify-center gap-0.5 p-1.5">
+                            <div className="w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] rounded-[12px] bg-apple-parchment dark:bg-surface-dark-2 border border-apple-divider dark:border-apple-tile-3 flex flex-col items-center justify-center gap-0.5 p-1.5">
                               <FileTypeIcon name={a.name} mimeType={a.mimeType} size={15} />
                               <span className="text-[12px] font-medium text-apple-ink dark:text-white truncate max-w-full">{a.name}</span>
                               <span className="text-[9px] text-apple-ink-muted">{formatBytes(a.size)}</span>
@@ -1992,7 +1992,7 @@ function PairingMini({ secret, createdAt, className }: { secret: string, created
     return () => clearInterval(t);
   }, [secret, createdAt]);
   return (
-    <div className={cn("rounded-[14px] bg-apple-parchment/60 dark:bg-apple-tile-1 border border-apple-divider/60 dark:border-apple-tile-3 p-3", className)}>
+    <div className={cn("rounded-[12px] bg-apple-parchment/60 dark:bg-apple-tile-1 border border-apple-divider/60 dark:border-apple-tile-3 p-3", className)}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[12px] font-semibold tracking-widest uppercase text-apple-ink-muted">{t('details.rejoinLabel')}</span>
         <span className={cn("text-[12px] font-medium tnum", remaining <= 3 ? "text-status-danger" : "text-apple-ink-muted")}>

@@ -547,7 +547,7 @@ export function Sheet({
 
   const panelClass = [
     'relative w-full bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet sm:shadow-2xl',
-    'rounded-t-[24px] sm:rounded-[20px]',
+    'rounded-t-[24px] sm:rounded-[24px]',
     // touch-pan-y + overscroll-contain on BOTH presentations: without them a
     // downward pull from the top of the sheet turns into the browser's own
     // rubber-band / pull-to-refresh, the pointer stream is cancelled, and the

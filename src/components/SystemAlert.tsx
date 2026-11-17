@@ -70,7 +70,7 @@ export function SystemAlert({ tone = 'danger', icon = 'info', title, children, a
       exit={{ opacity: 0, y: -4 }}
       transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
       className={cn(
-        'flex items-start gap-3 rounded-[14px] border',
+        'flex items-start gap-3 rounded-[12px] border',
         compact ? 'p-3' : 'p-3.5',
         toneClasses.plate,
         className

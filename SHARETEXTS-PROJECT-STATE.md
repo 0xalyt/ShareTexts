@@ -52,12 +52,26 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `npm run verify:fast` | every non-browser gate in one command | **EXIT 0** (2026-11-17) |
 | `npm run verify:browser` | starts its own dev server on 3010, then typing, sheets, desktop, room-feed, no-flash, room-paint, chaos, key-at-rest | **GREEN ×3 consecutive** (2026-11-17, with `room-paint` in the list) |
 | `npm run verify:room-paint` | the room's first frame is the whole room (rail, room list, dock, composer in-frame at 1024 and 1440), CLS ≤ 0.02, no `fallback={null}` around a first-paint surface | **clean**; **7 failures on `0ebc470`'s shape** (H1 report) |
-| `npm run verify:layout` | desktop + sheets + no-flash + room-paint, own dev server | **GREEN** — runs in `.githooks/pre-push` when `src/` or `public/` changes |
+| `npm run verify:layout` | desktop + sheets + no-flash + room-paint + basics, own dev server | **GREEN** — runs in `.githooks/pre-push` when `src/` or `public/` changes |
+| `npm run verify:basics` | hero ≥ 44 px at 1440 and ≥ 34 px on a phone, headings ≥ 30 px and below the hero, ≤ 4 corner radii on the landing, sections share one left edge (±2 px) and width, padding on a 4 px grid, seams ≥ 48 px, CTA ≥ 48 px, no phone overflow | **clean** (2026-11-17) |
+| `npm run verify:seo` | builds, serves dist, then crawler + browser checks across `/`, `/docs`, `/privacy`, `/terms`, `/about`, `/404`, guides, sitemap, robots, JSON-LD and llms.txt | **115 passed, 0 failed** (2026-11-17) |
 | `npm run verify:totp-parity` | the hand-written client TOTP equals node:crypto, the Worker and otpauth | **5/5** |
 
 ## 5. Known debt (ordered by what it costs the owner)
 
-0. **H1 (2026-11-17): the desktop rail was lazy-loaded and vanished at 1024 px.**
+0. **Basics pass (2026-11-17): fifteen corner radii became four, one heading
+   scale, one section rhythm.** The app shipped `rounded-[5px]` through
+   `rounded-[44px]` — thirteen arbitrary values plus Tailwind's two — and the
+   FAQ was a `<section>` inside a `<section>` with the same `aria-labelledby`,
+   which is why its content column sat 416 px narrower than its neighbours.
+   Now: 8/12/16/24 px only (DESIGN.md §0.12), hero 52 px at 1440 and 35 px on a
+   phone, section headings 38 px, sections all on one column and a 4 px grid.
+   `npm run verify:basics` holds the line; it runs in `verify:layout`.
+   SEO side: the three prerendered routes gained `BreadcrumbList` (the 24
+   guides already had it), `verify:seo` is now an npm script that builds and
+   serves `dist/` itself instead of waiting for a server by hand, and its hero
+   H1 assertion no longer looks for copy the hero stopped using.
+ **H1 (2026-11-17): the desktop rail was lazy-loaded and vanished at 1024 px.**
    `0ebc470` moved `RoomRail` and `PresenceDock` behind `lazy()` with
    `Suspense fallback={null}` to trim the entry chunk; for a frame or two the
    desktop room had no rail, no room list and no way out. Fixed by static

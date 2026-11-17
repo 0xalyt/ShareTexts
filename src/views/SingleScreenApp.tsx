@@ -1147,7 +1147,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {showInAppNotice && (
                 <div
                   data-testid="inapp-notice"
-                  className="order-0 mb-4 flex items-center gap-3 rounded-[14px] bg-apple-parchment dark:bg-white/[0.06] px-3.5 py-2.5"
+                  className="order-0 mb-4 flex items-center gap-3 rounded-[12px] bg-apple-parchment dark:bg-white/[0.06] px-3.5 py-2.5"
                 >
                   <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70">
                     {inApp.ios ? t('inapp.ios') : t('inapp.line')}
@@ -2379,7 +2379,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <p className="text-[13px] text-apple-ink-muted dark:text-white/60 mb-4 leading-relaxed">
                 {(() => { const parts = t('qr.display.body', { receive: '\u0000' }).split('\u0000'); return (<>{parts[0]}<strong className="text-apple-ink dark:text-white">{t('qr.display.receive')}</strong>{parts[1]}</>); })()}
               </p>
-              <div className="w-fit mx-auto mb-5 rounded-[28px] relative shadow-[0_22px_46px_-26px_rgba(11,11,12,0.6)] ring-1 ring-black/[0.06] dark:ring-white/10">
+              <div className="w-fit mx-auto mb-5 rounded-[24px] relative shadow-[0_22px_46px_-26px_rgba(11,11,12,0.6)] ring-1 ring-black/[0.06] dark:ring-white/10">
                 <QROverlayInner value={qrValue} label={t('qr.art.label')} />
               </div>
               {/* Copy + Share, side by side: the two things anyone actually

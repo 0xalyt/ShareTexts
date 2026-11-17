@@ -37,7 +37,7 @@ function ConfirmActions({
       <button
         type="button"
         onClick={gate(onCancel)}
-        className="w-full min-h-[46px] rounded-[14px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[16px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.96] disabled:opacity-60"
+        className="w-full min-h-[46px] rounded-[12px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[16px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.96] disabled:opacity-60"
         disabled={!isPresent}
       >
         {cancelLabel}
@@ -50,8 +50,8 @@ function ConfirmActions({
         disabled={!isPresent}
         className={
           destructive
-            ? 'w-full min-h-[46px] rounded-[14px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.96] disabled:opacity-60'
-            : 'w-full min-h-[46px] rounded-[14px] bg-ember hover:bg-brand-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.96] disabled:opacity-60'
+            ? 'w-full min-h-[46px] rounded-[12px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.96] disabled:opacity-60'
+            : 'w-full min-h-[46px] rounded-[12px] bg-ember hover:bg-brand-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.96] disabled:opacity-60'
         }
       >
         {confirmLabel}

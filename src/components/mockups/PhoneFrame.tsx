@@ -55,7 +55,7 @@ export function PhoneFrame({
           role="img"
           aria-label={label}
           className={cn(
-            'relative aspect-[9/19.5] w-full overflow-hidden rounded-[20px] sm:rounded-[24px]',
+            'relative aspect-[9/19.5] w-full overflow-hidden rounded-[24px] sm:rounded-[24px]',
             'bg-apple-canvas ring-1 ring-black/20 dark:bg-night-900 dark:ring-white/[0.08]',
           )}
         >

@@ -265,7 +265,7 @@ export function LanguageMenu({
             role="listbox"
             aria-label={t('lang.menu')}
             className={cn(
-              'absolute top-[calc(100%+6px)] z-50 mt-1 w-44 rounded-[14px] bg-white dark:bg-surface-dark border border-apple-divider dark:border-apple-tile-3 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] p-1.5 max-h-[min(60vh,calc(100dvh-96px))] overflow-y-auto overscroll-contain',
+              'absolute top-[calc(100%+6px)] z-50 mt-1 w-44 rounded-[12px] bg-white dark:bg-surface-dark border border-apple-divider dark:border-apple-tile-3 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] p-1.5 max-h-[min(60vh,calc(100dvh-96px))] overflow-y-auto overscroll-contain',
               align === 'right' ? 'right-0' : 'left-0',
             )}
           >

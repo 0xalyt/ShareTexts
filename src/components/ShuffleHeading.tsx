@@ -104,7 +104,7 @@ export function ShuffleHeading({ className }: { className?: string }) {
 
   return (
     <h1
-      className={`st-display text-[clamp(29px,7.6vw,44px)] sm:text-[clamp(32px,3.6vw,44px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}
+      className={`st-display text-[clamp(34px,9vw,46px)] sm:text-[clamp(34px,4vw,52px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}
     >
       <span className="sr-only">Share anything between any devices easily.</span>
       <span aria-hidden className="flex flex-col items-center">

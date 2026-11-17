@@ -48,7 +48,7 @@ export function TypingGhostBubble({ align }: { align: 'left' | 'right' }) {
       className={align === 'right' ? 'flex w-full justify-end pr-1' : 'flex w-full justify-start'}
       aria-hidden
     >
-      <div className="st-card flex items-center gap-[3px] rounded-[18px] px-3.5 py-2.5 text-apple-ink-muted dark:text-white/60">
+      <div className="st-card flex items-center gap-[3px] rounded-[16px] px-3.5 py-2.5 text-apple-ink-muted dark:text-white/60">
         <TypingDots />
         <span className="sr-only">{t('chat.typing')}</span>
       </div>

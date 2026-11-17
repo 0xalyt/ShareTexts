@@ -28,6 +28,7 @@ const GATES = [
   ['room-feed', 'verify-room-feed.mjs'],
   ['no-flash', 'verify-no-flash.mjs'],
   ['room-paint', 'verify-room-paint.mjs'],
+  ['basics', 'verify-basics.mjs'],
   ['chaos', 'verify-chaos.mjs'],
   ['key-at-rest', 'verify-key-at-rest.mjs'],
 ];

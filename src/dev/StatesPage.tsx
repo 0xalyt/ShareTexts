@@ -15,7 +15,7 @@ function Frame({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted dark:text-white/40">
         {label}
       </span>
-      <div className="st-card overflow-hidden rounded-[20px] border border-black/[0.07] bg-apple-canvas dark:border-white/10 dark:bg-apple-tile-1">
+      <div className="st-card overflow-hidden rounded-[24px] border border-black/[0.07] bg-apple-canvas dark:border-white/10 dark:bg-apple-tile-1">
         <div className="border-b border-apple-divider/70 px-6 py-3 dark:border-white/[0.07]">
           <p className="text-[17px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">Saved items</p>
         </div>

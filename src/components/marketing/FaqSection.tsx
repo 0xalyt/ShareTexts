@@ -61,7 +61,7 @@ export function FaqSection({
   const panelId = (i: number) => `faq-panel-${i}`;
 
   return (
-    <section className={cn('w-full', className)} aria-labelledby="faq-title">
+    <div className={cn('w-full', className)}>
       {heading ? (
         <div className="mb-5 max-w-[560px]">
           <h2
@@ -167,7 +167,7 @@ export function FaqSection({
           );
         })}
       </ul>
-    </section>
+    </div>
   );
 }
 

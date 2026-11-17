@@ -33,7 +33,7 @@ export function ArtPage() {
           const Scene = SCENES[key];
           return (
             <figure key={key} className="flex flex-col gap-2">
-              <div className="flex items-center justify-center rounded-[14px] border border-apple-divider bg-white p-3 text-apple-ink dark:border-white/10 dark:bg-night-800 dark:text-white">
+              <div className="flex items-center justify-center rounded-[12px] border border-apple-divider bg-white p-3 text-apple-ink dark:border-white/10 dark:bg-night-800 dark:text-white">
                 <Scene />
               </div>
               <figcaption className="text-[12px] leading-snug text-apple-ink-muted dark:text-white/55">
@@ -48,7 +48,7 @@ export function ArtPage() {
 
       {/* Dark plate: the same eight on the dark surface, because the palette is
           two sets of four and only a look can confirm they match. */}
-      <div className="rounded-[18px] bg-night-900 p-6">
+      <div className="rounded-[16px] bg-night-900 p-6">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           {NAMES.map(({ key }) => {
             const Scene = SCENES[key];

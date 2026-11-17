@@ -293,6 +293,39 @@ const docsMain = `
             <li><a href="/about">About ShareTexts</a> — what it is, what it transfers, supported devices.</li>
           </ul>`;
 
+
+// ---------------------------------------------------------------------------
+// Breadcrumbs. The 24 static guides already carry BreadcrumbList; the four
+// prerendered SPA routes did not, so a crawler reading /docs or /privacy saw a
+// page with no position in the site — the one signal that turns a set of URLs
+// into a hierarchy, and the one Google renders in a result instead of a raw
+// URL. Trails are the real navigation the site has: Home -> Docs, and
+// Home -> Legal -> Privacy. /404 is in no trail and gets none.
+// ---------------------------------------------------------------------------
+const SITE_ORIGIN = 'https://sharetexts.online';
+function breadcrumbLd(trail) {
+  const items = [{ name: 'ShareTexts', path: '/' }, ...trail];
+  const last = items[items.length - 1];
+  const rows = items.map((item, i) => [
+    '            {',
+    '              "@type": "ListItem",',
+    '              "position": ' + (i + 1) + ',',
+    '              "name": ' + JSON.stringify(item.name) + ',',
+    '              "item": "' + SITE_ORIGIN + item.path + '"',
+    '            }',
+  ].join('\n')).join(',\n');
+  return [
+    '{',
+    '          "@type": "BreadcrumbList",',
+    '          "@id": "' + SITE_ORIGIN + last.path + '#breadcrumb",',
+    '          "itemListElement": [',
+    rows,
+    '          ]',
+    '        }',
+  ].join('\n');
+}
+
+
 const docsJsonLd = `
     <script type="application/ld+json">
     {
@@ -307,6 +340,7 @@ const docsJsonLd = `
           "about": { "@id": "https://sharetexts.online/#application" },
           "inLanguage": "en"
         },
+        ${breadcrumbLd([{ name: 'Docs', path: '/docs' }])},
         {
           "@type": "FAQPage",
           "@id": "https://sharetexts.online/docs#faq",
@@ -337,6 +371,24 @@ emit('docs.html', {
 // ---------------------------------------------------------------------------
 // /privacy and /terms — faithful plain-HTML renderings of src/views/Legal.tsx.
 // ---------------------------------------------------------------------------
+const privacyLd = `
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://sharetexts.online/privacy#webpage",
+          "url": "https://sharetexts.online/privacy",
+          "name": "Privacy Policy — ShareTexts",
+          "isPartOf": { "@id": "https://sharetexts.online/#website" },
+          "inLanguage": "en"
+        },
+        ${breadcrumbLd([{ name: 'Legal', path: '/privacy' }, { name: 'Privacy Policy', path: '/privacy' }])}
+      ]
+    }
+    </script>`;
+
 const privacyMain = `
           <h2>The short version</h2>
           <p>ShareTexts moves text, photos, and files directly between <strong>your</strong> devices. Your content is end-to-end encrypted, travels peer-to-peer, and is never stored on our servers. When the room closes, everything is gone.</p>
@@ -369,7 +421,26 @@ emit('privacy.html', {
     main: privacyMain,
     footerNote: 'Last updated: September 2026',
   }),
+  jsonLd: privacyLd,
 });
+
+const termsLd = `
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://sharetexts.online/terms#webpage",
+          "url": "https://sharetexts.online/terms",
+          "name": "Terms of Use — ShareTexts",
+          "isPartOf": { "@id": "https://sharetexts.online/#website" },
+          "inLanguage": "en"
+        },
+        ${breadcrumbLd([{ name: 'Legal', path: '/privacy' }, { name: 'Terms of Use', path: '/terms' }])}
+      ]
+    }
+    </script>`;
 
 const termsMain = `
           <h2>Using ShareTexts</h2>
@@ -402,6 +473,7 @@ emit('terms.html', {
     main: termsMain,
     footerNote: 'Last updated: September 2026',
   }),
+  jsonLd: termsLd,
 });
 
 // ---------------------------------------------------------------------------

@@ -126,7 +126,7 @@ export function SkeletonScreen({ variant = 'room' }: { variant?: SkeletonVariant
           {/* Composer: the same three pieces, in the same places. */}
           <div className="flex items-center gap-2 px-4 pb-5">
             <Bar className="h-11 w-11 shrink-0 !rounded-full" />
-            <Bar className="h-11 flex-1 !rounded-[20px]" />
+            <Bar className="h-11 flex-1 !rounded-[24px]" />
             <Bar className="h-11 w-11 shrink-0 !rounded-full" />
           </div>
         </div>
