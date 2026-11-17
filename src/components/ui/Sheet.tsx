@@ -582,7 +582,7 @@ export function Sheet({
           onClick={onClose}
           aria-label={t('common.close')}
           data-sheet-no-drag
-          className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.97] transition-all"
+          className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
         >
           <X className="w-4 h-4" />
         </button>

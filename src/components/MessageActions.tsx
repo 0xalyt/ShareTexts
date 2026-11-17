@@ -126,7 +126,7 @@ export function MessageActions({
             onPointerDown={(e) => { e.preventDefault(); onReact(emoji); onClose(); }}
             aria-label={t('msg.reactWith', { emoji })}
             data-testid={`tapback-${emoji}`}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-[19px] leading-none transition-transform active:scale-[0.97] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[19px] leading-none transition-transform active:scale-[0.96] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
           >
             {emoji}
           </button>

@@ -149,7 +149,7 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
           aria-label={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           title={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           data-testid={`reaction-chip-${emoji}`}
-          className="group/chip flex items-center justify-center min-h-[40px] min-w-[40px] px-0.5 transition-motion active:scale-[0.97]"
+          className="group/chip flex items-center justify-center min-h-[40px] min-w-[40px] px-0.5 transition-motion active:scale-[0.96]"
         >
           {/* The hit box is 40px; the VISIBLE pill stays 26px inside it. The
               touch contract and the visual weight are both satisfied — a
@@ -583,7 +583,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               // language without spaces) breaks instead of pushing the bubble
               // past the reading column. It only fires when there is no other
               // place to break, so ordinary sentences are untouched.
-              "text-[16px] whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere]",
+              "text-[16px] whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere] st-verbatim",
               isStructured
                 ? // Code / table shape: monospace + pre + horizontal scroll.
                   // overflow-x keeps columns aligned instead of wrapping and
@@ -627,7 +627,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 </span>
                 <button
                   onPointerDown={(e) => { e.preventDefault(); void retryText(msg.id); }}
-                  className="st-tap flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-[0.97] bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
+                  className="st-tap flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-[0.96] bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
                 >
                   <RefreshCw className="w-3 h-3" /> {t('action.retry')}
                 </button>
@@ -663,7 +663,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   aria-label={t('msg.copyMessage')}
                   title={t('msg.copy')}
                   className={cn(
-                    "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] -mr-[13px] rounded-full transition-motion active:scale-[0.97]",
+                    "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] -mr-[13px] rounded-full transition-motion active:scale-[0.96]",
                     copied
                       ? "text-status-success"
                       : "text-apple-ink-muted hover:text-apple-ink dark:hover:text-white hover:bg-apple-divider/60 dark:hover:bg-apple-tile-3"
@@ -765,7 +765,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             <div
               dir={hasStrongRtl(msg.text) ? 'rtl' : undefined}
               style={{ unicodeBidi: 'plaintext' }}
-              className="px-4 py-3 text-[16px] whitespace-pre-wrap leading-relaxed break-words text-apple-ink dark:text-white"
+              className="px-4 py-3 text-[16px] whitespace-pre-wrap leading-relaxed break-words text-apple-ink dark:text-white st-verbatim"
             >
               {/* A caption that is exactly one URL renders as the same link
                   card ("paste URL → LINK") — on a text-less attachment that
@@ -1091,7 +1091,7 @@ function BookmarkButton({ msg }: { msg: ChatMessage }) {
         disabled={bm.busy}
         data-testid="save-item"
         className={cn(
-          "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] rounded-full transition-motion active:scale-[0.97]",
+          "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] rounded-full transition-motion active:scale-[0.96]",
           bm.error
             ? "text-status-danger"
             : bm.saved
@@ -1275,7 +1275,7 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
       <button
         onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
         aria-label={t('common.close')}
-        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-[0.97]"
+        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-[0.96]"
       >
         <X className="w-5 h-5" />
       </button>

@@ -132,7 +132,7 @@ function SavedImageViewer({ item, onClose }: { item: SavedItem; onClose: () => v
           type="button"
           onClick={onClose}
           aria-label={t('common.close')}
-          className="shrink-0 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.97] transition-all"
+          className="shrink-0 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
         >
           <X className="w-4 h-4" />
         </button>
@@ -606,7 +606,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
             onClick={onClose}
             aria-label={t('common.close')}
             data-testid="saved-close"
-            className="shrink-0 -mt-1 -mr-1 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.97] transition-all"
+            className="shrink-0 -mt-1 -mr-1 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <X className="w-4 h-4" />
           </button>

@@ -440,7 +440,7 @@ export function OtpInput({
                       transition={reduceMotion ? { duration: 0 } : ROLL_SPRING}
                       data-slot="otp-input-char"
                       className={cn(
-                        'font-bold tracking-tight leading-none select-none',
+                        'font-bold tracking-tight leading-none select-none st-code',
                         status === 'success'
                           ? 'text-white'
                           : 'text-apple-ink dark:text-white',

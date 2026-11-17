@@ -80,6 +80,25 @@
     U+2000-206F, U+20A0-20AB, U+20AC, U+2113, U+2122, U+2190-21FF, U+2212, U+2215,
     U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
 }
+/* Allo's true obliques (post.italicAngle -9°, not a browser shear). The
+   editor has an italic action and the marketing copy uses it, so the old
+   behaviour — font-synthesis skewing the roman — was a visible fake. Two
+   static cuts cover roman-weight italic and semibold italic; they download
+   only when italic text is actually painted. */
+@font-face {
+  font-family: "Allo";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/AlloOblique.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Allo";
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/AlloSemiBoldOblique.woff2") format("woff2");
+}
 @font-face {
   font-family: "Inter";
   font-style: normal;
@@ -355,6 +374,36 @@
     }
   }
 
+  /* Allo draws Latin and the Latin extended set (606 glyphs, no Cyrillic, no
+     Arabic, no Devanagari, no CJK). We ship eleven locales, four of which are
+     those scripts. Without the rules below a Japanese line renders its kanji
+     from Hiragino and its Latin words and digits from Allo — the mixed-family
+     seam you notice before you can name it, and the reason "just add the
+     font" is not the same as using it. Each script leads with a face that has
+     the whole line, so a sentence is one family again; Allo stays the face of
+     every Latin locale. The stacks are system-first on purpose: a CJK webfont
+     is megabytes, and this app already spends 229 KB on its Latin face. */
+  html:lang(ar) {
+    --font-sans: "SF Arabic", "Geeza Pro", "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+    --font-display: "SF Arabic", "Geeza Pro", "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  }
+  html:lang(hi) {
+    --font-sans: "Kohinoor Devanagari", "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif;
+    --font-display: "Kohinoor Devanagari", "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif;
+  }
+  html:lang(ja) {
+    --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", Meiryo, sans-serif;
+    --font-display: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", Meiryo, sans-serif;
+  }
+  html:lang(zh-Hans) {
+    --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    --font-display: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  }
+  html:lang(zh-Hant) {
+    --font-sans: "PingFang TC", "Hiragino Sans CNS", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+    --font-display: "PingFang TC", "Hiragino Sans CNS", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  }
+
   body {
     @apply font-sans antialiased;
     font-size: 16px;
@@ -373,6 +422,7 @@
     font-optical-sizing: auto;
     font-feature-settings: "ss02" 1, "case" 1, "calt" 1;
     font-synthesis-weight: none;
+    font-synthesis-style: none;
     font-variant-ligatures: common-ligatures contextual;
     text-rendering: optimizeLegibility;
     color: var(--color-text);
@@ -568,20 +618,39 @@
      exceeds 400. SF Display at 700 is a *narrower* stroke than SF Text at
      700 — pinning tracking to size is what keeps the top of the ramp from
      reading as merely "big and bold". */
-  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.036em; line-height: 1.03; text-wrap: balance; }
-  .st-h2      { font-size: clamp(26px, 3.2vw, 34px); font-weight: 680; letter-spacing: -0.033em; line-height: 1.1; text-wrap: balance; }
-  .st-h3      { font-size: 22px;   font-weight: 650; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; }
+  /* Headlines sit on the display drawing (opsz 32) even when the clamp lands
+     under 32 px, and small type sits on the text drawing (opsz 11) — Allo's
+     axes are the whole reason the ramp is legible at both ends. */
+  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.036em; line-height: 1.03; text-wrap: balance; font-variation-settings: "opsz" 32; }
+  .st-h2      { font-size: clamp(26px, 3.2vw, 34px); font-weight: 680; letter-spacing: -0.033em; line-height: 1.1; text-wrap: balance; font-variation-settings: "opsz" 32; }
+  .st-h3      { font-size: 22px;   font-weight: 650; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; font-variation-settings: "opsz" 32; }
   .st-title   { font-size: 16px;   font-weight: 620; letter-spacing: -0.019em; line-height: 1.25; }
   .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; }
   .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; }
-  .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: -0.01em; line-height: 1.55; }
+  .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: -0.01em; line-height: 1.55; text-wrap: pretty; }
   .st-support { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.45; }
-  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.35; }
+  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.35; font-variation-settings: "opsz" 11; }
   /* Numbers get their own role because they are read differently: counts, sizes,
      timers and codes must not reflow when a digit changes. Tabular figures are
      the whole point of the role — a proportional 1 is narrower than a 6, and a
      counter that jitters on every update is the tell. */
   .st-numeric { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+  /* User text is not styled text. The old build ran contextual alternates over
+     everything, so a typed `->` painted as an arrow and a bracket beside a
+     figure lifted — in a product whose job is to carry exactly what someone
+     typed, a rendering that quietly disagrees with the clipboard is a bug, not
+     a flourish. Everything that renders another person's characters opts out:
+     message bodies, drafts, the code field. */
+  .st-verbatim {
+    font-variant-ligatures: no-contextual;
+    font-feature-settings: "ss02" 1, "case" 1, "calt" 0, "liga" 0;
+  }
+  /* Codes are read aloud and typed back: tabular, with a slashed zero so 0 and
+     O never become the same character in a six-digit pairing code. */
+  .st-code {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "zero" 1, "ss02" 1;
+  }
 
   /* Quiet section labels use sentence case and a small size step rather than
      shouting in all caps. One weight, tracking, and color across the app.

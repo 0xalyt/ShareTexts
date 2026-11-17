@@ -215,7 +215,7 @@ export function InstallNudge() {
                     if (!shown) silenceInstall(true);
                     setVisible(false);
                   }}
-                  className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-ember px-3.5 text-[12px] font-semibold text-white transition-transform active:scale-[0.97]"
+                  className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-ember px-3.5 text-[12px] font-semibold text-white transition-transform active:scale-[0.96]"
                 >
                   <Download className="h-3.5 w-3.5" aria-hidden />
                   {t('install.cta')}

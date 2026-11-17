@@ -183,7 +183,7 @@ export function IntentField({
             'group relative flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-full',
             'sm:w-auto sm:px-4',
             'text-[13px] font-semibold whitespace-nowrap',
-            'transition-all duration-200 active:scale-[0.97]',
+            'transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 active:scale-[0.96]',
             'disabled:opacity-60 disabled:active:scale-100',
             intent.kind === 'join'
               ? 'bg-ember text-white shadow-[0_1px_3px_rgba(240,100,19,0.35)] hover:bg-brand-strong'

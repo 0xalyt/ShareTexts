@@ -196,7 +196,7 @@ export function SendScreen({
                       <span
                         key={`${start}-${i}-${d}`}
                         aria-hidden
-                        className="font-bold tabular-nums leading-none text-[44px] sm:text-[48px] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[30px]"
+                        className="font-bold st-code leading-none text-[44px] sm:text-[48px] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[30px]"
                       >
                         {d}
                       </span>

@@ -25,7 +25,7 @@ const pillGhost = cn(
   'flex items-center gap-1.5 px-3.5 py-2 rounded-full',
   'bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10',
   'hover:bg-apple-parchment dark:hover:bg-white/[0.08] text-apple-ink dark:text-white',
-  'text-[13px] font-semibold active:scale-[0.97] transition-all',
+  'text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]',
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-azure-500'
 );
 /**
@@ -690,7 +690,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                          two never read as the same thing at a glance. */
                       'st-card',
                       'hover:border-ember/45 dark:hover:border-azure-400/50',
-                      'active:scale-[0.97] transition-all',
+                      'active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]',
                       'disabled:opacity-50 disabled:pointer-events-none',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark',
                       'focus-visible:transition-colors' // smoother focus state
@@ -778,7 +778,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
                   transition={{ type: 'spring', bounce: 0, duration: 0.32 }}
-                  className="group flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[16px] text-left st-tile opacity-90 transition-all"
+                  className="group flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[16px] text-left st-tile opacity-90 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                 >
                   <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/40">
                     <DeviceArt kind={kindFromName(r.name)} size={36} className="opacity-80" />
@@ -793,7 +793,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                     type="button"
                     onClick={() => { forgetRecentDevice(r.token); setRecents(getRecentDevices()); }}
                     aria-label={t('nearby.forget')}
-                    className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 dark:text-white/30 hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.97] transition-all opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
+                    className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 dark:text-white/30 hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -924,7 +924,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                         type="button"
                         data-testid="nearby-fail-retry"
                         onClick={() => { void handleInvite(failedDevice); }}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-all min-h-[44px]"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] min-h-[44px]"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> {t('nearby.failRetry')}
                       </button>

@@ -151,7 +151,7 @@ export function ShareMenu({
         aria-label={ariaLabel ?? t('space.share')}
         onClick={() => setOpen(o => !o)}
         className={cn(
-          'flex items-center justify-center transition-colors active:scale-[0.97]',
+          'flex items-center justify-center transition-colors active:scale-[0.96]',
           variant === 'pill'
             ? cn(
                 'gap-2 h-11 w-full px-5 rounded-full text-[13px] font-semibold',
@@ -203,7 +203,7 @@ export function ShareMenu({
                     onClick={cell.onClick}
                     className={cn(
                       'flex-1 min-w-0 min-h-[48px] flex flex-col items-center justify-center gap-1.5 px-1 py-2 rounded-[12px]',
-                      'text-apple-ink dark:text-white/85 transition-colors active:scale-[0.97]',
+                      'text-apple-ink dark:text-white/85 transition-colors active:scale-[0.96]',
                       cell.id === 'code' && done === 'code'
                         ? 'bg-status-success/10 text-status-success'
                         : 'hover:bg-apple-parchment dark:hover:bg-white/[0.07]'
@@ -225,7 +225,7 @@ export function ShareMenu({
               onClick={() => { void copy(url, 'link'); }}
               className={cn(
                 'mt-2 w-full min-h-[40px] flex items-center justify-center gap-2 rounded-[12px] border px-3 py-2',
-                'text-[12px] font-semibold transition-colors active:scale-[0.97]',
+                'text-[12px] font-semibold transition-colors active:scale-[0.96]',
                 done === 'link'
                   ? 'border-status-success/40 bg-status-success/10 text-status-success'
                   : 'border-apple-divider dark:border-white/10 text-apple-ink dark:text-white/85 hover:bg-apple-parchment dark:hover:bg-white/[0.07]'

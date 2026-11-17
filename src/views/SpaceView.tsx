@@ -716,7 +716,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               )}
               <button
                 onClick={() => void copy('code')}
-                className="flex-1 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold bg-apple-ink dark:bg-white text-white dark:text-night-900 active:scale-[0.97] transition-transform"
+                className="flex-1 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold bg-apple-ink dark:bg-white text-white dark:text-night-900 active:scale-[0.96] transition-transform"
                 data-testid="space-share-copy-code"
               >
                 {copied === 'code' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -746,7 +746,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               onFocus={e => e.currentTarget.select()}
               className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink-muted dark:text-white/70 font-mono truncate"
             />
-            <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[42px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-transform">
+            <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[42px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform">
               {copied === 'link' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               {copied === 'link' ? t('space.copied') : t('space.copyLink')}
             </button>
@@ -941,7 +941,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           )}
           <button
             onClick={() => setShareOpen(true)}
-            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.97] transition-transform"
+            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform"
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -1129,7 +1129,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             onClick={submitText}
             disabled={!composer.trim()}
             aria-label={t('space.addText')}
-            className="shrink-0 w-11 h-11 rounded-full bg-ember text-white flex items-center justify-center disabled:opacity-40 active:scale-[0.97] transition-transform"
+            className="shrink-0 w-11 h-11 rounded-full bg-ember text-white flex items-center justify-center disabled:opacity-40 active:scale-[0.96] transition-transform"
             data-testid="space-send"
           >
             <ArrowUp className="w-5 h-5" strokeWidth={2.4} />

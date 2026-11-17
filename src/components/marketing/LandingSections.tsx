@@ -213,7 +213,7 @@ export function LandingCta({
             onClick={onSend}
             data-testid="cta-send"
             className={cn(
-              'inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-[16px] font-semibold text-white active:scale-[0.97] transition-motion',
+              'inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-[16px] font-semibold text-white active:scale-[0.96] transition-motion',
               'bg-apple-ink hover:bg-apple-ink/90 dark:bg-white dark:text-night-900 dark:hover:bg-white/90',
             )}
           >
@@ -224,7 +224,7 @@ export function LandingCta({
             onClick={onReceive}
             data-testid="cta-receive"
             className={cn(
-              'inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-[16px] font-semibold border active:scale-[0.97] transition-motion',
+              'inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-[16px] font-semibold border active:scale-[0.96] transition-motion',
               'border-apple-divider bg-white text-apple-ink hover:border-apple-ink/25',
               'dark:border-white/[0.14] dark:bg-white/[0.05] dark:text-white dark:hover:border-white/30',
             )}

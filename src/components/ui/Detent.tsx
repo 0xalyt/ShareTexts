@@ -228,7 +228,7 @@ export function Announcement({
       onPointerLeave={() => setNear(false)}
       onFocus={() => setNear(true)}
       onBlur={() => setNear(false)}
-      className={`st-announce group relative inline-flex h-9 max-w-full items-center rounded-full border border-black/[0.08] bg-white pl-1 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-20px_rgba(0,0,0,0.35)] transition-[border-color,box-shadow,transform] duration-200 active:scale-[0.97] dark:border-white/[0.13] dark:bg-white/[0.07] dark:shadow-[0_9px_26px_-18px_rgba(0,0,0,0.9)] ${className ?? ''}`}
+      className={`st-announce group relative inline-flex h-9 max-w-full items-center rounded-full border border-black/[0.08] bg-white pl-1 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-20px_rgba(0,0,0,0.35)] transition-[border-color,box-shadow,transform] duration-200 active:scale-[0.96] dark:border-white/[0.13] dark:bg-white/[0.07] dark:shadow-[0_9px_26px_-18px_rgba(0,0,0,0.9)] ${className ?? ''}`}
     >
       <style>{RING_CSS}</style>
       <span

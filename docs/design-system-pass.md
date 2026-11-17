@@ -24,6 +24,8 @@ the reason Allo was chosen over a display/body pairing.
 | Numeric | `.st-numeric` | inherits size · tabular figures | every count, size, timer, code |
 | Eyebrow | `.st-eyebrow` | 12 px · 600 · 0.06em | reserved; see the rule below |
 
+Allo's own axes and features are used deliberately — true obliques, `opsz` pinned per role, contextual alternates off for anything a user typed, slashed zero for codes. That work, and the script-scoped stacks for the four non-Latin locales, is documented in `docs/craft-rules.md`.
+
 **Roles are not free-floating sizes.** A new screen picks a role; it does not
 pick `text-[14.5px]`. Two one-offs are refused by this rule and are being
 retired: 14.5 px in the rail and 19 px in the room header.

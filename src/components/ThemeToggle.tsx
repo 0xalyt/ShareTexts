@@ -43,7 +43,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       className={cn(
         'press relative flex items-center justify-center w-11 h-11 shrink-0 rounded-full',
         'text-apple-ink/70 dark:text-white/70 hover:text-apple-ink dark:hover:text-white',
-        'hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.97]',
+        'hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96]',
         'transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-apple-ink/25 dark:focus-visible:ring-white/40',
         className,

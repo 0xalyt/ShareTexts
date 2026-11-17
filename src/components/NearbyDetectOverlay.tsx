@@ -270,7 +270,7 @@ export function NearbyDetectOverlay({
                   type="button"
                   onClick={onCancel}
                   aria-label={t('nearby.overlay.cancel')}
-                  className="absolute top-3 right-3 z-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.97] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                  className="absolute top-3 right-3 z-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -371,7 +371,7 @@ export function NearbyDetectOverlay({
                       if (mode === 'incoming' && onDecline) { onDecline(); return; }
                       onCancel();
                     }}
-                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[16px] font-semibold text-apple-ink dark:text-white transition-all active:scale-[0.97] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[16px] font-semibold text-apple-ink dark:text-white transition-[color,background-color,border-color,box-shadow,transform,opacity] active:scale-[0.96] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                   >
                     {mode === 'incoming' ? t('nearby.decline') : t('nearby.overlay.cancel')}
                   </button>
@@ -393,7 +393,7 @@ export function NearbyDetectOverlay({
                     className={cn(
                       'flex-[1.5] min-h-[50px] rounded-full text-[16px] font-bold text-white',
                       'bg-ember hover:bg-brand-strong disabled:opacity-80 disabled:pointer-events-none',
-                      'transition-colors active:scale-[0.97]',
+                      'transition-colors active:scale-[0.96]',
                       'flex items-center justify-center gap-2 whitespace-nowrap',
                       'shadow-[0_2px_10px_rgba(240,100,19,0.35),inset_0_1px_1px_rgba(255,255,255,0.28)]',
                       armed && !busy && 'ring-4 ring-ember/25 dark:ring-azure-400/25',
@@ -421,7 +421,7 @@ export function NearbyDetectOverlay({
                       data-testid="nearby-detect-more"
                       disabled={busy}
                       onClick={onFindMore}
-                      className="min-h-[40px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.97] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                      className="min-h-[40px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.96] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                     >
                       <Search className="w-3.5 h-3.5" aria-hidden />
                       {t('nearby.overlay.more')}

@@ -200,7 +200,7 @@ export function SettingsOverlay({
                   type="button"
                   onClick={onClose}
                   aria-label={t('common.close')}
-                  className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full text-apple-ink-muted dark:text-white/70 active:scale-[0.97] transition-transform"
+                  className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full text-apple-ink-muted dark:text-white/70 active:scale-[0.96] transition-transform"
                 >
                   <X className="w-4 h-4" />
                 </button>
