@@ -18,7 +18,8 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, openSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-const PORT = process.env.PORT || '3010';
+// The shell exports PORT=0, so an inherited PORT would bind a random port.
+const PORT = process.env.VERIFY_BROWSER_PORT || '3010';
 const BASE = `http://localhost:${PORT}`;
 const GATES = [
   ['typing', 'verify-typing.mjs'],
@@ -27,6 +28,7 @@ const GATES = [
   ['room-feed', 'verify-room-feed.mjs'],
   ['no-flash', 'verify-no-flash.mjs'],
   ['chaos', 'verify-chaos.mjs'],
+  ['key-at-rest', 'verify-key-at-rest.mjs'],
 ];
 
 const only = (() => {

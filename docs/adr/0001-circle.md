@@ -130,3 +130,40 @@ Request authentication as built: ECDSA P-256 over
 as **bytes** (never decoded to text) and read exactly once per request; `PATH` is
 the path the client sent, without the query string. Replay protection is a
 5-minute nonce window per device.
+
+---
+
+## Addendum — key at rest (OD-10, 2026-11-17)
+
+The first version of `src/lib/circle/store.ts` kept `keyRaw` — the 32 bytes of
+K — beside the non-extractable import, because the inviting device needs those
+bytes to wrap K for a device being linked. Consequence, stated plainly: **anyone
+who could read this browser's IndexedDB could read every item in the circle**,
+and the AAD no longer mattered, because the attacker held what the AAD protects.
+
+Now:
+
+- K is stored **only as AES-GCM ciphertext** (`keySealed: { iv, ct }`), under a
+  per-device wrap key: AES-GCM 256, generated once, **non-extractable**. The
+  browser will use it and will not export it, so a database dump yields a
+  `CryptoKey` handle with no material behind it.
+- AAD is `circleId | epoch`. A record moved to another circle, or replayed from
+  an earlier epoch, fails to decrypt rather than opening the wrong things.
+- K's bytes exist only inside `withCircleKey()` (and the migration path), and the
+  buffer is `fill(0)`-ed in a `finally` before the value is released.
+- A v1 record is migrated on first read — sealed, re-written without `keyRaw`,
+  and `listCircles` migrates as well, so a circle cannot stay raw because nobody
+  happened to load it.
+
+### What a stolen IndexedDB dump gives an attacker now
+
+| Before | After |
+|---|---|
+| K's bytes → every item, present and future | ciphertext of K, and a wrap key they cannot export |
+| circle id, epoch, device list | the same metadata (unchanged) |
+| | unwrapped K only while a pairing or rotation is mid-flight in a live tab |
+
+Not covered, and worth saying: an attacker with code execution **inside the
+origin** (XSS, a malicious extension with host access) can call the wrap key the
+same way the app does. Encryption at rest protects the database file, backups and
+profile copies; it does not protect a compromised page.
