@@ -55,14 +55,20 @@ New gate: `scripts/verify-details.mjs` — 6/6 (lifecycle bar renders and agrees
 with its caption, the bar moves with the clock, label focus, rejection shake,
 horizontal scrollers contain the gesture).
 
-## Not in this pass, and next
+## The device demo — shipped
 
-The device demo you asked for (phone + MacBook running ShareTexts, a live
-transfer between them, one caption line under it, both looping together) is a
-build of its own: it needs a timeline the two device frames and the caption both
-read from, so the words and the picture cannot drift, and a reduced-motion
-static that still explains the product. `HeroDeviceDemo.tsx`,
-`landing/ProductLoop.tsx` and the loop recorder already provide the pieces
-(frames, poster-first video, visibility-gated playback); the missing part is the
-shared timeline plus captions that are written in the product's own voice.
-That work is not started, and it is the next pass rather than a line item here.
+The brief's device story is mounted: the MacBook-derived `LaptopFrame` and
+`PhoneFrame` run the real product, the payload crosses between them on a beam,
+and one caption pair under the picture names the beat and explains it
+(`demo.h*` + `demo.s*`), with a rail that shows where the loop is. It pauses off
+screen and in a hidden tab, and reduced motion opens on the arrived state with a
+restart.
+
+`HeroFilm` — the recorded video the hero used — is now unreferenced. It is left
+in the tree deliberately: it is a working, poster-first film player and the
+recording pipeline (`scripts/record-loops.mjs`) that feeds the rest of the page
+still uses the same pattern.
+
+Verified by `scripts/verify-demo.mjs` (10/10): one demo per width, caption
+matches its beat at 390 and 1280, both caption lines fit their box, the loop
+wraps through all five states, reduced motion stills on `received`.
