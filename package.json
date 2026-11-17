@@ -62,10 +62,11 @@
     "verify:chaos2": "node scripts/verify-chaos-2.mjs",
     "verify:link-join": "node scripts/verify-link-join.mjs",
     "verify:typing": "node scripts/verify-typing.mjs",
-    "verify:fast": "npm run lint && node scripts/verify-claims.mjs && node scripts/verify-totp-parity.mjs && npm run verify:bundle && npm run worker:test && node scripts/verify-circle-crypto.mjs && node scripts/verify-circle-worker.mjs && node scripts/verify-lobby-shard.mjs && node scripts/verify-nearby-visibility.mjs && node scripts/verify-icons.mjs",
+    "verify:fast": "npm run lint && node scripts/verify-claims-selftest.mjs && node scripts/verify-claims.mjs && node scripts/verify-totp-parity.mjs && npm run verify:bundle && npm run worker:test && node scripts/verify-circle-crypto.mjs && node scripts/verify-circle-worker.mjs && node scripts/verify-lobby-shard.mjs && node scripts/verify-nearby-visibility.mjs && node scripts/verify-icons.mjs",
     "verify:browser": "node scripts/verify-browser.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "verify:totp-parity": "node scripts/verify-totp-parity.mjs"
+    "verify:totp-parity": "node scripts/verify-totp-parity.mjs",
+    "verify:claims-selftest": "node scripts/verify-claims-selftest.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",

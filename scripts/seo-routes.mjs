@@ -187,8 +187,8 @@ function emit(route, { head, body, jsonLd = '' }) {
 // ---------------------------------------------------------------------------
 const DOCS_FAQS = [
   ['What is ShareTexts?', 'ShareTexts is a temporary bridge between two devices. Move text, links, photos, videos, and files directly from one screen to another. No app, no account, nothing kept.'],
-  ['How do devices discover each other?', 'There are four ways to connect: Nearby device, the 6-digit code, the QR code, and the share link. For Nearby device, open ShareTexts on both devices — if both are on the same supported network, the other device appears automatically. Tap it, the other device accepts, and the connection starts.'],
-  ['Is nearby discovery private?', 'Yes. Your device only appears while ShareTexts is open on it, and it disappears within about a minute of closing the tab. Other devices see only a temporary label like "Windows PC" — never your IP, accounts, or any permanent identifier. Devices already connected to a room are not listed, and this is never a global list of ShareTexts users.'],
+  ['How do devices discover each other?', 'There are four ways to connect: Nearby, the 6-digit code, the QR code, and the share link. For Nearby, turn it on on the device you want to send to, for 10 minutes — it then appears on devices on the same network. Tap it, the other device accepts, and the connection starts. The code, QR, and link work over any connection.'],
+  ['Is nearby discovery private?', 'Yes. Your device appears only when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network. It disappears when the 10 minutes end or when you turn it off. Those devices see only a coarse label like "iPhone · Safari" — never your IP, accounts, or any permanent identifier. Devices already connected to a room are not listed, and this is never a global list of ShareTexts users.'],
   ['Is it free?', 'Yes. ShareTexts is completely free to use.'],
   ['Is it private?', 'Yes. Transfers are encrypted between devices. ShareTexts does not store your files, text, or transfer history.'],
   ['What if my internet drops mid-transfer?', 'If the connection is interrupted, ShareTexts will tell you whether the transfer can be retried. For large files, we recommend a stable connection.'],
@@ -215,8 +215,8 @@ const docsMain = `
           <h2>How to connect two devices</h2>
           <ol>
             <li><strong>Open</strong> sharetexts.online on both devices.</li>
-            <li><strong>Find your other device.</strong> It appears in Nearby while ShareTexts is open on both devices — or connect with a six-digit code, a QR code, or a share link. The code, QR, and link work over any internet connection.</li>
-            <li><strong>Connect with one tap.</strong> The room is end-to-end encrypted between your devices.</li>
+            <li><strong>Find your other device.</strong> On the device you want to send to, turn on Nearby for 10 minutes — it then appears on devices on the same network. Or connect with a six-digit code, a QR code, or a share link.</li>
+            <li><strong>Connect with one tap.</strong> The room is encrypted in transit between your devices.</li>
             <li><strong>Send anything</strong> — it moves directly between the devices, never stored on a server.</li>
             <li><strong>Receive</strong> it on the other device, then close the room. Nothing is kept.</li>
           </ol>

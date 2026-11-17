@@ -84,6 +84,28 @@
         "public/guides/temporary-spaces.html"
       ],
       "reason": "Space file storage is disabled (R2 binding commented out). Text and links only until it ships."
+    },
+    {
+      "id": "nearby-appears",
+      "pattern": "appears automatically|appears under Available|appears in the Nearby list while",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "Nearby is OFF by default for 10 minutes at a time. A device nobody turned on cannot appear, so \"appears automatically\" describes a product we do not ship and makes the page's own instructions fail."
+    },
+    {
+      "id": "nearby-while-open",
+      "pattern": "while ShareTexts is open|Visible while ShareTexts is open|only while ShareTexts",
+      "scope": [
+        "src/lib/messages",
+        "public/guides",
+        "index.html",
+        "public/llms.txt"
+      ],
+      "reason": "Visibility is a 10-minute switch you turn on, not a side effect of a tab being open. \"While ShareTexts is open\" is the sentence that sent the owner looking for a device that was never announced."
     }
   ]
 }

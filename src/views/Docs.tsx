@@ -223,7 +223,7 @@ function NearbySection() {
       <div className="space-y-4">
         <h3 className="st-h3 text-apple-ink dark:text-white">Privacy</h3>
         <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
-          <p>Nearby discovery is <strong className="text-apple-ink dark:text-white">not a global device list</strong>. A device is only visible while ShareTexts is open on it, and presence expires automatically within about a minute of the tab closing. Devices are not Bluetooth scans, and nothing is broadcast over your local network.</p>
+          <p>Nearby discovery is <strong className="text-apple-ink dark:text-white">not a global device list</strong>. A device is only visible when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network; it disappears when those 10 minutes end or when you turn it off. Devices are not Bluetooth scans, and nothing is broadcast over your local network.</p>
           <p>Other devices only ever see a temporary label such as "Windows PC" or "iPhone". No IP addresses, account information, or permanent identifiers are shared. A device that is already connected to a room is not listed.</p>
           <p>Discovery only identifies a candidate device. Selecting one sends an invitation, and the actual connection always uses the same secure end-to-end encrypted channel as code, QR, and link connections.</p>
         </div>
@@ -594,11 +594,11 @@ function FAQSection() {
     },
     {
       q: 'How do devices discover each other?',
-      a: 'There are four ways to connect: Nearby device, the 6-digit code, the QR code, and the share link. For Nearby device, open ShareTexts on both devices — if both are on the same supported network, the other device appears automatically. Tap it, the other device accepts, and the connection starts.'
+      a: 'There are four ways to connect: Nearby, the 6-digit code, the QR code, and the share link. For Nearby, turn it on on the device you want to send to, for 10 minutes — it then appears on devices on the same network. Tap it, the other device accepts, and the connection starts. The code, QR, and link work over any connection.'
     },
     {
       q: 'Is nearby discovery private?',
-      a: 'Yes. Your device only appears while ShareTexts is open on it, and it disappears within about a minute of closing the tab. Other devices see only a temporary label like "Windows PC" — never your IP, accounts, or any permanent identifier. Devices already connected to a room are not listed, and this is never a global list of ShareTexts users.'
+      a: 'Yes. Your device appears only when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network. It disappears when the 10 minutes end or when you turn it off. Those devices see only a coarse label like "iPhone · Safari" — never your IP, accounts, or any permanent identifier. Devices already connected to a room are not listed, and this is never a global list of ShareTexts users.'
     },
     {
       q: 'Is it free?',
