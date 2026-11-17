@@ -551,7 +551,11 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         {selectMode && <SelectionRing selected={selected} />}
         <div className={cn("flex flex-col min-w-0 max-w-[82%]", isMe ? "items-end" : "items-start")}>
         <div className={cn(
-          "px-[15px] py-[10px] rounded-[18px] transition-shadow",
+          // `min-w-0 max-w-full` is load-bearing, not decoration: a bubble is
+          // an auto-width box, so a child that refuses to shrink (a 140-char
+          // URL, an unbroken word) sets its width from max-content and blows
+          // past the 82% column — measured at 1022 px inside a 390 px phone.
+          "px-[15px] py-[10px] rounded-[18px] transition-shadow min-w-0 max-w-full",
           selected && "ring-2 ring-azure-500/60",
           isMe
             /* Sent: a real ember wash — the old #fff4ea was within two
@@ -575,7 +579,11 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             dir={isRtl ? 'rtl' : undefined}
             style={{ unicodeBidi: 'plaintext' }}
             className={cn(
-              "text-[16px] whitespace-pre-wrap leading-relaxed",
+              // `anywhere` so one unbroken token (a URL, an id, a word in a
+              // language without spaces) breaks instead of pushing the bubble
+              // past the reading column. It only fires when there is no other
+              // place to break, so ordinary sentences are untouched.
+              "text-[16px] whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere]",
               isStructured
                 ? // Code / table shape: monospace + pre + horizontal scroll.
                   // overflow-x keeps columns aligned instead of wrapping and
@@ -1326,7 +1334,7 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
       // doing one job — the link now reads as a row inside the message, with
       // the hover tint doing the "clickable" talking.
       className={cn(
-        'group/link mt-0.5 -mx-1 block w-[calc(100%+0.5rem)] min-w-0 rounded-[10px] px-1 transition-colors',
+        'group/link mt-0.5 -mx-1 block w-[calc(100%+0.5rem)] max-w-[calc(100%+0.5rem)] min-w-0 overflow-hidden rounded-[10px] px-1 transition-colors',
         onBlue
           ? 'hover:bg-black/[0.045] dark:hover:bg-white/[0.07]'
           : 'hover:bg-black/[0.035] dark:hover:bg-white/[0.06]'
@@ -1347,7 +1355,9 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
           />
         </span>
       )}
-      <span className="flex items-center gap-2.5 py-0.5">
+      {/* 44 px floor: the whole row is a tap target, and a 36 px icon with
+          py-0.5 measured 40 px — under the thumb minimum on a phone. */}
+      <span className="flex items-center gap-2.5 py-1 min-h-[44px]">
         <span
           className={cn(
             'shrink-0 w-9 h-9 rounded-[11px] flex items-center justify-center',

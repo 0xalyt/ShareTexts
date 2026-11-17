@@ -118,6 +118,11 @@ function SavedImageViewer({ item, onClose }: { item: SavedItem; onClose: () => v
           src={url}
           alt={item.filename || item.text || ''}
           className="max-h-[78vh] max-w-full rounded-[12px] object-contain shadow-[0_24px_70px_-12px_rgba(0,0,0,0.6)]"
+          // A blob URL outlives nothing: the browser can drop it between the
+          // list painting and the tap (storage pressure, a reload), and the
+          // default broken-image glyph on a black lightbox looks like a crash.
+          // Fall back to the same file glyph the thumbnail uses.
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
         />
       )}
       <div className="mt-3 flex items-center gap-3 max-w-full">
@@ -143,7 +148,17 @@ function KindThumb({ item }: { item: SavedItem }) {
   if (item.kind === 'image') {
     return url ? (
       <span className="shrink-0 w-12 h-12 rounded-[12px] overflow-hidden bg-black/[0.05] dark:bg-white/[0.06]">
-        <img src={url} alt="" className="w-full h-full object-cover st-img-edge" />
+        <img
+          src={url}
+          alt=""
+          className="w-full h-full object-cover st-img-edge"
+          onError={(e) => {
+            const box = e.currentTarget.parentElement as HTMLElement | null;
+            if (!box) return;
+            box.innerHTML = '';
+            box.className = 'shrink-0 w-12 h-12 rounded-[12px] bg-apple-parchment dark:bg-apple-tile-2 flex items-center justify-center text-apple-ink-muted';
+          }}
+        />
       </span>
     ) : (
       <span className="shrink-0 w-12 h-12 rounded-[12px] bg-apple-parchment dark:bg-apple-tile-2 flex items-center justify-center text-apple-ink-muted" aria-hidden>

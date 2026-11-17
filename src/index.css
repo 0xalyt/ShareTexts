@@ -343,6 +343,18 @@
     height: 100%;
   }
 
+  /* Landscape on a notched phone puts the notch over the left or right edge.
+     viewport-fit=cover (index.html) lets the page use that space, so the shell
+     pays the inset back as padding on the two sides the cutout occupies. In
+     portrait both insets are 0 and this rule costs nothing. */
+  @media (orientation: landscape) {
+    #root {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      box-sizing: border-box;
+    }
+  }
+
   body {
     @apply font-sans antialiased;
     font-size: 16px;
