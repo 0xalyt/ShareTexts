@@ -48,7 +48,10 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `node scripts/verify-no-flash.mjs` | no blank gap, no white frame, no mid-session SW takeover | clean |
 | `npm run verify:icons` | every icon reference resolves and matches its size | 12 references |
 | `npm run verify:lobby-shard` | Nearby is scoped by network: shard = HMAC(dailySalt, IPv4 or IPv6 /64), 64 devices per shard, no IP stored | **25/25** (emulator, real DO) |
-| `npm run verify:bundle` | entry ≤ 180 KB gzip | **PASS — 179.8 KB** (was 181.3 KB at `6991c46`; five room-only surfaces split out) |
+| `npm run verify:bundle` | entry ≤ 180 KB gzip; target 177 | **PASS — 175.1 KB** (179.8 before `0f87288`, which removed `otpauth` from the entry) |
+| `npm run verify:fast` | every non-browser gate in one command | **EXIT 0** (2026-11-17) |
+| `npm run verify:browser` | starts its own dev server on 3010, then typing, sheets, desktop, room-feed, no-flash, chaos | written and registered; **not yet run end to end** |
+| `npm run verify:totp-parity` | the hand-written client TOTP equals node:crypto, the Worker and otpauth | **5/5** |
 
 ## 5. Known debt (ordered by what it costs the owner)
 
@@ -64,7 +67,9 @@ the room secret, so the product does **not** claim end-to-end encryption.
    Related: a carrier-grade-NAT shard can be large, so consent per transfer
    (STEP 3) is the real boundary, not the shard.
 
-1. **Bundle: 179.8 KB, 0.2 KB under the ceiling.** The ceiling was already
+1. **Bundle: 175.1 KB, 4.9 KB under the ceiling.** `otpauth` left the entry
+   (`src/lib/totp-sha1.ts`, proven by `verify:totp-parity`); `.githooks/pre-push`
+   runs the gate before every push, so this cannot walk back unnoticed. Earlier: the ceiling was already
    breached at `6991c46` (181.3 KB) before M1b; the fix was deferral (room rail,
    presence dock, handshake drawing, room empty-state scene, system alert). Any
    new entry code needs a matching split, not a budget bump.
@@ -78,6 +83,14 @@ the room secret, so the product does **not** claim end-to-end encryption.
    (false) owns the button, paste, drop and overlay, the composer says "Text and
    links for now.", and the Worker answers `/space/capabilities` with the truth
    (`files: Boolean(env.SPACE_BUCKET)`). The claims linter forbids describing it.
+4c. **The Circle key still sits in IndexedDB in the clear** (OD-10).
+   `src/lib/circle/store.ts` keeps the raw `K`; the fix is a non-extractable
+   AES-GCM wrap key, ciphertext-only storage, a migration of the raw record and
+   two extended gates — M3b STEP 2, not done. This is the largest open risk in
+   the project: a stolen phone's IndexedDB is a stolen circle.
+4d. **The site still describes Nearby as always-on.** Every sentence listed in
+   `M3b-report.md` §STEP 3 says the other device appears while the app is open;
+   Nearby is off by default for 10 minutes at a time. M3b STEP 3, not done.
 4b. **Link joins no longer blame the room for a broken connection.**
    `resolveShortCode` returns a reason (`not_found | unreachable | timeout |
    config`), one retry covers a phone that has no route yet, and the notice's
