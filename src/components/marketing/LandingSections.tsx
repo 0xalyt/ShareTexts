@@ -1,14 +1,5 @@
 import type { ReactNode } from 'react';
-import {
-  Radar,
-  QrCode,
-  Globe,
-  Download,
-  Moon,
-  Languages,
-  Wallet,
-  ArrowRight,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
@@ -100,45 +91,6 @@ export function ThreeThings() {
   );
 }
 
-/* ── The small things — seven claims, icon plus a few words (P7: the eighth
-   was the GitHub link and it is gone) ───────────────────────────────────── */
-
-const SMALL = [
-  { key: 'nearby', Icon: Radar },
-  { key: 'pair', Icon: QrCode },
-  { key: 'browser', Icon: Globe },
-  { key: 'install', Icon: Download },
-  { key: 'dark', Icon: Moon },
-  { key: 'language', Icon: Languages },
-  { key: 'free', Icon: Wallet },
-] as const;
-
-export function SmallThings() {
-  const { t } = useI18n();
-  return (
-    <section aria-labelledby="features-title" className="w-full py-16">
-      <SectionHead id="features-title" heading={t('home.small.heading')} />
-      <ul className="grid grid-cols-2 gap-x-6 gap-y-0 sm:grid-cols-4">
-        {SMALL.map(({ key, Icon }) => (
-          <li key={key} className="flex items-start gap-2.5 border-t border-black/[0.10] py-4 dark:border-white/[0.14]">
-              <Icon
-                className="mt-0.5 h-[17px] w-[17px] shrink-0 text-ember dark:text-azure-400"
-                strokeWidth={1.5}
-                aria-hidden
-              />
-              <span className="text-[13px] font-medium leading-snug text-apple-ink dark:text-white">
-                {t(`home.small.${key}`)}
-              </span>
-          </li>
-        ))}
-        {/* The eighth item used to be "Open source on GitHub". The owner
-            took the repository link out of the product in P7, so the list is
-            seven claims and no outbound link. */}
-      </ul>
-    </section>
-  );
-}
-
 /* ── FAQ — the seven questions that actually block a first transfer ────────
  *
  * The list is ordered the way a first-time visitor asks, not the way the
@@ -151,14 +103,15 @@ export function SmallThings() {
 
 export function LandingFaq() {
   const { t } = useI18n();
+  /* Four, not seven. The last three answered questions nobody has before a
+   * first transfer (code lifetime, relay internals, Temporary Spaces) and are
+   * one click away in the docs. A landing FAQ is the objections that stop the
+   * tap, nothing else. */
   const items: QA[] = [
     { q: t('home.faq.q1'), a: t('home.faq.a1') },
     { q: t('home.faq.q2'), a: t('home.faq.a2') },
     { q: t('home.faq.q3'), a: t('home.faq.a3') },
     { q: t('home.faq.q4'), a: t('home.faq.a4') },
-    { q: t('home.faq.q5'), a: t('home.faq.a5') },
-    { q: t('home.faq.q6'), a: t('home.faq.a6') },
-    { q: t('home.faq.q7'), a: t('home.faq.a7') },
   ];
   return (
     <section aria-labelledby="faq-title" className="w-full py-16">

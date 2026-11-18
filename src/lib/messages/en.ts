@@ -78,7 +78,7 @@ const en = {
   'room.offlineCount': '{count} offline',
 
   'home.title': 'Move anything\nbetween your devices.',
-  'home.subtitle': 'Move texts, images and files from any device to any device in the browser, without an account. It is easy, fast and free.',
+  'home.subtitle': 'Two devices, one page. Nothing to install, and the transfer is encrypted end to end.',
   // Short enough to sit on one line inside the hero pill on a 390px phone —
   // the long version truncated to "…a shelf that deletes …" and read as a
   // broken element rather than a link.
@@ -127,7 +127,7 @@ const en = {
   'home.features.private.title': 'Stay encrypted',
   'home.features.private.body': 'Transfers are encrypted between the two devices.',
   'home.faq.heading': 'Questions, answered.',
-  'home.faq.sub': 'The seven things people ask before their first transfer.',
+  'home.faq.sub': 'The four questions people ask before their first transfer.',
   'home.faq.eyebrow': 'FAQ',
   'home.faq.q1': 'What is ShareTexts?',
   'home.faq.a1': 'A page that moves text, links, photos and files between your own devices. Open it on both, connect, send — the data goes from one to the other, not through storage.',

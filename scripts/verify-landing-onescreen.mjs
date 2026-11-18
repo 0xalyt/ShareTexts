@@ -64,8 +64,11 @@ for (const [w, h] of SIZES) {
   await ctx.close();
 }
 
-// ── structure: hero → three things → the small things → FAQ → footer, in that
-//    order, with the counts §20a asks for. There is deliberately NO second
+// ── structure: hero → three things → FAQ → footer, in that order, with the
+//    counts this page actually ships. The seven-icon "small things" grid was
+//    removed with the rest of the landing's decoration: every one of its rows
+//    restated a story above it, and the film already shows the product doing
+//    them. There is deliberately NO second
 //    Send/Receive pair at the foot of the page: the hero already owns those
 //    two decisions, and repeating them at the end made people ask which pair
 //    was the real one. This assertion is inverted on purpose — a 'cta' section
@@ -83,7 +86,6 @@ for (const [w, h] of SIZES) {
       // renders a second, lg:hidden hero node earlier in the DOM.
       demo: '[data-testid="hero-demo"][data-state="film"]',
       how: '#how-title',
-      features: '#features-title',
       faq: '#faq-title',
       footer: 'footer',
     };
@@ -101,7 +103,6 @@ for (const [w, h] of SIZES) {
       out[k] = el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : null;
     }
     out.howSteps = document.querySelectorAll('section[aria-labelledby="how-title"] ul > li').length;
-    out.smallItems = document.querySelectorAll('section[aria-labelledby="features-title"] ul > li').length;
     out.faqItems = document.querySelectorAll('section[aria-labelledby="faq-title"] ul > li').length;
     // §20d: every footer link is a 44px target, and there is no icon row.
     const links = [...document.querySelectorAll('footer a, footer button')];
@@ -111,20 +112,19 @@ for (const [w, h] of SIZES) {
       .map((el) => `${(el.textContent || '').trim().slice(0, 18) || el.getAttribute('aria-label')}=${Math.round(el.getBoundingClientRect().height)}`);
     return out;
   });
-  const order = ['hero', 'demo', 'how', 'features', 'faq', 'footer'];
+  const order = ['hero', 'demo', 'how', 'faq', 'footer'];
   const present = order.every((k) => marks[k] !== null);
   const ascending = present && order.every((k, i) => i === 0 || marks[order[i]] >= marks[order[i - 1]]);
-  // 7 FAQ rows is the shipped set (LandingSections → `home.faq.q1…q7`); the 8
-  // here predates the row that was cut when the FAQ was re-scoped to the
-  // four questions a stranger actually asks.
-  const countsOk = marks.howSteps === 3 && marks.smallItems === 7 && marks.faqItems === 7;
+  // 4 FAQ rows is the shipped set (LandingSections → `home.faq.q1…q4`): the
+  // questions that block a first transfer. The rest live in /docs.
+  const countsOk = marks.howSteps === 3 && marks.faqItems === 4;
   const targetsOk = marks.smallTargets.length === 0;
   const noRepeatCta = (await p.locator('#cta-title').count()) === 0;
   const okStruct = present && ascending && countsOk && targetsOk && noRepeatCta;
   if (!okStruct) bad++;
   console.log(
     `${okStruct ? 'structure ok' : 'STRUCTURE PROBLEM'}: ${order.map((k) => `${k}=${marks[k]}`).join(' ')} ` +
-      `stories=${marks.howSteps} small=${marks.smallItems} faq=${marks.faqItems} footerLinks=${marks.footerLinks} ` +
+      `stories=${marks.howSteps} faq=${marks.faqItems} footerLinks=${marks.footerLinks} ` +
       (noRepeatCta ? 'tail=one-cta' : 'TAIL: duplicate Send/Receive block is back') +
       (targetsOk ? '' : ` SMALL-TARGETS: ${marks.smallTargets.join(', ')}`),
   );

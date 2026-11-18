@@ -34,8 +34,7 @@ import { ReceiveScreen, type ReceiveError } from '../components/receive/ReceiveS
 import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
-import { Announcement, UploadFolder } from '../components/ui/Detent';
-import { ShuffleHeading } from '../components/ShuffleHeading';
+import { UploadFolder } from '../components/ui/Detent';
 import { GlassCapsule } from '../components/ui/GlassCapsule';
 import { GlassCircleButton } from '../components/ui/GlassCircleButton';
 import { ListRow } from '../components/ui/ListRow';
@@ -71,7 +70,7 @@ import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroFilm } from '../components/HeroFilm';
 import { XProfileLink } from '../components/XProfileLink';
-import { ThreeThings, SmallThings, LandingFaq } from '../components/marketing/LandingSections';
+import { ThreeThings, LandingFaq } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
 import { useSavedCount } from '../lib/savedItems';
 import { useOverscroll } from '../lib/useOverscroll';
@@ -1111,7 +1110,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   /* Whether the live-activity line has anything to say yet. Its space is
      reserved either way (see the tracker below), so this only decides
      opacity, never layout. */
-  const hasTracker = Boolean(nearbyStatus) || roomsCreated != null;
 
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
@@ -1189,24 +1187,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   is why the strip appears in the hero without anything having
                   to open. Empty and 0-height when there is nothing to say. */}
               <div id="nearby-suggest-host" className="order-0 w-full empty:hidden" />
-              {/* The pill points at the Temporary Spaces guide, not the guides
-                  hub: the hub is a menu, and a pill in the hero should lead
-                  somewhere. .html is the guide's canonical URL (scripts/verify-seo
-                  asserts it), so it is linked as published rather than through
-                  a redirect that would show up in analytics as a second page. */}
-              <Announcement
-                href="/guides/temporary-spaces.html"
-                tag="New"
-                action="Read"
-                hoverText="New: Host keeps files for up to 7 days"
-                className="order-0 mb-5 sm:mb-6 justify-self-center"
-              >
-                {t('home.announce')}
-              </Announcement>
-              {/* The headline is the one line that has to answer "can it send
-                  MY thing?" without a paragraph, so the noun cycles through
-                  the things people actually send. */}
-              <ShuffleHeading className="order-1 w-full justify-self-center" />
+              {/* ONE statement, and no second label above it.
+
+                  The hero used to open with a "New" announcement pill, then a
+                  headline that typed itself through fifteen nouns — two pieces
+                  of motion competing with the film, neither of them a fact
+                  about the product at that moment. The promise is now written
+                  once, on the page's own left edge from lg, and the film
+                  underneath it is the only thing that moves. */}
+              <h1 className="st-display order-1 w-full text-center text-[clamp(34px,9vw,46px)] tracking-[-0.035em] text-apple-ink dark:text-white sm:text-[clamp(34px,4vw,52px)] lg:text-left">
+                {t('home.title')}
+              </h1>
               {/* The film, directly under the headline at every width.
                   Headline → the product moving → the number → the two doors is
                   the order the argument is actually made in: what it is, what
@@ -1219,47 +1210,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <HeroFilm />
                 </div>
               </div>
-              {/* Live activity tracker — bare (NO pill): a breathing dot, the
-                  lifetime count, and the label. Honest, local — no fabricated
-                  floor: until the service answers with a real total (and no
-                  nearby device is speaking over it) the line stays hidden
-                  rather than inventing longevity. QUIET by rank: it is
-                  metadata, so it whispers — the Send/Receive pair owns this
-                  screen. */}
-              {/* The row is ALWAYS in the flow, empty or not. It resolves a
-                  second after paint (a nearby device, then the real count),
-                  and inserting it then pushed the two doors and the whole
-                  demo down by ~28px — measured as the top CLS source on both
-                  layouts. Reserved height: the line fades in, nothing moves. */}
-              <motion.div
-                initial={false}
-                animate={{ opacity: hasTracker ? 1 : 0 }}
-                transition={{ duration: 0.5 }}
-                aria-hidden={!hasTracker}
-                className="order-3 mt-5 flex h-5 items-center gap-2 w-fit mx-auto lg:mx-0"
-              >
-                {/* Halo dot: two slow radar rings drift outward from a solid
-                    glowing core — layered, staggered, so it reads as breath,
-                    not alarm. Halts under prefers-reduced-motion. */}
-                <span className="relative flex items-center justify-center w-3.5 h-3.5 shrink-0" aria-hidden>
-                  <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/40" />
-                  <span className="st-halo-ring st-halo-lag absolute inset-0 rounded-full bg-status-success/25" />
-                  <span className="relative w-1.5 h-1.5 rounded-full bg-status-success shadow-[0_0_6px_rgba(52,199,89,0.7)]" />
-                </span>
-                {nearbyStatus ? (
-                  <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
-                ) : roomsCreated != null && roomsCreated >= 10 ? (
-                  <>
-                    <span className="text-[16px] font-bold text-apple-ink/80 dark:text-white/90 tnum leading-none">{fmtNumber(lang, roomsCreated)}</span>
-                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.roomsMade')}</span>
-                  </>
-                ) : roomsCreated != null ? (
-                  // Below ten a count reads as a quiet site advertising its
-                  // quietness ("3 rooms made so far"). The dot is already
-                  // pulsing; one honest word does the same job.
-                  <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.live')}</span>
-                ) : null}
-              </motion.div>
               {/* Equal-width grid: the two primary actions share ONE geometry
                   (audit #12 — Receive rendered wider than Send), and each
                   hint sits directly beneath its own button so the
@@ -1859,7 +1809,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       {ambientGlow}
       {/* Soft top ambience — a wide, low-alpha ember/violet breath that keeps
           the canvas from reading as flat, in both themes. Decorative. */}
-      <div aria-hidden className="st-ambient" />
       {/* Drop-to-send veil — the pane answers the drag immediately, so the
           user knows releasing HERE is the action. pointer-events-none keeps
           dragleave/drop flowing to the pane beneath. */}
@@ -1895,16 +1844,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   /* ---------------------------------------------------------------- */
   const roomPanel = (
     <div
-      className={cn(
-        "relative flex flex-col h-full min-h-0 overflow-hidden bg-apple-canvas dark:bg-night-950",
-        /* The animated dot field lives ONLY here: the desktop landing's
-           right panel, before a connection exists. Not mobile, not in-room,
-           not the pairing/connected states — one quiet stage for the hero. */
-        panelMode === 'idle' && "st-dotfield"
-      )}
+      className="relative flex flex-col h-full min-h-0 overflow-hidden bg-apple-canvas dark:bg-night-950"
       data-testid="room-panel"
     >
-      {panelMode === 'idle' && <div aria-hidden className="st-ambient" />}
       {/* Room header — the pair IS the identity, so the header leads with
           the two real devices (this ⇄ partner + live-status dot) instead of
           a generic wordmark, and the brand stays present at the right
@@ -2161,10 +2103,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       onDrop={onHomeDrop}
       className="relative isolate flex flex-col min-h-full bg-apple-canvas dark:bg-night-900 st-landing"
     >
-      <div aria-hidden className="st-ambient" />
-      {/* Sunrise horizon: warm light rising from the floor of the hero band.
-          Pointer-transparent and behind the content — it gives the paper
-          canvas a direction to the light instead of an even wash. */}
+      {/* No page wash and no dot field. Both were decoration behind a product
+          that already has a film; the paper canvas is the background. */}
       {homeDropVeil}
       {headerNode}
       <main
@@ -2206,7 +2146,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               feature cards, the five FAQ questions, and a final CTA that
               returns to the two real actions. */}
           <ThreeThings />
-          <SmallThings />
           <LandingFaq />
           {/* No repeat CTA down here. The hero already owns Send / Receive,
               and a second pair at the foot of the page made the same two
@@ -2224,7 +2163,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   return (
     <div
       className={cn(
-        'bg-apple-canvas dark:bg-night-900 dot-bg',
+        'bg-apple-canvas dark:bg-night-900',
         // ONE frame for every mode. The shell is always exactly the viewport
         // and the screen inside it owns the scroll. It used to be a document
         // on the landing and a fixed app shell everywhere else, so the first
@@ -2319,7 +2258,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   {panelMode === 'idle' && (
                     <div className="w-full">
                       <ThreeThings />
-                      <SmallThings />
                       <LandingFaq />
                     </div>
                   )}

@@ -154,7 +154,7 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
   // Design: calm recovery — the brand lockup, one honest headline, one
   // explanation, one primary path forward and two quiet alternatives.
   return (
-    <div className="min-h-dvh flex flex-col bg-apple-canvas dark:bg-night-900 dot-bg">
+    <div className="min-h-dvh flex flex-col bg-apple-canvas dark:bg-night-900">
       {/* Static English, same header geometry as the rest of the product.
           The theme switch is deliberately absent: the error can fire before
           the providers mount, and a control that cannot work is worse than
@@ -286,7 +286,7 @@ function AppContent() {
     // The 404 is a DESIGNED screen, not a dead end: brand, honest state,
     // and both ways forward (home primary, docs secondary).
     return (
-      <div className="min-h-dvh flex flex-col bg-apple-canvas dark:bg-night-900 dot-bg">
+      <div className="min-h-dvh flex flex-col bg-apple-canvas dark:bg-night-900">
         {/* The same header the rest of the non-room screens use, so a dead
             link still feels like the product. */}
         <PageHeader
