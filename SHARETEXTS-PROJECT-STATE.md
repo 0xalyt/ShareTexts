@@ -28,7 +28,9 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | M1 — Solid ground | shipped (`M1-report.md`), with three carry-over items completed after the report: `src/lib/itemState.ts`, `scripts/verify-no-flash.mjs`, this file. Bundle gate still red. |
 | M2 — The Room | prerequisites cleared (`661f99e`); STEP 0 (`f9e74a4`) and STEP 1 feed (`f3e07f8`) shipped; STEPs 2–6 untouched (`M2-report.md`). |
 | M3 — Circle Core | STEP 0 ADR + pending claim and STEP 1 crypto (`ef9e4b8`) shipped; STEPs 2–6 untouched (`M3-report.md`). Worker deploy pending for STEP 2. |
-| M4+ | not started. |
+| M4 — Circle experience | **STEP 1 shipped 2026-11-18** (outbox, inbox, mailbox delivery, two gates); STEPs 2–8 untouched, and STEP 1's Room-timeline surface is not built (`M4-report.md`). |
+| M5 | STEPs 0–2 shipped (`M5-report.md`); 3–8 untouched. |
+| M6+ | not started. |
 
 ## 4. Gates — current truth
 
@@ -56,6 +58,8 @@ the room secret, so the product does **not** claim end-to-end encryption.
 | `npm run verify:basics` | hero ≥ 44 px at 1440 and ≥ 34 px on a phone, headings ≥ 30 px and below the hero, ≤ 4 corner radii on the landing, sections share one left edge (±2 px) and width, padding on a 4 px grid, seams ≥ 48 px, CTA ≥ 48 px, no phone overflow | **clean** (2026-11-17) |
 | `npm run verify:seo` | builds, serves dist, then crawler + browser checks across `/`, `/docs`, `/privacy`, `/terms`, `/about`, `/404`, guides, sitemap, robots, JSON-LD and llms.txt | **115 passed, 0 failed** (2026-11-17) |
 | `npm run verify:totp-parity` | the hand-written client TOTP equals node:crypto, the Worker and otpauth | **5/5** |
+| `npm run verify:outbox` | two real browser profiles + the deployed Worker: send while the other tab is closed, reload, offline→online, 25-item burst, mid-chunk failure and resume, ACK→delivered, seen | **17/17, 57 s** (2026-11-18); pull of 4 items 1832 ms, page-open→items 3383 ms |
+| `npm run verify:circle-e2e` | create → pair (emoji) → text + link + file → receive → ACK → seen, byte-identical file | **10/10** (2026-11-18) |
 
 ## 5. Known debt (ordered by what it costs the owner)
 
@@ -82,10 +86,18 @@ the room secret, so the product does **not** claim end-to-end encryption.
    `dc128b138099`, `smoke-live` GREEN. Full proof in `H1-report.md`.
 
 
--1. **M6 is blocked on M4, and M4 is blocked on nothing now.** Linked devices,
-   the outbox/inbox and push do not exist yet, so "Send from anywhere" has no
-   destination. M4's original blockers (deploy, zero-knowledge gate) are both
-   cleared — see `M6-blocked.md`. Run M4, then M6.
+0a. **M4 STEP 1 has an engine with no face.** The outbox and inbox are real and
+   gated (17/17, 10/10), but nothing in the app creates a circle, sends to one,
+   or shows what arrived: STEP 2's link screen and STEP 4's surface are what make
+   the headline reachable. The 2-second promise is also only half-measured — the
+   pull is 1.83 s against the deployed Worker, page-open→items is 3.38 s because
+   the pull does not start during boot yet. Do not describe Linked devices as a
+   shipped feature until STEP 2 lands.
+
+-1. **M6 is blocked on M4, and M4's prerequisites are all green.** `M3b-report.md`,
+   the deployed Worker, `verify:zero-knowledge` 15/15, `/circle/capabilities`,
+   the bundle at 171.9 KB and `verify:browser` GREEN were all re-run on
+   2026-11-18. M4 STEP 1 now exists; STEPs 2–8 do not. Run M4 STEP 2 next, then M6.
 
 0. **Nearby is scoped and time-boxed, but consent is not built yet.** STEP 1 gave presence a network
    shard; visibility is still implicit (any open tab is listed) and there is no
@@ -151,8 +163,13 @@ the room secret, so the product does **not** claim end-to-end encryption.
 
 Push to `main` → the host builds. Wait for the live build marker, then
 `node scripts/smoke-live.mjs`. If live breaks, revert first and diagnose after.
-Worker changes require `npm run worker:deploy` (owner action) — the new
-`/space/capabilities` route is in that category.
+Worker changes require `npm run worker:deploy` (owner action) — the
+`/space/capabilities` route was in that category.
+
+2026-11-18: **no Worker deploy in the M4 STEP 1 session** — `worker/src` was not
+touched, and the mailbox already handles the app's traffic (proved by
+`verify:outbox` against the deployed Worker). The client, not the Worker, was the
+side that had to change for the CORS/`x-st-retry` finding (`M4-report.md`).
 
 2026-11-16: `smoke-live` failed once with `ERR_NAME_NOT_RESOLVED` on the
 signaling Worker and passed on a rerun (message in 4 ms). A live failure whose
@@ -168,9 +185,14 @@ network, not the deploy — rerun before reverting.
   `--font-display`) name the face — to change it, change those three places.
   Features are deliberate: `ss02` for code legibility, `case` beside capitals,
   `calt` for arrows, `font-optical-sizing: auto` so sizes are drawn, not scaled.
-- **M4 has not started** (prerequisite cleared at `4a0421d`; STEP 1 is the outbox)
-  and **M5 STEPs 3–8 have not started**; M5 STEPs 0–2 shipped earlier (`0e92cc8`,
-  `230a30e`). No report claims otherwise.
+- **M4 STEP 1 shipped, STEPs 2–8 have not** (`M4-report.md`); **M5 STEPs 3–8 have
+  not started**; M5 STEPs 0–2 shipped earlier (`0e92cc8`, `230a30e`). No report
+  claims otherwise.
+- **Circle code is browser-only and lazy.** `src/lib/circle/*` may use
+  IndexedDB, WebCrypto and `navigator`; nothing there is imported by the entry
+  chunk (the bundle gate would catch it). Gates drive it through Vite in a real
+  browser — `scripts/lib/two-devices.mjs` is the shared setup, and a new gate
+  should reuse it instead of re-implementing pairing.
 - No invented numbers; a number on screen comes from a counter, never from copy.
 - Every claim must be allowed by `docs/claims.md`; `verify:claims` enforces it.
 - Small commits; `git tag before-<milestone>` first; never weaken a gate.
