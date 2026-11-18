@@ -291,10 +291,22 @@ function encodeFilm() {
  *  for exactly that reason, so there is no poster jump at the loop seam. */
 function webBrag() {
   const mp4 = path.join(WEB, 'sharetexts-hero.mp4');
+  // The frame rate comes from the frames, not from the shell. `bragweb` on its
+  // own used to inherit FPS=24 and re-time the 450-frame cut to 18.75s, which
+  // is the documented command and therefore the one that gets run. 450 frames
+  // over a 15s cut is 30 fps, whatever is in the environment.
+  const frameCount = fs
+    .readdirSync(BRAG_FRAMES)
+    .filter((name) => name.endsWith('.png')).length;
+  const fps = frameCount > 0 ? Math.round(frameCount / BRAG) : FPS;
+  // CRF 27, not 22. This is the hero's only image on a phone, and DESIGN §20b
+  // caps landing media at 1.2 MB; 22 shipped 2.0 MB for a cut whose frames are
+  // type on a still field. At 1:1 the two encodes are indistinguishable, and a
+  // half-megabyte of text does not care about 5 more CRF points.
   ff([
-    '-framerate', String(FPS), '-i', path.join(BRAG_FRAMES, 'f%05d.png'),
-    '-an', '-c:v', 'libx264', '-preset', 'slower', '-crf', '22',
-    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-g', String(FPS * 2),
+    '-framerate', String(fps), '-i', path.join(BRAG_FRAMES, 'f%05d.png'),
+    '-an', '-c:v', 'libx264', '-preset', 'slower', '-crf', '27',
+    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-g', String(fps * 2),
     mp4,
   ]);
   const poster = path.join(WEB, 'sharetexts-hero-poster.jpg');

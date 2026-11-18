@@ -106,6 +106,11 @@ node scripts/render-film.mjs web    # → public/film (loop + poster)
 node scripts/render-film.mjs all    # everything
 ```
 
+`bragweb` reads the frame count and derives 30 fps from the 15 s cut, so it no
+longer inherits `FPS` from the shell (`FPS=24` re-timed it to 18.75 s). It
+encodes at CRF 27 to keep the hero inside DESIGN §20b's 1.2 MB landing-media
+budget: 1,048,205 B, 15.000 s, 450 frames, silent. Poster is frame 0.
+
 `frames` and `loop` are resumable: they skip PNGs already on disk, so a
 cancelled pass restarts where it stopped. **After changing a device's position
 or the camera, delete `film/frames` and `film/frames-loop`** — a resumed pass
