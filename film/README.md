@@ -5,8 +5,8 @@ Two cuts come out of this rig:
 | File | What it is | Where it goes |
 | --- | --- | --- |
 | `film/out/sharetexts-hero-1080p.mp4` | the 32.0 s film with sound (1920×1080, 24 fps) | anywhere that plays it deliberately — social, a launch post |
-| `public/film/sharetexts-hero.mp4` | the 10.0 s muted loop, 1920×1080 | the landing hero |
-| `public/film/sharetexts-hero-poster.jpg` | frame 0 of the loop | the hero's poster, shown before playback and under reduced motion |
+| `public/film/sharetexts-hero.mp4` | the 15.0 s muted launch cut, 1920×1080, 30 fps | the landing hero |
+| `public/film/sharetexts-hero-poster.jpg` | frame 0 of the launch cut | the hero's poster, shown before playback and under reduced motion |
 
 The picture is the product itself: `LaptopApp` and `PhoneApp` in
 `src/film/FilmUI.tsx` are the real room/connect screens — the QR plate, the
@@ -43,7 +43,31 @@ Captions are one line per beat (muted-friendly): *No app. No account.* ·
 *One tap to connect.* · *Text.* · *Photos.* · *Files.* · *Encrypted. Nothing
 is kept.*
 
-## The loop (10.0 s)
+## The launch cut (15.0 s, the hero)
+
+`?mode=brag` renders `src/film/BragStage.tsx`: six frames, one argument — the shortest
+distance between two devices is not a cloud. It is not the desk shot; it is a designed cut
+built from the product's own parts (Allo, `#f06413`, `QrArt`, the real room format, the real
+fragment-key URL). The plan and storyboard are in `brag-output/brag-plan.md`.
+
+| Time | Beat |
+| --- | --- |
+| 0.0–2.6 | **Hook.** `Send it straight to your other device.` A packet crosses the wire between two outlined devices. Settled at frame 0, because frame 0 is the poster. |
+| 2.6–5.2 | **Link.** The real QR plate and `482 916`; the digits light one at a time as the second device types them. |
+| 5.2–7.8 | **Send.** Text, a link and a photo land in the room thread, one per beat. |
+| 7.8–10.4 | **File.** `Q3-budget.pdf` runs to 100% and settles on Saved, byte for byte. |
+| 10.4–12.8 | **Key.** `sharetexts.online/space/6b1c#k=…` — the fragment never leaves the browser. |
+| 12.8–15.0 | **Lockup.** Mark, `Move anything between your devices.`, the URL, `Free. No account.` |
+
+Cuts are hard and land on 30 fps frame boundaries; the chrome (mark, chapter labels, URL)
+is identical in every frame, and frame 0 is the strongest settled frame, so the poster is the
+true first frame rather than a substituted one. The file ships silent: the hero is muted by
+policy and the cut is built to stand up without sound.
+
+> The 10.0 s desk loop below is still in the rig (`?mode=loop`) but no longer ships as the
+> hero. Its camera positions belong to the 10 s cut and are unrelated to the launch cut.
+
+## The loop (10.0 s, retired from the hero)
 
 `?mode=loop` renders a self-contained version of the same set: both devices
 already connected with all three payloads in the thread, one text packet
@@ -71,6 +95,9 @@ it, both bottoms sit on `DESK_Y` by construction, and the desk's cream seam line
 ```bash
 npm run dev -- --port 3010          # the rig renders from a running dev server
 node scripts/render-film.mjs probe  # 13 stills to check framing and light
+node scripts/render-film.mjs probe-brag  # 18 stills for the launch cut, both sides of every cut
+node scripts/render-film.mjs brag   # 450 frames → film/frames-brag (FPS=30)
+node scripts/render-film.mjs bragweb # → public/film (launch cut + poster)
 node scripts/render-film.mjs frames # 816 frames → film/frames
 node scripts/render-film.mjs loop   # 240 frames → film/frames-loop
 node scripts/render-film.mjs audio  # voiceover + music + sound design

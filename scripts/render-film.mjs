@@ -27,14 +27,16 @@ const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const ROOT = process.cwd();
 const FRAMES = path.join(ROOT, 'film', 'frames');
 const LOOP_FRAMES = path.join(ROOT, 'film', 'frames-loop');
+const BRAG_FRAMES = path.join(ROOT, 'film', 'frames-brag');
 const AUDIO = path.join(ROOT, 'film', 'audio');
 const OUT = path.join(ROOT, 'film', 'out');
 const WEB = path.join(ROOT, 'public', 'film');
 const FPS = Number(process.env.FPS || 24);
 const DURATION = 32.0;
 const LOOP = 10.0;
+const BRAG = 15.0;
 
-for (const dir of [FRAMES, LOOP_FRAMES, AUDIO, OUT, WEB]) fs.mkdirSync(dir, { recursive: true });
+for (const dir of [FRAMES, LOOP_FRAMES, BRAG_FRAMES, AUDIO, OUT, WEB]) fs.mkdirSync(dir, { recursive: true });
 
 const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', ...args], { stdio: 'inherit' });
 const dur = (file) =>
@@ -65,7 +67,10 @@ async function openFilm(browser, query = '') {
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
-  await page.goto(`${BASE}/film.html${query}`, { waitUntil: 'networkidle' });
+  // A cold Vite has to compile Tailwind before it can answer film.html at all;
+  // on this machine that first response has taken over 90 s. The timeout is
+  // generous on purpose — a cold server is slow, not broken.
+  await page.goto(`${BASE}/film.html${query}`, { waitUntil: 'networkidle', timeout: 180000 });
   await page.waitForFunction(() => typeof window.__film === 'function', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   if (errors.length) throw new Error(`film page errors: ${errors.slice(0, 3).join(' | ')}`);
@@ -81,7 +86,9 @@ async function openFilm(browser, query = '') {
 async function shoot(page, t, file) {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      await page.waitForFunction(() => typeof window.__film === 'function', null, { timeout: 20000 });
+      // A Vite reload can take a long time on a cold transform; the hook is
+      // the only proof the page is ready, so wait for it properly.
+      await page.waitForFunction(() => typeof window.__film === 'function', null, { timeout: 90000 });
       await page.evaluate((time) => window.__film(time), t);
       await page.screenshot({ path: file });
       return;
@@ -91,6 +98,20 @@ async function shoot(page, t, file) {
       await page.waitForTimeout(1200);
     }
   }
+}
+
+/** The launch cut: one still per beat, plus the two frames either side of
+ *  every cut, because a cut is where a composition breaks. */
+async function probeBrag() {
+  const browser = await chromium.launch();
+  const { ctx, page } = await openFilm(browser, '?mode=brag');
+  for (const t of [0, 1.2, 2.5, 2.7, 3.6, 4.7, 5.1, 5.4, 6.0, 6.7, 7.7, 8.4, 9.8, 10.3, 11.4, 12.7, 13.4, 14.6]) {
+    const file = path.join(OUT, `probe-brag-${String(t).replace('.', '_')}.png`);
+    await shoot(page, t, file);
+    console.log(`probe brag t=${t}s → ${path.basename(file)} ${(fs.statSync(file).size / 1024).toFixed(0)} KB`);
+  }
+  await ctx.close();
+  await browser.close();
 }
 
 async function probe() {
@@ -265,6 +286,25 @@ function encodeFilm() {
 /** The web hero: the loop, silent, as small as it can be without the UI type
  *  going soft. CRF 21 against flat UI is where artefacts stop being visible on
  *  a laptop screen; below that the file grows for no picture. */
+/** The launch cut as the hero: silent (the hero is muted by policy), looped
+ *  from its own first frame. The poster IS frame 0 — the hook is drawn settled
+ *  for exactly that reason, so there is no poster jump at the loop seam. */
+function webBrag() {
+  const mp4 = path.join(WEB, 'sharetexts-hero.mp4');
+  ff([
+    '-framerate', String(FPS), '-i', path.join(BRAG_FRAMES, 'f%05d.png'),
+    '-an', '-c:v', 'libx264', '-preset', 'slower', '-crf', '22',
+    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-g', String(FPS * 2),
+    mp4,
+  ]);
+  const poster = path.join(WEB, 'sharetexts-hero-poster.jpg');
+  ff(['-i', path.join(BRAG_FRAMES, 'f00000.png'), '-frames:v', '1', '-q:v', '3', '-vf', 'scale=1280:-2', poster]);
+  console.log(
+    `web(brag): public/film/sharetexts-hero.mp4 · ${dur(mp4).toFixed(2)}s · ${(fs.statSync(mp4).size / 1024).toFixed(0)} KB`
+    + ` · poster ${(fs.statSync(poster).size / 1024).toFixed(0)} KB`,
+  );
+}
+
 function web() {
   const mp4 = path.join(WEB, 'sharetexts-hero.mp4');
   ff([
@@ -283,6 +323,9 @@ function web() {
 
 const step = process.argv[2] || 'all';
 if (step === 'probe') await probe();
+else if (step === 'probe-brag') await probeBrag();
+else if (step === 'brag') await capture(BRAG_FRAMES, Math.round(BRAG * FPS), '?mode=brag');
+else if (step === 'bragweb') webBrag();
 else if (step === 'frames') await capture(FRAMES, Math.round(DURATION * FPS), '');
 else if (step === 'loop') await capture(LOOP_FRAMES, Math.round(LOOP * FPS), '?mode=loop');
 else if (step === 'audio') { voiceover(); music(); sfx(); mix(); }
