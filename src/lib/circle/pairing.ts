@@ -17,7 +17,7 @@
  */
 import {
   b64u, fromB64u, importCircleKey, randomBytes, shortAuthString, wrapCircleKey, unwrapCircleKey,
-  type WrappedKey,
+  unwrapCircleKeyRaw, type WrappedKey,
 } from './seal';
 import { CircleClient, inviteIdFor, newJoinSecret, type CircleMember } from './api';
 
@@ -124,6 +124,20 @@ export function unwrapFromInviter(
   circleId: string,
 ): Promise<CryptoKey> {
   return unwrapCircleKey(myDh, inviterDhPub, parseWrap(wrapped), circleId);
+}
+
+/**
+ * The joiner's side, with K's bytes — the one moment a linked device may hold
+ * them, so it can seal its own copy under its wrap key (OD-10). The caller
+ * MUST zero the buffer; `store.saveCircle({ keyRaw })` does.
+ */
+export function unwrapRawFromInviter(
+  myDh: CryptoKey,
+  inviterDhPub: string,
+  wrapped: string,
+  circleId: string,
+): Promise<Uint8Array> {
+  return unwrapCircleKeyRaw(myDh, inviterDhPub, parseWrap(wrapped), circleId);
 }
 
 /** Plain sentences for every failure the pairing flow can produce. */

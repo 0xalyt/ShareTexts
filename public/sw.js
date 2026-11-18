@@ -206,6 +206,23 @@ self.addEventListener('push', (event) => {
   })());
 });
 
+// ── Linked devices outbox (M4 STEP 1) ──────────────────────────────────────
+// Background Sync: when the network returns, wake a client and let the app's
+// outbox drain. The service worker does not upload the item itself — sealing
+// needs the circle key's non-extractable handle and the outbox owns the state
+// machine, so this handler is a doorbell, not a second implementation.
+//
+// Resolving with no clients open is deliberate: the next app start drains the
+// queue, and a rejected promise would make the browser retry a sync that has
+// nothing to do.
+self.addEventListener('sync', (event) => {
+  if (event.tag !== 'circle-outbox') return;
+  event.waitUntil((async () => {
+    const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clientList) client.postMessage({ type: 'circle-outbox' });
+  })());
+});
+
 self.addEventListener('notificationclick', (event) => {
   const data = event.notification.data || {};
   event.notification.close();

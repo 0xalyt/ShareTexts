@@ -64,12 +64,41 @@ export interface InviteRecord {
 const hex = (buf: ArrayBuffer): string =>
   Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 
+const SKEW_KEY = 'sharetext.circle.skew';
+
+function readSkew(): number {
+  try {
+    const raw = globalThis.localStorage?.getItem(SKEW_KEY);
+    const n = raw ? Number(raw) : 0;
+    // A stored skew older than a day is stale evidence: clocks get fixed, and
+    // an ancient offset would make every signature wrong in a new way.
+    return Number.isFinite(n) && Math.abs(n) < 24 * 60 * 60 * 1000 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeSkew(ms: number): void {
+  try {
+    globalThis.localStorage?.setItem(SKEW_KEY, String(Math.round(ms)));
+  } catch {
+    // Private mode, or storage full. The in-memory value still applies.
+  }
+}
+
 export class CircleClient {
   private readonly identity: CircleIdentity;
   private readonly baseUrl: string;
   private readonly doFetch: typeof fetch;
-  /** Learned from the server when our clock is off (ms to add to Date.now()). */
-  private skewMs = 0;
+  /**
+   * Learned from the server when our clock is off (ms to add to Date.now()).
+   *
+   * Remembered between clients and page loads: without that, every session
+   * spends its FIRST mailbox call on a 401 STALE and a retry, which is one
+   * extra round trip on the path that has to finish in two seconds. A phone
+   * whose clock is a minute off is not rare — it is most of them.
+   */
+  private skewMs = readSkew();
 
   constructor(baseUrl: string, identity: CircleIdentity, fetchImpl?: typeof fetch) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
@@ -82,6 +111,8 @@ export class CircleClient {
     circleId: string,
     tail: string,
     body?: { json?: unknown; bytes?: Uint8Array; headers?: Record<string, string> },
+    /** Internal: set once the clock has been corrected, so a STALE loop ends. */
+    retried = false,
   ): Promise<T> {
     // Signatures bind the PATH, never the query string: the Worker routes on
     // the pathname, and a signed `since` would only make the two sides of the
@@ -124,12 +155,17 @@ export class CircleClient {
         if (typeof parsed?.now === 'number') serverNow = parsed.now;
       } catch { /* a body-less error is still an error */ }
       // One correction, one retry: the server just told us what time it is.
-      if (code === 'STALE' && serverNow && !body?.headers?.['x-st-retry']) {
+      //
+      // The retry is a PARAMETER, not a header. It used to send `x-st-retry`,
+      // and that header is not in the Worker's Access-Control-Allow-Headers —
+      // so the browser refused the retry at the CORS step and every device
+      // whose clock was more than a minute off saw "Failed to fetch" on its
+      // first mailbox call. `verify-outbox` found this from a real browser;
+      // the Node gates could never see it, because Node has no preflight.
+      if (code === 'STALE' && serverNow && !retried) {
         this.skewMs = serverNow - Date.now();
-        return this.call<T>(method, circleId, tail, {
-          ...body,
-          headers: { ...(body?.headers ?? {}), 'x-st-retry': '1' },
-        });
+        writeSkew(this.skewMs);
+        return this.call<T>(method, circleId, tail, body, true);
       }
       throw new CircleApiError(code, res.status);
     }

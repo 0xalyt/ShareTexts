@@ -238,6 +238,27 @@ export async function unwrapCircleKey(
   wrapped: WrappedKey,
   circleId: string,
 ): Promise<CryptoKey> {
+  const raw = await unwrapCircleKeyRaw(myDhPriv, theirDhPubSpki, wrapped, circleId);
+  const key = await importCircleKey(raw);
+  // Imported non-extractable: usable, never readable. The buffer WebCrypto
+  // took is a copy, so wiping ours leaves no readable K behind.
+  raw.fill(0);
+  return key;
+}
+
+/**
+ * The same unwrap, returning K's bytes.
+ *
+ * A joining device needs them exactly once: to seal its own copy of K under its
+ * own wrap key (OD-10). Nothing else may hold this result — the caller MUST
+ * zero it, which is what `store.saveCircle({ keyRaw })` does for the app.
+ */
+export async function unwrapCircleKeyRaw(
+  myDhPriv: CryptoKey,
+  theirDhPubSpki: string,
+  wrapped: WrappedKey,
+  circleId: string,
+): Promise<Uint8Array> {
   const theirDhPub = await importDhPublic(theirDhPubSpki);
   const wrapKey = await wrapKeyFor(myDhPriv, theirDhPub, circleId);
   const raw = await crypto.subtle.decrypt(
@@ -245,8 +266,7 @@ export async function unwrapCircleKey(
     wrapKey,
     wrapped.ct,
   );
-  // Imported non-extractable: usable, never readable.
-  return importCircleKey(new Uint8Array(raw));
+  return new Uint8Array(raw);
 }
 
 /* ── short authentication string ───────────────────────────────────────── */

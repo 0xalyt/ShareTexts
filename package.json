@@ -71,7 +71,9 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "verify:totp-parity": "node scripts/verify-totp-parity.mjs",
     "verify:claims-selftest": "node scripts/verify-claims-selftest.mjs",
-    "verify:key-at-rest": "node scripts/verify-key-at-rest.mjs"
+    "verify:key-at-rest": "node scripts/verify-key-at-rest.mjs",
+    "verify:outbox": "node scripts/verify-outbox.mjs",
+    "verify:circle-e2e": "node scripts/verify-circle-e2e.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
