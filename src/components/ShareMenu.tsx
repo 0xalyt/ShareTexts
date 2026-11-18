@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Share2, Link as Link2, Check, Copy, QrCode } from 'lucide-react';
 
@@ -7,6 +7,7 @@ import { Share2, Link as Link2, Check, Copy, QrCode } from 'lucide-react';
 const Share = Share2;
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
+import { useTriggerOrigin } from '../lib/useTriggerOrigin';
 
 // ---------------------------------------------------------------------------
 // ShareMenu — one share action, four honest exits.
@@ -70,6 +71,9 @@ export function ShareMenu({
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState<'link' | 'code' | null>(null);
   const menuId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  // The panel grows out of the share button, not out of its own middle.
+  const { panelRef, origin } = useTriggerOrigin(open, triggerRef);
 
   // Escape closes from anywhere — the original's second close path, and the
   // one keyboard users reach for when a popover has swallowed focus.
@@ -143,6 +147,7 @@ export function ShareMenu({
   return (
     <div className={cn('relative', className)}>
       <button
+        ref={triggerRef}
         type="button"
         data-testid={testId}
         aria-haspopup="menu"
@@ -172,9 +177,11 @@ export function ShareMenu({
         <>
           <div className="fixed inset-0 z-40" onPointerDown={() => setOpen(false)} aria-hidden />
           <motion.div
+            ref={panelRef}
             id={menuId}
             role="menu"
             aria-label={t('action.share')}
+            style={{ transformOrigin: origin }}
             initial={{ opacity: 0, y: -4, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 460, damping: 30 }}

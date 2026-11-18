@@ -22,6 +22,7 @@ import { formatBytes } from '../lib/utils';
 import { connMachine } from '../lib/connectionState';
 import { getNetStats, describeRoute } from '../lib/netStats';
 import { useScrollFade } from '../lib/useScrollFade';
+import { useTriggerOrigin } from '../lib/useTriggerOrigin';
 
 /**
  * CommandBar — the app's whole surface, one ⌘K away.
@@ -85,6 +86,10 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
   const [subOpen, setSubOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  // Opened by ⌘K or by a header control: whichever element had focus is the
+  // point the palette unfolds from. No focus (first paint, programmatic
+  // open) falls back to the default centre origin.
+  const { panelRef: originPanelRef, origin: panelOrigin } = useTriggerOrigin(open);
   const prevFocusRef = useRef<HTMLElement | null>(null);
   const inRoom = !!session.roomId;
 
@@ -346,7 +351,11 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
           onPointerDown={(e) => { if (e.target === e.currentTarget) close(); }}
         >
           <motion.div
-            ref={panelRef}
+            ref={(node) => {
+              panelRef.current = node;
+              originPanelRef.current = node;
+            }}
+            style={{ transformOrigin: panelOrigin }}
             initial={{ opacity: 0, y: 12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}

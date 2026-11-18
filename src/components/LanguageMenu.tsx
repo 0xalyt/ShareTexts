@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 import { LANGS, useI18n } from '../lib/i18n';
 import { cn } from '../lib/utils';
 import { Sheet } from './ui/Sheet';
+import { useTriggerOrigin } from '../lib/useTriggerOrigin';
 
 /**
  * Language switcher.
@@ -38,6 +39,8 @@ export function LanguageMenu({
   const [sheetOpen, setSheetOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  // The list unfolds from the globe that opened it.
+  const { panelRef, origin } = useTriggerOrigin(open, btnRef);
   // Keyboard highlight index (-1 = none). Active while navigating.
   const [kbIdx, setKbIdx] = useState(-1);
 
@@ -258,6 +261,8 @@ export function LanguageMenu({
       <AnimatePresence>
         {open && (
           <motion.ul
+            ref={panelRef}
+            style={{ transformOrigin: origin }}
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}

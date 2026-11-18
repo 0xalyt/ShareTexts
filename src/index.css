@@ -1038,10 +1038,14 @@ html.dark .st-dotfield::after {
    (both fill keeps translate(-50%, 0) afterwards), so the animation owns
    transform outright and never fights a Tailwind translate utility. */
 @keyframes st-tip-in {
-  from { opacity: 0; transform: translate(-50%, 3px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translate(-50%, 3px) scale(0.94); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
 }
 .st-tooltip {
+  /* The bubble hangs off the control underneath it, so it scales up from that
+     edge — a tooltip growing out of its own centre reads as a small card
+     flying in rather than as the button naming itself. */
+  transform-origin: bottom center;
   animation: st-tip-in var(--st-dur-micro) var(--ease-out) both;
 }
 @media (prefers-reduced-motion: reduce) {

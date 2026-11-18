@@ -56,6 +56,9 @@ export function AnnotatedHint({ children, note, className, noteClassName }: Anno
           initial={{ opacity: 0, y: 4, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+          // It unfolds from the underlined word it belongs to, not from the
+          // middle of a 248px bubble that appears above it.
+          style={{ transformOrigin: 'left bottom' }}
           className={cn(
             'pointer-events-none absolute bottom-full left-0 mb-2 z-40 w-[248px] px-3 py-2 rounded-[12px]',
             'bg-apple-ink text-white dark:bg-apple-tile-3 text-[12px] font-medium leading-snug text-left normal-case',
