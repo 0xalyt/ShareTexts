@@ -45,24 +45,24 @@ is kept.*
 
 ## The launch cut (15.0 s, the hero)
 
-`?mode=brag` renders `src/film/BragStage.tsx`: six frames, one argument — the shortest
-distance between two devices is not a cloud. It is not the desk shot; it is a designed cut
-built from the product's own parts (Allo, `#f06413`, `QrArt`, the real room format, the real
-fragment-key URL). The plan and storyboard are in `brag-output/brag-plan.md`.
+`?mode=brag` renders `src/film/BragStage.tsx`: six beats following ONE photograph from a
+phone to a laptop. It is not the desk shot and it is not a setup guide: the code is one
+sentence inside beat 3, the pitch is what the viewer gets. The plan and the article notes
+are in `brag-output/relaunch-plan.md`.
 
 | Time | Beat |
 | --- | --- |
-| 0.0–2.6 | **Hook.** `Send it straight to your other device.` A packet crosses the wire between two outlined devices. Settled at frame 0, because frame 0 is the poster. |
-| 2.6–5.2 | **Link.** The real QR plate and `482 916`; the digits light one at a time as the second device types them. |
-| 5.2–7.8 | **Send.** Text, a link and a photo land in the room thread, one per beat. |
-| 7.8–10.4 | **File.** `Q3-budget.pdf` runs to 100% and settles on Saved, byte for byte. |
-| 10.4–12.8 | **Key.** `sharetexts.online/space/6b1c#k=…` — the fragment never leaves the browser. |
-| 12.8–15.0 | **Lockup.** Mark, `Move anything between your devices.`, the URL, `Free. No account.` |
+| 0.0–2.7 | **Promise.** `Phone to laptop. Nothing in between.` The photograph leaves the phone and crosses to the laptop. Settled at frame 0, because frame 0 is the poster. |
+| 2.7–5.4 | **Why better.** Three routes struck through — email, drive, chat — then `ShareTexts doesn’t.` |
+| 5.4–8.1 | **The moment.** The same photograph lands full-bleed on the laptop; light sweeps it and `Saved on this device` appears. |
+| 8.1–10.8 | **Anything.** Text, link and a 24.3 MB file arrive as three cards; the file completes. |
+| 10.8–13.2 | **Private.** `Encrypted end to end.` with the fragment-key URL and the lock that sentence is about. |
+| 13.2–15.0 | **Lockup.** Mark, `Move anything between your devices.`, the URL, `Free. No account.` |
 
-Cuts are hard and land on 30 fps frame boundaries; the chrome (mark, chapter labels, URL)
-is identical in every frame, and frame 0 is the strongest settled frame, so the poster is the
-true first frame rather than a substituted one. The file ships silent: the hero is muted by
-policy and the cut is built to stand up without sound.
+Cuts are hard and land on 30 fps frame boundaries; the chrome is a mark, a URL and one 3 px
+ember progress line, identical in every frame. Frame 0 is the strongest settled frame, so the
+poster is the true first frame rather than a substituted one. The file ships silent: the hero
+is muted by policy and the cut is built to stand up without sound.
 
 > The 10.0 s desk loop below is still in the rig (`?mode=loop`) but no longer ships as the
 > hero. Its camera positions belong to the 10 s cut and are unrelated to the launch cut.
@@ -109,7 +109,7 @@ node scripts/render-film.mjs all    # everything
 `bragweb` reads the frame count and derives 30 fps from the 15 s cut, so it no
 longer inherits `FPS` from the shell (`FPS=24` re-timed it to 18.75 s). It
 encodes at CRF 27 to keep the hero inside DESIGN §20b's 1.2 MB landing-media
-budget: 1,048,205 B, 15.000 s, 450 frames, silent. Poster is frame 0.
+budget: 918,008 B, 15.000 s, 450 frames, silent. Poster is frame 0.
 
 `frames` and `loop` are resumable: they skip PNGs already on disk, so a
 cancelled pass restarts where it stopped. **After changing a device's position

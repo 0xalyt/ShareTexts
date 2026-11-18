@@ -1,32 +1,35 @@
 import React from 'react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
-import { QrArt } from '../components/qr/QrArt';
 
 /**
- * BragStage — the landing hero film, re-cut as a launch film.
+ * BragStage — the landing hero film, cut as a launch film.
  *
- * Six frames, fifteen seconds, one argument: the shortest distance between two
- * devices is not a cloud. It is built the way the /brag run plans it — a hook
- * that is fully settled at frame 0 (the hero is muted and loops, so frame 0 is
- * also the poster), then four receipts, then the lockup.
+ * The first cut explained the mechanism: a code, a QR plate, a six-digit
+ * handshake. True, and it read like a setup guide — the viewer learned how to
+ * pair two devices and never learned why they should care.
  *
- * Every frame is a pure function of t: `window.__film(t)` sets the clock and the
- * stage renders exactly that instant. Nothing animates on its own, no CSS
- * transitions survive film.html's reset, and the camera moves are 1–3% pushes
- * rather than anything that would call attention to itself.
+ * This cut is one photograph's journey. Beat 1 promises it, beat 2 says what
+ * every other route costs, beat 3 is the moment it is simply *there*, beat 4
+ * shows what else travels the same way, beat 5 is the one trust fact that
+ * matters, beat 6 is the door. The code survives as one sentence in beat 3,
+ * where it belongs: the mechanism is the price of entry, not the pitch.
  *
- * The surfaces are the product's own: Allo and Inter, #f06413, the real QR
- * component, the real room-code format, the real fragment-key URL. The film
- * never draws a dashboard whole — each scene crops to the one object that
- * carries its beat.
+ * Built to the launch-film rules: the promise is legible at frame 0 (which is
+ * also the poster), no shot holds two ideas, no shot shows a whole dashboard,
+ * and nothing moves that is not the subject of its beat.
+ *
+ * Every frame is a pure function of t: `window.__film(t)` sets the clock and
+ * the stage renders exactly that instant. Nothing animates on its own and no
+ * CSS transition survives film.html's reset.
  */
 
 export const BRAG_DURATION = 15.0;
 
 const INK = '#0B0A09';
 const CREAM = '#F2E9DE';
-const MUTED = 'rgba(242,233,222,0.52)';
-const DIM = 'rgba(242,233,222,0.30)';
+const MUTED = 'rgba(242,233,222,0.58)';
+const DIM = 'rgba(242,233,222,0.32)';
+const HAIR = 'rgba(242,233,222,0.12)';
 const EMBER = '#f06413';
 const CARD = '#141210';
 const GREEN = '#34c759';
@@ -40,7 +43,7 @@ const DISPLAY: React.CSSProperties = {
   fontFamily: 'var(--font-display)',
   fontWeight: 700,
   letterSpacing: '-0.045em',
-  lineHeight: 0.96,
+  lineHeight: 0.92,
   color: CREAM,
   fontVariationSettings: '"opsz" 32',
 };
@@ -54,23 +57,15 @@ const LABEL: React.CSSProperties = {
   color: DIM,
 };
 
-const CHAPTERS = [
-  { t0: 0.0, t1: 2.6, n: '01', name: 'The promise' },
-  { t0: 2.6, t1: 5.2, n: '02', name: 'The link' },
-  { t0: 5.2, t1: 7.8, n: '03', name: 'The send' },
-  { t0: 7.8, t1: 10.4, n: '04', name: 'The file' },
-  { t0: 10.4, t1: 12.8, n: '05', name: 'The key' },
-  { t0: 12.8, t1: 15.1, n: '06', name: 'Your turn' },
-];
-
-const IN = [0.0, 2.6, 5.2, 7.8, 10.4, 12.8] as const;
+/** Six beats: 2.7 · 2.7 · 2.7 · 2.7 · 2.4 · 1.8 */
+const IN = [0.0, 2.7, 5.4, 8.1, 10.8, 13.2] as const;
 const scene = (t: number, i: number) => t >= IN[i] && t < (IN[i + 1] ?? BRAG_DURATION);
-/** The 1–3% push that keeps a held frame from looking like a slide. */
-const drift = (t: number, t0: number, t1: number) => 1 + 0.022 * clamp01((t - t0) / (t1 - t0));
+/** The 1.6% push that keeps a held frame from reading as a slide. */
+const drift = (t: number, t0: number, t1: number) => 1 + 0.016 * clamp01((t - t0) / (t1 - t0));
 
 function Rise({
   p,
-  y = 18,
+  y = 16,
   children,
   style,
 }: {
@@ -80,13 +75,7 @@ function Rise({
   style?: React.CSSProperties;
 }) {
   return (
-    <div
-      style={{
-        opacity: p,
-        transform: `translateY(${(1 - p) * y}px)`,
-        ...style,
-      }}
-    >
+    <div style={{ opacity: p, transform: `translateY(${(1 - p) * y}px)`, ...style }}>
       {children}
     </div>
   );
@@ -96,769 +85,721 @@ function Scene({ on, children }: { on: boolean; children: React.ReactNode }) {
   return <div style={{ position: 'absolute', inset: 0, opacity: on ? 1 : 0 }}>{children}</div>;
 }
 
-/* ── frame chrome ─────────────────────────────────────────────────────── */
+/* ── chrome: a mark, a URL, and one ember progress line ───────────────── */
 
 function Chrome({ t }: { t: number }) {
+  const progress = clamp01(t / BRAG_DURATION);
   return (
     <>
-      <div
-        style={{
-          position: 'absolute',
-          left: 120,
-          top: 66,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 13,
-        }}
-      >
-        <ShareTextsLogo size={26} />
+      <div style={{ position: 'absolute', left: 120, top: 62, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <ShareTextsLogo size={24} />
         <span
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: 700,
-            letterSpacing: '-0.02em',
-            color: CREAM,
+            letterSpacing: '-0.015em',
+            color: 'rgba(242,233,222,0.82)',
           }}
         >
           ShareTexts
         </span>
       </div>
-      <div style={{ position: 'absolute', right: 120, top: 72, display: 'flex', gap: 14, alignItems: 'baseline' }}>
-        {CHAPTERS.map((c, i) => {
-          const on = t >= c.t0 && t < c.t1;
-          return (
-            <span
-              key={c.n}
-              style={{
-                ...LABEL,
-                fontSize: 14,
-                color: on ? 'rgba(242,233,222,0.72)' : 'rgba(242,233,222,0.20)',
-                transition: 'none',
-              }}
-            >
-              <span style={{ color: on ? EMBER : 'rgba(242,233,222,0.20)' }}>{c.n}</span>
-              <span style={{ marginLeft: 8 }}>{c.name}</span>
-            </span>
-          );
-        })}
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: 120,
-          right: 120,
-          bottom: 58,
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          borderTop: '1px solid rgba(242,233,222,0.10)',
-          paddingTop: 20,
-        }}
-      >
-        <span style={{ ...LABEL, letterSpacing: '0.14em', color: 'rgba(242,233,222,0.46)' }}>
+      <div style={{ position: 'absolute', left: 120, bottom: 54 }}>
+        <span style={{ ...LABEL, letterSpacing: '0.16em', color: 'rgba(242,233,222,0.42)' }}>
           sharetexts.online
         </span>
-        <span style={{ ...LABEL, letterSpacing: '0.16em' }}>
-          A file transfer with nothing in the middle
-        </span>
+      </div>
+      {/* The progress line is the only chrome that changes: it makes the cut
+          read as one running film and gives the loop a visible clock. */}
+      <div
+        aria-hidden
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, background: 'rgba(242,233,222,0.07)' }}
+      >
+        <div style={{ width: `${progress * 100}%`, height: '100%', background: EMBER, opacity: 0.8 }} />
       </div>
     </>
   );
 }
 
-/* ── 01 · the hook ────────────────────────────────────────────────────── */
+/* ── device art ───────────────────────────────────────────────────────── */
 
-function Wire({ t }: { t: number }) {
-  const p = clamp01((t - 0.35) / 1.8);
-  const e = smooth(p);
-  // cubic between the laptop's edge and the phone
-  const a = { x: 424, y: 236 };
-  const b = { x: 452, y: 236 };
-  const c = { x: 468, y: 224 };
-  const d = { x: 486, y: 228 };
-  const bez = (u: number) => {
-    const v = 1 - u;
-    return {
-      x: v * v * v * a.x + 3 * v * v * u * b.x + 3 * v * u * u * c.x + u * u * u * d.x,
-      y: v * v * v * a.y + 3 * v * v * u * b.y + 3 * v * u * u * c.y + u * u * u * d.y,
-    };
-  };
-  const dot = bez(e);
-  const glow = Math.sin(Math.PI * p) * 0.9 + 0.1;
-
+function Laptop({
+  x,
+  y,
+  w,
+  h,
+  children,
+  glow,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  children?: React.ReactNode;
+  glow?: number;
+}) {
   return (
-    <svg width={700} height={470} viewBox="0 0 700 470" fill="none" style={{ overflow: 'visible' }}>
-      {/* laptop */}
-      <rect x={40} y={96} width={384} height={240} rx={14} stroke="rgba(242,233,222,0.26)" strokeWidth={2} />
-      <rect x={58} y={114} width={348} height={204} rx={8} stroke="rgba(242,233,222,0.10)" strokeWidth={1.5} />
-      <path d="M18 352 H446" stroke="rgba(242,233,222,0.26)" strokeWidth={2} strokeLinecap="round" />
-      {/* the room, cropped: one code plate inside the laptop, no dashboard */}
-      <rect x={206} y={168} width={164} height={96} rx={10} fill="rgba(240,100,19,0.10)" stroke="rgba(240,100,19,0.38)" />
-      <text
-        x={288}
-        y={207}
-        textAnchor="middle"
-        fill="rgba(242,233,222,0.85)"
-        style={{ fontFamily: 'var(--font-sans)', fontSize: 26, fontWeight: 700, letterSpacing: '0.14em' }}
-      >
-        482 916
-      </text>
-      <text
-        x={288}
-        y={234}
-        textAnchor="middle"
-        fill="rgba(242,233,222,0.38)"
-        style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 600, letterSpacing: '0.16em' }}
-      >
-        ROOM CODE
-      </text>
-      {/* phone */}
-      <rect x={488} y={110} width={112} height={224} rx={24} stroke="rgba(242,233,222,0.30)" strokeWidth={2} />
-      <rect x={500} y={126} width={88} height={192} rx={14} stroke="rgba(242,233,222,0.12)" strokeWidth={1.5} />
-      <rect x={528} y={120} width={32} height={5} rx={2.5} fill="rgba(242,233,222,0.22)" />
-      {/* a received bubble on the phone */}
-      <rect x={510} y={196} width={68} height={30} rx={9} fill="rgba(240,100,19,0.16)" stroke="rgba(240,100,19,0.45)" />
-      <path d="M518 211 H570" stroke="rgba(242,233,222,0.55)" strokeWidth={3} strokeLinecap="round" />
-      <path d="M518 219 H556" stroke="rgba(242,233,222,0.32)" strokeWidth={3} strokeLinecap="round" />
-      {/* the wire */}
-      <path d="M424 236 H486" stroke="rgba(242,233,222,0.16)" strokeWidth={2} strokeDasharray="4 7" />
-      <circle cx={dot.x} cy={dot.y} r={16} fill={EMBER} opacity={0.16 * glow} />
-      <circle cx={dot.x} cy={dot.y} r={6.5} fill={EMBER} />
-      <circle cx={dot.x} cy={dot.y} r={2.4} fill="#ffe6cf" />
-      <text x={40} y={394} fill="rgba(242,233,222,0.30)" style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 600, letterSpacing: '0.2em' }}>
-        THIS DEVICE
-      </text>
-      <text x={470} y={394} fill="rgba(242,233,222,0.30)" style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 600, letterSpacing: '0.2em' }}>
-        THAT DEVICE
-      </text>
-    </svg>
-  );
-}
-
-function Hook({ t }: { t: number }) {
-  return (
-    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 0, 2.6)})`, transformOrigin: '50% 45%' }}>
-      <div style={{ position: 'absolute', left: 120, top: 300, width: 1060 }}>
-        <div style={{ ...LABEL, color: EMBER, marginBottom: 30 }}>No account · no app · no install</div>
-        <div style={{ ...DISPLAY, fontSize: 126 }}>
-          <div>Send it straight</div>
-          <div style={{ color: 'rgba(242,233,222,0.92)' }}>to your other</div>
-          <div style={{ color: EMBER }}>device.</div>
-        </div>
-        <div
-          style={{
-            marginTop: 34,
-            width: 168,
-            height: 4,
-            borderRadius: 2,
-            background: EMBER,
-            opacity: 0.85,
-          }}
-        />
-      </div>
-      <div style={{ position: 'absolute', left: 1062, top: 288, transform: 'scale(1.1)', transformOrigin: '50% 50%' }}>
+    <div style={{ position: 'absolute', left: x, top: y, width: w }}>
+      {glow ? (
         <div
           aria-hidden
           style={{
             position: 'absolute',
-            left: 40,
-            top: 60,
-            width: 600,
-            height: 360,
+            left: -w * 0.14,
+            top: -h * 0.16,
+            width: w * 1.28,
+            height: h * 1.4,
             borderRadius: '50%',
-            background: 'radial-gradient(ellipse at center, rgba(240,100,19,0.13), rgba(240,100,19,0) 68%)',
-            filter: 'blur(12px)',
+            background: 'radial-gradient(ellipse at center, rgba(240,100,19,0.16), rgba(240,100,19,0) 70%)',
+            filter: 'blur(14px)',
+            opacity: glow,
           }}
         />
-        <Wire t={t} />
+      ) : null}
+      <div
+        style={{
+          position: 'relative',
+          width: w,
+          height: h,
+          borderRadius: 16,
+          border: '1.5px solid rgba(242,233,222,0.20)',
+          background: '#0c0b09',
+          padding: 11,
+          boxShadow: '0 70px 120px -60px rgba(0,0,0,0.95)',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: 8,
+            overflow: 'hidden',
+            background: '#070706',
+            border: '1px solid rgba(242,233,222,0.07)',
+            position: 'relative',
+          }}
+        >
+          {children}
+        </div>
+      </div>
+      <div
+        style={{
+          marginTop: 9,
+          marginLeft: -w * 0.035,
+          width: w * 1.07,
+          height: 13,
+          borderRadius: '0 0 14px 14px',
+          background: 'linear-gradient(180deg, rgba(242,233,222,0.16), rgba(242,233,222,0.04))',
+        }}
+      />
+    </div>
+  );
+}
+
+function Phone({ x, y, w, h, children }: { x: number; y: number; w: number; h: number; children?: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        width: w,
+        height: h,
+        borderRadius: 30,
+        border: '1.5px solid rgba(242,233,222,0.24)',
+        background: '#0c0b09',
+        padding: 10,
+        boxShadow: '0 60px 110px -50px rgba(0,0,0,0.95)',
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          borderRadius: 21,
+          overflow: 'hidden',
+          background: '#080807',
+          border: '1px solid rgba(242,233,222,0.07)',
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 7,
+            transform: 'translateX(-50%)',
+            width: w * 0.28,
+            height: 5,
+            borderRadius: 3,
+            background: 'rgba(242,233,222,0.18)',
+            zIndex: 3,
+          }}
+        />
+        {children}
       </div>
     </div>
   );
 }
 
-/* ── 02 · the link ────────────────────────────────────────────────────── */
-
-const CODE = ['4', '8', '2', '9', '1', '6'];
-
-function Code({ t }: { t: number }) {
+function Photo({ width, height, radius = 14 }: { width: number; height: number; radius?: number }) {
   return (
-    <div style={{ display: 'flex', gap: 34, alignItems: 'center' }}>
-      {[0, 3].map((start) => (
-        <div key={start} style={{ display: 'flex', gap: 12 }}>
-          {CODE.slice(start, start + 3).map((d, k) => {
-            const i = start + k;
-            const lit = t >= 3.12 + i * 0.13;
-            const next = !lit && t >= 3.12 + (i - 1) * 0.13 && i > 0;
-            return (
-              <div
-                key={i}
-                style={{
-                  width: 104,
-                  height: 138,
-                  borderRadius: 14,
-                  background: lit ? 'rgba(242,233,222,0.055)' : 'rgba(242,233,222,0.02)',
-                  border: `1px solid ${next ? 'rgba(240,100,19,0.55)' : lit ? 'rgba(242,233,222,0.18)' : 'rgba(242,233,222,0.07)'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: next ? '0 0 26px rgba(240,100,19,0.18)' : 'none',
-                }}
-              >
-                <span
-                  style={{
-                    ...DISPLAY,
-                    fontSize: 66,
-                    letterSpacing: '-0.02em',
-                    color: lit ? CREAM : 'rgba(242,233,222,0.10)',
-                  }}
-                >
-                  {d}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      ))}
+    <div
+      style={{
+        width,
+        height,
+        borderRadius: radius,
+        overflow: 'hidden',
+        background: '#1a1713',
+        border: '1px solid rgba(242,233,222,0.16)',
+        boxShadow: '0 40px 80px -30px rgba(0,0,0,0.9)',
+      }}
+    >
+      <img
+        src="/demo/photo-4x3.jpg"
+        alt=""
+        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+      />
     </div>
   );
 }
 
-function Link({ t }: { t: number }) {
-  const p = at(t, 2.7, 0.4);
+/* ── 01 · the promise (frame 0 is the poster) ─────────────────────────── */
+
+function Hook({ t }: { t: number }) {
+  // The photograph leaves the phone and crosses to the laptop. It is the same
+  // card that lands in beat 3, so the film has one object instead of six demos.
+  const p = easeOut(clamp01((t - 0.45) / 1.85));
+  const from = { x: 1772, y: 512 };
+  const to = { x: 1382, y: 470 };
+  const cx = 1600;
+  const cy = 372;
+  const bez = (u: number) => {
+    const v = 1 - u;
+    return {
+      x: v * v * from.x + 2 * v * u * cx + u * u * to.x,
+      y: v * v * from.y + 2 * v * u * cy + u * u * to.y,
+    };
+  };
+  const pos = bez(p);
+  const visible = t >= 0.45 ? 1 : 0;
+
   return (
-    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 2.6, 5.2)})`, transformOrigin: '44% 48%' }}>
-      <div style={{ position: 'absolute', left: 120, top: 216, width: 800 }}>
-        <Rise p={p} y={22}>
-          <div style={{ ...DISPLAY, fontSize: 104 }}>
-            <div>One code.</div>
-            <div style={{ color: EMBER }}>Two devices.</div>
+    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 0, 2.7)})`, transformOrigin: '44% 52%' }}>
+      <div style={{ position: 'absolute', left: 120, top: 286, width: 880 }}>
+        <div style={{ ...LABEL, color: EMBER, letterSpacing: '0.2em', marginBottom: 28 }}>
+          No account · no app · no install
+        </div>
+        <div style={{ ...DISPLAY, fontSize: 148 }}>
+          <div>Phone to</div>
+          <div>laptop.</div>
+        </div>
+        <div
+          style={{
+            marginTop: 34,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 40,
+            fontWeight: 500,
+            letterSpacing: '-0.01em',
+            color: 'rgba(242,233,222,0.72)',
+          }}
+        >
+          Nothing in between.
+        </div>
+      </div>
+
+      {/* the two devices, drawn once, reused as the film's cast */}
+      <Laptop x={1076} y={316} w={540} h={344} glow={0.9}>
+        {/* An empty screen with a landing outline: no label, because a label
+            here would be read at the same moment as the headline. */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: '18%',
+            top: '26%',
+            width: '64%',
+            height: '48%',
+            borderRadius: 10,
+            border: '1px dashed rgba(242,233,222,0.10)',
+            background: 'rgba(242,233,222,0.012)',
+          }}
+        />
+      </Laptop>
+
+      <Phone x={1672} y={366} w={164} h={316}>
+        <div style={{ position: 'absolute', inset: 0, padding: 12, paddingTop: 24 }}>
+          <Photo width={120} height={90} radius={9} />
+          <div style={{ marginTop: 10, height: 7, width: 96, borderRadius: 4, background: 'rgba(242,233,222,0.16)' }} />
+          <div style={{ marginTop: 7, height: 7, width: 62, borderRadius: 4, background: 'rgba(242,233,222,0.09)' }} />
+        </div>
+      </Phone>
+
+      {/* the flight */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: 1580,
+          top: 604,
+          width: 26,
+          height: 26,
+          marginLeft: -13,
+          marginTop: -13,
+          borderRadius: 13,
+          background: EMBER,
+          opacity: 0.22 * visible * (1 - p),
+          filter: 'blur(6px)',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          left: pos.x,
+          top: pos.y,
+          transform: `translate(-50%,-50%) rotate(${-7 * (1 - p)}deg) scale(${0.52 + 0.48 * p})`,
+          opacity: visible,
+        }}
+      >
+        <Photo width={196} height={147} radius={12} />
+      </div>
+    </div>
+  );
+}
+
+/* ── 02 · what every other route costs ────────────────────────────────── */
+
+const OLD_WAYS = [
+  { label: 'Email yourself', note: 'a draft sits in the middle', glyph: 'mail' },
+  { label: 'Upload to a drive', note: 'the file waits on a server', glyph: 'cloud' },
+  { label: 'Send it in a chat', note: 'the photo arrives compressed', glyph: 'chat' },
+] as const;
+
+function Glyph({ kind }: { kind: (typeof OLD_WAYS)[number]['glyph'] }) {
+  const common = { width: 30, height: 30, viewBox: '0 0 24 24', fill: 'none', stroke: 'rgba(242,233,222,0.52)', strokeWidth: 1.5 } as const;
+  if (kind === 'mail') {
+    return (
+      <svg {...common}>
+        <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+        <path d="m3.5 6.5 8.5 6 8.5-6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (kind === 'cloud') {
+    return (
+      <svg {...common}>
+        <path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.2 9.2 3.9 3.9 0 0 0 7 18Z" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 11.5v5m0-5-2 2m2-2 2 2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <path d="M20.5 4.5 10 15M20.5 4.5l-6.2 16-4.3-5.5L4 10.7l16.5-6.2Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CopyScene({ t }: { t: number }) {
+  return (
+    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 2.7, 5.4)})`, transformOrigin: '50% 50%' }}>
+      <Rise p={at(t, 2.78, 0.4)} y={20} style={{ position: 'absolute', left: 120, top: 176, width: 1100 }}>
+        <div style={{ ...DISPLAY, fontSize: 116 }}>
+          <div>Everything else</div>
+          <div style={{ color: 'rgba(242,233,222,0.88)' }}>makes a copy.</div>
+        </div>
+      </Rise>
+
+      <div style={{ position: 'absolute', left: 120, top: 512, width: 1380 }}>
+        {OLD_WAYS.map((row, i) => {
+          const p = at(t, 3.02 + i * 0.24, 0.34);
+          const strike = at(t, 3.34 + i * 0.24, 0.42);
+          return (
+            <div
+              key={row.label}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 26,
+                height: 118,
+                borderTop: `1px solid ${HAIR}`,
+                opacity: p,
+                transform: `translateY(${(1 - p) * 14}px)`,
+              }}
+            >
+              <Glyph kind={row.glyph} />
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 38,
+                    fontWeight: 600,
+                    letterSpacing: '-0.015em',
+                    color: strike > 0 ? 'rgba(242,233,222,0.42)' : 'rgba(242,233,222,0.92)',
+                  }}
+                >
+                  {row.label}
+                </div>
+                <div style={{ marginTop: 5, fontFamily: 'var(--font-sans)', fontSize: 21, color: 'rgba(242,233,222,0.34)' }}>
+                  {row.note}
+                </div>
+              </div>
+              {/* the strike: drawn, not faded, so the beat lands as an edit */}
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  left: 54,
+                  top: 48,
+                  height: 2,
+                  // Only the label is struck: a line the width of the row read
+                  // as a section divider instead of a refusal.
+                  width: `${strike * 470}px`,
+                  background: 'rgba(240,100,19,0.5)',
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <Rise p={at(t, 4.28, 0.42)} y={14} style={{ position: 'absolute', left: 120, top: 902 }}>
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: 42, fontWeight: 600, letterSpacing: '-0.02em', color: EMBER }}>
+          ShareTexts doesn’t.
+        </div>
+      </Rise>
+    </div>
+  );
+}
+
+/* ── 03 · the moment (the film's peak) ────────────────────────────────── */
+
+function Arrival({ t }: { t: number }) {
+  const land = easeOut(clamp01((t - 5.58) / 0.62));
+  const sweep = clamp01((t - 6.05) / 0.85);
+  const saved = t >= 6.5;
+  return (
+    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 5.4, 8.1)})`, transformOrigin: '54% 50%' }}>
+      <div style={{ position: 'absolute', left: 120, top: 250, width: 700 }}>
+        <Rise p={at(t, 5.5, 0.4)} y={18}>
+          <div style={{ ...DISPLAY, fontSize: 120 }}>
+            <div>It’s already</div>
+            <div style={{ color: EMBER }}>there.</div>
           </div>
-          <p
+          <div
             style={{
-              marginTop: 34,
+              marginTop: 30,
               fontFamily: 'var(--font-sans)',
-              fontSize: 27,
-              lineHeight: 1.45,
+              fontSize: 28,
+              lineHeight: 1.5,
               color: MUTED,
               maxWidth: 560,
             }}
           >
-            Open it on both. Scan the plate, or type six digits.
-          </p>
-        </Rise>
-        <Rise p={at(t, 2.78, 0.35)} y={16} style={{ marginTop: 62 }}>
-          <Code t={t} />
-        </Rise>
-        <Rise p={at(t, 3.05, 0.4)} y={10} style={{ marginTop: 30, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 4, background: GREEN }} />
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 19, fontWeight: 500, color: 'rgba(242,233,222,0.40)' }}>
-            iPhone · typing…
-          </span>
+            One code on each device. That’s the whole setup.
+          </div>
+          <div
+            style={{
+              marginTop: 26,
+              fontFamily: 'var(--font-sans)',
+              fontSize: 24,
+              color: 'rgba(242,233,222,0.38)',
+            }}
+          >
+            No email to yourself. No sync to wait for.
+          </div>
         </Rise>
       </div>
 
+      <Laptop x={900} y={236} w={860} h={548} glow={0.55}>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: land,
+            transform: `scale(${1.05 - 0.05 * land})`,
+          }}
+        >
+          <img
+            src="/demo/photo-4x3.jpg"
+            alt=""
+            style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          {/* the light that arrives with it */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: `linear-gradient(105deg, rgba(255,255,255,0) ${Math.max(0, sweep * 120 - 40)}%, rgba(255,255,255,${0.14 * (1 - sweep)}) ${sweep * 120}%, rgba(255,255,255,0) ${sweep * 120 + 30}%)`,
+            }}
+          />
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            right: 18,
+            bottom: 18,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 14px',
+            borderRadius: 999,
+            background: 'rgba(8,8,7,0.72)',
+            border: '1px solid rgba(242,233,222,0.14)',
+            opacity: saved ? 1 : 0,
+            transform: `translateY(${saved ? 0 : 6}px)`,
+          }}
+        >
+          <span style={{ width: 7, height: 7, borderRadius: 4, background: GREEN }} />
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 15, fontWeight: 600, color: 'rgba(242,233,222,0.86)' }}>
+            Saved on this device
+          </span>
+        </div>
+      </Laptop>
+    </div>
+  );
+}
+
+/* ── 04 · what travels the same way ───────────────────────────────────── */
+
+const PAYLOADS = [
+  { kind: 'text' as const, title: 'Kitchen is 2481 — see you at 7', meta: 'Text' },
+  { kind: 'link' as const, title: 'sharetexts.online/guides', meta: 'Link' },
+  { kind: 'file' as const, title: 'Q3-budget.pdf', meta: '24.3 MB' },
+];
+
+function PayloadCard({ item, t, index }: { item: (typeof PAYLOADS)[number]; t: number; index: number; key?: React.Key }) {
+  const p = at(t, 8.3 + index * 0.19, 0.4);
+  const progress = index === 2 ? easeOut(clamp01((t - 8.95) / 0.75)) : 1;
+  // Green at the same instant the bar fills: a card that reads 100% in orange
+  // for a beat looks like it stalled one frame from done.
+  const done = index !== 2 || progress >= 0.995;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 20,
+        width: 760,
+        padding: '22px 26px',
+        borderRadius: 20,
+        background: CARD,
+        border: `1px solid ${index === 0 ? 'rgba(240,100,19,0.32)' : 'rgba(242,233,222,0.10)'}`,
+        boxShadow: '0 40px 80px -40px rgba(0,0,0,0.9)',
+        opacity: p,
+        transform: `translateX(${(1 - p) * 40}px)`,
+      }}
+    >
       <div
         style={{
-          position: 'absolute',
-          right: 132,
-          top: 196,
-          width: 430,
-          height: 430,
-          borderRadius: 30,
-          background: '#f7f2e8',
-          boxShadow: '0 60px 120px -40px rgba(0,0,0,0.85), 0 0 0 1px rgba(0,0,0,0.35)',
+          width: 56,
+          height: 56,
+          borderRadius: 14,
+          background: index === 0 ? 'rgba(240,100,19,0.16)' : 'rgba(242,233,222,0.06)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          transform: `rotate(${-1.6 + 0.6 * at(t, 2.6, 2.6)}deg) scale(${1 + 0.012 * at(t, 2.6, 2.6)})`,
+          flexShrink: 0,
         }}
       >
-        <QrArt value="https://sharetexts.online/r/482916" size={336} label="Room QR code" />
-      </div>
-    </div>
-  );
-}
-
-/* ── 03 · the send ────────────────────────────────────────────────────── */
-
-function Bubble({
-  p,
-  children,
-  align = 'right',
-}: {
-  p: number;
-  children: React.ReactNode;
-  align?: 'right' | 'left';
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
-        opacity: p,
-        transform: `translateY(${(1 - p) * 18}px) scale(${0.985 + 0.015 * p})`,
-        marginTop: 14,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Thread({ t }: { t: number }) {
-  return (
-    <div
-      style={{
-        width: 800,
-        height: 560,
-        borderRadius: 28,
-        background: CARD,
-        border: '1px solid rgba(242,233,222,0.10)',
-        boxShadow: '0 70px 130px -60px rgba(0,0,0,0.9)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          height: 46,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '0 26px',
-          borderBottom: '1px solid rgba(242,233,222,0.08)',
-          background: 'rgba(242,233,222,0.02)',
-        }}
-      >
-        <span style={{ width: 9, height: 9, borderRadius: 9, background: '#ff5f57' }} />
-        <span style={{ width: 9, height: 9, borderRadius: 9, background: '#febc2e' }} />
-        <span style={{ width: 9, height: 9, borderRadius: 9, background: '#28c840' }} />
-        <span style={{ marginLeft: 14, ...LABEL, fontSize: 11, letterSpacing: '0.2em', color: 'rgba(242,233,222,0.28)' }}>
-          Room · 482 916
-        </span>
+        {item.kind === 'text' && (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={EMBER} strokeWidth="1.6">
+            <path d="M4 6h16M4 12h11M4 18h7" strokeLinecap="round" />
+          </svg>
+        )}
+        {item.kind === 'link' && (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(242,233,222,0.62)" strokeWidth="1.6">
+            <path d="M10 14 14 10M9.5 7.5l1.6-1.6a3.7 3.7 0 0 1 5.2 5.2l-1.6 1.6M14.5 16.5l-1.6 1.6a3.7 3.7 0 0 1-5.2-5.2l1.6-1.6" strokeLinecap="round" />
+          </svg>
+        )}
+        {item.kind === 'file' && (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(242,233,222,0.62)" strokeWidth="1.6">
+            <path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9l-6-6Z" strokeLinejoin="round" />
+            <path d="M13 3v6h6" strokeLinejoin="round" />
+          </svg>
+        )}
       </div>
 
-      <div
-        style={{
-          height: 62,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '0 26px',
-          borderBottom: '1px solid rgba(242,233,222,0.07)',
-        }}
-      >
-        <span style={{ width: 9, height: 9, borderRadius: 9, background: GREEN, boxShadow: '0 0 12px rgba(52,199,89,0.7)' }} />
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 17, fontWeight: 600, color: 'rgba(242,233,222,0.80)' }}>
-          MacBook Pro ⇄ iPhone
-        </span>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 16, fontWeight: 600, color: GREEN }}>Direct</span>
-        <span
-          style={{
-            marginLeft: 'auto',
-            fontFamily: 'var(--font-sans)',
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: '0.06em',
-            color: 'rgba(242,233,222,0.45)',
-            border: '1px solid rgba(242,233,222,0.14)',
-            borderRadius: 999,
-            padding: '5px 10px',
-          }}
-        >
-          ENCRYPTED
-        </span>
-      </div>
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '10px 30px 22px' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            alignSelf: 'center',
-            marginBottom: 8,
             fontFamily: 'var(--font-sans)',
-            fontSize: 15,
+            fontSize: 27,
             fontWeight: 600,
-            letterSpacing: '0.12em',
-            color: 'rgba(242,233,222,0.26)',
-            opacity: at(t, 5.2, 0.3),
+            letterSpacing: '-0.01em',
+            color: 'rgba(242,233,222,0.94)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
-          TODAY · BOTH DEVICES
+          {item.title}
         </div>
-        <Bubble p={at(t, 5.44, 0.32)}>
-          <div
-            style={{
-              maxWidth: 470,
-              background: EMBER,
-              color: '#fff',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 30,
-              fontWeight: 500,
-              lineHeight: 1.28,
-              padding: '16px 22px',
-              borderRadius: 20,
-              borderBottomRightRadius: 7,
-              boxShadow: '0 22px 44px -20px rgba(240,100,19,0.7)',
-            }}
-          >
-            Kitchen is 2481 — see you at 7
-          </div>
-        </Bubble>
-
-        <Bubble p={at(t, 5.82, 0.32)}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              background: 'rgba(242,233,222,0.07)',
-              border: '1px solid rgba(242,233,222,0.12)',
-              borderRadius: 20,
-              borderBottomRightRadius: 7,
-              padding: '14px 20px',
-              maxWidth: 470,
-            }}
-          >
-            <span
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: 'rgba(240,100,19,0.18)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke={EMBER} strokeWidth="1.7">
-                <path d="M6.4 9.6 9.6 6.4M6.9 4.1l1.3-1.3a2.9 2.9 0 0 1 4.1 4.1l-1.3 1.3M9.1 11.9l-1.3 1.3a2.9 2.9 0 0 1-4.1-4.1l1.3-1.3" strokeLinecap="round" />
-              </svg>
-            </span>
-            <span>
-              <span style={{ display: 'block', fontFamily: 'var(--font-sans)', fontSize: 26, fontWeight: 600, color: CREAM }}>
-                sharetexts.online
-              </span>
-              <span style={{ display: 'block', marginTop: 3, fontFamily: 'var(--font-sans)', fontSize: 17, color: 'rgba(242,233,222,0.42)' }}>
-                Temporary Spaces guide
-              </span>
-            </span>
-          </div>
-        </Bubble>
-
-        <Bubble p={at(t, 6.20, 0.32)}>
-          <div
-            style={{
-              borderRadius: 20,
-              borderBottomRightRadius: 7,
-              overflow: 'hidden',
-              border: '1px solid rgba(242,233,222,0.14)',
-              boxShadow: '0 24px 44px -24px rgba(0,0,0,0.9)',
-            }}
-          >
-            <img src="/demo/photo-4x3.jpg" alt="" style={{ display: 'block', width: 342, height: 256, objectFit: 'cover' }} />
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '9px 14px',
-                background: 'rgba(20,18,16,0.96)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 15,
-                color: 'rgba(242,233,222,0.55)',
-              }}
-            >
-              <span>IMG_2481.HEIC</span>
-              <span>3.8 MB</span>
-            </div>
-          </div>
-        </Bubble>
+        <div style={{ marginTop: 6, fontFamily: 'var(--font-sans)', fontSize: 17, color: 'rgba(242,233,222,0.38)' }}>
+          {item.meta}
+        </div>
       </div>
 
-      <div style={{ padding: '0 26px 22px' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            background: 'rgba(242,233,222,0.055)',
-            border: '1px solid rgba(242,233,222,0.08)',
-            borderRadius: 999,
-            padding: '10px 10px 10px 22px',
-          }}
-        >
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 18, color: 'rgba(242,233,222,0.32)', flex: 1 }}>
-            Message, link, or drop a file…
-          </span>
+      {index === 2 ? (
+        <div style={{ width: 150, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
           <span
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: 42,
-              background: EMBER,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: `0 0 ${18 + 14 * Math.sin(Math.PI * clamp01((t - 5.3) / 2.4))}px rgba(240,100,19,0.55)`,
-            }}
-          >
-            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="1.8">
-              <path d="M14 2 7 9M14 2l-4.4 12-2.6-5-5-2.6L14 2Z" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Send({ t }: { t: number }) {
-  return (
-    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 5.2, 7.8)})`, transformOrigin: '60% 50%' }}>
-      <div style={{ position: 'absolute', left: 120, top: 214, width: 720 }}>
-        <Rise p={at(t, 5.2, 0.4)} y={20}>
-          <div style={{ ...DISPLAY, fontSize: 104 }}>Send anything.</div>
-          <p
-            style={{
-              marginTop: 32,
               fontFamily: 'var(--font-sans)',
-              fontSize: 27,
-              lineHeight: 1.5,
-              color: MUTED,
-              maxWidth: 470,
+              fontSize: 18,
+              fontWeight: 700,
+              fontVariantNumeric: 'tabular-nums',
+              color: done ? GREEN : 'rgba(242,233,222,0.6)',
             }}
           >
-            Text. A link. A photo. They land on the other device, in order, still encrypted.
-          </p>
-        </Rise>
-      </div>
-      <div style={{ position: 'absolute', right: 120, top: 232 }}>
-        <Thread t={t} />
-      </div>
+            {done ? 'Saved' : `${Math.round(progress * 100)}%`}
+          </span>
+          <div style={{ width: '100%', height: 5, borderRadius: 3, background: 'rgba(242,233,222,0.10)' }}>
+            <div style={{ width: `${progress * 100}%`, height: '100%', borderRadius: 3, background: done ? GREEN : EMBER }} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-/* ── 04 · the file ────────────────────────────────────────────────────── */
-
-function FileScene({ t }: { t: number }) {
-  const prog = easeOut(clamp01((t - 8.15) / 1.1));
-  const saved = t >= 9.5;
-  const p = at(t, 7.95, 0.42);
-  const pct = Math.round(prog * 100);
+function Anything({ t }: { t: number }) {
   return (
-    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 7.8, 10.4)})`, transformOrigin: '50% 50%' }}>
-      <div style={{ position: 'absolute', left: 120, top: 168 }}>
-        <Rise p={p} y={18}>
-          <div style={{ ...DISPLAY, fontSize: 104 }}>Files, byte for byte.</div>
-          <p style={{ marginTop: 26, fontFamily: 'var(--font-sans)', fontSize: 27, color: MUTED }}>
-            No compression. No re-upload. The bytes you send are the bytes that land.
-          </p>
-        </Rise>
-      </div>
-
-      {/* ghosts: the other files this could be, kept at the edge of vision */}
-      {[
-        { x: 268, y: 468, r: -2.4, w: 1240, label: 'board-deck.pdf' },
-        { x: 316, y: 486, r: 1.8, w: 1180, label: 'IMG_9921.HEIC' },
-      ].map((g, i) => (
-        <div
-          key={g.label}
-          style={{
-            position: 'absolute',
-            left: g.x,
-            top: g.y - i * 8,
-            width: g.w,
-            height: 300,
-            borderRadius: 26,
-            background: 'rgba(242,233,222,0.018)',
-            border: '1px solid rgba(242,233,222,0.05)',
-            transform: `rotate(${g.r}deg)`,
-          }}
-        />
-      ))}
-
-      <div
-        style={{
-          position: 'absolute',
-          left: 300,
-          top: 446,
-          width: 1320,
-          height: 312,
-          borderRadius: 28,
-          background: CARD,
-          border: '1px solid rgba(242,233,222,0.12)',
-          boxShadow: '0 80px 140px -60px rgba(0,0,0,0.95)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 44,
-          padding: '0 52px',
-          opacity: p,
-          transform: `translateY(${(1 - p) * 22}px)`,
-        }}
-      >
+    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 8.1, 10.8)})`, transformOrigin: '50% 50%' }}>
+      <Rise p={at(t, 8.18, 0.4)} y={18} style={{ position: 'absolute', left: 120, top: 226, width: 760 }}>
+        <div style={{ ...DISPLAY, fontSize: 112 }}>
+          <div>Text. Links.</div>
+          <div>Photos. Files.</div>
+        </div>
         <div
           style={{
-            width: 108,
-            height: 134,
-            borderRadius: 14,
-            background: EMBER,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            marginTop: 30,
             fontFamily: 'var(--font-sans)',
-            fontSize: 22,
-            fontWeight: 800,
-            letterSpacing: '0.06em',
-            color: '#fff',
-            boxShadow: '0 22px 44px -18px rgba(240,100,19,0.65)',
+            fontSize: 27,
+            lineHeight: 1.5,
+            color: MUTED,
+            maxWidth: 660,
+            // One line, so "re-uploaded" can never hyphenate across two.
+            textWrap: 'pretty',
           }}
         >
-          PDF
+          Sent as they are. Nothing compressed.
         </div>
+      </Rise>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 18 }}>
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 42, fontWeight: 700, letterSpacing: '-0.02em', color: CREAM }}>
-              Q3-budget.pdf
-            </span>
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 21, color: 'rgba(242,233,222,0.38)' }}>
-              24.3 MB · PDF
-            </span>
-          </div>
-
-          <div style={{ marginTop: 26, display: 'flex', alignItems: 'center', gap: 24 }}>
-            <div
-              style={{
-                flex: 1,
-                height: 10,
-                borderRadius: 5,
-                background: 'rgba(242,233,222,0.09)',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${prog * 100}%`,
-                  height: '100%',
-                  borderRadius: 5,
-                  background: EMBER,
-                  boxShadow: '0 0 22px rgba(240,100,19,0.55)',
-                }}
-              />
-            </div>
-            <span
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 34,
-                fontWeight: 700,
-                fontVariantNumeric: 'tabular-nums',
-                color: saved ? GREEN : 'rgba(242,233,222,0.72)',
-                width: 210,
-                textAlign: 'right',
-              }}
-            >
-              {saved ? '✓ Saved' : `${pct}%`}
-            </span>
-          </div>
-
-          <div
-            style={{
-              marginTop: 18,
-              fontFamily: 'var(--font-sans)',
-              fontSize: 19,
-              color: saved ? 'rgba(52,199,89,0.85)' : 'rgba(242,233,222,0.34)',
-            }}
-          >
-            {saved ? 'Byte-for-byte verified on the receiving device' : 'Sealing on this device · sending device to device'}
-          </div>
-        </div>
+      <div style={{ position: 'absolute', left: 986, top: 286, display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {PAYLOADS.map((item, i) => (
+          <PayloadCard key={item.title} item={item} t={t} index={i} />
+        ))}
       </div>
     </div>
   );
 }
 
-/* ── 05 · the key ─────────────────────────────────────────────────────── */
+/* ── 05 · the one trust fact ──────────────────────────────────────────── */
 
-function KeyScene({ t }: { t: number }) {
-  const p = at(t, 10.5, 0.42);
-  const bracket = at(t, 11.15, 0.45);
+function Private({ t }: { t: number }) {
+  const bracket = at(t, 11.5, 0.45);
   return (
-    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 10.4, 12.8)})`, transformOrigin: '50% 48%' }}>
-      <div style={{ position: 'absolute', left: 120, top: 196, width: 1500 }}>
-        <Rise p={p} y={20}>
-          <div style={{ ...DISPLAY, fontSize: 104 }}>Encrypted end to end.</div>
-          <p style={{ marginTop: 28, fontFamily: 'var(--font-sans)', fontSize: 28, lineHeight: 1.5, color: MUTED, maxWidth: 1060 }}>
-            The key is made on your devices. It never reaches the server.
-          </p>
-        </Rise>
+    <div style={{ position: 'absolute', inset: 0, transform: `scale(${drift(t, 10.8, 13.2)})`, transformOrigin: '50% 46%' }}>
+      <Rise p={at(t, 10.88, 0.42)} y={18} style={{ position: 'absolute', left: 120, top: 214, width: 1180 }}>
+        <div style={{ ...DISPLAY, fontSize: 132 }}>
+          <div>Encrypted</div>
+          <div style={{ color: EMBER }}>end to end.</div>
+        </div>
+        <div style={{ marginTop: 32, fontFamily: 'var(--font-sans)', fontSize: 30, lineHeight: 1.5, color: MUTED, maxWidth: 900 }}>
+          The key is made on your devices. It never reaches the server.
+        </div>
+      </Rise>
 
-        <Rise p={at(t, 10.72, 0.4)} y={16} style={{ marginTop: 74 }}>
-          <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', maxWidth: 1500 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '30px 54px',
-                borderRadius: 22,
-                background: CARD,
-                border: '1px solid rgba(242,233,222,0.12)',
-                boxShadow: '0 50px 100px -50px rgba(0,0,0,0.9)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 44,
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                width: 1180,
-              }}
-            >
-              <span style={{ color: 'rgba(242,233,222,0.92)' }}>sharetexts.online/space/6b1c</span>
-              <span
-                style={{
-                  color: EMBER,
-                  borderBottom: `2px dashed ${bracket > 0 ? `rgba(240,100,19,${0.55 * bracket})` : 'transparent'}`,
-                  paddingBottom: 6,
-                }}
-              >
-                #k=9f2a8c…
-              </span>
-            </div>
+      {/* One object on the right so the frame is a composition, not a column
+          of text against a void: the lock the sentence is about. */}
+      <Rise p={at(t, 10.95, 0.5)} y={12} style={{ position: 'absolute', right: 150, top: 264, width: 430, textAlign: 'center' }}>
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 150,
+            width: 520,
+            height: 520,
+            marginLeft: -260,
+            marginTop: -260,
+            borderRadius: '50%',
+            background: 'radial-gradient(ellipse at center, rgba(240,100,19,0.12), rgba(240,100,19,0) 68%)',
+            filter: 'blur(16px)',
+          }}
+        />
+        <svg width={214} height={252} viewBox="0 0 214 252" fill="none" style={{ position: 'relative' }}>
+          <rect x={18} y={104} width={178} height={132} rx={26} stroke="rgba(242,233,222,0.26)" strokeWidth={3} />
+          <path d="M58 104V78a49 49 0 0 1 98 0v26" stroke="rgba(242,233,222,0.26)" strokeWidth={3} strokeLinecap="round" />
+          <circle cx={107} cy={164} r={15} stroke={EMBER} strokeWidth={3} />
+          <path d="M107 179v30" stroke={EMBER} strokeWidth={3} strokeLinecap="round" />
+        </svg>
+        <div
+          style={{
+            position: 'relative',
+            marginTop: 26,
+            fontFamily: 'var(--font-sans)',
+            fontSize: 20,
+            lineHeight: 1.45,
+            color: 'rgba(242,233,222,0.38)',
+          }}
+        >
+          only your two devices hold the key
+        </div>
+      </Rise>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, opacity: bracket }}>
-              <svg width="30" height="14" viewBox="0 0 30 14" fill="none">
-                <path d="M29 1v4a3 3 0 0 1-3 3H5a3 3 0 0 0-3 3v2" stroke="rgba(240,100,19,0.55)" strokeWidth="1.6" />
-              </svg>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 20, color: 'rgba(240,100,19,0.85)' }}>
-                the fragment never leaves the browser
-              </span>
-            </div>
-          </div>
-        </Rise>
-
-        <Rise p={at(t, 11.3, 0.5)} y={8} style={{ marginTop: 78 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <svg width="22" height="26" viewBox="0 0 22 26" fill="none" stroke="rgba(242,233,222,0.30)" strokeWidth="1.6">
+      <Rise p={at(t, 11.12, 0.4)} y={14} style={{ position: 'absolute', left: 120, top: 704 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 18,
+              padding: '24px 34px',
+              borderRadius: 18,
+              background: CARD,
+              border: `1px solid ${HAIR}`,
+              fontFamily: 'var(--font-sans)',
+              fontSize: 32,
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <svg width="22" height="26" viewBox="0 0 22 26" fill="none" stroke="rgba(242,233,222,0.5)" strokeWidth="1.6">
               <rect x="2" y="11" width="18" height="13" rx="3" />
               <path d="M6 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 22, color: 'rgba(242,233,222,0.40)' }}>
-              The server only ever holds ciphertext — never the key, never the file.
+            <span style={{ color: 'rgba(242,233,222,0.86)' }}>sharetexts.online/space/6b1c</span>
+            <span style={{ color: EMBER, borderBottom: `2px dashed rgba(240,100,19,${0.5 * bracket})`, paddingBottom: 4 }}>
+              #k=9f2a…
             </span>
           </div>
-        </Rise>
-      </div>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 21,
+              color: 'rgba(240,100,19,0.82)',
+              opacity: bracket,
+            }}
+          >
+            the fragment never leaves the browser
+          </span>
+        </div>
+      </Rise>
     </div>
   );
 }
 
-/* ── 06 · the lockup ──────────────────────────────────────────────────── */
+/* ── 06 · the door ────────────────────────────────────────────────────── */
 
 function Outro({ t }: { t: number }) {
-  const p = at(t, 12.9, 0.5);
-  const q = at(t, 13.15, 0.5);
+  const p = at(t, 13.28, 0.45);
+  const q = at(t, 13.55, 0.4);
   return (
     <div
       style={{
@@ -868,34 +809,35 @@ function Outro({ t }: { t: number }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        transform: `scale(${drift(t, 12.8, 15)})`,
+        transform: `scale(${drift(t, 13.2, 15)})`,
       }}
     >
       <div
+        aria-hidden
         style={{
           position: 'absolute',
-          width: 920,
-          height: 620,
+          width: 940,
+          height: 600,
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(240,100,19,0.14), rgba(240,100,19,0) 68%)',
-          filter: 'blur(18px)',
+          background: 'radial-gradient(ellipse at center, rgba(240,100,19,0.16), rgba(240,100,19,0) 68%)',
+          filter: 'blur(20px)',
           opacity: p,
         }}
       />
-      <Rise p={p} y={16} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 42 }}>
-        <ShareTextsLogo size={64} />
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 40, fontWeight: 700, letterSpacing: '-0.02em', color: CREAM }}>
+      <Rise p={p} y={14} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 40 }}>
+        <ShareTextsLogo size={62} />
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 38, fontWeight: 700, letterSpacing: '-0.02em', color: CREAM }}>
           ShareTexts
         </span>
       </Rise>
-      <Rise p={p} y={18} style={{ position: 'relative', textAlign: 'center' }}>
-        <div style={{ ...DISPLAY, fontSize: 96 }}>Move anything between</div>
-        <div style={{ ...DISPLAY, fontSize: 96, color: 'rgba(242,233,222,0.92)' }}>your devices.</div>
+      <Rise p={p} y={16} style={{ position: 'relative', textAlign: 'center' }}>
+        <div style={{ ...DISPLAY, fontSize: 92 }}>Move anything between</div>
+        <div style={{ ...DISPLAY, fontSize: 92, color: 'rgba(242,233,222,0.9)' }}>your devices.</div>
       </Rise>
-      <Rise p={q} y={12} style={{ position: 'relative', marginTop: 46, display: 'flex', alignItems: 'center', gap: 22 }}>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 34, fontWeight: 600, color: CREAM }}>sharetexts.online</span>
-        <span style={{ width: 1, height: 26, background: 'rgba(242,233,222,0.18)' }} />
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 26, color: 'rgba(242,233,222,0.46)' }}>Free. No account.</span>
+      <Rise p={q} y={10} style={{ position: 'relative', marginTop: 44, display: 'flex', alignItems: 'center', gap: 20 }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 32, fontWeight: 600, color: CREAM }}>sharetexts.online</span>
+        <span style={{ width: 1, height: 24, background: 'rgba(242,233,222,0.18)' }} />
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 24, color: 'rgba(242,233,222,0.46)' }}>Free. No account.</span>
       </Rise>
     </div>
   );
@@ -952,18 +894,18 @@ export function BragStage() {
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(58% 52% at 12% 92%, rgba(240,100,19,0.15), rgba(240,100,19,0) 70%),'
-            + ' radial-gradient(46% 44% at 92% 8%, rgba(255,214,170,0.055), rgba(255,214,170,0) 70%)',
+            'radial-gradient(56% 50% at 10% 94%, rgba(240,100,19,0.16), rgba(240,100,19,0) 70%),'
+            + ' radial-gradient(44% 42% at 94% 6%, rgba(255,214,170,0.05), rgba(255,214,170,0) 70%)',
         }}
       />
 
       <Chrome t={t} />
 
       <Scene on={scene(t, 0)}><Hook t={t} /></Scene>
-      <Scene on={scene(t, 1)}><Link t={t} /></Scene>
-      <Scene on={scene(t, 2)}><Send t={t} /></Scene>
-      <Scene on={scene(t, 3)}><FileScene t={t} /></Scene>
-      <Scene on={scene(t, 4)}><KeyScene t={t} /></Scene>
+      <Scene on={scene(t, 1)}><CopyScene t={t} /></Scene>
+      <Scene on={scene(t, 2)}><Arrival t={t} /></Scene>
+      <Scene on={scene(t, 3)}><Anything t={t} /></Scene>
+      <Scene on={scene(t, 4)}><Private t={t} /></Scene>
       <Scene on={scene(t, 5)}><Outro t={t} /></Scene>
 
       {/* grain + vignette: the same two passes on every frame, so cuts do not flash */}
