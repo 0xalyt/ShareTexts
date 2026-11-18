@@ -51,7 +51,7 @@ const browser = await launchBrowser();
     await sleep(900);
     const h = await hero(p);
     ok(h.visCount === 1 && h.visState === 'film', `${width}px: exactly one visible hero, and it is the film (${h.states.join('/') || 'none'})`);
-    ok(h.src === '/film/sharetexts-hero.mp4', `${width}px: the hero serves the film encode`);
+    ok(h.src === '/film/sharetexts-hero-v2.mp4', `${width}px: the hero serves the film encode`);
     await ctx.close();
   }
 }

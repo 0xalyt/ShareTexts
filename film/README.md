@@ -5,8 +5,8 @@ Two cuts come out of this rig:
 | File | What it is | Where it goes |
 | --- | --- | --- |
 | `film/out/sharetexts-hero-1080p.mp4` | the 32.0 s film with sound (1920×1080, 24 fps) | anywhere that plays it deliberately — social, a launch post |
-| `public/film/sharetexts-hero.mp4` | the 15.0 s muted launch cut, 1920×1080, 30 fps | the landing hero |
-| `public/film/sharetexts-hero-poster.jpg` | frame 0 of the launch cut | the hero's poster, shown before playback and under reduced motion |
+| `public/film/sharetexts-hero-v2.mp4` | the 15.0 s muted launch cut, 1920×1080, 30 fps | the landing hero |
+| `public/film/sharetexts-hero-v2-poster.jpg` | frame 0 of the launch cut | the hero's poster, shown before playback and under reduced motion |
 
 The picture is the product itself: `LaptopApp` and `PhoneApp` in
 `src/film/FilmUI.tsx` are the real room/connect screens — the QR plate, the
