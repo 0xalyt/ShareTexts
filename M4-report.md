@@ -2,6 +2,9 @@
 
 **Branch:** `main` · **Tag before this prompt:** `before-M4` → `5f42bba` · **Date:** 2026-11-18
 
+**SHAs:** engine `fe0003a` (feat) · report + state doc `9d2a207` (docs) · both pushed to `main` (`5f42bba..9d2a207`).
+**Live:** pushed → Cloudflare build live → `node scripts/smoke-live.mjs` **GREEN** against `https://sharetexts.online`, build marker `9d2a20778236` (matches HEAD). The deploy is observable on the live `sw.js`, which now carries the `circle-outbox` sync handler; the circle engine itself is **not** in the shipped bundle yet because nothing imports it (STEP 1 has no surface), so the entry chunk is unchanged at 171.9 KB.
+
 ## Status
 
 | Step | State |
@@ -28,7 +31,7 @@ The headline promise — *send from one device, close the tab, open the other de
 | 4 | `verify:bundle` green with headroom | **PASS** — entry `index-COomOhyr.js` **171.9 KB** (180 ceiling) |
 | 5 | `useRoomList.ts` + M2 Room UI exist | **PASS** |
 | 6 | circle key not raw in IndexedDB | **PASS** — `verify:key-at-rest` 9/9 (re-run in this session) |
-| 7 | `verify:browser` fully green, desktop ≥16/16 | **PASS** — `[verify-browser] GREEN — every browser gate passed` |
+| 7 | `verify:browser` fully green, desktop ≥16/16 | **PASS** — `[verify-browser] GREEN — every browser gate passed` (sheets 14/14, desktop **16/16**, no-flash clean, room-paint clean, basics clean) |
 
 ## What STEP 1 shipped
 
