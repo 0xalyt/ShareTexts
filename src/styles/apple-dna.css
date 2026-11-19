@@ -599,6 +599,132 @@ html.dark .glossy-btn {
   }
 }
 
+/* ── Morph pill (dissolve recipe, share + connect only) ─────────────────
+   The dissolve MorphButton folds a pill into a round loader and opens it
+   back up as the done state. On the web the motion is motion/react springs
+   (width, radius, content); these rules are the paint underneath, and they
+   live in @layer components so a call site's utilities still own size,
+   type and spacing — the way every other button in the app is composed.
+
+   The button box keeps its resting size at all times: only the surface
+   child contracts, so a fold never reflows the row it sits in. */
+@layer components {
+  .morph-btn {
+    /* Same ember lighting rules as the glossy hero: deepened on light so a
+       white label clears 3:1, stepped down on graphite so night does not
+       turn a CTA pastel, with the rim carrying the edge in both. */
+    --morph-fill: linear-gradient(165deg, #fb9a33 0%, #f06413 46%, #d9560e 100%);
+    --morph-ring: rgb(192 75 9 / 0.34);
+    --morph-shadow:
+      0 1px 2px rgb(0 0 0 / 0.16),
+      0 8px 18px -8px rgb(192 75 9 / 0.42);
+
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding-inline: 22px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    text-shadow: 0 1px 1px rgb(120 45 0 / 0.26);
+    background: transparent;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .morph-btn:focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 3px;
+  }
+
+  .morph-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* The shape that actually folds. inset-block:0 keeps it the full control
+     height; margin-inline:auto centers it at every width, so the collapse
+     reads as the pill shrinking into its own middle. */
+  .morph-btn__surface {
+    position: absolute;
+    inset-block: 0;
+    inset-inline: 0;
+    z-index: -1;
+    margin-inline: auto;
+    pointer-events: none;
+    background: var(--morph-fill);
+    box-shadow:
+      inset 0 0 0 1px var(--morph-ring),
+      var(--morph-shadow),
+      inset 0 1px 1px rgb(255 255 255 / 0.34),
+      inset 0 -1px 1px rgb(120 45 0 / 0.2);
+    will-change: width, border-radius;
+  }
+
+  .morph-btn__sizer {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .morph-btn__layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-inline: inherit;
+    pointer-events: none;
+  }
+
+  .morph-btn__glyph {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* The loader inside the circle: a quiet rim with one lit arc. */
+  .morph-btn__spinner {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2.5px solid rgb(255 255 255 / 0.32);
+    border-top-color: #fff;
+    animation: morph-btn-spin 700ms linear infinite;
+  }
+
+  @keyframes morph-btn-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  html.dark .morph-btn {
+    --morph-fill: linear-gradient(165deg, #fb9440 0%, #f26a1e 48%, #d9560e 100%);
+    --morph-ring: rgb(251 122 46 / 0.45);
+    --morph-shadow:
+      0 2px 5px rgb(0 0 0 / 0.5),
+      0 12px 22px -10px rgb(251 122 46 / 0.34);
+    text-shadow: 0 1px 1px rgb(80 26 0 / 0.4);
+  }
+
+  /* Reduced motion keeps the loader legible without a fast rotation. */
+  @media (prefers-reduced-motion: reduce) {
+    .morph-btn__spinner {
+      animation-duration: 2400ms;
+    }
+  }
+}
+
 /* ── Scripts (§4) ───────────────────────────────────────────────────────
    Inter's Latin subsets have no business setting Devanagari, CJK or Arabic.
    Those scripts get the platform's own faces, which are designed for them.

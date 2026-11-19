@@ -6,6 +6,7 @@ import { generateTOTP, getTOTPRemainingSeconds } from '../../lib/totp';
 import { useI18n } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 import { LogoTraceLoader } from '../LogoTraceLoader';
+import { MorphButton } from '../MorphButton';
 
 /**
  * SendScreen — the code hand-over (§18, P3).
@@ -59,7 +60,6 @@ export function SendScreen({
   onCopyCode,
   shareUrl,
   onShareLink,
-  linkCopied,
 }: {
   secret?: string;
   createdAt?: number;
@@ -71,8 +71,8 @@ export function SendScreen({
   onNewCode?: () => void;
   onCopyCode: () => void;
   shareUrl: string;
-  onShareLink: () => void;
-  linkCopied: boolean;
+  /** Async where the platform has a share sheet — the morph waits for it. */
+  onShareLink: () => void | Promise<void>;
 }) {
   const { t } = useI18n();
 
@@ -274,14 +274,19 @@ export function SendScreen({
               {shareUrl}
             </p>
           </div>
-          <button
-            onClick={onShareLink}
-            className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white"
+          {/* The morph pill: sharing is an action with a real answer — the
+              native sheet (or the clipboard) settles it, so the button folds
+              into a loader and opens back up as "Copied". Platform state is
+              untouched: same handler, same testid, same label string. */}
+          <MorphButton
+            label={t('create.shareLink')}
+            doneLabel={t('create.copied')}
+            icon={<Share2 className="w-4 h-4" aria-hidden />}
+            onPress={onShareLink}
+            radius={12}
+            className="mt-3 w-full min-h-[44px] text-[16px] [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[13px]"
             data-testid="share-link"
-          >
-            {linkCopied ? <Check className="w-4 h-4 text-status-success" aria-hidden /> : <Share2 className="w-4 h-4" aria-hidden />}
-            {linkCopied ? t('create.copied') : t('create.shareLink')}
-          </button>
+          />
         </div>
       )}
     </div>

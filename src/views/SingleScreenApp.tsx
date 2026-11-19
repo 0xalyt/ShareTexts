@@ -1470,7 +1470,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 onCopyCode={copyCode}
                 shareUrl={shareUrl}
                 onShareLink={shareLink}
-                linkCopied={copiedLink}
               />
             </motion.div>
           )}

@@ -3,11 +3,11 @@ import { EASE } from '../lib/motion/tokens';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, X, Infinity as InfinityIcon } from 'lucide-react';
-import { LogoTraceLoader } from './LogoTraceLoader';
 import { useI18n } from '../lib/i18n';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { cn } from '../lib/utils';
 import { DeviceArt } from './DeviceArt';
+import { MorphButton } from './MorphButton';
 
 /**
  * NearbyDetectOverlay — the one popup BOTH nearby devices see, staged as an
@@ -375,42 +375,38 @@ export function NearbyDetectOverlay({
                   >
                     {mode === 'incoming' ? t('nearby.decline') : t('nearby.overlay.cancel')}
                   </button>
-                  <motion.button
-                    ref={connectRef}
-                    type="button"
-                    data-testid="nearby-detect-primary"
-                    disabled={busy}
-                    onClick={() => {
-                      if (busy) return;
-                      if (mode === 'incoming' || armed) { onConnect(); return; }
-                      setArmed(true);
-                    }}
+                  {/* Connect is the morph's other home: committing folds the
+                      pill into a round loader while the handshake runs. The
+                      arm → commit two-step, the live-region sentence and the
+                      "Yes"/"Connect" accessible names are unchanged. */}
+                  <motion.div
                     /* The arming beat: a small bounce — the Duolingo
                        "something just happened" confirmation — so the
                        two-step never feels like a dead first tap. */
                     animate={armed && !busy ? { scale: [1, 1.045, 1] } : { scale: 1 }}
                     transition={{ duration: 0.32, ease: 'easeOut' }}
-                    className={cn(
-                      'flex-[1.5] min-h-[50px] rounded-full text-[16px] font-bold text-white',
-                      'bg-ember hover:bg-brand-strong disabled:opacity-80 disabled:pointer-events-none',
-                      'transition-colors active:scale-[0.96]',
-                      'flex items-center justify-center gap-2 whitespace-nowrap',
-                      'shadow-[0_2px_10px_rgba(240,100,19,0.35),inset_0_1px_1px_rgba(255,255,255,0.28)]',
-                      armed && !busy && 'ring-4 ring-ember/25 dark:ring-azure-400/25',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark'
-                    )}
+                    className="flex-[1.5] flex"
                   >
-                    {busy ? (
-                      <>
-                        <LogoTraceLoader size={18} strokeWidth={7} aria-hidden />
-                        {t('nearby.overlay.connecting')}
-                      </>
-                    ) : mode === 'incoming' || armed ? (
-                      t('nearby.overlay.yes')
-                    ) : (
-                      t('nearby.overlay.connect')
-                    )}
-                  </motion.button>
+                    <MorphButton
+                      ref={connectRef}
+                      label={mode === 'incoming' || armed ? t('nearby.overlay.yes') : t('nearby.overlay.connect')}
+                      widthLabel={t('nearby.overlay.connect')}
+                      loadingLabel={t('nearby.overlay.connecting')}
+                      state={busy ? 'loading' : 'idle'}
+                      /* Not `disabled`: the loader must keep its full colour,
+                         and the guard below already refuses a second commit. */
+                      onPress={() => {
+                        if (busy) return;
+                        if (mode === 'incoming' || armed) { onConnect(); return; }
+                        setArmed(true);
+                      }}
+                      className={cn(
+                        'w-full min-h-[50px] text-[16px]',
+                        armed && !busy && 'ring-4 ring-ember/25 dark:ring-azure-400/25'
+                      )}
+                      data-testid="nearby-detect-primary"
+                    />
+                  </motion.div>
                 </div>
                 {/* SECONDARY — stay on the landing page and browse the
                     discovery list instead of committing to this one device. */}
