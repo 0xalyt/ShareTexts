@@ -42,6 +42,7 @@ import { ListRow } from '../components/ui/ListRow';
 import { ScreenStack } from '../components/ui/ScreenStack';
 import { OverlaySheet } from '../components/OverlaySheet';
 import { TactileButton } from '../components/TactileButton';
+import { GlossyButton } from '../components/GlossyButton';
 import { SlideToConfirm } from '../components/SlideToConfirm';
 import { ShareMenu } from '../components/ShareMenu';
 const SystemAlert = lazy(() => import('../components/SystemAlert').then(m => ({ default: m.SystemAlert })));
@@ -1270,23 +1271,21 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   narrower phone they stack, because at 390 two 175px halves
                   read as a segmented control instead of two separate choices. */}
               <div className="order-4 mt-5 grid w-full max-w-[400px] grid-cols-2 gap-x-3 gap-y-3 sm:mx-0">
-                <TactileButton onClick={handleSend} variant="primary" size="lg" data-testid="home-send" className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</TactileButton>
-                {/* Both doors carry the same weight, so both are the primary
-                    fill — Send and Receive are the only two things this
-                    product does, and a grey Receive read as the lesser one.
-                    The distinction is detail, not rank: Receive sits on a
-                    1px inner highlight with a slightly translucent fill, so
-                    the pair reads as one family with two members. */}
-                <TactileButton
+                {/* Both doors carry the same weight AND the same recipe —
+                    Send and Receive are the only two things this product
+                    does, so they are one family with two members. The glossy
+                    pill (ember fill, top-lit 1px inner stroke, soft drop
+                    shadow, white inner shadow, ember outer ring) is the
+                    owner's ask for these two doors only. */}
+                <GlossyButton onClick={handleSend} data-testid="home-send" className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</GlossyButton>
+                <GlossyButton
                   onClick={handleReceive}
-                  variant="primary"
-                  size="lg"
                   data-testid="home-receive"
-                  className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px] ring-1 ring-inset ring-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]"
+                  className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]"
                   icon={<ReceiveCircleIcon size={18} />}
                 >
                   {t('home.receive')}
-                </TactileButton>
+                </GlossyButton>
               </div>
               {/* The subline moved DOWN, to the bridge into the paste field:
                   it used to sit between the headline and the doors, where it
