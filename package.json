@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "node scripts/gen-favicon-ico.mjs && node scripts/gen-locale-status.mjs && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && node scripts/seo-routes.mjs && node scripts/pin-csp.mjs --check",
+    "build": "node scripts/gen-favicon-ico.mjs && node scripts/gen-locale-status.mjs && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && node scripts/seo-routes.mjs && node scripts/pin-csp.mjs --check && rm -f dist/server.cjs.map",
     "pin-csp": "npm run build && node scripts/pin-csp.mjs --write",
     "start": "node -e \"process.env.NODE_ENV=process.env.NODE_ENV||'production';require('./dist/server.cjs')\"",
     "preview": "vite preview",
@@ -106,7 +106,7 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3",
+    "vite": "^6.4.6",
     "wrangler": "^4.120.1",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4"

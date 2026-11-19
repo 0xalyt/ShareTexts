@@ -61,6 +61,9 @@ const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = {
   // Circle (M3): a mailbox is chatty — a single item is many chunk PUTs plus
   // an ack per device — so this budget is per IP per minute, not per action.
   circle: { limit: 240, windowMs: 60_000 },
+  // The landing page polls the aggregate counters every ~30s; 240/min leaves
+  // room for a wall of open tabs and still caps a scraper.
+  stats: { limit: 240, windowMs: 60_000 },
 };
 
 export class Registry extends DurableObject<Env> {

@@ -91,14 +91,14 @@ app.use(helmet({
       // `https:` is required so the Cloudflare transport can POST to the
       // Worker's /lookup endpoint from a browser served by this server; the
       // dev-only localhost entries cover `wrangler dev` on a local port.
+      // Fonts are self-hosted, so their origins are not here either: the
+      // only third party left is the signaling Worker (https/wss).
       connectSrc: [
         "'self'",
         "blob:",
         "ws:",
         "wss:",
         "https:",
-        "https://fonts.googleapis.com",
-        "https://fonts.gstatic.com",
         ...(isProd ? [] : ["http://localhost:*", "ws://localhost:*"]),
       ],
       frameAncestors: ["'none'"],
@@ -111,6 +111,32 @@ app.use(helmet({
   xFrameOptions: { action: 'deny' },
   crossOriginEmbedderPolicy: false
 }));
+
+// Never serve build metadata. `dist/server.cjs.map` contains the ENTIRE server
+// source (esbuild writes it beside the bundle), and express.static would hand
+// it to anyone who requests it — source maps are a debugging aid, not a
+// published artifact. The build also deletes it; this guard covers a stale
+// dist that was built before that change.
+app.use((req, res, next) => {
+  if (/\.map$/i.test(req.path)) return res.status(404).type('text/plain').send('Not found');
+  next();
+});
+
+// HTTPS everywhere in production. The platform terminates TLS, so the only
+// signal is the proxy's X-Forwarded-Proto; without this an http:// request was
+// served the whole app in cleartext, making the HSTS and CSP headers moot.
+// /health stays reachable so a plain-HTTP probe is not bounced mid-handshake.
+app.use((req, res, next) => {
+  if (!isProd || req.path === '/health') return next();
+  const proto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
+  if (proto !== 'http') return next(); // undefined = direct TLS, or no proxy
+  const host = req.headers.host;
+  if (!host) return next();
+  return res.redirect(
+    req.method === 'GET' || req.method === 'HEAD' ? 301 : 308,
+    `https://${host}${req.originalUrl}`,
+  );
+});
 
 // --- Health + origin policy -------------------------------------------------
 
@@ -354,6 +380,12 @@ const CLIENT_EVENTS: ReadonlySet<string> = new Set([
   'product.space_item_uploaded',
 ]);
 app.post('/api/event', express.text({ type: () => true, limit: '256b' }), (req, res) => {
+  // The comment above always said "rate limited"; the code never was, so one
+  // script could inflate every counter the metrics endpoint reports. 120/min
+  // per IP is far above any real client (the app sends a handful per session).
+  if (limited(clientIpFrom(req), eventAttempts, 120, 60 * 1000)) {
+    return res.status(429).json({ error: 'Too many events. Try again shortly.' });
+  }
   const name = typeof req.body === 'string' ? req.body.trim() : '';
   if (!CLIENT_EVENTS.has(name)) return res.status(400).json({ error: 'Bad request' });
   count(name);
@@ -819,6 +851,7 @@ setInterval(() => {
 const createAttempts = new Map<string, { count: number, resetAt: number }>();
 const codeAttempts = new Map<string, { count: number, resetAt: number }>();
 const pushAttempts = new Map<string, { count: number, resetAt: number }>();
+const eventAttempts = new Map<string, { count: number, resetAt: number }>();
 
 function limited(ip: string, map: Map<string, { count: number, resetAt: number }>, max: number, windowMs: number): boolean {
   const now = Date.now();

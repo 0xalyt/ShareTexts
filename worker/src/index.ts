@@ -134,6 +134,8 @@ export default {
         status: 204,
         headers: {
           'Access-Control-Allow-Origin': origin || '*',
+          'x-content-type-options': 'nosniff',
+          'referrer-policy': 'no-referrer',
           // The mailbox needs PUT (sealed chunks) and DELETE (an item the
           // sender withdrew), plus the signature headers it signs with.
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -375,15 +377,27 @@ export default {
       const res = await stub.fetch(new Request('https://internal/metrics'));
       return new Response(res.body, {
         status: res.status,
-        headers: { 'content-type': 'application/json', ...cors },
+        headers: {
+          'content-type': 'application/json',
+          'cache-control': 'no-store',
+          'x-content-type-options': 'nosniff',
+          'referrer-policy': 'no-referrer',
+          ...cors,
+        },
       });
     }
 
     if (path === '/stats') {
       // Live seated-device count for the landing-page social-proof widget
       // (see stats.ts). Public by design — it reveals only aggregate
-      // numbers, never room ids, codes, or IPs. roomsCreated comes from the
-      // Metrics DO so the landing tracker can show "N rooms made".
+      // numbers, never room ids, codes, or IPs. Still limited: the landing
+      // polls it, so the budget is generous, but a scraper cannot use it as
+      // a free compute/no-cost loop against two Durable Objects.
+      if (!(await rateLimited(env, 'stats', clientIp(request)))) {
+        return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);
+      }
+      // roomsCreated comes from the Metrics DO so the landing tracker can
+      // show "N rooms made".
       const statsStub = env.STATS.get(env.STATS.idFromName('stats'));
       const metricsStub = env.METRICS.get(env.METRICS.idFromName('metrics'));
       const [statsRes, metricsRes] = await Promise.all([

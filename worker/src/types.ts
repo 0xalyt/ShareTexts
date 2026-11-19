@@ -38,6 +38,15 @@ export function dayKey(now: number = Date.now()): string {
 export function json(data: unknown, status = 200, extraHeaders: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'content-type': 'application/json', ...extraHeaders },
+    headers: {
+      'content-type': 'application/json',
+      // This origin answers nothing but JSON and WebSocket upgrades. Pin the
+      // type so a browser can never sniff an error body as HTML, keep the
+      // referrer off outbound links, and refuse plain-HTTP afterwards.
+      'x-content-type-options': 'nosniff',
+      'referrer-policy': 'no-referrer',
+      'strict-transport-security': 'max-age=63072000; includeSubDomains',
+      ...extraHeaders,
+    },
   });
 }
