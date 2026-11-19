@@ -725,6 +725,71 @@ html.dark .glossy-btn {
   }
 }
 
+/* ── Number ticker (dissolve digit roll, stats only) ───────────────────
+   One clipped 0–9 column per digit. Tabular figures make every column
+exactly 1ch, so a digit opening in or folding away can animate its width
+without the row jumping. The transform/stagger lives in the component
+(motion/react); this is only the mechanical clip. */
+@layer components {
+  .num-ticker {
+    display: inline-flex;
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .num-ticker__row {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    /* The 0–9 stacks are art, not text: never let a drag select or copy
+       them. The plain value sits in the sibling .sr-only node. */
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .num-ticker__char {
+    display: inline-block;
+    line-height: 1;
+    /* Units arrive as "0 Bytes" — a run may start with the separator space,
+       which an inline-block would collapse. Pre keeps the number and its unit
+       exactly as the formatter wrote them. */
+    white-space: pre;
+  }
+
+  /* Invisible measurer: one tabular digit at the caller's font. It never
+     affects layout or paint; the component reads its width in px. */
+  .num-ticker__probe {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  /* The window a digit rolls behind. Height is exactly one line so the
+     neighbouring digits are never sliced. */
+  .num-ticker__col {
+    display: inline-block;
+    height: 1em;
+    overflow: hidden;
+    line-height: 1;
+    will-change: width;
+  }
+
+  .num-ticker__strip {
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+  }
+
+  .num-ticker__glyph {
+    display: block;
+    height: 1em;
+    line-height: 1;
+    text-align: center;
+  }
+}
+
 /* ── Scripts (§4) ───────────────────────────────────────────────────────
    Inter's Latin subsets have no business setting Devanagari, CJK or Arabic.
    Those scripts get the platform's own faces, which are designed for them.

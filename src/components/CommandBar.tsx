@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '../lib/SessionContext';
 import { useTheme } from '../lib/theme';
 import { LANGS, useI18n } from '../lib/i18n';
-import { fmtNumber, fmtTime } from '../lib/format';
+import { fmtTime, localeOf } from '../lib/format';
+import { NumberTicker } from './NumberTicker';
 import { cn, shortCodeOf } from '../lib/utils';
 import { DUR, SPRING } from '../lib/motion/tokens';
 // lucide icons under the local names this file already uses (all icons are
@@ -587,15 +588,25 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
       <div ref={bodyRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-4">
         {/* Lifetime totals */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">              <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{fmtNumber(lang, totals.transfers)}</div>
+          {/* The three figures roll their digits in when the panel opens
+              (first sight) and again whenever a total moves. Units ride
+              along as static characters. */}
+          <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
+            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">
+              <NumberTicker value={totals.transfers} locale={localeOf(lang)} />
+            </div>
             <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.transfers')}</div>
           </div>
           <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
-            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{formatBytes(totals.bytes, 1)}</div>
+            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">
+              <NumberTicker text={formatBytes(totals.bytes, 1)} locale={localeOf(lang)} />
+            </div>
             <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.dataMoved')}</div>
           </div>
           <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
-            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">{speed(totals.bestBytesPerSec)}</div>
+            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">
+              <NumberTicker text={speed(totals.bestBytesPerSec)} locale={localeOf(lang)} />
+            </div>
             <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.bestSpeed')}</div>
           </div>
         </div>

@@ -22,6 +22,7 @@ import { hapticSuccess } from '../lib/haptics';
 import { updateRoomBadge, setRoomBadgeActive } from '../lib/roomBadge';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
+import { NumberTicker } from '../components/NumberTicker';
 // Lazy: the QR art carries qrcode-generator (~11 KB gzip) and only one
 // segment of one screen ever draws a code. Static import put it in the entry
 // chunk, where every visitor paid for it before seeing anything.
@@ -85,7 +86,7 @@ import { SkeletonScreen } from '../components/SkeletonScreen';
 import { productEvent } from '../lib/telemetry';
 import { useI18n } from '../lib/i18n';
 import { detectInApp } from '../lib/inAppBrowser';
-import { fmtNumber, fmtShortDate } from '../lib/format';
+import { fmtNumber, fmtShortDate, localeOf } from '../lib/format';
 import { LanguageMenu } from '../components/LanguageMenu';
 import { InstallLink } from '../components/InstallLink';
 import { cn, shortCodeOf, sanitizeDeviceName, formatBytes } from '../lib/utils';
@@ -1603,7 +1604,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 const msgs = session.messages;
                 const fileCount = msgs.filter(m => m.attachment && m.attachment.status === 'complete').length;
                 const bytes = msgs.reduce((n, m) => n + (m.attachment?.status === 'complete' ? (m.attachment.size ?? 0) : 0), 0);
-                const stat = (label: string, value: string) => (
+                const stat = (label: string, value: React.ReactNode) => (
                   <div key={label} className="flex-1 flex flex-col items-center gap-1 py-1">
                     <span className="text-[16px] font-bold text-apple-ink dark:text-white tnum leading-none">{value}</span>
                     <span className="st-eyebrow">{label}</span>
@@ -1611,11 +1612,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 );
                 return (
                   <div className="st-tile mb-4 px-2 py-2.5 flex items-stretch">
-                    {stat(msgs.length === 1 ? t('conn.stats.message') : t('conn.stats.messages'), String(msgs.length))}
+                    {/* The numbers roll in when the room opens (one clipped
+                        column per digit) and roll again as counts change. */}
+                    {stat(msgs.length === 1 ? t('conn.stats.message') : t('conn.stats.messages'), <NumberTicker value={msgs.length} locale={localeOf(lang)} />)}
                     <span className="w-px bg-apple-divider/70 dark:bg-white/[0.09]" aria-hidden />
-                    {stat(fileCount === 1 ? t('conn.stats.file') : t('conn.stats.files'), String(fileCount))}
+                    {stat(fileCount === 1 ? t('conn.stats.file') : t('conn.stats.files'), <NumberTicker value={fileCount} locale={localeOf(lang)} />)}
                     <span className="w-px bg-apple-divider/70 dark:bg-white/[0.09]" aria-hidden />
-                    {stat(t('conn.stats.data'), bytes > 0 ? formatBytes(bytes) : '0')}
+                    {stat(t('conn.stats.data'), <NumberTicker text={bytes > 0 ? formatBytes(bytes) : '0'} locale={localeOf(lang)} />)}
                   </div>
                 );
               })()}
