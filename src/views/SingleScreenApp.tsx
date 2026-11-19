@@ -1111,6 +1111,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   /* Whether the live-activity line has anything to say yet. Its space is
      reserved either way (see the tracker below), so this only decides
      opacity, never layout. */
+  const hasTracker = Boolean(nearbyStatus) || roomsCreated != null;
 
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
@@ -1209,6 +1210,47 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <HeroFilm />
                 </div>
               </div>
+              {/* Live activity tracker — bare (NO pill): a breathing dot, the
+                  lifetime count, and the label. Honest, local — no fabricated
+                  floor: until the service answers with a real total (and no
+                  nearby device is speaking over it) the line stays hidden
+                  rather than inventing longevity. QUIET by rank: it is
+                  metadata, so it whispers — the Send/Receive pair owns this
+                  screen. */}
+              {/* The row is ALWAYS in the flow, empty or not. It resolves a
+                  second after paint (a nearby device, then the real count),
+                  and inserting it then pushed the two doors and the whole
+                  demo down by ~28px — measured as the top CLS source on both
+                  layouts. Reserved height: the line fades in, nothing moves. */}
+              <motion.div
+                initial={false}
+                animate={{ opacity: hasTracker ? 1 : 0 }}
+                transition={{ duration: 0.5 }}
+                aria-hidden={!hasTracker}
+                className="order-3 mt-5 flex h-5 items-center gap-2 w-fit mx-auto lg:mx-0"
+              >
+                {/* Halo dot: two slow radar rings drift outward from a solid
+                    glowing core — layered, staggered, so it reads as breath,
+                    not alarm. Halts under prefers-reduced-motion. */}
+                <span className="relative flex items-center justify-center w-3.5 h-3.5 shrink-0" aria-hidden>
+                  <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/40" />
+                  <span className="st-halo-ring st-halo-lag absolute inset-0 rounded-full bg-status-success/25" />
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-status-success shadow-[0_0_6px_rgba(52,199,89,0.7)]" />
+                </span>
+                {nearbyStatus ? (
+                  <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 leading-none">{nearbyStatus}</span>
+                ) : roomsCreated != null && roomsCreated >= 10 ? (
+                  <>
+                    <span className="text-[16px] font-bold text-apple-ink/80 dark:text-white/90 tnum leading-none">{fmtNumber(lang, roomsCreated)}</span>
+                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.roomsMade')}</span>
+                  </>
+                ) : roomsCreated != null ? (
+                  // Below ten a count reads as a quiet site advertising its
+                  // quietness ("3 rooms made so far"). The dot is already
+                  // pulsing; one honest word does the same job.
+                  <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.live')}</span>
+                ) : null}
+              </motion.div>
               {/* Equal-width grid: the two primary actions share ONE geometry
                   (audit #12 — Receive rendered wider than Send), and each
                   hint sits directly beneath its own button so the
