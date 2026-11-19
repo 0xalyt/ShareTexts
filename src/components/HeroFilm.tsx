@@ -83,8 +83,8 @@ export function HeroFilm({ className }: { className?: string }) {
       <video
         ref={videoRef}
         className="block aspect-video w-full select-none"
-        src="/film/sharetexts-hero-v2.mp4"
-        poster="/film/sharetexts-hero-v2-poster.jpg"
+        src="/film/sharetexts-hero-v3.mp4"
+        poster="/film/sharetexts-hero-v3-poster.jpg"
         muted
         loop
         playsInline

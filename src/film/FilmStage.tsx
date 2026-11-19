@@ -34,6 +34,7 @@ const STAGE_W = 1920;
 const STAGE_H = 1080;
 export const DURATION = 32.0;
 export const LOOP_DURATION = 10.0;
+export const LAUNCH_DURATION = 15.0;
 
 /* The materials. Both are generated once by scripts/make-film-textures.mjs
    and treated here as photographs: a CSS gradient can suggest wood, but only
@@ -155,6 +156,42 @@ const LOOP_SHOTS: { from: number; to: number; a: Cam; b: Cam }[] = [
   { from: 7.2, to: 10.0, a: cam(1.05, 56, 6, 0.18), b: cam(1.022, 38, 10, 0.3) },
 ];
 
+/* The launch cut: 15 s, seven shots, hard cuts between them.
+
+   This is the one that ships in the hero. It is the same set and the same app
+   as the 32 s film, but cut like a launch film instead of a walkthrough: open
+   on the promise (two screens already talking), cut in on the phone the moment
+   it types, cut wide for the arrival, then two tighter arrivals, then home.
+
+   Every shot's first camera is written to be a good still, because a cut frame
+   is also the frame a viewer photographs: no shot starts mid-move.
+
+   Focus is a STEP, not a rack, for the same reason: a lens that is still
+   travelling at the cut reads as a mistake. Each shot names its subject and
+   blurs the other device. */
+const LAUNCH_SHOTS: { from: number; to: number; a: Cam; b: Cam }[] = [
+  // 0–2.2 the hook: both screens lit, the room waiting for the phone.
+  { from: 0.0, to: 2.2, a: cam(1.02, 8, 14, 0.45), b: cam(1.075, 4, 6, -0.3) },
+  // 2.2–4.3 on the phone: the message is typed, then sent. The phone sits
+  // right of centre on purpose — a 9:19.5 device cannot fill a 16:9 frame, so
+  // the blurred laptop holds the left column and the super sits on it.
+  { from: 2.2, to: 4.3, a: cam(1.42, -475, 124), b: cam(1.45, -480, 121) },
+  // 4.3–7.0 the cut wide lands on the arrival with BOTH devices whole — the
+  // pair spans 196–1604, so 1.24 with a 74 px offset leaves 87 px either side
+  // — then pushes onto the thread without cropping the phone.
+  { from: 4.3, to: 7.0, a: cam(1.24, 74, 132, 0.2), b: cam(1.28, 100, 145, -0.1) },
+  // 7.0–8.8 the photo: the laptop sits right of centre, leaving a dark left
+  // column the super can sit in without ever crossing the product.
+  { from: 7.0, to: 8.8, a: cam(1.6, 880, 168), b: cam(1.66, 892, 176) },
+  // 8.8–10.4 back to the phone for the file: same frame as the first phone
+  // shot, so the two phone beats read as one place rather than two.
+  { from: 8.8, to: 10.4, a: cam(1.42, -475, 126), b: cam(1.45, -480, 123) },
+  // 10.4–12.4 on the laptop as the file saves — same left column.
+  { from: 10.4, to: 12.4, a: cam(1.6, 866, 176), b: cam(1.54, 846, 166) },
+  // 12.4–15 the pull-back the lockup lands on.
+  { from: 12.4, to: LAUNCH_DURATION, a: cam(1.06, 2, 8, -0.2), b: cam(1.0, 0, 14, 0.4) },
+];
+
 function readCam(shots: typeof SHOTS, t: number): Cam {
   const shot = shots.find((s) => t < s.to) ?? shots[shots.length - 1];
   const p = easeInOut(clamp01((t - shot.from) / (shot.to - shot.from)));
@@ -167,6 +204,12 @@ function readCam(shots: typeof SHOTS, t: number): Cam {
 }
 
 /* ── chassis ───────────────────────────────────────────────────────────── */
+
+/* Screens are lit objects on this set, so the app is graded, not pasted: the
+   hero cut sits on a phone at arm's length, and at 1.24 the product read as a
+   dim screenshot inside a bright room. 1.42 is the point where the interface is
+   the brightest thing in the frame on every device. */
+const SCREEN_GRADE = 'brightness(1.42) contrast(1.02) saturate(1.05)';
 
 const LID = 'linear-gradient(156deg, #6d6d77 0%, #4a4a53 18%, #2c2c34 52%, #1b1b21 82%, #141418 100%)';
 const DECK = 'linear-gradient(180deg, #5b5b65 0%, #34343c 34%, #1d1d23 78%, #141418 100%)';
@@ -236,7 +279,7 @@ function LaptopShell({ children, glow }: { children: React.ReactNode; glow: numb
           {/* The grade wrapper must carry the full size: a filter creates a
               containing block, and without explicit height the app's h-full
               resolves against a zero-height box and collapses. */}
-          <div style={{ width: '100%', height: '100%', filter: 'brightness(1.24) contrast(1.02) saturate(1.05)' }}>{children}</div>
+          <div style={{ width: '100%', height: '100%', filter: SCREEN_GRADE }}>{children}</div>
           {/* panel reflections: a broad wash plus one hard edge of the room */}
           <div
             aria-hidden
@@ -340,7 +383,7 @@ function PhoneShell({ children, glow }: { children: React.ReactNode; glow: numbe
             boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.45)',
           }}
         >
-          <div style={{ width: '100%', height: '100%', filter: 'brightness(1.24) contrast(1.02) saturate(1.05)' }}>{children}</div>
+          <div style={{ width: '100%', height: '100%', filter: SCREEN_GRADE }}>{children}</div>
           <span aria-hidden className="pointer-events-none absolute left-1/2 top-[1.5%] z-30 h-[3.1%] w-[29%] -translate-x-1/2 rounded-full bg-black" />
           <span aria-hidden className="pointer-events-none absolute bottom-[1.1%] left-1/2 z-30 h-[0.9%] w-[31%] -translate-x-1/2 rounded-full bg-white/35" />
           <div
@@ -366,16 +409,21 @@ function PhoneShell({ children, glow }: { children: React.ReactNode; glow: numbe
 
 /* ── flight ─────────────────────────────────────────────────────────────── */
 
-function Flight({ t, flights }: { t: number; flights: { from: number; to: number; kind: 'text' | 'photo' | 'file' }[] }) {
+function Flight({ t, flights }: { t: number; flights: { from: number; to: number; kind: 'text' | 'photo' | 'file'; flip?: boolean }[] }) {
   // The arrival ring needs a beat AFTER the card has landed, so the window runs
   // half a second past `to`. Everything else is the same geometry as before.
   const f = flights.find((x) => t >= x.from - 0.18 && t <= x.to + 0.5);
   if (!f) return null;
   const p = clamp01((t - f.from) / (f.to - f.from));
   const e = easeInOut(p);
+  // `flip` travels the other way: phone → laptop, which is the direction the
+  // launch cut tells the story in. The 32 s film sends from the laptop, so the
+  // default stays as it was and only the cut that needs it asks for it.
+  const from = f.flip ? PACKET_B : PACKET_A;
+  const to = f.flip ? PACKET_A : PACKET_B;
   const pos = (ee: number) => ({
-    x: lerp(PACKET_A.x, PACKET_B.x, ee),
-    y: lerp(PACKET_A.y, PACKET_B.y, ee) - Math.sin(ee * Math.PI) * 64,
+    x: lerp(from.x, to.x, ee),
+    y: lerp(from.y, to.y, ee) - Math.sin(ee * Math.PI) * 64,
   });
   const { x, y } = pos(e);
   const o = Math.min(1, clamp01((t - (f.from - 0.18)) / 0.22), clamp01((f.to + 0.1 - t) / 0.16));
@@ -463,8 +511,8 @@ function Flight({ t, flights }: { t: number; flights: { from: number; to: number
         <div
           className="absolute rounded-full"
           style={{
-            left: PACKET_B.x,
-            top: PACKET_B.y,
+            left: to.x,
+            top: to.y,
             width: ringR * 2,
             height: ringR * 2,
             transform: 'translate(-50%, -50%)',
@@ -486,6 +534,7 @@ function Flight({ t, flights }: { t: number; flights: { from: number; to: number
 
 export function FilmStage() {
   const loop = typeof window !== 'undefined' && /(?:^|[?&])mode=loop(?:&|$)/.test(window.location.search);
+  const launch = typeof window !== 'undefined' && /(?:^|[?&])mode=brag(?:&|$)/.test(window.location.search);
   const [t, setT] = useState(0);
 
   useEffect(() => {
@@ -499,13 +548,40 @@ export function FilmStage() {
     };
   }, []);
 
-  const c = readCam(loop ? LOOP_SHOTS : SHOTS, t);
+  const c = readCam(launch ? LAUNCH_SHOTS : loop ? LOOP_SHOTS : SHOTS, t);
+
+  /* The launch cut focuses by CUT, not by rack: each shot names its subject and
+     blurs the other device for the whole shot. A lens still travelling when the
+     picture cuts is the tell of a generated montage. */
+  const launchBlur = !launch
+    ? null
+    : t < 2.2
+      ? { laptop: 0.55, phone: 0.12 }
+      : t < 4.3
+        ? { laptop: 1.7, phone: 0.1 }
+        : t < 7.0
+          ? { laptop: 0.2, phone: 1.45 }
+          : t < 8.8
+            ? { laptop: 0.1, phone: 1.9 }
+            : t < 10.4
+              ? { laptop: 1.7, phone: 0.1 }
+              : t < 12.4
+                ? { laptop: 0.1, phone: 2.1 }
+                : { laptop: 0.5, phone: 1.3 };
+
+  /* The launch cut's phone beats are INSERTS: the phone is the whole frame, so
+     the laptop is not in the shot at all. Left in as a blurred object it put a
+     second composer and a second send button inside the frame — which reads as
+     a bug, not as depth. Its spill and its reflection leave with it. */
+  const laptopIn = !launch ? 1 : t >= 2.2 && t < 4.3 ? 0 : t >= 8.8 && t < 10.4 ? 0 : 1;
 
   // One rack, three places: on the laptop as the loop opens, through to the
   // phone as the packet leaves it, back onto the laptop thread as the message
   // lands, then home. Blur is the cheapest depth cue there is and the only one
   // that reads at 8 px on a landing page — 0.12 is glass-sharp, 1.3 is gone.
-  const laptopBlur = loop
+  const laptopBlur = launchBlur
+    ? launchBlur.laptop
+    : loop
     ? key(t, [
         { t: 0, v: 0.5 }, { t: 3.0, v: 0.12 }, { t: 4.6, v: 1.25 },
         { t: 6.0, v: 0.16 }, { t: 7.4, v: 0.5 }, { t: 10, v: 0.5 },
@@ -515,7 +591,9 @@ export function FilmStage() {
         { t: 13.2, v: 0.55 }, { t: 14.2, v: 0.2 }, { t: 16.2, v: 0.45 }, { t: 18.4, v: 0.18 },
         { t: 21.4, v: 0.6 }, { t: 24, v: 0.78 }, { t: 26.3, v: 0.7 },
       ]);
-  const phoneBlur = loop
+  const phoneBlur = launchBlur
+    ? launchBlur.phone
+    : loop
     ? key(t, [
         { t: 0, v: 0.9 }, { t: 3.0, v: 0.22 }, { t: 4.6, v: 1.3 },
         { t: 6.0, v: 1.45 }, { t: 7.4, v: 0.9 }, { t: 10, v: 0.9 },
@@ -527,7 +605,14 @@ export function FilmStage() {
       ]);
 
   const land = (start: number) => (loop ? 1 : at(t, start, 0.4));
-  const pulse = loop
+  const launchPulse = !launch
+    ? 0
+    : Math.max(
+        key(t, [{ t: 0, v: 0 }, { t: 4.5, v: 0 }, { t: 4.62, v: 1 }, { t: 5.4, v: 0.22 }, { t: 6.0, v: 0 }]),
+        key(t, [{ t: 0, v: 0 }, { t: 7.5, v: 0 }, { t: 7.62, v: 1 }, { t: 8.4, v: 0.22 }, { t: 9.0, v: 0 }]),
+        key(t, [{ t: 0, v: 0 }, { t: 10.0, v: 0 }, { t: 10.12, v: 1 }, { t: 10.9, v: 0.22 }, { t: 11.5, v: 0 }]),
+      );
+  const pulse = launch ? launchPulse : loop
     ? key(t, [
         { t: 0, v: 0 }, { t: 4.4, v: 0 }, { t: 4.55, v: 1 },
         { t: 5.4, v: 0.28 }, { t: 7.0, v: 0 }, { t: 10, v: 0 },
@@ -538,7 +623,18 @@ export function FilmStage() {
         key(t, [{ t: 0, v: 0 }, { t: 20.9, v: 0 }, { t: 21.1, v: 1 }, { t: 22.3, v: 0.22 }, { t: 23.0, v: 0 }]),
       );
 
-  const laptop: LaptopState = loop
+  const laptop: LaptopState = launch
+    ? {
+        linked: at(t, 1.55, 0.45),
+        nearby: at(t, 0.4, 0.5),
+        handshake: at(t, 1.7, 0.35),
+        text: at(t, 4.7, 0.35),
+        photo: at(t, 7.5, 0.35),
+        file: at(t, 10.05, 0.35),
+        fileProgress: at(t, 10.1, 0.95),
+        pulse,
+      }
+    : loop
     ? { linked: 1, nearby: 1, handshake: 1, text: 1, photo: 1, file: 1, fileProgress: 1, pulse }
     : {
         linked: at(t, 8.55, 0.45),
@@ -551,8 +647,29 @@ export function FilmStage() {
         pulse,
       };
 
-  const press = loop ? 0 : Math.min(at(t, 7.2, 0.16), 1 - at(t, 7.6, 0.4));
-  const phone: PhoneState = loop
+  const press = launch
+    ? Math.min(at(t, 1.3, 0.16), 1 - at(t, 1.5, 0.3))
+    : loop
+      ? 0
+      : Math.min(at(t, 7.2, 0.16), 1 - at(t, 7.6, 0.4));
+  const phone: PhoneState = launch
+    ? {
+        joined: at(t, 1.75, 0.3),
+        press,
+        // Typing runs right up to the send: PhoneApp shows the draft only
+        // while 0 < typed < 1, so finishing earlier emptied the composer and
+        // left a dead beat on the one shot that is about sending.
+        typed: at(t, 2.3, 1.7),
+        text: at(t, 4.05, 0.35),
+        photo: at(t, 6.9, 0.35),
+        file: at(t, 9.5, 0.35),
+        attach: t >= 6.0 && t < 7.15 ? 'photo' : t >= 8.75 && t < 9.85 ? 'file' : 'none',
+        attachOn: Math.max(
+          Math.min(at(t, 6.02, 0.3), 1 - at(t, 7.05, 0.3)),
+          Math.min(at(t, 8.77, 0.3), 1 - at(t, 9.75, 0.3)),
+        ),
+      }
+    : loop
     ? { joined: 1, press: 0, typed: 1, text: 1, photo: 1, file: 1, attach: 'none', attachOn: 0 }
     : {
         joined: at(t, 8.95, 0.35),
@@ -568,7 +685,13 @@ export function FilmStage() {
         ),
       };
 
-  const flights = loop
+  const flights = launch
+    ? [
+        { from: 4.15, to: 4.75, kind: 'text' as const, flip: true },
+        { from: 6.9, to: 7.5, kind: 'photo' as const, flip: true },
+        { from: 9.5, to: 10.1, kind: 'file' as const, flip: true },
+      ]
+    : loop
     ? [{ from: 3.0, to: 4.4, kind: 'text' as const }]
     : [
         { from: 13.2, to: 14.05, kind: 'text' as const },
@@ -576,13 +699,13 @@ export function FilmStage() {
         { from: 20.15, to: 21.0, kind: 'file' as const },
       ];
 
-  const intro = loop ? 1 : clamp01(t / 0.6);
-  const worldOut = loop ? 1 : 1 - clamp01((t - 25.9) / 0.85);
-  const endIn = loop ? 0 : at(t, 26.4, 0.95);
+  const intro = loop || launch ? 1 : clamp01(t / 0.6);
+  const worldOut = loop || launch ? 1 : 1 - clamp01((t - 25.9) / 0.85);
+  const endIn = launch ? at(t, 12.55, 0.8) : loop ? 0 : at(t, 26.4, 0.95);
 
   // Panel glow answers the story: the laptop lights as the message lands, the
   // phone dims once it has given the message away.
-  const glowLaptop = loop ? 0.46 + pulse * 0.55 : Math.max(0.3, pulse);
+  const glowLaptop = launch ? 0.42 + pulse * 0.5 : loop ? 0.46 + pulse * 0.55 : Math.max(0.3, pulse);
   const glowPhone = loop ? 0.5 - pulse * 0.16 : 0.35;
 
   // One studio light move per loop: a wide, soft band of key light travelling
@@ -590,8 +713,12 @@ export function FilmStage() {
   // at t=0 and t=10 (a loop cannot have a light that is somewhere else at the
   // seam). This is the single cheapest trick that makes CSS metal look lit
   // rather than coloured.
-  const sweepX = lerp(-1100, 2500, easeInOut(clamp01((t - 5.2) / 3.6)));
-  const sweepAlpha = loop ? Math.min(at(t, 5.0, 0.55), 1 - at(t, 8.8, 0.5)) : 0;
+  const sweepX = lerp(-1100, 2500, easeInOut(clamp01((t - (launch ? 12.4 : 5.2)) / (launch ? 1.9 : 3.6))));
+  const sweepAlpha = launch
+    ? Math.min(at(t, 12.4, 0.5), 1 - at(t, 14.2, 0.45))
+    : loop
+      ? Math.min(at(t, 5.0, 0.55), 1 - at(t, 8.8, 0.5))
+      : 0;
 
   return (
     <div style={{ width: STAGE_W, height: STAGE_H }} className="relative select-none overflow-hidden bg-[#0a0908]">
@@ -606,7 +733,7 @@ export function FilmStage() {
       <div className="absolute inset-0" style={{ background: 'radial-gradient(52% 56% at 94% 12%, rgba(110,138,210,0.13) 0%, rgba(0,0,0,0) 64%)' }} />
       {/* The room behind the set. It fades out with the world so the end card
           sits on a clean field instead of on six warm stains. */}
-      <div className="absolute inset-0 overflow-hidden" style={{ opacity: loop ? 1 : worldOut }}>
+      <div className="absolute inset-0 overflow-hidden" style={{ opacity: loop || launch ? 1 : worldOut }}>
         {[
           { x: 1640, y: 70, r: 150, o: 0.22, c: '255,196,134' },
           { x: 1800, y: 268, r: 92, o: 0.16, c: '255,170,100' },
@@ -719,6 +846,7 @@ export function FilmStage() {
               top: DESK_Y - 10,
               width: LAPTOP.width + 40,
               height: 230,
+              opacity: laptopIn,
               background: `radial-gradient(46% 100% at 50% 0%, rgba(255,150,80,${0.2 + glowLaptop * 0.14}) 0%, rgba(255,132,60,0) 74%)`,
               filter: 'blur(20px)',
               mixBlendMode: 'screen',
@@ -745,6 +873,7 @@ export function FilmStage() {
               top: DESK_Y,
               width: LAPTOP.width + 20,
               height: 170,
+              opacity: laptopIn,
               transform: 'scaleY(-1)',
               transformOrigin: 'top center',
               // Was 0.30 — a grey shelf under the laptop. A reflection of a
@@ -790,7 +919,7 @@ export function FilmStage() {
           />
 
           {/* ── laptop ──────────────────────────────────────────────────── */}
-          <div className="absolute" style={{ left: LAPTOP.left, top: LAPTOP.top, filter: laptopBlur > 0.04 ? `blur(${laptopBlur}px)` : undefined }}>
+          <div className="absolute" style={{ left: LAPTOP.left, top: LAPTOP.top, opacity: laptopIn, filter: laptopBlur > 0.04 ? `blur(${laptopBlur}px)` : undefined }}>
             <div
               aria-hidden
               className="absolute"
@@ -867,9 +996,12 @@ export function FilmStage() {
         </div>
       </div>
 
-      {!loop && <Captions t={t} />}
+      {launch && <LaunchCaptions t={t} />}
+      {launch && <LaunchEnd t={t} />}
 
-      {!loop && (
+      {!loop && !launch && <Captions t={t} />}
+
+      {!loop && !launch && (
         <div
           className="absolute inset-0 flex flex-col items-center justify-center"
           style={{
@@ -941,6 +1073,69 @@ function Captions({ t }: { t: number }) {
         );
       })}
     </>
+  );
+}
+
+/* ── the launch cut's supers ──────────────────────────────────────────────
+
+   Five lines in fifteen seconds, one per idea, never two at once. They sit in
+   the same corner as the walkthrough's captions because that corner is the one
+   place no device ever occupies on this set — a caption over the laptop is a
+   caption a viewer skips.
+
+   Text is a claim the picture has just proved: the send, the arrival, the
+   photo, the lock. Nothing here is a number the product could not show. */
+
+const LAUNCH_CAPTIONS: { from: number; to: number; text: string }[] = [
+  { from: 0.35, to: 2.1, text: 'Two devices. One page.' },
+  { from: 2.55, to: 4.15, text: 'No app. No account. Just a page.' },
+  { from: 7.7, to: 8.65, text: 'A photo, not a compressed thumbnail.' },
+  { from: 9.6, to: 12.15, text: 'Encrypted between the two. Nothing is kept.' },
+];
+
+function LaunchCaptions({ t }: { t: number }) {
+  return (
+    <>
+      {LAUNCH_CAPTIONS.map((cap) => {
+        const inn = easeOut(clamp01((t - cap.from) / 0.35));
+        const out = 1 - clamp01((t - (cap.to - 0.3)) / 0.3);
+        const o = Math.min(inn, out);
+        if (o <= 0.001) return null;
+        return (
+          <div key={cap.text} className="absolute" style={{ left: 124, bottom: 92, opacity: o, transform: `translateY(${(1 - inn) * 8}px)` }}>
+            <div className="flex items-center gap-3.5">
+              <span className="h-[2px] w-8" style={{ background: 'rgba(240,100,19,0.9)' }} />
+              <span className="text-[25px] font-medium tracking-[-0.014em] text-white/88">{cap.text}</span>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+/* The lockup lands on the desk, not on a card: the picture keeps running behind
+   it, dimmed and still, so the last frame is the same room the first frame was.
+   The tagline is the page's own headline, and the URL is the only ask. */
+function LaunchEnd({ t }: { t: number }) {
+  const inn = at(t, 12.55, 0.7);
+  if (inn <= 0.001) return null;
+  return (
+    <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: inn }}>
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ background: 'radial-gradient(74% 76% at 50% 48%, rgba(10,9,8,0.975) 0%, rgba(10,9,8,0.94) 58%, rgba(10,9,8,0.86) 100%)' }}
+      />
+      <div className="relative flex flex-col items-center">
+        <div className="flex items-center gap-4">
+          <ShareTextsLogo size={54} />
+          <span className="text-[58px] font-bold tracking-[-0.035em] text-white">ShareTexts</span>
+        </div>
+        <p className="mt-6 text-[30px] font-medium tracking-[-0.018em] text-white/88">Move anything between your devices.</p>
+        <p className="mt-5 text-[17px] tracking-[0.02em] text-white/45">sharetexts.online</p>
+      </div>
+    </div>
   );
 }
 

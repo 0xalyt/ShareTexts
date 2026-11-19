@@ -35,6 +35,7 @@ import { AnimatedIcon } from '../components/AnimatedIcon';
 import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
 import { UploadFolder } from '../components/ui/Detent';
+import { ShuffleHeading } from '../components/ShuffleHeading';
 import { GlassCapsule } from '../components/ui/GlassCapsule';
 import { GlassCircleButton } from '../components/ui/GlassCircleButton';
 import { ListRow } from '../components/ui/ListRow';
@@ -1195,9 +1196,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   about the product at that moment. The promise is now written
                   once, on the page's own left edge from lg, and the film
                   underneath it is the only thing that moves. */}
-              <h1 className="st-display order-1 w-full text-center text-[clamp(34px,9vw,46px)] tracking-[-0.035em] text-apple-ink dark:text-white sm:text-[clamp(34px,4vw,52px)] lg:text-left">
-                {t('home.title')}
-              </h1>
+              <ShuffleHeading className="order-1 w-full justify-self-center" />
               {/* The film, directly under the headline at every width.
                   Headline → the product moving → the number → the two doors is
                   the order the argument is actually made in: what it is, what

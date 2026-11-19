@@ -5,8 +5,8 @@ Two cuts come out of this rig:
 | File | What it is | Where it goes |
 | --- | --- | --- |
 | `film/out/sharetexts-hero-1080p.mp4` | the 32.0 s film with sound (1920×1080, 24 fps) | anywhere that plays it deliberately — social, a launch post |
-| `public/film/sharetexts-hero-v2.mp4` | the 15.0 s muted launch cut, 1920×1080, 30 fps | the landing hero |
-| `public/film/sharetexts-hero-v2-poster.jpg` | frame 0 of the launch cut | the hero's poster, shown before playback and under reduced motion |
+| `public/film/sharetexts-hero-v3.mp4` | the 15.0 s muted launch cut, 1920×1080, 30 fps | the landing hero |
+| `public/film/sharetexts-hero-v3-poster.jpg` | frame 0 of the launch cut | the hero's poster, shown before playback and under reduced motion |
 
 The picture is the product itself: `LaptopApp` and `PhoneApp` in
 `src/film/FilmUI.tsx` are the real room/connect screens — the QR plate, the
@@ -45,24 +45,27 @@ is kept.*
 
 ## The launch cut (15.0 s, the hero)
 
-`?mode=brag` renders `src/film/BragStage.tsx`: six beats following ONE photograph from a
-phone to a laptop. It is not the desk shot and it is not a setup guide: the code is one
-sentence inside beat 3, the pitch is what the viewer gets. The plan and the article notes
-are in `brag-output/relaunch-plan.md`.
+`?mode=brag` renders the launch cut inside `src/film/FilmStage.tsx` (`LAUNCH_SHOTS`). It is
+the same set and the same real app as the 32 s film, cut like a launch film instead of a
+walkthrough: seven shots, hard cuts, one idea per shot, and the product doing the talking.
+There is no typography stage any more — the first attempt at this cut was giant words on a
+still field, and it read as a deck, not a product.
 
-| Time | Beat |
+| Time | Shot |
 | --- | --- |
-| 0.0–2.7 | **Promise.** `Phone to laptop. Nothing in between.` The photograph leaves the phone and crosses to the laptop. Settled at frame 0, because frame 0 is the poster. |
-| 2.7–5.4 | **Why better.** Three routes struck through — email, drive, chat — then `ShareTexts doesn’t.` |
-| 5.4–8.1 | **The moment.** The same photograph lands full-bleed on the laptop; light sweeps it and `Saved on this device` appears. |
-| 8.1–10.8 | **Anything.** Text, link and a 24.3 MB file arrive as three cards; the file completes. |
-| 10.8–13.2 | **Private.** `Encrypted end to end.` with the fragment-key URL and the lock that sentence is about. |
-| 13.2–15.0 | **Lockup.** Mark, `Move anything between your devices.`, the URL, `Free. No account.` |
+| 0.0–2.2 | **Hook.** Both screens lit on the desk: the room card with its QR and `482 916` on the laptop, the Nearby card on the phone. Frame 0 is the poster, so this frame is settled, not mid-move. |
+| 2.2–4.3 | **The phone.** Cut in on the iPhone as it joins, types, and sends — the bubble leaves the composer. The phone sits right of centre: a 9:19.5 device cannot fill a 16:9 frame, so the blurred laptop holds the left column and the super sits on it. |
+| 4.3–7.0 | **Arrival.** Cut wide as the packet crosses the desk and lands in the laptop's thread, with a receive pulse and a ring at the landing point. The camera pushes onto the thread. |
+| 7.0–8.8 | **The photo.** `Above the clouds.jpg`, 2.4 MB, arrives whole — shot tight, with the laptop right of centre so the super sits in a dark column instead of on the UI. |
+| 8.8–10.4 | **Back to the phone** for `Q3-budget.pdf`, in the same frame as the first phone shot. |
+| 10.4–12.4 | **Saved.** The file's progress runs to *4.2 MB · Saved to Downloads* while the super makes the trust claim the picture has just proven. |
+| 12.4–15.0 | **Lockup.** The camera gives the frame back and the mark, `Move anything between your devices.` and `sharetexts.online` land on the room. |
 
-Cuts are hard and land on 30 fps frame boundaries; the chrome is a mark, a URL and one 3 px
-ember progress line, identical in every frame. Frame 0 is the strongest settled frame, so the
-poster is the true first frame rather than a substituted one. The file ships silent: the hero
-is muted by policy and the cut is built to stand up without sound.
+Four supers total, each in a reserved column or on the empty desk — never across the
+product. Focus is a step per shot (1.7–2.1 px of blur on the device that is not the subject),
+not a rack, because a lens still travelling when the picture cuts reads as a mistake. Cuts
+land on 30 fps frame boundaries and the file ships silent: the hero is muted by policy, so
+the story has to survive without sound.
 
 > The 10.0 s desk loop below is still in the rig (`?mode=loop`) but no longer ships as the
 > hero. Its camera positions belong to the 10 s cut and are unrelated to the launch cut.
@@ -109,7 +112,9 @@ node scripts/render-film.mjs all    # everything
 `bragweb` reads the frame count and derives 30 fps from the 15 s cut, so it no
 longer inherits `FPS` from the shell (`FPS=24` re-timed it to 18.75 s). It
 encodes at CRF 27 to keep the hero inside DESIGN §20b's 1.2 MB landing-media
-budget: 918,008 B, 15.000 s, 450 frames, silent. Poster is frame 0.
+budget: 15.000 s, 450 frames, silent. Poster is frame 0. **A re-cut gets a new
+filename**: `/film` is served with a seven-day `max-age`, so shipping a new cut
+under an old name leaves every returning visitor watching the old one.
 
 `frames` and `loop` are resumable: they skip PNGs already on disk, so a
 cancelled pass restarts where it stopped. **After changing a device's position
@@ -126,13 +131,14 @@ which sets the scene to an exact time and resolves after two committed frames;
 `src/film/FilmStage.tsx` holds the timeline:
 
 - `SHOTS` — the camera. One entry per move.
+- `LAUNCH_SHOTS` — the hero cut's seven shots; every entry's `a` is a cut frame.
 - `LOOP_SHOTS` — the loop's camera, which returns to its own start.
 - `LAPTOP` / `PHONE` / `DESK_Y` — world layout in frame pixels. `DESK_Y` is
   derived from the laptop, and `PHONE_TOP` is derived from `DESK_Y` and the
   phone's own height, so both stand on the line by construction rather than by
   matching numbers.
 - `flights` — when a payload crosses, and what it is.
-- `CAPTIONS` — the lower-third lines and their windows.
+- `CAPTIONS` / `LAUNCH_CAPTIONS` — the lower-third lines and their windows.
 - device state is derived from `t` near the bottom of the component.
 
 Framing rule: wide beats stay at or below ~1.05 scale so both devices fit;

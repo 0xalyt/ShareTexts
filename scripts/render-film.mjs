@@ -290,7 +290,7 @@ function encodeFilm() {
  *  from its own first frame. The poster IS frame 0 — the hook is drawn settled
  *  for exactly that reason, so there is no poster jump at the loop seam. */
 function webBrag() {
-  const mp4 = path.join(WEB, 'sharetexts-hero-v2.mp4');
+  const mp4 = path.join(WEB, 'sharetexts-hero-v3.mp4');
   // The frame rate comes from the frames, not from the shell. `bragweb` on its
   // own used to inherit FPS=24 and re-time the 450-frame cut to 18.75s, which
   // is the documented command and therefore the one that gets run. 450 frames
@@ -309,7 +309,7 @@ function webBrag() {
     '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-g', String(fps * 2),
     mp4,
   ]);
-  const poster = path.join(WEB, 'sharetexts-hero-v2-poster.jpg');
+  const poster = path.join(WEB, 'sharetexts-hero-v3-poster.jpg');
   ff(['-i', path.join(BRAG_FRAMES, 'f00000.png'), '-frames:v', '1', '-q:v', '3', '-vf', 'scale=1280:-2', poster]);
   console.log(
     `web(brag): public/film/sharetexts-hero.mp4 · ${dur(mp4).toFixed(2)}s · ${(fs.statSync(mp4).size / 1024).toFixed(0)} KB`
@@ -318,14 +318,14 @@ function webBrag() {
 }
 
 function web() {
-  const mp4 = path.join(WEB, 'sharetexts-hero-v2.mp4');
+  const mp4 = path.join(WEB, 'sharetexts-hero-v3.mp4');
   ff([
     '-framerate', String(FPS), '-i', path.join(LOOP_FRAMES, 'f%05d.png'),
     '-an', '-c:v', 'libx264', '-preset', 'slower', '-crf', '21',
     '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-g', '48',
     mp4,
   ]);
-  const poster = path.join(WEB, 'sharetexts-hero-v2-poster.jpg');
+  const poster = path.join(WEB, 'sharetexts-hero-v3-poster.jpg');
   ff(['-i', path.join(LOOP_FRAMES, 'f00000.png'), '-frames:v', '1', '-q:v', '3', '-vf', 'scale=1280:-2', poster]);
   console.log(
     `web: public/film/sharetexts-hero.mp4 · ${dur(mp4).toFixed(2)}s · ${(fs.statSync(mp4).size / 1024).toFixed(0)} KB`
