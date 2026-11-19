@@ -38,6 +38,9 @@ export interface SpaceClient {
   pauseUpload(key: string): void;
   resumeUpload(key: string): void;
   retryUpload(key: string): void;
+  /** Re-read the space from the server (pull to refresh). Resolves with the
+   *  fresh snapshot applied; rejects when the server says no. */
+  resync(): Promise<void>;
   removeItem(itemId: string): Promise<void>;
   download(itemId: string): Promise<void>;
   closeNow(): Promise<void>;
@@ -241,6 +244,20 @@ export function useSpaceClient(spaceId: string, token: string): SpaceClient {
     startUpload(cur.file);
   }, [startUpload]);
 
+  /**
+   * Pull-to-refresh: one fresh join snapshot, applied in place. The live
+   * socket already carries new items, but a pull is the user asking for the
+   * truth NOW — after a reconnect, a long sleep, or a cached tab. Local
+   * in-flight uploads live separately, so replacing the server list is safe.
+   */
+  const resync = useCallback(async () => {
+    if (!authToken) return;
+    const snap = await joinSpace(spaceId, authToken);
+    setSnapshot(snap);
+    seqRef.current = Math.max(seqRef.current, ...snap.items.map(i => i.seq), 0);
+    upsertSorted([...snap.items]);
+  }, [authToken, spaceId, upsertSorted]);
+
   const removeItem = useCallback(async (itemId: string) => {
     await deleteItem(spaceId, itemId);
     setItems(prev => prev.filter(p => p.id !== itemId));
@@ -258,5 +275,5 @@ export function useSpaceClient(spaceId: string, token: string): SpaceClient {
 
   const forget = useCallback(() => forgetSpace(spaceId), [spaceId]);
 
-  return { snapshot, items, uploads, conn, nowMs, addTextItem, startUpload, cancelUpload, dismissUpload, pauseUpload, resumeUpload, retryUpload, removeItem, download, closeNow, forget };
+  return { snapshot, items, uploads, conn, nowMs, resync, addTextItem, startUpload, cancelUpload, dismissUpload, pauseUpload, resumeUpload, retryUpload, removeItem, download, closeNow, forget };
 }

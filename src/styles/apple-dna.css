@@ -790,6 +790,93 @@ without the row jumping. The transform/stagger lives in the component
   }
 }
 
+/* ── Pull to refresh (dissolve grain ring) ────────────────────────────
+   The indicator lives inside the scroller it belongs to, absolutely, so it
+   never takes part in the list's layout. Grains are 4px dots that gather from
+   a deterministic scatter into a 28px ring as the pull approaches the
+   threshold (the component computes every position per frame). The track is
+   the closed circle: invisible while gathering, drawn at the threshold, and
+   the spinning arc while the work runs. Motion only touches transform and
+   opacity. */
+@layer components {
+  .ptr {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .ptr__ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    color: var(--color-ember);
+    filter: drop-shadow(0 1px 2px rgb(120 45 0 / 0.22));
+  }
+
+  .ptr__grain {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    margin: -2px 0 0 -2px;
+    border-radius: 999px;
+    background: currentColor;
+    will-change: transform, opacity;
+  }
+
+  /* Released early: the grains drift back to their scatter instead of
+     snapping there. Only in this state, so a drag stays 1:1 with the finger. */
+  .ptr--settling .ptr__grain {
+    transition:
+      transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 240ms linear;
+  }
+
+  .ptr__track {
+    position: absolute;
+    inset: 8px;
+    border-radius: 999px;
+    border: 1.5px solid currentColor;
+    opacity: 0;
+    will-change: opacity, transform;
+  }
+
+  /* The rigid tick: the ring snaps closed once, like a ratchet seating. */
+  .ptr__ring--armed {
+    animation: ptr-tick 170ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+
+  @keyframes ptr-tick {
+    0% { transform: scale(1.12); }
+    55% { transform: scale(0.985); }
+    100% { transform: scale(1); }
+  }
+
+  /* Working: the closed ring turns into a lit arc. A symmetric dotted ring
+     cannot read as rotation, an arc can. */
+  .ptr__track--spin {
+    inset: 5px;
+    border-color: color-mix(in srgb, currentColor 26%, transparent);
+    border-top-color: currentColor;
+    animation: ptr-spin 820ms linear infinite;
+  }
+
+  @keyframes ptr-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ptr__ring--armed { animation: none; }
+    .ptr__track--spin { animation-duration: 2600ms; }
+  }
+}
+
 /* ── Scripts (§4) ───────────────────────────────────────────────────────
    Inter's Latin subsets have no business setting Devanagari, CJK or Arabic.
    Those scripts get the platform's own faces, which are designed for them.

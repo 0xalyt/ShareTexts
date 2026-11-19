@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { EASE } from '../lib/motion/tokens';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
@@ -807,6 +807,16 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     });
   };
   useEffect(() => () => { if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current); }, []);
+  // Pull to refresh in the thread does what the reconnect button does — the
+  // same handshake, in place — instead of reloading the page, which threw away
+  // the scroll position and anything half-typed. Bounded like the button: an
+  // ack that never lands must not leave the ring spinning forever.
+  const pullRefresh = useCallback(async () => {
+    await Promise.race([
+      requestReconnect().catch(() => {}),
+      new Promise<void>((resolve) => { setTimeout(resolve, 8000); }),
+    ]);
+  }, [requestReconnect]);
   // Double-submit guard: the send handler clears state synchronously, but
   // Enter keydown + button click can land in the same tick before the
   // textarea empties — a guard ref makes the second call a no-op. Content
@@ -1411,10 +1421,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         onDrop={handleDrop}
       >
         {/* New things land here while you are reading, so the room is one of
-            the two places where pulling down means something: it reconnects
-            the thread from the top. Only at scrollTop 0, so scrolling back
-            through a conversation never reloads it. */}
-        <PullToRefresh scroller={pullEl} onRefresh={() => window.location.reload()} />
+            the two places where pulling down means something: it re-opens the
+            thread's link and re-syncs it, in place. Only at scrollTop 0, so
+            scrolling back through a conversation never triggers it. */}
+        <PullToRefresh scroller={pullEl} onRefresh={pullRefresh} />
         {/* min-h-full, not h-full: a short thread should SIT ON the composer
             instead of hanging from the top of the pane with a dead plane
             underneath. min-height (not a fixed height) is what keeps the

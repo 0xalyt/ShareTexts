@@ -764,7 +764,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
   useEffect(() => { setScrollEl(document.documentElement); }, []);
   const { t } = useI18n();
   const client = useSpaceClient(spaceId, token);
-  const { snapshot, items, uploads, conn, nowMs } = client;
+  const { snapshot, items, uploads, conn, nowMs, resync } = client;
   // The space's human code (F21): remembered locally at create/join so the
   // code display and share sheet always have it, even after a refresh.
   const [spaceCode, setSpaceCode] = useState<string | null>(() => localCode(spaceId));
@@ -961,8 +961,10 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       {/* ── content ── */}
       <main className="relative flex-1 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6 py-5">
         {/* A Host is the other place where something new can land while you
-            are looking at it; pulling down at the top re-reads it. */}
-        <PullToRefresh scroller={scrollEl} onRefresh={() => window.location.reload()} />
+            are looking at it; pulling down at the top re-reads it — one fresh
+            snapshot, applied in place, so the rows that changed glide and the
+            new ones are built in under the ring. */}
+        <PullToRefresh scroller={scrollEl} onRefresh={resync} />
         {conn === 'offline' && (
           <p className="mb-3 text-[12px] font-medium text-amber-600 dark:text-amber-400" role="status">{t('space.reconnecting')}</p>
         )}
@@ -1055,7 +1057,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
                 </li>
               ))}
               {items.map(item => (
-                <li key={item.id}>
+                <li key={item.id} data-pull-item={item.id}>
                   <ItemCard
                     item={item}
                     spaceId={spaceId}
