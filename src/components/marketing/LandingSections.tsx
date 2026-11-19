@@ -118,7 +118,6 @@ export function LandingFaq() {
       <FaqSection
         items={items}
         heading={t('home.faq.heading')}
-        sub={t('home.faq.sub')}
         pinFirst
         hideLabel
         defaultOpen={0}
@@ -135,61 +134,3 @@ export function LandingFaq() {
   );
 }
 
-/* ── Final call — back to the two real actions ────────────────────────────── */
-
-export function LandingCta({
-  onSend,
-  onReceive,
-  sendLabel,
-  receiveLabel,
-}: {
-  onSend: () => void;
-  onReceive: () => void;
-  sendLabel: string;
-  receiveLabel: string;
-}) {
-  const { t } = useI18n();
-  return (
-    <section aria-labelledby="cta-title" className="w-full pt-16 pb-20">
-      {/* A tone shift instead of a bordered card: the CTA is the last calm
-          moment on the page, so it gets room, not a frame. */}
-      <div className="rounded-[24px] bg-apple-parchment/70 px-6 py-12 text-center dark:bg-white/[0.04] sm:py-16">
-        <h2 id="cta-title" className="st-h2 text-apple-ink dark:text-white">
-          {t('home.cta.heading')}
-        </h2>
-        <p className="mx-auto mt-2.5 max-w-[42ch] text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/60">
-          {t('home.cta.sub')}
-        </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={onSend}
-            data-testid="cta-send"
-            className={cn(
-              'inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-[16px] font-semibold text-white active:scale-[0.96] transition-motion',
-              'bg-apple-ink hover:bg-apple-ink/90 dark:bg-white dark:text-night-900 dark:hover:bg-white/90',
-            )}
-          >
-            {sendLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onReceive}
-            data-testid="cta-receive"
-            className={cn(
-              'inline-flex min-h-[48px] items-center gap-2 rounded-full px-6 text-[16px] font-semibold border active:scale-[0.96] transition-motion',
-              'border-apple-divider bg-white text-apple-ink hover:border-apple-ink/25',
-              'dark:border-white/[0.14] dark:bg-white/[0.05] dark:text-white dark:hover:border-white/30',
-            )}
-          >
-            {receiveLabel}
-          </button>
-        </div>
-        {/* The one trust line the whole page earns. */}
-        <p className="mt-5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
-          {t('footer.trust')}
-        </p>
-      </div>
-    </section>
-  );
-}

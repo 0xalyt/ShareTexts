@@ -2117,9 +2117,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                         <span className="text-[12px] font-semibold leading-none">{t('composer.teach.paste')}</span>
                       </span>
                     </div>
-                    <p className="mt-3.5 text-[12px] leading-relaxed text-apple-ink-muted dark:text-white/50">
-                      {t('composer.teach')}
-                    </p>
                   </div>
                 </div>
               )}
