@@ -1271,7 +1271,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   52px targets still sit at a comfortable thumb width); on a
                   narrower phone they stack, because at 390 two 175px halves
                   read as a segmented control instead of two separate choices. */}
-              <div className="order-4 mt-5 grid w-full max-w-[400px] grid-cols-2 gap-x-3 gap-y-3 sm:mx-0">
+              <div className="order-4 mt-5 grid w-full max-w-[400px] grid-cols-2 gap-x-3 gap-y-3 sm:mx-0 lg:mt-6 lg:max-w-none">
                 {/* Both doors carry the same weight AND the same recipe —
                     Send and Receive are the only two things this product
                     does, so they are one family with two members. The glossy
