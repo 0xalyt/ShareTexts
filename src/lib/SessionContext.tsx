@@ -1212,8 +1212,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const stopSeatKeepalive = useCallback(() => {
     if (seatKeepaliveRef.current) { clearInterval(seatKeepaliveRef.current); seatKeepaliveRef.current = null; }
   }, []);
-  /** Channel truth: is the WebRTC link (or its relay stand-in) actually up? */
-  const channelHealthy = (): boolean => {
+  /** Multi-device links recover per recipient on demand, not via a classic link. */
+  const classicChannelHealthy = (): boolean => {
+    if (roomRoster.size !== 2) return true;
     const pc = peerManagerRef.current?.getPeerConnection?.() ?? null;
     if (!pc) return peerManagerRef.current != null && sessionRef.current.connectionType === 'relay';
     const st = (pc as RTCPeerConnection).connectionState;
@@ -1225,7 +1226,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     try {
       await ensureSocketConnected(8000);
     } catch { return; }
-    if (!channelHealthy() && sessionRef.current.connectionType !== 'disconnected') {
+    if (!classicChannelHealthy() && sessionRef.current.connectionType !== 'disconnected') {
       await requestReconnectRef.current();
       return;
     }
@@ -1256,7 +1257,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const onVis = () => {
       if (document.visibilityState !== 'visible') return;
       if (!sessionRef.current.roomId) return;
-      if (channelHealthy()) return;
+      if (classicChannelHealthy()) return;
       void reseatQuietly('visibility');
     };
     document.addEventListener('visibilitychange', onVis);
