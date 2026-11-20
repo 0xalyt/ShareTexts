@@ -1200,6 +1200,19 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   once, on the page's own left edge from lg, and the film
                   underneath it is the only thing that moves. */}
               <ShuffleHeading className="order-1 w-full justify-self-center" />
+              {/* The one-line introduction, sitting directly under the heading
+                  it introduces. It is a pill rather than a paragraph because
+                  it is a positioning statement, not body copy: the sentence
+                  under the doors is what explains the product, and this one
+                  only says what it is like. Centred with the headline on
+                  phones, on the column edge from lg. */}
+              <p className="order-1 mt-4 inline-flex w-fit max-w-full items-center gap-2 self-center rounded-full border border-black/[0.08] bg-white/60 px-3 py-1.5 text-[12.5px] font-semibold tracking-[-0.005em] text-apple-ink/75 dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-white/70 lg:self-start">
+                <span aria-hidden className="relative flex h-1.5 w-1.5 shrink-0 items-center justify-center">
+                  <span className="st-halo-ring absolute inset-0 rounded-full bg-ember/40" />
+                  <span className="relative h-1.5 w-1.5 rounded-full bg-ember" />
+                </span>
+                {t('home.subheading')}
+              </p>
               {/* The film, directly under the headline at every width.
                   Headline → the product moving → the number → the two doors is
                   the order the argument is actually made in: what it is, what

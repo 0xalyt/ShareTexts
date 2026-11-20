@@ -71,6 +71,7 @@ const ar: Dict = {
   'room.connectingCount': '{count} قيد الاتصال',
   'room.offlineCount': '{count} غير متصلة',
   'home.title': 'انقل أي شيء\nبين أجهزتك.',
+  'home.subheading': 'AirDrop للجميع، أخيرًا',
   'home.subtitle': 'من الهاتف إلى الحاسوب، أو العكس. لا تطبيق للتثبيت ولا حساب للإنشاء. تصل الصور والملفات بجودتها الأصلية — لا ضغط ولا تغيير. وعند إغلاق التبويب، يختفي كل شيء.',
   'home.announce': 'Host: ملفات ونصوص وصور وأي شيء',
   'home.send': 'إرسال',

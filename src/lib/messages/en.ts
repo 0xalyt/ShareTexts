@@ -78,6 +78,7 @@ const en = {
   'room.offlineCount': '{count} offline',
 
   'home.title': 'Move anything\nbetween your devices.',
+  'home.subheading': 'Introducing Airdrop for everyone',
   'home.subtitle': 'Two devices, one page. Nothing to install, and the transfer is encrypted.',
   // Short enough to sit on one line inside the hero pill on a 390px phone —
   // the long version truncated to "…a shelf that deletes …" and read as a

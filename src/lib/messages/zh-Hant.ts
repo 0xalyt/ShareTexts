@@ -18,6 +18,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   // home
   'home.send': '傳送',
   'home.receive': '接收',
+  'home.subheading': '人人可用的 AirDrop，來了',
   'home.subtitle':
     '手機到電腦，或電腦到手機。無需安裝應用程式，無需註冊帳號。照片與檔案以原始畫質傳送。關閉分頁，一切即消失。',
   'home.how.1': '在兩台裝置上開啟 ShareTexts。',

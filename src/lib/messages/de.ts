@@ -71,6 +71,7 @@ const de: Dict = {
   'room.connectingCount': '{count} verbinden sich',
   'room.offlineCount': '{count} offline',
   'home.title': 'Bewege alles\nzwischen deinen Geräten.',
+  'home.subheading': 'AirDrop für alle – endlich',
   'home.subtitle': 'Vom Telefon zum Laptop oder umgekehrt. Keine App zum Installieren, kein Konto. Fotos und Dateien kommen in Originalqualität an – nichts wird komprimiert. Schließt du den Tab, ist alles weg.',
   'home.announce': 'Host: Dateien, Texte, Bilder – alles',
   'home.send': 'Senden',

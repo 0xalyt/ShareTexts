@@ -71,6 +71,7 @@ const zh: Dict = {
   'room.connectingCount': '{count} 台连接中',
   'room.offlineCount': '{count} 台离线',
   'home.title': '在设备之间\n传递一切。',
+  'home.subheading': '人人可用的隔空投送，来了',
   'home.subtitle': '手机到电脑，或电脑到手机。无需安装应用，无需注册账号。照片和文件以原始画质到达——不做任何压缩。关闭标签页，一切即消失。',
   'home.announce': 'Host：文件、文本、图片，什么都行',
   'home.send': '发送',

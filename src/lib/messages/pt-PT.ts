@@ -16,6 +16,7 @@ export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
   // mouth: the home screen
+  'home.subheading': 'Chegou o AirDrop para todos',
   'home.subtitle':
     'Do telemóvel para o portátil, ou do portátil para o telemóvel. Nada para instalar, nenhuma conta. As fotografias e os ficheiros chegam na qualidade original.',
   'home.how.1': 'Abra o ShareTexts nos dois dispositivos.',

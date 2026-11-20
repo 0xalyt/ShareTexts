@@ -71,6 +71,7 @@ const ja: Dict = {
   'room.connectingCount': '{count} 台が接続中',
   'room.offlineCount': '{count} 台がオフライン',
   'home.title': 'デバイス間で\nなんでも送ろう。',
+  'home.subheading': 'すべての人のためのAirDrop、はじまります',
   'home.subtitle': 'スマホからパソコンへ、パソコンからスマホへ。アプリのインストールもアカウント作成も不要。写真もファイルも元の画質のまま届きます — 圧縮は一切なし。タブを閉じれば消えます。',
   'home.announce': 'Host: ファイル、テキスト、画像、なんでも',
   'home.send': '送信',

@@ -994,3 +994,54 @@ without the row jumping. The transform/stagger lives in the component
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
   .st-word-gradient { -webkit-text-fill-color: currentColor; }
 }
+
+/* ── Landing story art ──────────────────────────────────────────────────
+   Motion here is ADDITIVE. Each of the three pictures is complete and
+   readable as a still: a link between two frames, a card that has crossed and
+   a row that is full, a shelf under a seven-tick clock. These keyframes only
+   let the eye follow the beat, and they are declared behind
+   `prefers-reduced-motion: no-preference` so a device with animations off —
+   a phone in battery saver, a work laptop with Reduce Motion set — shows the
+   finished picture instead of a frozen half-second of it. Nothing in this app
+   may hide meaning behind an animation. */
+@media (prefers-reduced-motion: no-preference) {
+  .st-art-dot {
+    animation: st-art-dot 4.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+
+  @keyframes st-art-dot {
+    0%, 6% { transform: translate(0, 0); opacity: 0; }
+    16% { opacity: 1; }
+    58% { transform: translate(22px, 15px); opacity: 1; }
+    68%, 100% { transform: translate(22px, 15px); opacity: 0; }
+  }
+
+  .st-art-fly {
+    animation: st-art-fly 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes st-art-fly {
+    0%, 12% { transform: translate(0, 0); opacity: 0; }
+    24% { opacity: 1; }
+    64% { transform: translate(58px, 0); opacity: 1; }
+    76%, 100% { transform: translate(58px, 0); opacity: 0; }
+  }
+
+  /* A very slow revolution of the seven ticks: time passing, not a spinner. */
+  .st-art-clock {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: st-art-clock 26s linear infinite;
+  }
+
+  @keyframes st-art-clock {
+    to { transform: rotate(360deg); }
+  }
+}
+
+/* The artwork must never be the thing that makes a phone work hard: give the
+   three panels their own containment so a scroll past them costs nothing. */
+.st-art-panel {
+  content-visibility: auto;
+  contain-intrinsic-size: 340px 300px;
+}
