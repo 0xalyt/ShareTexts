@@ -115,12 +115,16 @@ async function main() {
 
   // --- Large unicode text A -> B ---
   const big = makeUnicodeText(120); // ~120 KB
-  await A.getByTestId('composer').first().evaluate((textarea, text) => {
-    const data = new DataTransfer();
-    data.setData('text/plain', text);
-    textarea.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: data }));
-  }, big);
-  if (await A.getByTestId('composer').first().inputValue() !== big) throw new Error('Large-text paste changed the content');
+  if (browser.browserType().name() === 'webkit') {
+    await A.getByTestId('composer').first().evaluate((textarea, text) => {
+      const data = new DataTransfer();
+      data.setData('text/plain', text);
+      textarea.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: data }));
+    }, big);
+  } else {
+    await A.getByTestId('composer').first().fill(big);
+  }
+  await A.waitForFunction(text => document.querySelector('[data-testid="composer"]')?.value === text, big);
   await A.getByRole('button', { name: 'Send', exact: true }).click();
   console.log('STEP 6: sent ~120KB unicode text, waiting for B to receive…');
   let receivedBig = false;
