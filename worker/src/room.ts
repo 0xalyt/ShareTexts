@@ -890,6 +890,7 @@ export class Room extends DurableObject<Env> {
       // the roster is the pre-multi-device recovery path.
       r.participants.find((p) => p.cid === cid && pid.startsWith('legacy-'));
     if (known) {
+      const sameSeat = known.cid === cid && !r.grace?.[known.pid];
       if (r.grace) {
         delete r.grace[known.pid];
         if (Object.keys(r.grace).length === 0) delete r.grace;
@@ -899,8 +900,9 @@ export class Room extends DurableObject<Env> {
       await this.ensureConns();
       this.conns!.set(cid, { roomId: r.roomId });
       await this.ctx.storage.put('conn:' + cid, { roomId: r.roomId });
+      await this.touch();
       await this.recomputeState();
-      await this.notifyOthers(cid, 'peer_recovered', { peerId: known.pid, roster: this.rosterSnapshot(r) });
+      if (!sameSeat) await this.notifyOthers(cid, 'peer_recovered', { peerId: known.pid, roster: this.rosterSnapshot(r) });
       return this.ackOk(cid, id, { roomId: r.roomId, secret: r.secret, createdAt: r.codeAnchor, stayConnected: !!r.stayConnected, participantId: known.pid, myParticipantId: known.pid, roster: this.rosterSnapshot(r) });
     }
     // Re-entry into a room with both seats empty: the caller already proved

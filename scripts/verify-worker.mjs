@@ -153,6 +153,14 @@ async function runRoomProtocol() {
   check('joiner ack carries the roster snapshot', joined.roster?.participants?.length === 2 && joined.myParticipantId === SECOND_PID);
   assertState(ctx, 'CONNECTED');
 
+  const beforeHeartbeat = creator.inbox.length;
+  for (let heartbeat = 0; heartbeat < 3; heartbeat++) {
+    const refreshed = await joiner.send('resume_room', { roomId, secret, pid: SECOND_PID });
+    check('same-cid heartbeat acknowledged', refreshed.success === true);
+  }
+  check('same-cid heartbeat emits no recovery or join', !creator.inbox.slice(beforeHeartbeat).some(m =>
+    m.type === 'event' && (m.event === 'peer_recovered' || m.event === 'peer_joined')));
+
   // signal forwarding — addressed by PARTICIPANT id now (the modern wire form)
   const sigPromise = creator.waitFor((m) => m.type === 'event' && m.event === 'signal');
   await joiner.send('signal', { to: SECOND_PID === 'pid-second-device-00000000' ? 'pid-creator-device-00000000' : SECOND_PID, signal: { type: 'offer', sdp: 'v=0 fake sdp' } });

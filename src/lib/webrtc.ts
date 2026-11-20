@@ -319,6 +319,14 @@ export class TransferCancelledError extends Error {
   }
 }
 
+export class TransferInterruptedError extends TransferCancelledError {
+  constructor() {
+    super();
+    this.message = 'Transfer interrupted';
+    this.name = 'TransferInterruptedError';
+  }
+}
+
 /**
  * Multi-device signal router. In a multi-device room SEVERAL PeerManagers
  * are alive at once, all sharing the page's ONE signaling socket. A blanket
@@ -375,7 +383,7 @@ const signalRouter = {
     });
   },
   classicBinaryTarget(): PeerManager | undefined {
-    const candidates = new Set(this.links.values());
+    const candidates = new Set<PeerManager>(this.links.values());
     if (this.fallback) candidates.add(this.fallback);
     const classic = [...candidates].filter(pm => {
       if (pm.isDestroyed()) return false;
@@ -1537,6 +1545,7 @@ export class PeerManager {
    */
   public async sendFile(file: File, transferId: string, startIndex = 0) {
     const key = await this.waitForCrypto();
+    if (this.destroyed) throw new TransferInterruptedError();
     if (!key) return;
     // Deterministic grid: the chunk size is FIXED (CHUNK_SIZE) and every
     // offset derives from chunkCountForSize — the same function the receiver
@@ -1549,6 +1558,7 @@ export class PeerManager {
     const controller = new AbortController();
     this.transferControllers.set(transferId, controller);
     const signal = controller.signal;
+    const cancellation = () => signal.reason instanceof TransferInterruptedError ? signal.reason : new TransferCancelledError();
     const prog: SendProgress = sendProgress.get(transferId) ?? { sentUpTo: 0, total: numChunks, acked: 0, updatedAt: Date.now() };
     prog.total = numChunks;
     prog.updatedAt = Date.now();
@@ -1570,7 +1580,7 @@ export class PeerManager {
     // bubble flips from 'Waiting…' to a live percentage at the same moment.
     void this.sendControl({ type: 'queued_start', transferId });
     try {
-      if (signal.aborted) throw new TransferCancelledError();
+      if (signal.aborted) throw cancellation();
 
     // Adaptive pipeline depth: overlap read + encrypt + send. Depth is the
     // ONLY pacing knob — it bounds how much is in flight without touching
@@ -1608,7 +1618,7 @@ export class PeerManager {
     }
 
       while (sendIdx < numChunks) {
-        if (signal.aborted) throw new TransferCancelledError();
+        if (signal.aborted) throw cancellation();
         // Peer- or user-requested pause: idle WITHOUT exiting the loop, so
         // resume continues seamlessly and cancel still works while paused.
         if (this.pauseSends.has(transferId)) {
@@ -1621,7 +1631,7 @@ export class PeerManager {
         // With the fixed grid a null entry means the loop overshot the file —
         // an invariant violation. Fail loudly instead of silently truncating.
         if (!entry || signal.aborted) {
-          if (signal.aborted) throw new TransferCancelledError();
+          if (signal.aborted) throw cancellation();
           throw new Error('chunk pipeline produced no data (grid invariant violated)');
         }
 
@@ -1854,7 +1864,7 @@ export class PeerManager {
 
   public destroy() {
     this.destroyed = true;
-    this.transferControllers.forEach(c => c.abort());
+    this.transferControllers.forEach(c => c.abort(new TransferInterruptedError()));
     this.transferControllers.clear();
     if (this.retryTimer) clearInterval(this.retryTimer);
     if (this.relayFallbackTimer) clearTimeout(this.relayFallbackTimer);

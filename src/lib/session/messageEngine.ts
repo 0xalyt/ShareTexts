@@ -19,7 +19,7 @@
 import { useCallback, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { SessionState, ChatMessage } from '../../types';
-import { TransferCancelledError, hasSendProgress, chunkCountForSize, sendQueueDepth, clearTransferState } from '../webrtc';
+import { TransferCancelledError, TransferInterruptedError, hasSendProgress, chunkCountForSize, sendQueueDepth, clearTransferState } from '../webrtc';
 import type { PeerManager } from '../webrtc';
 import { diag } from '../diag';
 import { connMachine } from '../connectionState';
@@ -189,6 +189,17 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         })
       };
     });
+  };
+
+  const markTransferInterrupted = (messageId: string) => {
+    setSession(s => ({
+      ...s,
+      messages: s.messages.map(m => {
+        if (m.id !== messageId || !m.attachment || m.attachment.status === 'cancelled' || m.attachment.status === 'complete') return m;
+        if (getPeer()?.isSendLoopActive(m.attachment.id)) return m;
+        return { ...m, attachment: { ...m.attachment, status: 'interrupted' } };
+      }),
+    }));
   };
 
   const handlePushMessage = (payload: unknown) => {
@@ -612,7 +623,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
           void deleteSendable(a.id);
           void deleteTransferState(a.id);
         } catch (e) {
-          if (!(e instanceof TransferCancelledError)) {
+          if (e instanceof TransferInterruptedError) {
+            markTransferInterrupted(m.id);
+          } else if (!(e instanceof TransferCancelledError)) {
             updateMessageAttachment(m.id, { status: 'failed' });
           }
         }
@@ -730,7 +743,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
             }
             setRecipientState(rid, { state: 'sent', progress: 1, completedAt: Date.now() });
           } catch (e) {
-            if (e instanceof TransferCancelledError) {
+            if (e instanceof TransferInterruptedError) {
+              setRecipientState(rid, { state: 'failed', error: 'interrupted', completedAt: Date.now(), retryable: true });
+            } else if (e instanceof TransferCancelledError) {
               setRecipientState(rid, { state: 'cancelled', completedAt: Date.now() });
             } else {
               setRecipientState(rid, { state: 'failed', error: (e as Error)?.message?.slice(0, 80), completedAt: Date.now(), retryable: true });
@@ -887,7 +902,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         pendingFilesRef.current.delete(msg.id);
       } catch (e) {
         // A user cancel stops the loop cleanly — don't overwrite 'cancelled'.
-        if (!(e instanceof TransferCancelledError)) {
+        if (e instanceof TransferInterruptedError) {
+          markTransferInterrupted(msg.id);
+        } else if (!(e instanceof TransferCancelledError)) {
           updateMessageAttachment(msg.id, { status: 'failed' });
           finishTransferRecord(attachment.id, 'sent', 0, 'failed', { name: file.name, kind: 'file' });
           productEvent('product.transfer_failed');
@@ -970,7 +987,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       await pm.resumeTransfer(JSON.stringify(partnerMsg), file, msg.attachment.id);
       updateMessageAttachment(messageId, { status: 'complete', progress: 1, completedAt: Date.now() });
     } catch (e) {
-      if (!(e instanceof TransferCancelledError)) {
+      if (e instanceof TransferInterruptedError) {
+        markTransferInterrupted(messageId);
+      } else if (!(e instanceof TransferCancelledError)) {
         try { await pm.send(JSON.stringify({ kind: 'resend_unavailable', id: messageId })); } catch { /* noop */ }
       }
     }
@@ -1007,7 +1026,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       await pm.resumeTransfer(JSON.stringify(partnerMsg), file, msg.attachment.id);
       updateMessageAttachment(messageId, { status: 'complete', progress: 1, completedAt: Date.now() });
     } catch (e) {
-      if (!(e instanceof TransferCancelledError)) {
+      if (e instanceof TransferInterruptedError) {
+        markTransferInterrupted(messageId);
+      } else if (!(e instanceof TransferCancelledError)) {
         updateMessageAttachment(messageId, { status: 'failed' });
       }
     }
@@ -1117,7 +1138,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
           if (file && myAttachment) await pm.sendFile(file, wireId);
           setRecipientState({ state: 'sent', progress: 1, completedAt: Date.now() });
         } catch (e) {
-          if (e instanceof TransferCancelledError) {
+          if (e instanceof TransferInterruptedError) {
+            setRecipientState({ state: 'failed', error: 'interrupted', completedAt: Date.now(), retryable: true });
+          } else if (e instanceof TransferCancelledError) {
             setRecipientState({ state: 'cancelled', completedAt: Date.now() });
           } else {
             setRecipientState({ state: 'failed', error: (e as Error)?.message?.slice(0, 80), completedAt: Date.now(), retryable: true });
