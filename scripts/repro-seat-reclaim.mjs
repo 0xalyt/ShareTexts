@@ -44,6 +44,29 @@ try {
   assert.deepEqual([...room.activePeers], [current]);
   assert.equal(room.participants.size, 1);
   console.log('PASS: twelve fresh-socket reclaims retire old participant and recovery maps without growing the roster');
+  const firstSocket = current;
+  const firstTabMap = socketParticipants.get(firstSocket);
+  const secondSocket = 'second-tab';
+  const secondTabMap = new Map();
+  socketParticipants.set(secondSocket, secondTabMap);
+  context.seatParticipant(room, secondSocket, info);
+  secondTabMap.set(room.id, info.id);
+  context.seatParticipant(room, firstSocket, info);
+  firstTabMap.set(room.id, info.id);
+  const recoveredMap = socketParticipants.get(firstSocket) ?? new Map();
+  socketParticipants.set(firstSocket, recoveredMap);
+  const recoveredId = recoveredMap.get(room.id) ?? 'recovery-generated-id';
+  context.seatParticipant(room, firstSocket, { ...info, id: recoveredId });
+  console.log(`TAB_RECOVERY_STATE: participantId=${recoveredId}, rosterSize=${room.participants.size}`);
+  assert.equal(room.participants.size, 1, 'tab takeover, resume and recovery must not duplicate the device');
+  assert.equal(recoveredId, info.id);
+  assert.equal(socketParticipants.size, 1);
+  console.log('PASS: first tab resumes after takeover and recovers its stable identity without a duplicate device');
+  context.MAX_PARTICIPANTS = 1;
+  assert.equal(context.seatParticipant(room, 'over-capacity', { ...info, id: 'new-participant' }), 'full');
+  assert.equal(socketParticipants.has('over-capacity'), false);
+  assert.equal(room.participants.size, 1);
+  console.log('PASS: rejected seats do not register participant bookkeeping');
 } finally {
   for (const timer of pendingGrace.values()) clearTimeout(timer);
 }

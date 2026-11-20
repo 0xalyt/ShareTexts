@@ -601,6 +601,10 @@ function seatParticipant(
   info: { id: string; name: string; platform: string }
 ): 'seated' | 'reclaimed' | 'full' {
   const existing = room.participants.get(info.id);
+  if (!existing && liveParticipants(room).length >= MAX_PARTICIPANTS) return 'full';
+  const byRoom = socketParticipants.get(socketId) ?? new Map<string, string>();
+  byRoom.set(room.id, info.id);
+  socketParticipants.set(socketId, byRoom);
   if (existing) {
     cancelGrace(existing.socketId);
     if (existing.socketId !== socketId) {
@@ -614,7 +618,6 @@ function seatParticipant(
     room.activePeers.add(socketId);
     return 'reclaimed';
   }
-  if (liveParticipants(room).length >= MAX_PARTICIPANTS) return 'full';
   room.participants.set(info.id, {
     id: info.id,
     socketId,
