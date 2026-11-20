@@ -15,7 +15,7 @@ import { loadStoredSession, saveStoredSession, loadLastStayRoom, saveLastStayRoo
 // Multi-device room: roster mirror (membership vs. per-device links) and the
 // per-peer connection manager. A participant's link state never mutates
 // another participant's row; the roster store is the single source of truth.
-import { roomRoster, participantIdFor, type RosterEntry } from './roomRoster';
+import { roomRoster, participantIdFor, saveParticipantId, type RosterEntry } from './roomRoster';
 import { PeerConnectionManager } from './peerConnections';
 import { DEVICE_NAME_KEY, platformDefaultName, guessDeviceName, ensureDeviceNameSeeded } from './session/deviceIdentity';
 import { sha256Hex } from './session/fileIntegrity';
@@ -887,12 +887,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             // Persist THIS device's participant id for the new room so a
             // refresh reclaims the same roster seat.
             selfPidRef.current = res.myParticipantId || participantIdFor(res.roomId);
-            try {
-              localStorage.setItem('sharetext.deviceId', JSON.stringify({
-                ...JSON.parse(localStorage.getItem('sharetext.deviceId') || '{}'),
-                [res.roomId]: selfPidRef.current,
-              }));
-            } catch { /* private mode */ }
+            saveParticipantId(res.roomId, selfPidRef.current);
             roomRoster.reset(selfPidRef.current);
             if (res.roster && Array.isArray(res.roster.participants)) {
               roomRoster.applySnapshot(res.roster as never);
@@ -1106,12 +1101,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // back to the locally minted room-scoped id. Either way a refresh will
     // reclaim the SAME roster seat.
     selfPidRef.current = myPid || participantIdFor(roomId);
-    try {
-      localStorage.setItem('sharetext.deviceId', JSON.stringify({
-        ...JSON.parse(localStorage.getItem('sharetext.deviceId') || '{}'),
-        [roomId]: selfPidRef.current,
-      }));
-    } catch { /* private mode */ }
+    saveParticipantId(roomId, selfPidRef.current);
     setRecipients([]); // a fresh seat starts unaddressed
     roomRoster.reset(selfPidRef.current);
     if (roster && Array.isArray(roster.participants)) {
