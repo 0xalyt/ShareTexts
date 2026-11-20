@@ -4,6 +4,8 @@ export const STATUS = 'draft' as const;
 
 const zh: Dict = {
   'home.browsers': '支持现代浏览器',
+  'home.titleSuffix': '在你的设备之间。',
+  'home.later.heading': '稍后回来取。',
   "demo.handoff.title": "ShareTexts 如何在设备间传送内容",
   "demo.handoff.eyebrow": "一次小小的传递",
   "demo.handoff.illustration": "功能演示",
@@ -107,7 +109,7 @@ const zh: Dict = {
   'room.offlineCount': '{count} 台离线',
   'home.title': '在设备之间\n传递一切。',
   'home.subheading': '人人可用的隔空投送，来了',
-  'home.subtitle': '手机到电脑，或电脑到手机。无需安装应用，无需注册账号。照片和文件以原始画质到达——不做任何压缩。关闭标签页，一切即消失。',
+  'home.subtitle': '文字、链接、照片和文件。在两台设备上打开本页即可。',
   "home.announce": "用于文本和链接的临时空间",
   'home.send': '发送',
   'home.sendHint': '创建房间',
@@ -770,7 +772,7 @@ const zh: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': '它能做什么',
-  'home.three.heading': '从这台设备，到另一台。',
+  'home.three.heading': '一个代码。\n接着做你的事。',
   'home.three.pair.lead': '配对',
   'home.three.pair.body': '一台设备打开发送，另一台打开接收。六位数字把两台连起来。',
   'home.three.send.lead': '发送',

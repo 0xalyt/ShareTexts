@@ -4,6 +4,8 @@ export const STATUS = 'draft' as const;
 
 const ja: Dict = {
   'home.browsers': 'いつものブラウザで',
+  'home.titleSuffix': 'デバイス間で。',
+  'home.later.heading': 'あとで受け取る。',
   "demo.handoff.title": "ShareTextsでデバイス間を転送する方法",
   "demo.handoff.eyebrow": "小さな受け渡し",
   "demo.handoff.illustration": "説明用デモ",
@@ -107,7 +109,7 @@ const ja: Dict = {
   'room.offlineCount': '{count} 台がオフライン',
   'home.title': 'デバイス間で\nなんでも送ろう。',
   'home.subheading': 'すべての人のためのAirDrop、はじまります',
-  'home.subtitle': 'スマホからパソコンへ、パソコンからスマホへ。アプリのインストールもアカウント作成も不要。写真もファイルも元の画質のまま届きます — 圧縮は一切なし。タブを閉じれば消えます。',
+  'home.subtitle': 'テキスト、リンク、写真、ファイル。両方のデバイスでこのページを開くだけ。',
   "home.announce": "テキストやリンクのための一時スペース",
   'home.send': '送信',
   'home.sendHint': 'ルームを作成',
@@ -770,7 +772,7 @@ const ja: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'できること',
-  'home.three.heading': 'この端末から、もう一方へ。',
+  'home.three.heading': 'コードひとつで、\n次のデバイスへ。',
   'home.three.pair.lead': 'つなぐ',
   'home.three.pair.body': '片方で送信、もう片方で受信を開きます。6桁のコードが二台をつなぎます。',
   'home.three.send.lead': '送る',

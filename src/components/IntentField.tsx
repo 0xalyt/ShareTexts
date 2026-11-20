@@ -104,14 +104,14 @@ export function IntentField({
   const Glyph = intent.kind === 'join' ? KeyRound : intent.kind === 'create' ? SendHorizontal : ClipboardPaste;
 
   return (
-    <div className={cn('w-full', className)}>
+    <div className={cn('w-full', className)} data-intent={intent.kind}>
       <label htmlFor={`${hintId}-input`} className="sr-only">
         {t('intent.label')}
       </label>
 
       <div
         className={cn(
-          'st-lens flex items-center gap-2.5 rounded-full py-1.5 pl-4 pr-1.5 min-h-[56px]',
+          'intent-surface st-lens flex items-center gap-2.5 rounded-full py-1.5 ps-4 pe-1.5 min-h-[56px]',
           'transition-[box-shadow,border-color] duration-200',
           'focus-within:shadow-[0_0_0_3px_rgba(240,100,19,0.16),inset_0_1px_0_rgba(255,255,255,0.9)]',
           'dark:focus-within:shadow-[0_0_0_3px_rgba(120,170,255,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]',
