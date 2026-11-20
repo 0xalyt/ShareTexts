@@ -58,7 +58,7 @@ const GAP_MS = 120;
 const BREATHE_MS = 240;
 
 export function ShuffleHeading({ className }: { className?: string }) {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const wordRef = useRef<HTMLSpanElement | null>(null);
   const ghostRef = useRef<HTMLSpanElement | null>(null);
   const slotRef = useRef<HTMLSpanElement | null>(null);
@@ -143,6 +143,10 @@ export function ShuffleHeading({ className }: { className?: string }) {
       window.removeEventListener('resize', remeasure);
     };
   }, [lang]);
+
+  if (lang !== 'en') {
+    return <h1 className={`st-display whitespace-pre-line text-balance text-[clamp(32px,8.8vw,46px)] leading-[1.12] lg:text-[clamp(40px,4vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}>{t('home.title')}</h1>;
+  }
 
   return (
     <h1

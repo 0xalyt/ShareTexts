@@ -71,7 +71,7 @@ const CommandBar = lazy(() => import('../components/CommandBar').then(m => ({ de
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
 import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
-import { HeroFilm } from '../components/HeroFilm';
+import { HandoffDemo } from '../components/landing/HandoffDemo';
 import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, LandingFaq } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
@@ -1213,16 +1213,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 </span>
                 {t('home.subheading')}
               </p>
-              {/* The film, directly under the headline at every width.
-                  Headline → the product moving → the number → the two doors is
-                  the order the argument is actually made in: what it is, what
-                  it looks like doing it, how many people already do, then the
-                  button. On lg the desktop column mounts the same film, and
-                  this slot is `lg:hidden` — neither copy autoplays off screen,
-                  so the hidden one never downloads the body. */}
-              <div className="st-hide-landscape order-2 lg:hidden mt-5 sm:mt-6 mb-1 flex justify-center">
+              {/* The same handoff story sits below the actions on phones and
+                  beside it on desktop. Mount only the active copy so there is
+                  one playback clock and one set of accessible controls. */}
+              <div className="st-hide-landscape order-7 lg:hidden mt-6 mb-1 flex justify-center">
                 <div className="w-full max-w-[560px] px-1">
-                  <HeroFilm />
+                  {!isDesktopLayout && <HandoffDemo />}
                 </div>
               </div>
               {/* Live activity tracker — bare (NO pill): a breathing dot, the
@@ -2190,7 +2186,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 device screens, with a caption on the same clock. On a very
                 short window the landing simply scrolls to it. */}
             <div className="w-full max-w-[620px] mx-auto">
-              <HeroFilm />
+              {isDesktopLayout && <HandoffDemo />}
             </div>
           </div>
           {/* Phase 5 scroll tail — the demo is the illustration, so these
