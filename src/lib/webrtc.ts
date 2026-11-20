@@ -368,9 +368,21 @@ const signalRouter = {
     });
     socket.on('relay_message', (msg: LinkFrame) => {
       const from = typeof msg?.from === 'string' ? msg.from : '';
-      const target = targetFor(from);
+      const target = !from && msg.data instanceof ArrayBuffer
+        ? this.classicBinaryTarget()
+        : targetFor(from);
       if (target && msg.data !== undefined) target.acceptRelay(msg.data);
     });
+  },
+  classicBinaryTarget(): PeerManager | undefined {
+    const candidates = new Set(this.links.values());
+    if (this.fallback) candidates.add(this.fallback);
+    const classic = [...candidates].filter(pm => {
+      if (pm.isDestroyed()) return false;
+      const peer = pm.resolveRelayPeer?.();
+      return peer && (!pm.boundId || pm.boundId === peer);
+    });
+    return classic.length === 1 ? classic[0] : undefined;
   },
   register(peerId: string, pm: PeerManager): void {
     this.ensure();
