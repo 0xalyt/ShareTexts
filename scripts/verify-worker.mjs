@@ -163,6 +163,10 @@ async function runRoomProtocol() {
   }
   check('same-cid heartbeat emits no recovery or join', !creator.inbox.slice(beforeHeartbeat).some(m =>
     m.type === 'event' && (m.event === 'peer_recovered' || m.event === 'peer_joined')));
+  const beforeReconnect = creator.inbox.length;
+  await joiner.send('resume_room', { roomId, secret, pid: SECOND_PID, reconnect: true });
+  check('explicit same-cid reconnect emits recovery', creator.inbox.slice(beforeReconnect).filter(m => m.event === 'peer_recovered').length === 1);
+  creator.inbox.splice(beforeReconnect);
 
   // signal forwarding — addressed by PARTICIPANT id now (the modern wire form)
   const sigPromise = creator.waitFor((m) => m.type === 'event' && m.event === 'signal');

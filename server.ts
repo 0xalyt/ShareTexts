@@ -1360,7 +1360,7 @@ io.on('connection', (socket) => {
   // Rejoin after a page refresh — or after a RESTART, for Stay Connected
   // rooms. Requires the session secret, which only a device that previously
   // joined the room can hold.
-  safeOn('resume_room', ({ roomId, secret, pid: resumePid }, cb) => {
+  safeOn('resume_room', ({ roomId, secret, pid: resumePid, reconnect }, cb) => {
     let room = rooms.get(roomId);
     if (!room || room.secret !== secret) {
       // Restart resurrection: if this room carries a live Stay Connected
@@ -1420,7 +1420,7 @@ io.on('connection', (socket) => {
     // RECLAIMED seat means the same logical device returned → survivors
     // re-offer to it (peer_recovered semantics). A genuinely NEW seat is a
     // roster join → the delta decides the initiator deterministically.
-    if (result === 'reclaimed' && !sameSeat) {
+    if (result === 'reclaimed' && (!sameSeat || reconnect === true)) {
       room.rosterSeq++;
       socket.to(roomId).emit('peer_recovered', { peerId: selfId, roster: { participants: rosterList(room), seq: room.rosterSeq } });
     } else if (result === 'seated') {

@@ -898,7 +898,7 @@ export class Room extends DurableObject<Env> {
       : `legacy-${crypto.randomUUID()}`;
   }
 
-  private async handleResume(cid: string, id?: string, payload?: { secret?: unknown; pid?: unknown }) {
+  private async handleResume(cid: string, id?: string, payload?: { secret?: unknown; pid?: unknown; reconnect?: unknown }) {
     const r = await this.loadRoom();
     if (!r || r.secret !== payload?.secret) {
       return this.ackErr(cid, id, 'SESSION_EXPIRED', 'This room has expired.');
@@ -927,7 +927,7 @@ export class Room extends DurableObject<Env> {
       await this.ctx.storage.put('conn:' + cid, { roomId: r.roomId });
       await this.touch();
       await this.recomputeState();
-      if (!sameSeat) await this.notifyOthers(cid, 'peer_recovered', { peerId: known.pid, roster: this.rosterSnapshot(r) });
+      if (!sameSeat || payload?.reconnect === true) await this.notifyOthers(cid, 'peer_recovered', { peerId: known.pid, roster: this.rosterSnapshot(r) });
       return this.ackOk(cid, id, { roomId: r.roomId, secret: r.secret, createdAt: r.codeAnchor, stayConnected: !!r.stayConnected, participantId: known.pid, myParticipantId: known.pid, roster: this.rosterSnapshot(r) });
     }
     // Re-entry into a room with both seats empty: the caller already proved

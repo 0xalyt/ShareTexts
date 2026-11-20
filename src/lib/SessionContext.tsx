@@ -1179,18 +1179,16 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     } catch {
       return;
     }
-    const res = await new Promise<{ success: boolean; error?: string }>((resolve) => {
-      getSocket().emit('resume_room', { roomId, secret, pid: participantIdFor(roomId) }, resolve);
-    });
-    if (!res.success) return;
     if (peerManagerRef.current) peerManagerRef.current.destroy();
     const gen = ++pmGenerationRef.current;
-    void createPeerManager(roomId, secret, false).then(pm => {
-      if (gen !== pmGenerationRef.current) { pm.destroy(); return; } // superseded
-      peerManagerRef.current = pm;
-      setupPeerManager(pm);
-    });
+    const pm = await createPeerManager(roomId, secret, false);
+    if (gen !== pmGenerationRef.current) { pm.destroy(); return; }
+    peerManagerRef.current = pm;
+    setupPeerManager(pm);
     setSession(s => ({ ...s, connectionType: 'connecting' }));
+    await new Promise<void>((resolve) => {
+      getSocket().emit('resume_room', { roomId, secret, pid: participantIdFor(roomId), reconnect: true }, () => resolve());
+    });
   };
   requestReconnectRef.current = requestReconnect;
 
@@ -1227,6 +1225,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     try {
       await ensureSocketConnected(8000);
     } catch { return; }
+    if (!channelHealthy() && sessionRef.current.connectionType !== 'disconnected') {
+      await requestReconnectRef.current();
+      return;
+    }
     const res = await new Promise<{ success: boolean; error?: string }>((resolve) => {
       const sock = getSocket();
       const timer = setTimeout(() => resolve({ success: false, error: 'timeout' }), 10_000);
@@ -1237,26 +1239,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     });
     if (!res.success) return;
     diag('seat.reseat', true, why);
-    if (channelHealthy()) return; // everything fine — the ack was the whole point
-    // Dead channel. Rebuild the peer so the partner's peer_joined trigger
-    // and our fresh ICE restart the link — UNLESS the peer is CONFIRMED
-    // gone (its grace elapsed / server confirmed the leave). Rebuilding
-    // then would flip the honest 'disconnected' state to 'connecting' and
-    // the header back to "Connected" for a dead room; the peer_joined
-    // handler rebuilds anyway when the partner actually returns.
-    if (sessionRef.current.connectionType !== 'disconnected') {
-      if (peerManagerRef.current) peerManagerRef.current.destroy();
-      const gen = ++pmGenerationRef.current;
-      void createPeerManager(s.roomId, s.secret, false).then(pm => {
-        if (gen !== pmGenerationRef.current) { pm.destroy(); return; } // superseded
-        peerManagerRef.current = pm;
-        setupPeerManager(pm);
-      });
-      setSession(prev => ({
-        ...prev,
-        connectionType: prev.connectionType === 'direct' || prev.connectionType === 'relay' || prev.connectionType === 'local' ? 'connecting' : prev.connectionType,
-      }));
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const startSeatKeepalive = useCallback(() => {
