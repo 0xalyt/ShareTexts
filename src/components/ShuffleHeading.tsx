@@ -146,15 +146,15 @@ export function ShuffleHeading({ className }: { className?: string }) {
 
   return (
     <h1
-      className={`st-display text-[clamp(32px,8.8vw,46px)] lg:text-[clamp(44px,4.05vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-left ${className ?? ''}`}
+      className={`st-display text-[clamp(32px,8.8vw,46px)] leading-[1.06] lg:text-[clamp(44px,4.05vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}
     >
       <span className="sr-only">Share anything between any devices easily.</span>
-      <span aria-hidden className="flex flex-col items-center lg:items-start">
+      <span aria-hidden className="flex flex-col items-center">
         {/* Line one: "Share" + the word, centred as a unit. The slot is as
             wide as the word currently being typed, so there is never a void
             beside a short word — and because the width is measured from the
             TARGET word, typing does not drag the line around. */}
-        <span className="inline-flex items-baseline justify-center whitespace-nowrap lg:justify-start">
+        <span className="inline-flex items-baseline justify-center whitespace-nowrap">
           <span>Share</span>
           <span
             ref={slotRef}
@@ -181,12 +181,16 @@ export function ShuffleHeading({ className }: { className?: string }) {
             />
           </span>
         </span>
-        {/* Line two is the promise, a size below the noun so the pair reads as
-            one statement instead of two headlines. At 0.62em it holds on ONE
-            line from 360px up — the old same-size version wrapped to two lines
-            on every phone AND on desktop, which is what made the block look
-            ragged and top-heavy. */}
-        <span className="mt-[0.16em] text-[0.58em] font-semibold leading-[1.18] tracking-[-0.02em] text-apple-ink/70 dark:text-white/70 text-center text-balance lg:text-left">
+        {/* Line two is the promise, and it now carries the SAME weight as the
+            noun it follows: same size (1em), same colour, same tracking — one
+            statement on two lines, not a headline with a subtitle under it.
+            The old 0.58em/70% version is what made the block read as a banner
+            plus a caption; at full size the two lines are a single sentence
+            and the eye takes them as one. It is centred at every width, under
+            the first line, and `text-balance` keeps the wrap even (the line is
+            longer than the column on a phone, so it will take two rows there —
+            balanced rows, not a stub). */}
+        <span className="mt-[0.06em] text-[1em] font-[inherit] leading-[1.06] tracking-[-0.035em] text-apple-ink dark:text-white text-center text-balance">
           between any devices easily.
         </span>
       </span>
