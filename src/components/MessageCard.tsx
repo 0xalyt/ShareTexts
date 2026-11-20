@@ -474,6 +474,16 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
       navigator.vibrate(10);
     }
   };
+  const rowKeyboard = selectMode ? {} : {
+    tabIndex: 0,
+    onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+      if (e.target !== e.currentTarget) return;
+      if (e.key !== 'Enter' && e.key !== 'ContextMenu' && !(e.key === 'F10' && e.shiftKey)) return;
+      e.preventDefault();
+      const r = e.currentTarget.getBoundingClientRect();
+      openActions({ clientX: isMe ? r.right - 16 : r.left + 16, clientY: r.top + r.height / 2 });
+    },
+  };
   const longPress = useLongPress(selectMode ? undefined : () => openActions(), msg.id);
   const handleBubbleTap = (e: React.MouseEvent) => {
     if (!selectMode) return;
@@ -529,6 +539,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           selectMode && "px-1"
         )}
         {...longPress}
+        {...rowKeyboard}
         onContextMenu={(e) => { e.preventDefault(); openActions(e); }}
         onClickCapture={selectMode ? undefined : longPress.onClickCapture}
         onClick={selectMode ? handleBubbleTap : undefined}
@@ -722,6 +733,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         selectMode && "px-1"
       )}
       {...longPress}
+      {...rowKeyboard}
       onContextMenu={(e) => { e.preventDefault(); openActions(e); }}
       onClickCapture={selectMode ? undefined : longPress.onClickCapture}
       onClick={selectMode ? handleBubbleTap : undefined}
