@@ -603,7 +603,11 @@ function seatParticipant(
   const existing = room.participants.get(info.id);
   if (existing) {
     cancelGrace(existing.socketId);
-    if (existing.socketId !== socketId) room.activePeers.delete(existing.socketId);
+    if (existing.socketId !== socketId) {
+      room.activePeers.delete(existing.socketId);
+      socketParticipants.delete(existing.socketId);
+      socketRooms.delete(existing.socketId);
+    }
     existing.socketId = socketId;
     existing.name = info.name;
     existing.platform = info.platform;

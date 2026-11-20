@@ -536,6 +536,26 @@ async function runGraceReclaim() {
   }
 }
 
+async function runConnectionReclaims() {
+  const ctx = new FakeCtx();
+  const roomId = uuid();
+  const room = new Room(ctx, makeEnv());
+  let current = await connect(room, roomId);
+  const created = await current.send('create_room', { pid: 'creator-device' });
+  let resumed = true;
+  for (let i = 0; i < 12; i++) {
+    current.client.close();
+    await room.webSocketClose(current.server);
+    current = await connect(room, roomId);
+    const result = await current.send('resume_room', { roomId, secret: created.secret, pid: 'creator-device' });
+    resumed &&= result.success === true;
+  }
+  check('twelve Worker fresh-cid reclaims succeed', resumed);
+  check('Worker reclaim connection cache stays bounded', room.conns.size === 1);
+  check('Worker reclaim durable connection records stay bounded', (await ctx.storage.list({ prefix: 'conn:' })).size === 1);
+  current.close();
+}
+
 // Stay Connected: room-wide promise flips, BOTH peers get the echo, the
 // state persists, and a non-member cannot flip someone else's room.
 async function runStayConnected() {
@@ -904,6 +924,7 @@ await runLiveIdleExpiry();
 await runDisconnectedState();
 await runGraceHeartbeat();
 await runGraceReclaim();
+await runConnectionReclaims();
 await runRegistry();
 await runMetrics();
 await runSpace();
