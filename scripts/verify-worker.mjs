@@ -222,6 +222,36 @@ async function runRoomProtocol() {
     await creator.send('relay_message', { data });
     check(`encrypted fragment ${packet.sequence + 1}/${total} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
   }
+  const padded = await encryptText('x'.repeat(98265), await generateKey(secret));
+  check('real ciphertext padding crosses the client chunk boundary', padded[chunkSize - 1] === '=' && padded[chunkSize] === '=');
+  for (let sequence = 0; sequence < 2; sequence++) {
+    const data = JSON.stringify({ version: 1, type: 'chunk', transferId: uuid(), sequence, total: 2, payload: padded.slice(sequence * chunkSize, (sequence + 1) * chunkSize) });
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data });
+    check(`padding-split fragment ${sequence} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+  }
+  for (const text of ['', 'x', 'xx']) {
+    const ciphertext = await encryptText(text, await generateKey(secret));
+    let allForwarded = true;
+    for (let offset = 1; offset < ciphertext.length; offset++) {
+      // A fresh wake keeps this exhaustive test independent of frame-rate limits.
+      const wake = new Room(ctx, makeEnv());
+      const transferId = uuid();
+      for (const [sequence, payload] of [ciphertext.slice(0, offset), ciphertext.slice(offset)].entries()) {
+        const data = JSON.stringify({ version: 1, type: 'chunk', transferId, sequence, total: 2, payload });
+        const before = joiner.inbox.length;
+        await wake.webSocketMessage(creator.server, JSON.stringify({ v: 1, event: 'relay_message', payload: { data } }));
+        allForwarded &&= joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data);
+      }
+    }
+    check(`real encryptText output split at every offset (${text.length} plaintext bytes)`, allForwarded);
+  }
+  for (const [sequence, payload] of [[0, '{"i":"bad"'], [1, 'AAAA=AAAA'], [1, 'AAAA===' ], [1, 'AAAA"x}'], [1, 'A'.repeat(chunkSize + 1)]]) {
+    const wake = new Room(ctx, makeEnv());
+    const before = joiner.inbox.length;
+    await wake.webSocketMessage(creator.server, JSON.stringify({ v: 1, event: 'relay_message', payload: { data: JSON.stringify({ version: 1, type: 'chunk', transferId: uuid(), sequence, total: 2, payload }) } }));
+    check('invalid split ciphertext rejected', !joiner.inbox.slice(before).some(m => m.event === 'relay_message'));
+  }
   for (const patch of [{ total: 1 }, { total: 1.5 }, { total: 2 ** 32 }, { sequence: -1 }, { sequence: total }, { sequence: 0.5 }, { transferId: '' }, { payload: '' }, { payload: longChunks[0].payload.slice(1) }, { payload: ' '.repeat(chunkSize) }]) {
     const before = joiner.inbox.length;
     await creator.send('relay_message', { data: JSON.stringify({ ...longChunks[0], ...patch }) });

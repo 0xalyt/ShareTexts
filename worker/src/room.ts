@@ -206,6 +206,25 @@ function isEncryptedJson(data: string): boolean {
   }
 }
 
+function isEncryptedFragment(payload: string, first: boolean, last: boolean): boolean {
+  const body = last ? /^[A-Za-z0-9+/]*={0,2}"\}$/ : /^[A-Za-z0-9+/]*={0,2}"?$/;
+  if (!first && (body.test(payload) || (last && payload === '}'))) return true;
+  const header = '{"i":"................","c":"';
+  for (let start = first ? 0 : 1; start < (first ? 1 : header.length); start++) {
+    const length = Math.min(payload.length, header.length - start);
+    let matches = true;
+    for (let n = 0; n < length; n++) {
+      const pos = start + n;
+      if (pos >= 6 && pos < 22 ? !/^[A-Za-z0-9+/]$/.test(payload[n]) : payload[n] !== header[pos]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches && (length < header.length - start ? !last : body.test(payload.slice(length)))) return true;
+  }
+  return false;
+}
+
 function validateRelayData(data: unknown): string | null {
   if (typeof data !== 'string') return null;
   if (data.length === 0 || data.length > RELAY_TEXT_MAX) return null;
@@ -215,8 +234,8 @@ function validateRelayData(data: unknown): string | null {
   // Raw base64 (legacy text relay) — no structure to check beyond charset.
   if (/^[A-Za-z0-9+/=]+$/.test(data)) return data;
   if (isEncryptedJson(data)) return data;
-  // Single chunks carry a full ciphertext; multi-chunk payloads are slices
-  // of encryptText's JSON, on the same 128 KiB grid as PeerManager.send.
+  // Single chunks carry a full ciphertext; fragments may split the JSON
+  // header, ciphertext padding or closing delimiter at a chunk boundary.
   try {
     const parsed = JSON.parse(data);
     if (parsed?.version !== 1 || parsed?.type !== 'chunk' || typeof parsed?.payload !== 'string') return null;
@@ -227,10 +246,8 @@ function validateRelayData(data: unknown): string | null {
         !Number.isInteger(parsed.sequence) || parsed.sequence < 0 || parsed.sequence >= parsed.total ||
         typeof parsed.transferId !== 'string' || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(parsed.transferId)) return null;
     const { payload, sequence, total } = parsed;
-    if (!payload.length || payload.length > chunkSize || (sequence < total - 1 && payload.length !== chunkSize)) return null;
-    if (sequence === 0) return /^\{"i":"[A-Za-z0-9+/]{16}","c":"[A-Za-z0-9+/]+$/.test(payload) ? data : null;
-    if (sequence === total - 1) return /^[A-Za-z0-9+/]*={0,2}"\}$/.test(payload) ? data : null;
-    return /^[A-Za-z0-9+/]+$/.test(payload) ? data : null;
+    if (!payload.length || payload.length > chunkSize) return null;
+    return isEncryptedFragment(payload, sequence === 0, sequence === total - 1) ? data : null;
   } catch {
     return null;
   }
