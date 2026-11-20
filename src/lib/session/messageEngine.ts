@@ -31,6 +31,7 @@ import { sanitizeFilename } from '../utils';
 import { recordTransferBytes } from '../pairing';
 import { normalizePastedText } from '../textFidelity';
 import { sha256Hex } from './fileIntegrity';
+import { ReceivedFileIntegrity } from './receivedFileIntegrity';
 // Multi-device fan-out: one logical share → N independent per-recipient
 // transfers, scheduled through a bounded bulk-lane scheduler so a big send
 // never opens dozens of encryption pipelines at once (and text keeps its
@@ -160,6 +161,18 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
   // delivers files as ~45KB base64 chunks (to fit WS frame caps on both
   // transports); this buffer reassembles them before the bubble appears.
   const pushBuffersRef = useRef<Map<string, { name: string; mimeType: string; size: number; chunkCount: number; timestamp: number; chunks: string[]; filled: number }>>(new Map());
+
+  const receivedIntegrityRef = useRef(new ReceivedFileIntegrity(
+    (message, checksum) => updateMessageAttachment(message.id, { checksum }),
+    (message, expected, actual) => {
+      const ok = actual === expected;
+      diag('transfer.checksum', ok, ok ? 'verified' : `mismatch expected ${expected.slice(0, 12)}… got ${actual.slice(0, 12)}…`);
+      if (!ok) finishTransferRecord(message.attachment!.id, 'received', 0, 'checksum-mismatch', { name: message.attachment?.name, kind: 'file', verified: false });
+      updateMessageAttachment(message.id, ok
+        ? { verified: true }
+        : { status: 'failed', note: 'checksum-mismatch', progress: 1, verified: false });
+    },
+  ));
 
   const updateMessageAttachment = (messageId: string, updates: Partial<NonNullable<ChatMessage['attachment']>>) => {
     setSession(s => {
@@ -326,6 +339,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
             });
           }
           if (parsed.attachment) {
+            receivedIntegrityRef.current.metadata(parsed);
             // The chunk count comes from the SAME grid the sender uses
             // (chunkCountForSize) — a mismatch here would leave the receiver
             // waiting for chunks that never come or rejecting real ones.
@@ -410,9 +424,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       // metadata so previews, downloads and clipboard copy get the correct
       // type. Blob composition references the original bytes, so this stays
       // cheap even for large disk-backed (OPFS) files.
-      const srcMsg = getMessages().find(m => m.attachment?.id === transferId);
+      const srcMsg = receivedIntegrityRef.current.message(transferId)
+        ?? getMessages().find(m => m.attachment?.id === transferId);
       const mime = srcMsg?.attachment?.mimeType;
-      const checksum = srcMsg?.attachment?.checksum;
       const finalBlob = mime && blob.type !== mime ? new Blob([blob], { type: mime }) : blob;
       const url = URL.createObjectURL(finalBlob);
       setSession(s => ({
@@ -449,7 +463,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       lastSpeedReadings.current.delete(transferId);
       // The whole file arrived — only now confirm receipt (metadata alone
       // would be a lie if the transfer later failed).
-      const msg = getMessages().find(m => m.attachment?.id === transferId);
+      const msg = srcMsg;
       if (msg && msg.sender === 'partner') {
         pm.sendReceipt(msg.id);
         // The completed file card is on screen in the open room — confirm
@@ -458,47 +472,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         setTimeout(() => sendSeenWhenVisible(() => pm.sendSeen(msg.id)), 450);
       }
 
-      // Integrity: if the sender included a checksum, verify the bytes that
-      // actually arrived. The card stays usable (download works) while the
-      // background hash runs; a mismatch flips it to a clear failure with
-      // Retry instead of silently keeping corrupted data.
-      if (checksum && srcMsg) {
-        // updateMessageAttachment keys on the MESSAGE id — the transferId is
-        // the attachment id, so resolve the owning message first.
-        const msgId = srcMsg.id;
-        void sha256Hex(finalBlob)
-          .then((got) => {
-            const ok = got === checksum;
-            diag('transfer.checksum', ok, ok ? 'verified' : `mismatch expected ${checksum.slice(0, 12)}… got ${got.slice(0, 12)}…`);
-            if (!ok) finishTransferRecord(transferId, 'received', 0, 'checksum-mismatch', { name: srcMsg?.attachment?.name, kind: 'file', verified: false });
-            updateMessageAttachment(msgId, ok
-              ? { verified: true }
-              : { status: 'failed', note: 'checksum-mismatch', progress: 1, verified: false });
-          })
-          .catch(() => { /* hashing failed (quota?) — leave complete, unverified */ });
-      } else {
-        // The sender hashes in parallel with the transfer, so the checksum
-        // metadata can trail the file. Wait briefly for it before declaring
-        // the transfer unverifiable.
-        const msgId = srcMsg?.id;
-        setTimeout(() => {
-          const now = msgId ? getMessages().find(m => m.id === msgId)?.attachment : undefined;
-          if (now?.checksum) {
-            void sha256Hex(finalBlob)
-              .then((got) => {
-              const ok = got === now.checksum;
-              diag('transfer.checksum', ok, ok ? 'verified (late)' : `mismatch expected ${now.checksum.slice(0, 12)}… got ${got.slice(0, 12)}…`);
-              if (!ok) finishTransferRecord(transferId, 'received', 0, 'checksum-mismatch', { name: srcMsg?.attachment?.name, kind: 'file', verified: false });
-              updateMessageAttachment(msgId, ok
-                ? { verified: true }
-                : { status: 'failed', note: 'checksum-mismatch', progress: 1, verified: false });
-              })
-              .catch(() => { /* hashing failed — leave complete, unverified */ });
-          } else {
-            diag('transfer.checksum_skipped', true, `${transferId.slice(0, 8)} no checksum`);
-          }
-        }, 4000);
-      }
+      receivedIntegrityRef.current.complete(transferId, finalBlob);
     };
 
     // The peer confirmed one of our messages arrived.
@@ -542,10 +516,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     // the attachment like the metadata-borne checksum, and if the file already
     // finished unverified, verify immediately with the bytes we hold.
     pm.onFileHash = (transferId, sha256) => {
-      const srcMsg = getMessages().find(m => m.attachment?.id === transferId);
-      if (srcMsg) {
-        updateMessageAttachment(srcMsg.id, { checksum: sha256 });
-      }
+      receivedIntegrityRef.current.checksum(transferId, sha256);
     };
 
     // Transfer queue: the peer's queue freed a slot for this transfer —
@@ -1088,6 +1059,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     receivedIdsRef.current.clear();
     progressRef.current.clear();
     pushBuffersRef.current.clear();
+    receivedIntegrityRef.current.clear();
   }, []);
 
   /**
