@@ -66,7 +66,7 @@ export function HandoffDemo() {
     const visibility = () => setPageVisible(!document.hidden);
     mq.addEventListener('change', motion);
     document.addEventListener('visibilitychange', visibility);
-    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.25 });
+    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting && entry.intersectionRatio >= 0.5), { threshold: 0.5 });
     if (root.current) io.observe(root.current);
     return () => {
       mq.removeEventListener('change', motion);
@@ -86,7 +86,7 @@ export function HandoffDemo() {
 
   return (
     <figure ref={root} className="handoff-demo" data-testid="hero-demo" data-state={active} aria-label={t('demo.handoff.title')}>
-      <div className="handoff-demo-top"><span>{t('demo.handoff.eyebrow')}</span><span>{t('demo.handoff.illustration')}</span></div>
+      <div className="handoff-demo-top">{t('demo.handoff.illustration')}</div>
       <div className="handoff-stage" aria-hidden="true">
         <div className="handoff-laptop"><LaptopFrame><DemoScreen step={step} /></LaptopFrame></div>
         <div className="handoff-phone"><PhoneFrame><DemoScreen phone step={step} /></PhoneFrame></div>
