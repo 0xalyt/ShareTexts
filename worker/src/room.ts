@@ -215,15 +215,22 @@ function validateRelayData(data: unknown): string | null {
   // Raw base64 (legacy text relay) — no structure to check beyond charset.
   if (/^[A-Za-z0-9+/=]+$/.test(data)) return data;
   if (isEncryptedJson(data)) return data;
-  // v2 chunk envelope: JSON with a known shape. Fields beyond the shape
-  // (transferId, sequence, total) are validated by the receiving client; the
-  // Payloads use the same encrypted shapes as the direct form above.
+  // Single chunks carry a full ciphertext; multi-chunk payloads are slices
+  // of encryptText's JSON, on the same 128 KiB grid as PeerManager.send.
   try {
-    const parsed = JSON.parse(data) as { version?: unknown; type?: unknown; payload?: unknown };
+    const parsed = JSON.parse(data);
     if (parsed?.version !== 1 || parsed?.type !== 'chunk' || typeof parsed?.payload !== 'string') return null;
     const legacy = parsed.payload.startsWith('enc:') && /^[A-Za-z0-9+/=]+$/.test(parsed.payload.slice(4));
-    if (!legacy && !isEncryptedJson(parsed.payload)) return null;
-    return data;
+    if (legacy || isEncryptedJson(parsed.payload)) return data;
+    const chunkSize = 128 * 1024;
+    if (!Number.isInteger(parsed.total) || parsed.total < 2 || parsed.total > 1024 ** 4 / chunkSize ||
+        !Number.isInteger(parsed.sequence) || parsed.sequence < 0 || parsed.sequence >= parsed.total ||
+        typeof parsed.transferId !== 'string' || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(parsed.transferId)) return null;
+    const { payload, sequence, total } = parsed;
+    if (!payload.length || payload.length > chunkSize || (sequence < total - 1 && payload.length !== chunkSize)) return null;
+    if (sequence === 0) return /^\{"i":"[A-Za-z0-9+/]{16}","c":"[A-Za-z0-9+/]+$/.test(payload) ? data : null;
+    if (sequence === total - 1) return /^[A-Za-z0-9+/]*={0,2}"\}$/.test(payload) ? data : null;
+    return /^[A-Za-z0-9+/]+$/.test(payload) ? data : null;
   } catch {
     return null;
   }

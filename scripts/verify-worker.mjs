@@ -207,6 +207,22 @@ async function runRoomProtocol() {
     check(`${name} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
   }
   const valid = JSON.parse(encrypted);
+  const longEncrypted = await encryptText('long relay text '.repeat(20000), await generateKey(secret));
+  const chunkSize = 128 * 1024;
+  const total = Math.ceil(longEncrypted.length / chunkSize);
+  check('real encrypted relay message spans multiple chunks', total > 2);
+  const longChunks = Array.from({ length: total }, (_, sequence) => ({ version: 1, type: 'chunk', transferId: uuid(), sequence, total, payload: longEncrypted.slice(sequence * chunkSize, (sequence + 1) * chunkSize) }));
+  for (const packet of longChunks) {
+    const data = JSON.stringify(packet);
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data });
+    check(`encrypted fragment ${packet.sequence + 1}/${total} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+  }
+  for (const patch of [{ total: 1 }, { total: 1.5 }, { total: 2 ** 32 }, { sequence: -1 }, { sequence: total }, { sequence: 0.5 }, { transferId: '' }, { payload: '' }, { payload: longChunks[0].payload.slice(1) }, { payload: ' '.repeat(chunkSize) }]) {
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data: JSON.stringify({ ...longChunks[0], ...patch }) });
+    check('malformed encrypted fragment rejected', !joiner.inbox.slice(before).some(m => m.event === 'relay_message'));
+  }
   const invalid = [
     ['empty payload', ''],
     ['malformed JSON', '{'],
