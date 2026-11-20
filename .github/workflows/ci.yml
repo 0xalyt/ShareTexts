@@ -39,7 +39,8 @@ jobs:
         run: npm run build
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps ${{ matrix.browsers }}
+        # The composer geometry gate launches Chromium in every matrix job.
+        run: npx playwright install --with-deps chromium ${{ matrix.browsers }}
 
       - name: Start server
         run: |
