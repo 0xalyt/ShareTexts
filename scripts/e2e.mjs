@@ -1,6 +1,19 @@
 // E2E: create → join → connect → send → receive → refresh-reconnect → large text → third-device rejection
 import { launchBrowser, URL, sleep, readLiveCode } from './lib.mjs';
 
+function messageRow(page, text) {
+  return page.locator('[class~="group/msg"]').filter({ has: page.getByText(text, { exact: true }) });
+}
+
+async function visibleMessageRow(page, text) {
+  const row = messageRow(page, text);
+  await row.waitFor({ state: 'attached', timeout: 20000 });
+  if (await row.count() !== 1) throw new Error(`expected one message row for ${JSON.stringify(text)}`);
+  await row.scrollIntoViewIfNeeded();
+  await row.getByText(text, { exact: true }).waitFor({ state: 'visible', timeout: 20000 });
+  return row;
+}
+
 function makeUnicodeText(kb) {
   const parts = [
     'हिन्दी पाठ', 'العربية نص', '中文文本', '日本語のテキスト', '한국어',
@@ -138,10 +151,23 @@ async function main() {
   if (await b2Ta.count()) {
     await b2Ta.fill('Back after tab close');
     await B2.getByRole('button', { name: 'Send', exact: true }).click();
-    await A.getByText('Back after tab close', { exact: true }).waitFor({ timeout: 20000 }).catch(() => {});
-    const aBody3 = await A.locator('body').innerText();
-    console.log(aBody3.includes('Back after tab close') ? 'STEP 8e OK: message sent after rejoin reached A' : 'STEP 8e FAIL: post-rejoin message lost');
-    if (!aBody3.includes('Back after tab close')) failures++;
+    try {
+      await visibleMessageRow(A, 'Back after tab close');
+      const sentRow = await visibleMessageRow(B2, 'Back after tab close');
+      // A receipt can precede a different recipient's failed leg. Observe
+      // the sender through the bounded link-open/fallback window as well.
+      const failed = await sentRow.getByText("Couldn't send", { exact: true })
+        .waitFor({ state: 'visible', timeout: 20000 }).then(() => true, () => false);
+      const status = (await sentRow.innerText()).replace(/\n/g, ' | ');
+      if (failed) throw new Error(`B reports ${status}`);
+      console.log('STEP 8e OK: message sent after rejoin reached A; B has no Couldn\'t send status | B:', status);
+    } catch (e) {
+      console.log('STEP 8e FAIL:', e.message);
+      failures++;
+    }
+  } else {
+    console.log('STEP 8e FAIL: B has no composer after rejoin');
+    failures++;
   }
 
   // --- Third device rejection ---
@@ -192,17 +218,22 @@ async function main() {
   await A.locator('input[multiple]:not([accept])').setInputFiles(paths10);
   await sleep(600);
   await A.getByRole('button', { name: /send/i }).first().click();
-  await B2.waitForFunction(() => {
-    const body = document.body.innerText;
-    return ['queue-one.txt', 'queue-two.txt', 'queue-three.txt'].every(name => body.includes(name)) && body.split('Verified').length >= 4;
-  }, null, { timeout: 20000 }).catch(() => {});
-  const bQueue = await B2.evaluate(() => document.body.innerText);
-  const namesOk = ['queue-one.txt', 'queue-two.txt', 'queue-three.txt'].every(n => bQueue.includes(n));
-  const noneWaiting = !bQueue.includes('Waiting…') && bQueue.split('Verified').length >= 4;
-  if (namesOk && noneWaiting) {
+  let completeFiles = 0;
+  for (const name of ['queue-one.txt', 'queue-two.txt', 'queue-three.txt']) {
+    try {
+      const row = await visibleMessageRow(B2, name);
+      await row.getByText('Verified', { exact: true }).waitFor({ state: 'visible', timeout: 20000 });
+      if ((await row.innerText()).includes('Waiting…')) throw new Error('row is still waiting');
+      completeFiles++;
+      console.log(`STEP 10 file OK: ${name} — own row Verified`);
+    } catch (e) {
+      console.log(`STEP 10 file FAIL: ${name} — ${e.message}`);
+    }
+  }
+  if (completeFiles === 3) {
     console.log('STEP 10 OK: all 3 queued files completed on B, per-file rows rendered');
   } else {
-    console.log('STEP 10 FAIL: files=', namesOk, 'waitingLeft=', !noneWaiting, '| B:', bQueue.slice(-400).replace(/\n/g, ' | '));
+    console.log(`STEP 10 FAIL: ${completeFiles}/3 file rows Verified`);
     failures++;
   }
 
