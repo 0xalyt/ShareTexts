@@ -61,6 +61,19 @@ try {
   };
   if (process.env.STORE_FAILURE) await confirmConnection('sender recovered before quota restore');
   await check('sender reload preserves receiver file');
+  if (process.env.STALE_SNAPSHOT) await B.evaluate(name => {
+    for (const key of ['sharetext.session.v1', 'sharetext.lastStayRoom.v1']) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const snapshot = JSON.parse(raw);
+      for (const message of snapshot.messages ?? []) {
+        if (message.attachment?.name !== name) continue;
+        message.attachment.verified = false;
+        delete message.attachment.checksum;
+      }
+      localStorage.setItem(key, JSON.stringify(snapshot));
+    }
+  }, name);
   await B.goto(`${URL}/404`);
   await B.getByRole('button', { name: /go home/i }).click();
   await B.getByTestId('composer').first().waitFor();

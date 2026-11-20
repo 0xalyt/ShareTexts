@@ -37,6 +37,7 @@ try {
     check(await store.getReceivedFile('room-b', 'file', 'checksum', blob.size) === null, 'cross-room read');
     check(await store.getReceivedFile('room-a', 'file', 'other', blob.size) === null, 'checksum mismatch accepted');
     check(await store.getReceivedFile('room-a', 'file', 'checksum', 1) === null, 'size mismatch accepted');
+    check(await (await store.getReceivedFile('room-a', 'file', undefined, blob.size))?.text() === 'verified bytes', 'verified record requires stale snapshot checksum');
     check(await store.getReceivedFile('room-a', 'missing', 'checksum', 0) === null, 'missing file accepted');
     results.push('PASS: committed bytes round-trip; room, checksum, size and missing-file isolation');
 

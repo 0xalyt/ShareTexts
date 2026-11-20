@@ -190,7 +190,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     if (!roomId) return restored;
     await Promise.all(getMessages().map(async m => {
       const a = m.attachment;
-      if (m.sender !== 'partner' || a?.status !== 'restoring' || !a.verified || !a.checksum) return;
+      if (m.sender !== 'partner' || !a || a.url || a.status === 'cancelled' || a.note === 'checksum-mismatch') return;
       const key = `${roomId}/${a.id}`;
       let pending = localRestores.current.get(key);
       if (!pending) {

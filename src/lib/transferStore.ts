@@ -130,10 +130,10 @@ export async function saveReceivedFile(roomId: string, transferId: string, check
   }
 }
 
-export async function getReceivedFile(roomId: string, transferId: string, checksum: string, size: number): Promise<Blob | null> {
+export async function getReceivedFile(roomId: string, transferId: string, checksum: string | undefined, size: number): Promise<Blob | null> {
   try {
     const rec = await withStore<ReceivedRecord | undefined>(RECEIVED, 'readonly', s => s.get([roomId, transferId]));
-    if (!rec || rec.checksum !== checksum) return null;
+    if (!rec?.checksum || (checksum !== undefined && rec.checksum !== checksum)) return null;
     const blob = rec.blob ?? (rec.bytes ? new Blob([rec.bytes], { type: rec.type }) : null);
     return blob?.size === size ? blob : null;
   } catch { return null; }
