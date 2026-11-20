@@ -155,11 +155,12 @@ try {
             const a = luminance(over(rgba(style.color), bg));
             const b = luminance(bg);
             const contrast = (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
-            if (Number(style.opacity) < .99 || style.visibility !== 'visible' || box.width <= 0 || box.height <= 0 || box.left < parent.left || box.right > parent.right || contrast < 4.5) return false;
+            if (Number(style.opacity) < .99 || style.visibility !== 'visible' || box.width <= 0 || box.height <= 0 || box.left < parent.left || box.right > parent.right || contrast < 4.5) return { frame, contrast, opacity: style.opacity, visibility: style.visibility, text: box.toJSON(), button: parent.toJSON(), foreground: style.color, background: bg };
           }
           return true;
         }, label);
-        check(`${theme}/${hover ? 'hover' : 'rest'}: command label "${label}" stays painted, unclipped and ≥4.5:1`, readable);
+        if (readable !== true) console.error('Command paint failure:', readable);
+        check(`${theme}/${hover ? 'hover' : 'rest'}: command label "${label}" stays painted, unclipped and ≥4.5:1`, readable === true);
       }
     }
     await typing.close();
