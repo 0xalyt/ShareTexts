@@ -53,7 +53,7 @@ const WORDS = [
 const TYPE_MS = 88;
 const DELETE_MS = 50;
 const HOLD_MS = 1400;
-const GAP_MS = 220;
+const GAP_MS = 120;
 /** How long the line takes to make room for the next word. */
 const BREATHE_MS = 240;
 
@@ -146,15 +146,15 @@ export function ShuffleHeading({ className }: { className?: string }) {
 
   return (
     <h1
-      className={`st-display text-[clamp(32px,8.8vw,46px)] lg:text-[clamp(40px,3.4vw,54px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}
+      className={`st-display text-[clamp(32px,8.8vw,46px)] lg:text-[clamp(44px,4.05vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-left ${className ?? ''}`}
     >
       <span className="sr-only">Share anything between any devices easily.</span>
-      <span aria-hidden className="flex flex-col items-center">
+      <span aria-hidden className="flex flex-col items-center lg:items-start">
         {/* Line one: "Share" + the word, centred as a unit. The slot is as
             wide as the word currently being typed, so there is never a void
             beside a short word — and because the width is measured from the
             TARGET word, typing does not drag the line around. */}
-        <span className="inline-flex items-baseline justify-center whitespace-nowrap">
+        <span className="inline-flex items-baseline justify-center whitespace-nowrap lg:justify-start">
           <span>Share</span>
           <span
             ref={slotRef}
@@ -186,7 +186,7 @@ export function ShuffleHeading({ className }: { className?: string }) {
             line from 360px up — the old same-size version wrapped to two lines
             on every phone AND on desktop, which is what made the block look
             ragged and top-heavy. */}
-        <span className="mt-[0.14em] text-[0.62em] font-semibold leading-[1.16] tracking-[-0.022em] text-apple-ink/75 dark:text-white/75 text-center text-balance">
+        <span className="mt-[0.16em] text-[0.58em] font-semibold leading-[1.18] tracking-[-0.02em] text-apple-ink/70 dark:text-white/70 text-center text-balance lg:text-left">
           between any devices easily.
         </span>
       </span>

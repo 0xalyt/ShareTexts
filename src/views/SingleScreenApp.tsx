@@ -2165,7 +2165,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               verify-landing-onescreen at 1152×700). Top-aligned, the first
               screen is exactly the composed pair — headline left, product
               right — and the quiet tail waits one scroll below. */}
-          <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-center lg:[@media(max-height:820px)]:items-start gap-10 xl:gap-14 py-5">
+          <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start gap-10 xl:gap-14 py-5">
             {/* Left: the words and the actions (headline → subline → live
                 tracker → Send/Receive → nearby discovery → the quiet tail). */}
             <div className="w-full min-w-0">{idleHeroNode}</div>

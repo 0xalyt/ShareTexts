@@ -26,6 +26,7 @@ import zlib from 'node:zlib';
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const ROOT = process.cwd();
 const FRAMES = path.join(ROOT, 'film', 'frames');
+const HERO_FRAMES = path.join(ROOT, 'film', 'frames-hero');
 const LOOP_FRAMES = path.join(ROOT, 'film', 'frames-loop');
 const BRAG_FRAMES = path.join(ROOT, 'film', 'frames-brag');
 const AUDIO = path.join(ROOT, 'film', 'audio');
@@ -35,8 +36,11 @@ const FPS = Number(process.env.FPS || 24);
 const DURATION = 32.0;
 const LOOP = 10.0;
 const BRAG = 15.0;
+/* The simplified hero cut (`?mode=hero`): 12s, and it loops on itself. */
+const HERO = 12.0;
+const HERO_FPS = 30;
 
-for (const dir of [FRAMES, LOOP_FRAMES, BRAG_FRAMES, AUDIO, OUT, WEB]) fs.mkdirSync(dir, { recursive: true });
+for (const dir of [FRAMES, HERO_FRAMES, LOOP_FRAMES, BRAG_FRAMES, AUDIO, OUT, WEB]) fs.mkdirSync(dir, { recursive: true });
 
 const ff = (args) => execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', ...args], { stdio: 'inherit' });
 const dur = (file) =>
@@ -164,7 +168,7 @@ function pngComplete(file) {
   }
 }
 
-async function capture(dir, total, query) {
+async function capture(dir, total, query, fps = FPS) {
   const from = Number(process.env.FROM || 0);
   const to = Number(process.env.TO || total);
   const browser = await chromium.launch();
@@ -173,7 +177,7 @@ async function capture(dir, total, query) {
   for (let i = from; i < to; i += 1) {
     const file = path.join(dir, `f${String(i).padStart(5, '0')}.png`);
     if (pngComplete(file)) continue; // resumable
-    await shoot(page, i / FPS, file);
+    await shoot(page, i / fps, file);
     if (i % 24 === 0) {
       const done = i - from + 1;
       const rate = done / ((Date.now() - started) / 1000);
@@ -333,10 +337,44 @@ function web() {
   );
 }
 
+/* The hero: the simplified cut, encoded straight to the site's hero file. */
+function heroWeb() {
+  const mp4 = path.join(WEB, 'sharetexts-hero-v3.mp4');
+  const frames = fs.readdirSync(HERO_FRAMES).filter((n) => n.endsWith('.png')).length;
+  const fps = frames > 0 ? Math.round(frames / HERO) : HERO_FPS;
+  // CRF 26 against flat UI on a dark ground: indistinguishable at 1:1 from 20,
+  // and this file is the hero's only image on a phone (cap 1.2 MB).
+  ff([
+    '-framerate', String(fps), '-i', path.join(HERO_FRAMES, 'f%05d.png'),
+    '-an', '-c:v', 'libx264', '-preset', 'slower', '-crf', '26',
+    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-g', String(fps * 2),
+    mp4,
+  ]);
+  const poster = path.join(WEB, 'sharetexts-hero-v3-poster.jpg');
+  ff(['-i', path.join(HERO_FRAMES, 'f00000.png'), '-frames:v', '1', '-q:v', '3', '-vf', 'scale=1280:-2', poster]);
+  console.log(
+    `web(hero): public/film/sharetexts-hero-v3.mp4 · ${dur(mp4).toFixed(2)}s · ${(fs.statSync(mp4).size / 1024).toFixed(0)} KB`
+    + ` · poster ${(fs.statSync(poster).size / 1024).toFixed(0)} KB`,
+  );
+}
+
 const step = process.argv[2] || 'all';
 if (step === 'probe') await probe();
 else if (step === 'probe-brag') await probeBrag();
 else if (step === 'brag') await capture(BRAG_FRAMES, Math.round(BRAG * FPS), '?mode=brag');
+else if (step === 'hero') await capture(HERO_FRAMES, Math.round(HERO * HERO_FPS), '?mode=hero', HERO_FPS);
+else if (step === 'heroweb') heroWeb();
+else if (step === 'heroprobe') {
+  const browser = await chromium.launch();
+  const { ctx, page } = await openFilm(browser, '?mode=hero');
+  for (const t of [0, 1.2, 2.3, 3.3, 4.0, 4.9, 6.2, 7.4, 9.6, 11.6]) {
+    const file = path.join(OUT, `probe-hero-${String(t).replace('.', '_')}.png`);
+    await shoot(page, t, file);
+    console.log(`probe hero t=${t}s → ${path.basename(file)} ${(fs.statSync(file).size / 1024).toFixed(0)} KB`);
+  }
+  await ctx.close();
+  await browser.close();
+}
 else if (step === 'bragweb') webBrag();
 else if (step === 'frames') await capture(FRAMES, Math.round(DURATION * FPS), '');
 else if (step === 'loop') await capture(LOOP_FRAMES, Math.round(LOOP * FPS), '?mode=loop');
