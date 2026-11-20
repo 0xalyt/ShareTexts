@@ -553,6 +553,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useTransferWakeLock(session.messages);
 
   const setupPeerManager = (pm: PeerManager) => {
+    pm.resolveRelayPeer = () => {
+      const others = roomRoster.otherEntries().filter(e => e.link !== 'offline');
+      return roomRoster.size === 2 && others.length === 1 ? others[0].id : null;
+    };
     pm.onConnectionTypeChange = (type) => {
       setSession(s => ({ ...s, connectionType: type }));
     };

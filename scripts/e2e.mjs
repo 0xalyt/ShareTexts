@@ -84,14 +84,43 @@ async function main() {
   }
 
   // --- Copy button on A: the sent message must copy verbatim ---
-  await A.getByRole('button', { name: 'Copy message' }).first().click();
+  const copiedText = 'Hello from Device A 👋';
+  const copyRow = await visibleMessageRow(A, copiedText);
+  await A.evaluate(() => {
+    const write = navigator.clipboard.writeText.bind(navigator.clipboard);
+    window.restoreTestClipboard = () => { navigator.clipboard.writeText = write; };
+    navigator.clipboard.writeText = async text => {
+      try {
+        await write(text);
+        window.testClipboardWrite = { text, ok: true };
+      } catch (error) {
+        window.testClipboardWrite = { text, ok: false, error: String(error) };
+        throw error;
+      }
+    };
+  });
+  await copyRow.getByRole('button', { name: 'Copy message' }).click();
   await sleep(500);
-  const clip = await A.evaluate(() => navigator.clipboard.readText().catch(() => ''));
-  console.log(clip === 'Hello from Device A 👋' ? 'STEP 5 OK: Copy put the message on the clipboard' : 'STEP 5 WARN: clipboard read failed or mismatched');
+  const clip = await A.evaluate(() => navigator.clipboard.readText().then(text => ({ text }), error => ({ error: String(error) })));
+  if ('text' in clip) {
+    if (clip.text !== copiedText) throw new Error('Copy clipboard content mismatched');
+    console.log('STEP 5 OK: Copy put the message on the clipboard');
+  } else {
+    await A.waitForFunction(() => window.testClipboardWrite);
+    const result = await A.evaluate(() => window.testClipboardWrite);
+    if (!result.ok || result.text !== copiedText) throw new Error(`Clipboard write failed: ${JSON.stringify(result)}`);
+    console.log(`STEP 5 OK: native clipboard write resolved with exact text; readback unavailable: ${clip.error}`);
+  }
+  await A.evaluate(() => window.restoreTestClipboard());
 
   // --- Large unicode text A -> B ---
   const big = makeUnicodeText(120); // ~120 KB
-  await A.locator('textarea').first().fill(big);
+  await A.getByTestId('composer').first().evaluate((textarea, text) => {
+    const data = new DataTransfer();
+    data.setData('text/plain', text);
+    textarea.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: data }));
+  }, big);
+  if (await A.getByTestId('composer').first().inputValue() !== big) throw new Error('Large-text paste changed the content');
   await A.getByRole('button', { name: 'Send', exact: true }).click();
   console.log('STEP 6: sent ~120KB unicode text, waiting for B to receive…');
   let receivedBig = false;
@@ -100,7 +129,9 @@ async function main() {
     const body = await B.locator('body').innerText();
     if (body.includes('café naïve résumé')) { receivedBig = true; break; }
   }
-  // Verify byte-for-byte: check the full text is present by comparing lengths via clipboard copy all
+  if (receivedBig) {
+    await B.waitForFunction(text => window.__sharetextDebug.getMessages().some(m => m.sender !== 'me' && m.text === text), big, { timeout: 30000 });
+  }
   console.log(receivedBig ? 'STEP 6 OK: B received large text' : 'STEP 6 FAIL: B never received large text');
   if (!receivedBig) failures++;
 
