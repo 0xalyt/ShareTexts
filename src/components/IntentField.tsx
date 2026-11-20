@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { EASE } from '../lib/motion/tokens';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ClipboardPaste, KeyRound, SendHorizontal } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
@@ -60,7 +58,6 @@ export function IntentField({
   className?: string;
 }) {
   const { t } = useI18n();
-  const reduce = useReducedMotion();
   const [value, setValue] = useState('');
   // A code-shaped message the user says is a message, not a code.
   const [asText, setAsText] = useState(false);
@@ -99,8 +96,8 @@ export function IntentField({
       // teaching; this line was the third voice on one control.
       : '';
 
-  // The glyph and the button label both spring with the intent, so the field
-  // tells you what it understood before you commit to it.
+  // Classification follows typing immediately. Never exit an action label
+  // before its replacement is present: the control must always say what it does.
   const Glyph = intent.kind === 'join' ? KeyRound : intent.kind === 'create' ? SendHorizontal : ClipboardPaste;
 
   return (
@@ -121,18 +118,7 @@ export function IntentField({
           aria-hidden
           className="relative flex h-5 w-5 shrink-0 items-center justify-center text-apple-ink-muted/80 dark:text-white/45"
         >
-          <AnimatePresence initial={false} mode="wait">
-            <motion.span
-              key={Glyph.displayName || intent.kind}
-              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 4 }}
-              animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -4 }}
-              transition={{ duration: 0.16, ease: EASE.out }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <Glyph className={cn('h-[18px] w-[18px]', intent.kind === 'join' && 'text-ember dark:text-azure-400')} strokeWidth={1.8} />
-            </motion.span>
-          </AnimatePresence>
+          <Glyph className={cn('h-[18px] w-[18px]', intent.kind === 'join' && 'text-ember dark:text-azure-400')} strokeWidth={1.8} />
         </span>
 
         <input
@@ -193,37 +179,16 @@ export function IntentField({
           )}
         >
           <ArrowRight className="h-4 w-4 sm:hidden" strokeWidth={2.4} aria-hidden />
-          <AnimatePresence initial={false} mode="wait">
-            <motion.span
-              key={label}
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
-              animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
-              transition={{ type: 'spring', stiffness: 520, damping: 34 }}
-              className="hidden sm:block"
-            >
-              {label}
-            </motion.span>
-          </AnimatePresence>
+          <span className="hidden sm:block">{label}</span>
         </button>
       </div>
 
       {/* The hint states the CONSEQUENCE in the same words as the button, so
           "what will happen if I press this" is answered before the press. */}
       <div className="mt-2 flex min-h-[18px] items-center justify-center gap-2 px-1 sm:justify-start">
-        <AnimatePresence initial={false} mode="wait">
-          <motion.span
-            key={hint}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.14 }}
-            id={hintId}
-            className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70 text-center sm:text-left"
-          >
-            {hint}
-          </motion.span>
-        </AnimatePresence>
+        <span id={hintId} className="text-[12px] font-medium text-apple-ink-muted dark:text-white/70 text-center sm:text-start">
+          {hint}
+        </span>
         {detected.kind === 'join' && (
           <button
             type="button"

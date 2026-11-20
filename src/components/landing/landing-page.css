@@ -1,5 +1,14 @@
 /* Landing-only craft. The media component, task screens and protocol are not
    styled here. One ink scale, one corner scale, and no entrance choreography. */
+/* Keep functional text crisp when changing theme. The app's root snapshots
+   normally blur and crossfade; between opposite themes that temporarily erases
+   the command label. Flip the landing snapshots together instead. Custom
+   properties inherit into the View Transition pseudo tree; ancestor selectors
+   on those pseudo-elements do not. Other screens keep their theme animation. */
+html[st-theme-vt]:has(.landing-header) {
+  --st-vt-out: none;
+  --st-vt-in: none;
+}
 .landing-header { border-bottom-color: transparent; }
 .landing-header > div { height: 72px; }
 .landing-brand > span:last-child { font-size: 22px; letter-spacing: -.045em; }
@@ -60,7 +69,10 @@
   box-shadow: 0 0 0 3px rgb(240 100 19 / .1);
 }
 .landing-shortcut input::placeholder { color: var(--color-apple-ink-muted); opacity: 1; }
-.landing-shortcut [data-testid="intent-submit"] { border-radius: 12px; box-shadow: none; }
+.landing-shortcut [data-testid="intent-submit"] { border-radius: 12px; box-shadow: none; color: #1d1d1f; transition-property: transform, box-shadow; }
+.landing-shortcut [data-intent="create"] [data-testid="intent-submit"]:hover,
+.landing-shortcut [data-intent="join"] [data-testid="intent-submit"]:hover { background-color: color-mix(in srgb, var(--color-ember) 94%, #000); }
+.landing-shortcut [data-intent="empty"] [data-testid="intent-submit"] { color: var(--color-apple-ink); }
 .landing-shortcut [data-intent="empty"] > div:last-child { display: none; }
 .landing-utilities { margin-top: 16px; }
 .landing-utilities > button { padding-inline: 0; }

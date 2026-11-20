@@ -116,6 +116,55 @@ try {
   await shortPage.screenshot({ path: 'audit/tmp/landing-1024-700.png' });
   await laptop.close();
 
+  // A command's painted label must agree with its accessible name on the
+  // first frame after typing, not disappear through an exit/enter sequence.
+  for (const theme of ['light', 'dark']) {
+    const typing = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'no-preference' });
+    await typing.addInitScript(value => localStorage.setItem('sharetext.theme', value), theme);
+    const entry = await typing.newPage();
+    await entry.goto(BASE);
+    const input = entry.getByTestId('intent-input');
+    const button = entry.getByTestId('intent-submit');
+    for (const [value, label] of [['', 'Create room'], ['A note', 'Send this'], ['482716', 'Join room'], ['', 'Create room'], ['482', 'Send this'], ['482716', 'Join room'], ['', 'Create room']]) {
+      await input.fill(value);
+      for (const hover of [false, true]) {
+        if (hover) await button.hover();
+        else await entry.mouse.move(0, 0);
+        const readable = await button.evaluate(async (el, expected) => {
+          const text = el.querySelector('span');
+          if (!text || text.textContent.trim() !== expected || el.getAttribute('aria-label') !== expected) return false;
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 1;
+          const paint = canvas.getContext('2d', { willReadFrequently: true });
+          const rgba = color => {
+            paint.clearRect(0, 0, 1, 1);
+            paint.fillStyle = color;
+            paint.fillRect(0, 0, 1, 1);
+            return [...paint.getImageData(0, 0, 1, 1).data];
+          };
+          const over = (fg, bg) => fg.slice(0, 3).map((channel, i) => channel * fg[3] / 255 + bg[i] * (1 - fg[3] / 255));
+          const luminance = rgb => rgb.map(channel => channel / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4).reduce((sum, channel, i) => sum + channel * [.2126, .7152, .0722][i], 0);
+          const chain = [];
+          for (let ancestor = el; ancestor; ancestor = ancestor.parentElement) chain.unshift(ancestor);
+          for (let frame = 0; frame < 12; frame++) {
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            const style = getComputedStyle(text);
+            const box = text.getBoundingClientRect();
+            const parent = el.getBoundingClientRect();
+            const bg = chain.reduce((color, node) => over(rgba(getComputedStyle(node).backgroundColor), color), [255, 255, 255]);
+            const a = luminance(over(rgba(style.color), bg));
+            const b = luminance(bg);
+            const contrast = (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+            if (Number(style.opacity) < .99 || style.visibility !== 'visible' || box.width <= 0 || box.height <= 0 || box.left < parent.left || box.right > parent.right || contrast < 4.5) return false;
+          }
+          return true;
+        }, label);
+        check(`${theme}/${hover ? 'hover' : 'rest'}: command label "${label}" stays painted, unclipped and ≥4.5:1`, readable);
+      }
+    }
+    await typing.close();
+  }
+
   for (const width of [390, 1440]) {
     const dark = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
     await dark.addInitScript(() => localStorage.setItem('sharetext.theme', 'dark'));
