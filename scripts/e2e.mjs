@@ -65,25 +65,23 @@ async function main() {
   // --- A -> B small text ---
   await A.locator('textarea').first().fill('Hello from Device A 👋');
   await A.getByRole('button', { name: 'Send', exact: true }).click();
-  await sleep(2000);
-  const bBody1 = await B.locator('body').innerText();
-  if (!bBody1.includes('Hello from Device A 👋')) {
-    failures++;
-    console.log('STEP 3 FAIL: B did not receive message. B body:', bBody1.slice(0, 400).replace(/\n/g, ' | '));
-  } else {
+  try {
+    await visibleMessageRow(B, 'Hello from Device A 👋');
     console.log("STEP 3 OK: B received A's message");
+  } catch {
+    failures++;
+    console.log('STEP 3 FAIL: B did not receive message');
   }
 
   // --- B -> A reply ---
   await B.locator('textarea').first().fill('Reply from Device B');
   await B.getByRole('button', { name: 'Send', exact: true }).click();
-  await sleep(2000);
-  const aBody1 = await A.locator('body').innerText();
-  if (!aBody1.includes('Reply from Device B')) {
+  try {
+    await visibleMessageRow(A, 'Reply from Device B');
+    console.log("STEP 4 OK: A received B's reply");
+  } catch {
     failures++;
     console.log('STEP 4 FAIL: A did not receive reply');
-  } else {
-    console.log("STEP 4 OK: A received B's reply");
   }
 
   // --- Copy button on A: the sent message must copy verbatim ---
@@ -162,12 +160,16 @@ async function main() {
   if (await taA.count()) {
     await taA.fill('Back after refresh');
     await A.getByRole('button', { name: 'Send', exact: true }).click();
-    await sleep(2500);
-    const bBody2 = await B.locator('body').innerText();
-    console.log(bBody2.includes('Back after refresh') ? 'STEP 8 OK: message sent after reconnect reached B' : 'STEP 8 FAIL: post-reconnect message lost');
-    if (!bBody2.includes('Back after refresh')) failures++;
+    try {
+      await visibleMessageRow(B, 'Back after refresh');
+      console.log('STEP 8 OK: message sent after reconnect reached B');
+    } catch {
+      console.log('STEP 8 FAIL: post-reconnect message lost');
+      failures++;
+    }
   } else {
-    console.log('STEP 8 SKIP: A has no composer after refresh');
+    console.log('STEP 8 FAIL: A has no composer after refresh');
+    failures++;
   }
 
   // --- Close B's tab entirely, then reopen it — the room must be rejoined
