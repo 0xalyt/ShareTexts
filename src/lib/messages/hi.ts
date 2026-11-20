@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const hi: Dict = {
+  'home.browsers': 'आधुनिक ब्राउज़र में चलता है',
   "demo.handoff.title": "ShareTexts से डिवाइस के बीच कैसे भेजें",
   "demo.handoff.eyebrow": "एक छोटा-सा आदान-प्रदान",
   "demo.handoff.illustration": "समझाने के लिए डेमो",
@@ -769,13 +770,13 @@ const hi: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'यह क्या करता है',
-  'home.three.heading': 'तीन काम।',
+  'home.three.heading': 'एक डिवाइस से दूसरे तक।',
   'home.three.pair.lead': 'जोड़ें',
   'home.three.pair.body': 'एक डिवाइस पर भेजें और दूसरे पर प्राप्त करें खोलें। छह अंकों का कोड दोनों को जोड़ता है।',
   'home.three.send.lead': 'भेजें',
   'home.three.send.body': 'टेक्स्ट पेस्ट करें, फ़ोटो जोड़ें, फ़ाइल डालें। दोनों डिवाइस एक ही प्रगति देखते हैं।',
   'home.three.keep.lead': 'रखें',
-  'home.three.keep.body': 'सात दिन तक के लिए एक अस्थायी स्पेस छोड़ें। दूसरा डिवाइस बाद में उठा लेता है।',
+  'home.three.keep.body': 'टेक्स्ट और लिंक सात दिन तक रखें। दूसरा डिवाइस तैयार होने पर ले लें।',
   'home.small.eyebrow': 'छोटी बातें',
   'home.small.heading': 'छोटा, और सच।',
   'home.small.nearby': 'पास के डिवाइस दिखते हैं',

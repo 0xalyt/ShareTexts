@@ -1,6 +1,4 @@
-import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { cn } from '../../lib/utils';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
 import { StoryArt } from '../landing/StoryArt';
@@ -33,53 +31,56 @@ function SectionHead({ heading, id }: { heading: string; id?: string }) {
 
 /* ── Three things — lead word, one sentence, one real recording ───────────── */
 
-const STORIES = [{ key: 'pair' }, { key: 'send' }, { key: 'keep' }] as const;
+const STORIES = ['pair', 'send'] as const;
 
-export function ThreeThings() {
+export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
   const { t } = useI18n();
   return (
-    <section aria-labelledby="how-title" className="w-full pt-16 pb-12">
+    <section aria-labelledby="how-title" className="landing-story w-full py-16">
       <SectionHead id="how-title" heading={t('home.three.heading')} />
-      {/* Three stories. On phones each is a row (words left, recording right);
-          from lg it becomes three columns with the recording on top.
-
-          The row version was what shipped, and on a 1440 screen it left a
-          250px dead band beside every two-line paragraph — the recording is a
-          phone screen ~325px tall, so the row was always as tall as the
-          picture and the words floated in the middle of it. Three columns
-          give the recordings a shared top line, the words a full column
-          width, and the section the rhythm of a three-step sequence instead
-          of three empty bands. */}
-      {/* One column per story, artwork on top at the column's full width.
-          The recordings this replaces were 168px wide in a 340px column — a
-          postage stamp of a phone screen, and a third of the section held a
-          quarter-megabyte of video each. A drawing gets the space to say its
-          one thing, and it stays crisp on a retina display and a 3G phone
-          alike. The index is the only new mark: it tells you these are three
-          parts of one answer, in order. */}
-      <ul className="grid grid-cols-1 gap-12 sm:gap-10 lg:grid-cols-3 lg:gap-8">
-        {STORIES.map(({ key }, i) => (
-          <li key={key} className="group flex flex-col">
-            <div className="st-art-panel relative isolate overflow-hidden rounded-[16px] border border-black/[0.09] bg-apple-parchment/60 p-4 transition-colors duration-300 dark:border-white/[0.10] dark:bg-white/[0.03]
-                            [@media(hover:hover)]:group-hover:border-black/[0.16] dark:[@media(hover:hover)]:group-hover:border-white/[0.18]">
-              <div className="aspect-[320/220] w-full">
-                <StoryArt story={key} label={t(`home.three.${key}.lead`)} />
-              </div>
-              <span
-                aria-hidden
-                className="absolute left-4 top-3.5 text-[11px] font-semibold tabular-nums tracking-[0.16em] text-apple-ink-muted/55 dark:text-white/30"
-              >
-                {String(i + 1).padStart(2, '0')}
-              </span>
+      <ol className="landing-story-live">
+        {STORIES.map((key, i) => (
+          <li key={key}>
+            <div className="landing-story-art st-art-panel" aria-hidden="true">
+              <StoryArt story={key} label={t(`home.three.${key}.lead`)} />
             </div>
-            <h3 className="mt-5 text-[20px] font-semibold leading-tight tracking-[-0.015em] text-apple-ink dark:text-white">
-              {t(`home.three.${key}.lead`)}
-            </h3>
-            <p className="mt-2 max-w-[36ch] text-[15.5px] leading-relaxed text-apple-ink-muted dark:text-white/60">
-              {t(`home.three.${key}.body`)}
-            </p>
+            <div className="landing-story-copy">
+              <span className="landing-story-index" aria-hidden="true">0{i + 1}</span>
+              <div>
+                <h3>{t(`home.three.${key}.lead`)}</h3>
+                <p>{t(`home.three.${key}.body`)}</p>
+              </div>
+            </div>
           </li>
         ))}
+      </ol>
+      {/* A server-backed shelf is an alternative to a live room, not step
+          three of a transfer. Give it its own space and a real way in. */}
+      <div className="landing-story-later">
+        <div className="landing-story-later-copy">
+          <h3>{t('space.entryTitle')}</h3>
+          <p>{t('home.three.keep.body')}</p>
+          <button type="button" onClick={onOpenSpace} className="landing-text-action">
+            {t('space.createHeading')}<ArrowRight aria-hidden="true" />
+          </button>
+        </div>
+        <div className="landing-story-later-art" aria-hidden="true">
+          <StoryArt story="keep" label={t('home.three.keep.lead')} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Names, not approximate logo drawings or an endorsement strip. All are
+ * visible at once; the visitor never waits for their browser to scroll by. */
+export function BrowserCompatibility() {
+  const { t } = useI18n();
+  return (
+    <section className="landing-browsers w-full" aria-labelledby="browsers-title">
+      <h2 id="browsers-title" className="st-h2">{t('home.browsers')}</h2>
+      <ul aria-labelledby="browsers-title">
+        {['Chrome', 'Safari', 'Firefox', 'Edge', 'Samsung Internet'].map(name => <li key={name}>{name}</li>)}
       </ul>
     </section>
   );
@@ -108,23 +109,14 @@ export function LandingFaq() {
     { q: t('home.faq.q4'), a: t('home.faq.a4') },
   ];
   return (
-    <section aria-labelledby="faq-title" className="w-full py-16">
-      <FaqSection
-        items={items}
-        heading={t('home.faq.heading')}
-        pinFirst
-        hideLabel
-        defaultOpen={0}
-        className="max-w-[720px]"
-      />
-      <a
-        href="/docs"
-        className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 py-3 text-[13px] font-semibold text-ember-ink hover:underline dark:text-azure-400"
-      >
-        {t('home.faq.more')}
-        <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-      </a>
+    <section aria-labelledby="faq-title" className="landing-faq w-full py-16">
+      <h2 id="faq-title" className="st-h2">{t('home.faq.heading')}</h2>
+      <div>
+        <FaqSection items={items} pinFirst hideLabel defaultOpen={0} />
+        <a href="/docs" className="landing-text-action">
+          {t('home.faq.more')}<ArrowRight aria-hidden="true" />
+        </a>
+      </div>
     </section>
   );
 }
-

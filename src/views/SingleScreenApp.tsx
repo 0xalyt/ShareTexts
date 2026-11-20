@@ -72,8 +72,9 @@ import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
 import { loadStoredSession } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HandoffDemo } from '../components/landing/HandoffDemo';
+import '../components/landing/landing-page.css';
 import { XProfileLink } from '../components/XProfileLink';
-import { ThreeThings, LandingFaq } from '../components/marketing/LandingSections';
+import { ThreeThings, LandingFaq, BrowserCompatibility } from '../components/marketing/LandingSections';
 import { useLiveStats } from '../lib/useLiveStats';
 import { useSavedCount } from '../lib/savedItems';
 import { useOverscroll } from '../lib/useOverscroll';
@@ -1119,7 +1120,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
-            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
+            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="landing-intro w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
               {deadLink && (
                 <div
                   data-testid="dead-link"
@@ -1174,17 +1175,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </button>
                 </div>
               )}
-              {/* Flex + order: H1 → subtitle → live tracker → actions. The
-                  tracker is passive status, so it lives ABOVE the action
-                  cluster — status never interrupts the Send/Receive flow
-                  (usability audit #6). */}
-              {/* Two lines, not three: the headline's own break (after
-                  "anything") plus a measure wide enough that "between your
-                  devices." holds together — at 58px in a 470px column it
-                  split and stranded "devices." on its own line. 46px is the
-                  largest size whose second line still measures inside the
-                  column (483px of glyphs in 486px, before tracking), so the
-                  headline keeps its weight AND its intended two lines. */}
               {/* Where a nearby device is announced. The discovery engine
                   lives in the always-mounted Nearby sheet, so a suggestion
                   rendered there would be invisible on the page a person is
@@ -1192,35 +1182,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   is why the strip appears in the hero without anything having
                   to open. Empty and 0-height when there is nothing to say. */}
               <div id="nearby-suggest-host" className="order-0 w-full empty:hidden" />
-              {/* ONE statement, and no second label above it.
-
-                  The hero used to open with a "New" announcement pill, then a
-                  headline that typed itself through fifteen nouns — two pieces
-                  of motion competing with the film, neither of them a fact
-                  about the product at that moment. The promise is now written
-                  once, on the page's own left edge from lg, and the film
-                  underneath it is the only thing that moves. */}
               <ShuffleHeading className="order-1 w-full justify-self-center" />
-              {/* The one-line introduction, sitting directly under the heading
-                  it introduces. It is a pill rather than a paragraph because
-                  it is a positioning statement, not body copy: the sentence
-                  under the doors is what explains the product, and this one
-                  only says what it is like. Centred with the headline on
-                  phones, on the column edge from lg. */}
-              <p className="order-1 mt-4 inline-flex w-fit max-w-full items-center gap-2 self-center rounded-full border border-black/[0.08] bg-white/60 px-3 py-1.5 text-[12.5px] font-semibold tracking-[-0.005em] text-apple-ink/75 dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-white/70">
-                <span aria-hidden className="relative flex h-1.5 w-1.5 shrink-0 items-center justify-center">
-                  <span className="st-halo-ring absolute inset-0 rounded-full bg-ember/40" />
-                  <span className="relative h-1.5 w-1.5 rounded-full bg-ember" />
-                </span>
-                {t('home.subheading')}
+              <p className="landing-lede order-2">
+                {t('home.subtitle')}
               </p>
-              {/* Live activity tracker — bare (NO pill): a breathing dot, the
-                  lifetime count, and the label. Honest, local — no fabricated
-                  floor: until the service answers with a real total (and no
-                  nearby device is speaking over it) the line stays hidden
-                  rather than inventing longevity. QUIET by rank: it is
-                  metadata, so it whispers — the Send/Receive pair owns this
-                  screen. */}
               {/* The row is ALWAYS in the flow, empty or not. It resolves a
                   second after paint (a nearby device, then the real count),
                   and inserting it then pushed the two doors and the whole
@@ -1231,11 +1196,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 animate={{ opacity: hasTracker ? 1 : 0 }}
                 transition={{ duration: 0.5 }}
                 aria-hidden={!hasTracker}
-                className="order-3 mt-5 flex h-5 items-center gap-2 w-fit mx-auto lg:mx-0"
+                className="landing-activity order-9 flex h-5 items-center gap-2 w-fit mx-auto lg:mx-0"
               >
-                {/* Halo dot: two slow radar rings drift outward from a solid
-                    glowing core — layered, staggered, so it reads as breath,
-                    not alarm. Halts under prefers-reduced-motion. */}
                 <span className="relative flex items-center justify-center w-3.5 h-3.5 shrink-0" aria-hidden>
                   <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/40" />
                   <span className="st-halo-ring st-halo-lag absolute inset-0 rounded-full bg-status-success/25" />
@@ -1255,25 +1217,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/70 leading-none">{t('home.live')}</span>
                 ) : null}
               </motion.div>
-              {/* Equal-width grid: the two primary actions share ONE geometry
-                  (audit #12 — Receive rendered wider than Send), and each
-                  hint sits directly beneath its own button so the
-                  label↔action mapping is unambiguous (audit #11). */}
-              {/* RANK, SECOND PASS. The two doors lead, because Send and
-                  Receive are the only two things this product does; the
-                  field is a SHORTCUT for one of them, not a third verb. It
-                  used to sit above the pair, so the first screen opened with
-                  a text box and an "or" — three equally loud invitations and
-                  no stated primary. Now: doors, then "or paste to send".
-                  DOM order matches reading order: this node sits AFTER the
-                  doors. It used to come first and was only pushed down with
-                  flex `order`, so Tab visited "Create room" before Send —
-                  focus order must follow the eye (WCAG 2.4.3). */}
-              {/* Two doors, one geometry. Side by side from 420px (where both
-                  52px targets still sit at a comfortable thumb width); on a
-                  narrower phone they stack, because at 390 two 175px halves
-                  read as a segmented control instead of two separate choices. */}
-              <div className="order-4 mt-5 grid w-full max-w-[400px] grid-cols-2 gap-x-3 gap-y-3 sm:mx-0 lg:mt-6 lg:max-w-none">
+              <div className="landing-actions order-4 grid w-full grid-cols-2 gap-3">
                 {/* Both doors carry the same weight AND the same recipe —
                     Send and Receive are the only two things this product
                     does, so they are one family with two members. The glossy
@@ -1290,15 +1234,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   {t('home.receive')}
                 </GlossyButton>
               </div>
-              {/* The subline moved DOWN, to the bridge into the paste field:
-                  it used to sit between the headline and the doors, where it
-                  pushed the two real actions below the fold on a phone. Here
-                  it explains the shortcut underneath it instead of competing
-                  with the headline. */}
-              <p className="order-5 mt-4 max-w-[46ch] text-[14.5px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 text-center sm:text-left text-balance">
-                {t('home.subtitle')}
+              <p className="landing-trust order-5">
+                {t('footer.trust')}
               </p>
-              <div className="order-6 mt-2.5 w-full">
+              <div className="landing-shortcut order-6 w-full">
                 <IntentField
                   onCreate={handleIntentCreate}
                   onJoin={handleIntentJoin}
@@ -1309,8 +1248,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   order too: CSS order alone puts demo controls ahead of them
                   for keyboard and screen-reader users. Mount only the active
                   copy so there is one clock and one set of controls. */}
-              <div className="st-hide-landscape order-7 lg:hidden mt-6 mb-1 flex justify-center">
-                <div className="w-full max-w-[560px] px-1">
+              <div className="landing-mobile-demo st-hide-landscape order-7 lg:hidden flex justify-center">
+                <div className="w-full max-w-[560px]">
                   {!isDesktopLayout && <HandoffDemo />}
                 </div>
               </div>
@@ -1396,7 +1335,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   it is doing in the subtitle (same words the discovery row
                   used), Temporary Space opens a chooser instead of putting two
                   buttons and a recents rail in the hero. */}
-              <div className="order-7 mt-6 flex w-full flex-col" data-testid="home-rows">
+              <div className="landing-utilities order-8 flex w-full flex-col" data-testid="home-rows">
                 <ListRow
                   title={t('nearby.title')}
                   subtitle={nearbyStatus || undefined}
@@ -2170,13 +2109,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             ONTO the footer band — the footer then intercepts their clicks
             (caught by verify-autoconnect-trusted at 1100×800). */}
         <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1200px] shrink-0 flex-col px-6 lg:px-8 2xl:px-12">
-          {/* Short laptops (≤820px inner height) hang BOTH columns from a
-              shared top line instead of centering: centering a tall row on a
-              short window pushes the demo's bottom past the fold (caught by
-              verify-landing-onescreen at 1152×700). Top-aligned, the first
-              screen is exactly the composed pair — headline left, product
-              right — and the quiet tail waits one scroll below. */}
-          <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start gap-10 xl:gap-14 py-5">
+          <div className="landing-hero-grid">
             {/* Left: the words and the actions (headline → subline → live
                 tracker → Send/Receive → nearby discovery → the quiet tail). */}
             <div className="w-full min-w-0">{idleHeroNode}</div>
@@ -2191,11 +2124,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {isDesktopLayout && <HandoffDemo />}
             </div>
           </div>
-          {/* Phase 5 scroll tail — the demo is the illustration, so these
-              sections carry numbers and copy only: how it works, the six
-              feature cards, the five FAQ questions, and a final CTA that
-              returns to the two real actions. */}
-          <ThreeThings />
+          <BrowserCompatibility />
+          <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
           <LandingFaq />
           {/* No repeat CTA down here. The hero already owns Send / Receive,
               and a second pair at the foot of the page made the same two
@@ -2308,7 +2238,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </ScreenStack>
                   {panelMode === 'idle' && (
                     <div className="w-full">
-                      <ThreeThings />
+                      <BrowserCompatibility />
+                      <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
                       <LandingFaq />
                     </div>
                   )}

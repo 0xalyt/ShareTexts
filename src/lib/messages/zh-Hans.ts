@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const zh: Dict = {
+  'home.browsers': '支持现代浏览器',
   "demo.handoff.title": "ShareTexts 如何在设备间传送内容",
   "demo.handoff.eyebrow": "一次小小的传递",
   "demo.handoff.illustration": "功能演示",
@@ -769,13 +770,13 @@ const zh: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': '它能做什么',
-  'home.three.heading': '三件事。',
+  'home.three.heading': '从这台设备，到另一台。',
   'home.three.pair.lead': '配对',
   'home.three.pair.body': '一台设备打开发送，另一台打开接收。六位数字把两台连起来。',
   'home.three.send.lead': '发送',
   'home.three.send.body': '粘贴文字，添加照片，拖入文件。两台设备看到同样的进度。',
   'home.three.keep.lead': '保留',
-  'home.three.keep.body': '临时空间可以留七天。另一台设备之后再来取。',
+  'home.three.keep.body': '文字和链接最多保留七天。另一台设备准备好后再来取。',
   'home.small.eyebrow': '小处的事',
   'home.small.heading': '小，但真实。',
   'home.small.nearby': '附近设备会出现',

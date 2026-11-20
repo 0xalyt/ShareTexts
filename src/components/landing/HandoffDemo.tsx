@@ -86,7 +86,12 @@ export function HandoffDemo() {
 
   return (
     <figure ref={root} className="handoff-demo" data-testid="hero-demo" data-state={active} aria-label={t('demo.handoff.title')}>
-      <div className="handoff-demo-top">{t('demo.handoff.illustration')}</div>
+      <div className="handoff-demo-top">
+        <span>{t('demo.handoff.illustration')}</span>
+        <button className="handoff-play" type="button" onClick={() => { if (running) { setPlaying(false); } else { setPlaying(true); setManualPlay(true); } }} aria-label={t(running ? 'demo.handoff.pause' : 'demo.handoff.play')}>
+          {running ? <Pause /> : <Play />}<span>{t(running ? 'demo.handoff.pause' : 'demo.handoff.play')}</span>
+        </button>
+      </div>
       <div className="handoff-stage" aria-hidden="true">
         <div className="handoff-laptop"><LaptopFrame><DemoScreen step={step} /></LaptopFrame></div>
         <div className="handoff-phone"><PhoneFrame><DemoScreen phone step={step} /></PhoneFrame></div>
@@ -102,11 +107,8 @@ export function HandoffDemo() {
         <div className="handoff-steps" role="group" aria-label={t('demo.handoff.steps')}>
           {STEPS.map((name, i) => <button key={name} type="button" onClick={() => { setStep(i); setPlaying(false); }} aria-label={`${t('demo.handoff.steps')} ${i + 1} / ${STEPS.length}`} title={t(`demo.handoff.${name}.title`)} aria-pressed={step === i}><span data-active={step === i} /></button>)}
         </div>
-        <button className="handoff-play" type="button" onClick={() => { if (running) { setPlaying(false); } else { setPlaying(true); setManualPlay(true); } }} aria-label={t(running ? 'demo.handoff.pause' : 'demo.handoff.play')}>
-          {running ? <Pause /> : <Play />}<span>{t(running ? 'demo.handoff.pause' : 'demo.handoff.play')}</span>
-        </button>
+        <a className="handoff-film-link" href="/film/sharetexts-hero-v3.mp4" target="_blank" rel="noreferrer">{t('demo.handoff.watchFilm')}<ArrowRight aria-hidden="true" /></a>
       </div>
-      <a className="handoff-film-link" href="/film/sharetexts-hero-v3.mp4" target="_blank" rel="noreferrer">{t('demo.handoff.watchFilm')}<ArrowRight aria-hidden="true" /></a>
     </figure>
   );
 }

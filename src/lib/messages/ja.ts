@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  'home.browsers': 'いつものブラウザで',
   "demo.handoff.title": "ShareTextsでデバイス間を転送する方法",
   "demo.handoff.eyebrow": "小さな受け渡し",
   "demo.handoff.illustration": "説明用デモ",
@@ -769,13 +770,13 @@ const ja: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'できること',
-  'home.three.heading': '三つのこと。',
+  'home.three.heading': 'この端末から、もう一方へ。',
   'home.three.pair.lead': 'つなぐ',
   'home.three.pair.body': '片方で送信、もう片方で受信を開きます。6桁のコードが二台をつなぎます。',
   'home.three.send.lead': '送る',
   'home.three.send.body': 'テキストを貼り、写真を足し、ファイルを落とす。両方の端末に同じ進み具合が出ます。',
   'home.three.keep.lead': '残す',
-  'home.three.keep.body': '一時スペースを最大7日置いておけます。もう一方の端末が後で受け取れます。',
+  'home.three.keep.body': 'テキストとリンクを最大7日間保管。もう一方の端末の準備ができたら受け取れます。',
   'home.small.eyebrow': '小さなこと',
   'home.small.heading': '小さくて、本当のこと。',
   'home.small.nearby': '近くの端末が表示される',

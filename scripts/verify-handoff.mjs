@@ -63,15 +63,70 @@ try {
       }
       check(`${locale}/${width}: no layout jump between captions`, Math.max(...heights) - Math.min(...heights) < 2);
       if (locale === 'en') {
+        await page.evaluate(() => document.fonts.ready);
+        const longestHeadingFits = await page.locator('h1').evaluate(el => {
+          const copy = el.cloneNode(true);
+          copy.style.cssText = `position:absolute;visibility:hidden;width:${el.getBoundingClientRect().width}px`;
+          el.after(copy);
+          const word = copy.querySelector('.st-word-gradient');
+          word.textContent = 'Screenshots';
+          word.parentElement.style.width = 'auto';
+          const line = word.parentElement.parentElement.getBoundingClientRect();
+          const fits = line.width <= el.getBoundingClientRect().width + 1;
+          copy.remove();
+          return fits;
+        });
+        check(`${width}: the longest rotating headline stays inside its column`, longestHeadingFits);
         await demo.locator('.handoff-steps button').nth(2).click();
         await page.locator('h1').evaluate(el => el.scrollIntoView({ block: 'center' }));
         await page.screenshot({ path: `audit/tmp/handoff-${width}.png`, fullPage: false });
+        const later = page.locator('.landing-story-later');
+        await later.getByRole('button').click();
+        await page.getByTestId('space-create-duration').waitFor();
+        check(`${width}: the later-sharing story opens real space creation`, await page.getByTestId('space-create-duration').isVisible());
+        await page.keyboard.press('Escape');
+        await page.getByTestId('space-create-duration').waitFor({ state: 'hidden' });
+        if (width === 1440) {
+          await page.locator('.landing-story').evaluate(el => {
+            el.scrollIntoView({ block: 'start' });
+            let scroller = el.parentElement;
+            while (scroller && scroller.scrollHeight <= scroller.clientHeight) scroller = scroller.parentElement;
+            scroller?.scrollBy(0, -96);
+          });
+          await page.screenshot({ path: 'audit/tmp/landing-story-1440.png', fullPage: false });
+        }
       } else {
         check(`${locale}/${width}: headline is localized`, !(await page.locator('h1').innerText()).includes('Share'));
       }
       check(`${locale}/${width}: no runtime errors`, errors.length === 0);
       await ctx.close();
     }
+  }
+
+  const laptop = await browser.newContext({ viewport: { width: 1024, height: 700 }, reducedMotion: 'reduce' });
+  const shortPage = await laptop.newPage();
+  await shortPage.goto(BASE);
+  await shortPage.getByTestId('hero-demo').waitFor();
+  const shortLayout = await shortPage.evaluate(() => {
+    const send = document.querySelector('[data-testid="home-send"]').getBoundingClientRect();
+    const demo = document.querySelector('[data-testid="hero-demo"]').getBoundingClientRect();
+    return send.top >= 0 && send.bottom <= innerHeight && demo.top >= 0 && demo.bottom <= innerHeight;
+  });
+  check('short laptop keeps sharing and the entire demo in the first viewport', shortLayout);
+  await shortPage.screenshot({ path: 'audit/tmp/landing-1024-700.png' });
+  await laptop.close();
+
+  for (const width of [390, 1440]) {
+    const dark = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
+    await dark.addInitScript(() => localStorage.setItem('sharetext.theme', 'dark'));
+    const darkPage = await dark.newPage();
+    await darkPage.goto(BASE);
+    await darkPage.getByTestId('hero-demo').waitFor();
+    check(`${width}: dark landing retains its theme without overflow`, await darkPage.evaluate(() =>
+      document.documentElement.classList.contains('dark') && document.documentElement.scrollWidth <= innerWidth
+    ));
+    await darkPage.screenshot({ path: `audit/tmp/landing-dark-${width}.png`, fullPage: false });
+    await dark.close();
   }
 
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });

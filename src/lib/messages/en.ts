@@ -77,6 +77,7 @@ const en = {
   'room.connectingCount': '{count} connecting',
   'room.offlineCount': '{count} offline',
 
+  'home.browsers': 'Works in modern browsers',
   'home.title': 'Move anything\nbetween your devices.',
   'home.subheading': 'Introducing Airdrop for everyone',
   'home.subtitle': 'Two devices, one page. Nothing to install, and the transfer is encrypted.',
@@ -178,13 +179,13 @@ const en = {
 
   // ── front door: three stories, the small things, honest FAQ, footer ──
   'home.three.eyebrow': 'What it does',
-  'home.three.heading': 'Three things it does.',
+  'home.three.heading': 'From one device to the other.',
   'home.three.pair.lead': 'Pair',
   'home.three.pair.body': 'Open Send on one device and Receive on the other. A six-digit code joins them.',
   'home.three.send.lead': 'Send',
   'home.three.send.body': 'Paste text, add a photo, drop a file. Both devices show the same progress.',
   'home.three.keep.lead': 'Keep',
-  'home.three.keep.body': 'Leave a temporary space for up to seven days. The other device can collect it later.',
+  'home.three.keep.body': 'Leave text and links for up to seven days. Pick them up when your other device is ready.',
   'home.small.eyebrow': 'The small things',
   'home.small.heading': 'Small, and true.',
   'home.small.nearby': 'Nearby devices show up',

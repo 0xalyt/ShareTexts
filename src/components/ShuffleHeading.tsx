@@ -10,13 +10,9 @@ import { useI18n } from '../lib/i18n';
  *
  * Three decisions worth knowing:
  *
- *   · CENTRED, PER WORD. The line is centred as the sentence it currently is,
- *     not inside a box reserved for the longest word. The old version sized a
- *     slot to "Screenshots" and wrote short words into it, so "Share Code" sat
- *     in the left of a wide slot with a hole on the right — the line looked
- *     pinned left of centre (and worse on desktop, where the hole was 200px).
- *     Now the slot is only as wide as the word it is typing, so the pair is
- *     always optically centred.
+ *   · ALIGNED, PER WORD. The phrase is centred on phones and start-aligned on
+ *     desktop with the sharing controls. The slot fits the target word rather
+ *     than the longest noun, so shorter words leave no artificial gap.
  *   · NO JITTER. The slot width is driven by the *target* word, measured from
  *     an invisible ghost, and eased over 240ms. During the 72→88ms keystrokes
  *     the line therefore does not move at all — it only breathes once, in the
@@ -145,20 +141,20 @@ export function ShuffleHeading({ className }: { className?: string }) {
   }, [lang]);
 
   if (lang !== 'en') {
-    return <h1 className={`st-display whitespace-pre-line text-balance text-[clamp(32px,8.8vw,46px)] leading-[1.12] lg:text-[clamp(40px,4vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}>{t('home.title')}</h1>;
+    return <h1 className={`landing-heading st-display whitespace-pre-line text-balance text-[clamp(32px,8.8vw,46px)] leading-[1.12] lg:text-[clamp(40px,4vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start ${className ?? ''}`}>{t('home.title')}</h1>;
   }
 
   return (
     <h1
-      className={`st-display text-[clamp(32px,8.8vw,46px)] leading-[1.06] lg:text-[clamp(44px,4.05vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center ${className ?? ''}`}
+      className={`landing-heading st-display text-[clamp(32px,8.8vw,46px)] leading-[1.06] lg:text-[clamp(44px,4.05vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start ${className ?? ''}`}
     >
       <span className="sr-only">Share anything between any devices easily.</span>
-      <span aria-hidden className="flex flex-col items-center">
+      <span aria-hidden className="flex flex-col items-center lg:items-start">
         {/* Line one: "Share" + the word, centred as a unit. The slot is as
             wide as the word currently being typed, so there is never a void
             beside a short word — and because the width is measured from the
             TARGET word, typing does not drag the line around. */}
-        <span className="inline-flex items-baseline justify-center whitespace-nowrap">
+        <span className="inline-flex items-baseline justify-center lg:justify-start whitespace-nowrap">
           <span>Share</span>
           <span
             ref={slotRef}
@@ -194,7 +190,7 @@ export function ShuffleHeading({ className }: { className?: string }) {
             the first line, and `text-balance` keeps the wrap even (the line is
             longer than the column on a phone, so it will take two rows there —
             balanced rows, not a stub). */}
-        <span className="mt-[0.06em] text-[1em] font-[inherit] leading-[1.06] tracking-[-0.035em] text-apple-ink dark:text-white text-center text-balance">
+        <span className="mt-[0.06em] text-[1em] font-[inherit] leading-[1.06] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start text-balance">
           between any devices easily.
         </span>
       </span>

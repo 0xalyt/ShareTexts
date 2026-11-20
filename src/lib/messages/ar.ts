@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ar: Dict = {
+  'home.browsers': 'يعمل في المتصفحات الحديثة',
   "demo.handoff.title": "كيف ينقل ShareTexts المحتوى بين الأجهزة",
   "demo.handoff.eyebrow": "نقلة صغيرة",
   "demo.handoff.illustration": "عرض توضيحي",
@@ -769,13 +770,13 @@ const ar: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'ما يفعله',
-  'home.three.heading': 'ثلاثة أشياء.',
+  'home.three.heading': 'من جهاز إلى آخر.',
   'home.three.pair.lead': 'الاقتران',
   'home.three.pair.body': 'افتح «إرسال» على جهاز و«استقبال» على الآخر. رمز من ستة أرقام يجمعهما.',
   'home.three.send.lead': 'إرسال',
   'home.three.send.body': 'ألصق نصًا، أضف صورة، أفلت ملفًا. الجهازان يريان التقدم نفسه.',
   'home.three.keep.lead': 'الاحتفاظ',
-  'home.three.keep.body': 'اترك مساحة مؤقتة حتى سبعة أيام. يأخذها الجهاز الآخر لاحقًا.',
+  'home.three.keep.body': 'اترك النصوص والروابط حتى سبعة أيام. استلمها عندما يكون جهازك الآخر جاهزًا.',
   'home.small.eyebrow': 'التفاصيل',
   'home.small.heading': 'صغير، وصحيح.',
   'home.small.nearby': 'الأجهزة القريبة تظهر',

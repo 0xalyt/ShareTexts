@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const pt: Dict = {
+  'home.browsers': 'Funciona em navegadores modernos',
   "demo.handoff.title": "Como o ShareTexts transfere entre dispositivos",
   "demo.handoff.eyebrow": "Uma pequena transferência",
   "demo.handoff.illustration": "Demonstração ilustrativa",
@@ -770,13 +771,13 @@ const pt: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'O que ele faz',
-  'home.three.heading': 'Três coisas.',
+  'home.three.heading': 'De um aparelho para o outro.',
   'home.three.pair.lead': 'Parear',
   'home.three.pair.body': 'Abra Enviar em um aparelho e Receber no outro. Um código de seis dígitos liga os dois.',
   'home.three.send.lead': 'Enviar',
   'home.three.send.body': 'Cole texto, adicione uma foto, solte um arquivo. Os dois aparelhos mostram o mesmo progresso.',
   'home.three.keep.lead': 'Guardar',
-  'home.three.keep.body': 'Deixe um Espaço temporário por até sete dias. O outro aparelho pega depois.',
+  'home.three.keep.body': 'Deixe textos e links por até sete dias. Pegue quando o outro aparelho estiver pronto.',
   'home.small.eyebrow': 'Os detalhes',
   'home.small.heading': 'Pequeno, e verdadeiro.',
   'home.small.nearby': 'Aparelhos por perto aparecem',
