@@ -1214,14 +1214,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 </span>
                 {t('home.subheading')}
               </p>
-              {/* The same handoff story sits below the actions on phones and
-                  beside it on desktop. Mount only the active copy so there is
-                  one playback clock and one set of accessible controls. */}
-              <div className="st-hide-landscape order-7 lg:hidden mt-6 mb-1 flex justify-center">
-                <div className="w-full max-w-[560px] px-1">
-                  {!isDesktopLayout && <HandoffDemo />}
-                </div>
-              </div>
               {/* Live activity tracker — bare (NO pill): a breathing dot, the
                   lifetime count, and the label. Honest, local — no fabricated
                   floor: until the service answers with a real total (and no
@@ -1312,6 +1304,15 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   onJoin={handleIntentJoin}
                   busy={isCreating || isJoining}
                 />
+              </div>
+              {/* Keep the mobile story after the sharing actions in source
+                  order too: CSS order alone puts demo controls ahead of them
+                  for keyboard and screen-reader users. Mount only the active
+                  copy so there is one clock and one set of controls. */}
+              <div className="st-hide-landscape order-7 lg:hidden mt-6 mb-1 flex justify-center">
+                <div className="w-full max-w-[560px] px-1">
+                  {!isDesktopLayout && <HandoffDemo />}
+                </div>
               </div>
               {/* Stay Connected re-entry: the room this device promised to
                   keep alive is one tap away — history included. Only shown

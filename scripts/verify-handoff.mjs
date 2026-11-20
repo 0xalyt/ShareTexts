@@ -38,6 +38,13 @@ try {
       await page.goto(BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
+      if (width < 1024) {
+        check(`${locale}/${width}: sharing actions precede the demo in reading order`, await demo.evaluate(el =>
+          ['home-send', 'home-receive'].every(id => Boolean(
+            document.querySelector(`[data-testid="${id}"]`)?.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING
+          ))
+        ));
+      }
       await demo.scrollIntoViewIfNeeded();
       const heights = [];
       for (const [i, state] of states.entries()) {
@@ -121,6 +128,15 @@ try {
   await p.goto(BASE);
   const action = await p.getByTestId('home-receive').boundingBox();
   check('mobile sharing action is visible before scrolling', action && action.y + action.height <= 720);
+  await p.getByTestId('home-send').focus();
+  await p.keyboard.press('Tab');
+  check('mobile Tab goes from Send to Receive', await p.getByTestId('home-receive').evaluate(el => el === document.activeElement));
+  let reachedDemo = false;
+  for (let i = 0; i < 15 && !reachedDemo; i++) {
+    await p.keyboard.press('Tab');
+    reachedDemo = await p.getByTestId('hero-demo').evaluate(el => el.contains(document.activeElement));
+  }
+  check('mobile Tab reaches demo controls after the sharing actions', reachedDemo);
   await clickStable(p, p.getByTestId('home-receive'));
   const inputs = p.getByTestId('join-code-input').locator('input');
   await inputs.last().waitFor();
