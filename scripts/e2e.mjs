@@ -1,5 +1,8 @@
 // E2E: create → join → connect → send → receive → refresh-reconnect → large text → third-device rejection
 import { launchBrowser, URL, sleep, readLiveCode } from './lib.mjs';
+import { tsImport } from 'tsx/esm/api';
+
+const { generateTOTP } = await tsImport('../src/lib/totp.ts', import.meta.url);
 
 function messageRow(page, text) {
   return page.locator('[class~="group/msg"]').filter({ has: page.getByText(text, { exact: true }) });
@@ -127,17 +130,20 @@ async function main() {
   await A.waitForFunction(text => document.querySelector('[data-testid="composer"]')?.value === text, big);
   await A.getByRole('button', { name: 'Send', exact: true }).click();
   console.log('STEP 6: sent ~120KB unicode text, waiting for B to receive…');
-  let receivedBig = false;
-  for (let i = 0; i < 30; i++) {
-    await sleep(1000);
-    const body = await B.locator('body').innerText();
-    if (body.includes('café naïve résumé')) { receivedBig = true; break; }
+  {
+    const row = B.locator('[class~="group/msg"]').filter({ has: B.getByRole('button', { name: 'Show full text', exact: true }) });
+    await row.waitFor({ state: 'attached', timeout: 30000 });
+    await row.scrollIntoViewIfNeeded();
+    await row.getByRole('button', { name: 'Show full text', exact: true }).click();
+    const expandedRow = B.locator('[class~="group/msg"]').filter({ has: B.getByRole('button', { name: 'Collapse', exact: true }) });
+    const fullText = await expandedRow.locator('.st-verbatim').evaluate(element => {
+      const copy = element.cloneNode(true);
+      copy.querySelectorAll('button').forEach(button => button.remove());
+      return copy.textContent;
+    });
+    if (fullText !== big) throw new Error('Received large text differs from the sent content');
   }
-  if (receivedBig) {
-    await B.waitForFunction(text => window.__sharetextDebug.getMessages().some(m => m.sender !== 'me' && m.text === text), big, { timeout: 30000 });
-  }
-  console.log(receivedBig ? 'STEP 6 OK: B received large text' : 'STEP 6 FAIL: B never received large text');
-  if (!receivedBig) failures++;
+  console.log('STEP 6 OK: B received exact large text in its own expanded row');
 
   // --- Refresh reconnect: reload A, room must survive ---
   await A.reload({ waitUntil: 'networkidle' });
@@ -210,10 +216,7 @@ async function main() {
   // the session secret stored in A's localStorage.
   const stored = await A.evaluate(() => localStorage.getItem('sharetext.session.v1'));
   const { secret, createdAt } = JSON.parse(stored);
-  const freshCode = await A.evaluate(async ({ secret, createdAt }) => {
-    const { generateTOTP } = await import('/src/lib/totp.ts');
-    return generateTOTP(secret, createdAt);
-  }, { secret, createdAt });
+  const freshCode = generateTOTP(secret, createdAt);
   console.log('Fresh code for third device test:', freshCode);
   await C.goto(URL, { waitUntil: 'networkidle' });
   await C.getByTestId('home-receive').click();
