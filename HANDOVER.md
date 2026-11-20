@@ -209,11 +209,11 @@ with the still state carrying the meaning. Keep both.
 
 ## 8. State on 20 Nov 2026
 
-**Unpushed:** `729bcf8` — "Give the promise line the headline's own weight,
-centred". Committed, gates green up to the point of the push; the push itself
-aborted on `page.goto` timeouts to a wedged dev server and was never retried.
-`main` is **1 commit ahead of origin**. First job: kill stray servers, warm
-:3010, `git push`, confirm with `git status -sb`.
+**Everything is pushed.** `main` is level with origin as of the handover
+commit, including `729bcf8` (the equal-weight, centred promise line) and this
+document. Confirm with `git status -sb` before you start — if it is ahead, a
+push is the first job (see §6; warm :3010 with one `curl` first, the pre-push
+browser gates only time out on a cold server).
 
 **Shipped this week:** the three landing graphics (`3da2921`), the hero film
 rebuild (`bc33a37`), the pull-to-refresh dissolve (`319df43`).
