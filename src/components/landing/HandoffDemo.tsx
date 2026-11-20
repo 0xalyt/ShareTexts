@@ -12,7 +12,7 @@ const STEP_MS = 3400;
 /** An explicitly labelled illustration, not a pretend live transfer. One
  * clock owns both screens and the caption; only real room UI uses real bytes.
  * No frames, videos, network requests or per-frame React renders are needed. */
-function DemoScreen({ phone = false, step }: { phone?: boolean; step: number }) {
+export function DemoScreen({ phone = false, step, progress }: { phone?: boolean; step: number; progress?: number }) {
   const { t } = useI18n();
   const connected = step > 0;
   const hasText = step >= 2;
@@ -31,7 +31,7 @@ function DemoScreen({ phone = false, step }: { phone?: boolean; step: number }) 
             <span className="handoff-file-icon"><FileText /></span>
             <div><strong>Weekend.pdf</strong><small>{complete ? t(phone ? 'demo.handoff.sent' : 'demo.handoff.received') : t(phone ? 'status.sendingShort' : 'status.receivingShort')} · 2.4 MB</small></div>
             {complete && <Check className="handoff-done" />}
-            <span className="handoff-progress"><span style={{ transform: `scaleX(${complete ? 1 : 0.64})` }} /></span>
+            <span className="handoff-progress"><span style={{ transform: `scaleX(${progress ?? (complete ? 1 : 0.64)})` }} /></span>
           </div>
           {!phone && <span className="handoff-save" data-shown={complete}>{t('demo.handoff.saveFile')}<ArrowRight /></span>}
           {!hasText && <div className="handoff-ready"><span><Check /></span>{t('demo.handoff.ready')}</div>}

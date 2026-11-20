@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  'film.download': "動画をダウンロード",
+  'film.from': "ひとつの画面から",
+  'film.to': "もうひとつの画面へ。",
+  'film.title': "ShareTexts 紹介動画",
+  'film.label': "共有を、もっと自由に。",
+  'film.summary': "ルームを開く。デバイスをつなぐ。そのまま送る。",
+  'film.play': "動画を再生",
+  'film.pause': "動画を一時停止",
+  'film.watch': "動画を見る",
   'home.browsers': 'いつものブラウザで',
   "demo.handoff.title": "ShareTextsでデバイス間を転送する方法",
   "demo.handoff.eyebrow": "小さな受け渡し",

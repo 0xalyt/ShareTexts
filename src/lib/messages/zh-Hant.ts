@@ -15,6 +15,15 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  'film.download': "下載影片",
+  'film.from': "從一個螢幕",
+  'film.to': "到另一個螢幕。",
+  'film.title': "ShareTexts 產品短片",
+  'film.label': "為分享而生。",
+  'film.summary': "開啟房間。連接裝置。直接傳送。",
+  'film.play': "播放短片",
+  'film.pause': "暫停短片",
+  'film.watch': "觀看短片",
   // home
   'home.send': '傳送',
   'home.receive': '接收',

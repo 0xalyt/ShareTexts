@@ -1,6 +1,56 @@
 # The hero film
 
-Two cuts come out of this rig:
+## Current landing: the white-studio launch film
+
+The landing now uses `LaunchFilm.tsx` (`film.html?mode=launch`), a new 12.7 s
+sequence inspired by [Grok Bot — Action Button](https://serenatan.org/launchvideo/#video-27),
+inspected through Serena Launch MCP. This is an adaptation of the reference's
+motion language, **not a pixel-identical clone**: ShareTexts' two-device file
+transfer replaces its iPhone OS/Action Button interaction. No reference frames,
+third-party logos, voice or audio are redistributed.
+
+| Time | Composition |
+| --- | --- |
+| 0–1.45 s | White studio; macro view of ShareTexts on a graphite phone. |
+| 1.45–3.35 s | Smooth perspective change; an orange file leaves the phone and crosses to the laptop. |
+| 3.35–5.7 s | Received state, then a settled two-device composition. |
+| 6–9.15 s | “From one screen / to the other.” with offset type entrances. |
+| 9.2–12.7 s | Official orange mark resolves into the ShareTexts lockup; white loop seam. |
+
+The device screens reuse `DemoScreen`, the existing localized product
+illustration. This is a demonstration, not a live transfer or speed benchmark.
+The public player has a localized text description; the exported film's copy
+is English. All player and source-film strings exist in every shipped locale.
+
+| Asset | Delivery |
+| --- | --- |
+| `public/film/sharetexts-launch-v1.mp4` | 1440×810, 30 fps, H.264, no audio; muted landing loop. |
+| `public/film/sharetexts-launch-v1-full.mp4` | 1920×1080, 30 fps, H.264/AAC; deliberate playback with original synthesized sound. |
+| `public/film/sharetexts-launch-v1-poster.jpg` | The settled pair at 5.35 s; reduced-motion and Save-Data default. |
+
+To reproduce, start `PORT=3010 npm run dev`, then run:
+
+```sh
+npx playwright install chrome  # once; system ffmpeg is also required
+node scripts/render-launch-film.mjs probe
+node scripts/render-launch-film.mjs render
+```
+
+One deterministic clock (`window.__film(t)`) owns transforms, easing and
+transfer progress. Capture uses headless Chrome, 1080p screenshots and 30 fps.
+Frames, probes and the original synthesized PCM soundtrack stay in ignored
+`film/out/launch-v1/`; only the delivery encodes and poster are committed.
+The sound bed and tactile tones are generated locally without samples or a
+third-party music license. The landing encode deliberately has no audio track.
+
+`HeroLaunchFilm` mounts only in the active responsive slot. It loads no video
+until visible, respects reduced motion and Save-Data, pauses off screen or in
+a hidden tab, remembers manual pause, and supports a manual autoplay fallback.
+An error leaves a meaningful still and the full-film link available.
+
+## Archived desk-film rig
+
+The earlier rig and assets remain reproducible for existing links:
 
 | File | What it is | Where it goes |
 | --- | --- | --- |

@@ -15,6 +15,15 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  'film.download': "Descarregar o filme",
+  'film.from': "De um ecrã",
+  'film.to': "para o outro.",
+  'film.title': "O filme do ShareTexts",
+  'film.label': "Feito para partilhar.",
+  'film.summary': "Abra uma sala. Ligue os seus dispositivos. Envie o que quiser.",
+  'film.play': "Reproduzir filme",
+  'film.pause': "Pausar filme",
+  'film.watch': "Ver o filme",
   // mouth: the home screen
   'home.subheading': 'Chegou o AirDrop para todos',
   'home.subtitle':

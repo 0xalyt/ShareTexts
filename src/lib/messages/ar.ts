@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ar: Dict = {
+  'film.download': "تنزيل الفيلم",
+  'film.from': "من شاشة",
+  'film.to': "إلى أخرى.",
+  'film.title': "فيلم ShareTexts التعريفي",
+  'film.label': "صُمم للمشاركة.",
+  'film.summary': "افتح غرفة. اربط أجهزتك. أرسل مباشرة.",
+  'film.play': "تشغيل الفيلم",
+  'film.pause': "إيقاف الفيلم مؤقتًا",
+  'film.watch': "شاهد الفيلم",
   'home.browsers': 'يعمل في المتصفحات الحديثة',
   "demo.handoff.title": "كيف ينقل ShareTexts المحتوى بين الأجهزة",
   "demo.handoff.eyebrow": "نقلة صغيرة",
