@@ -181,7 +181,7 @@ function shellBody({ overline, h1, subtitle, main, footerNote }) {
             </nav>
           </div>
           <div class="sf-legal">
-            <span>© ${new Date().getFullYear()} ShareTexts · No app · No account · Nothing stored</span>
+            <span>© ${new Date().getFullYear()} ShareTexts · No app · No account · Encrypted in transit</span>
             <a href="/privacy" style="color:inherit">Privacy</a>
             <a href="/terms" style="color:inherit">Terms</a>
             <a href="https://x.com/0xalyt" rel="noopener" style="color:inherit">x.com/0xalyt</a>
@@ -249,7 +249,7 @@ const DOCS_FAQS = [
   ['How do devices discover each other?', 'There are four ways to connect: Nearby, the 6-digit code, the QR code, and the share link. For Nearby, turn it on on the device you want to send to, for 10 minutes — it then appears on devices on the same network. Tap it, the other device accepts, and the connection starts. The code, QR, and link work over any connection.'],
   ['Is nearby discovery private?', 'Yes. Your device appears only when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network. It disappears when the 10 minutes end or when you turn it off. Those devices see only a coarse label like "iPhone · Safari" — never your IP, accounts, or any permanent identifier. Devices already connected to a room are not listed, and this is never a global list of ShareTexts users.'],
   ['Is it free?', 'Yes. ShareTexts is completely free to use.'],
-  ['Is it private?', 'Yes. Transfers are encrypted between devices. ShareTexts does not store your files, text, or transfer history.'],
+  ['Is it private?', 'Live rooms encrypt transfers in transit, using a direct connection when available or an encrypted relay. The service issues room secrets; this is not a zero-knowledge system. Temporary Spaces store content until their chosen expiry.'],
   ['What if my internet drops mid-transfer?', 'If the connection is interrupted, ShareTexts will tell you whether the transfer can be retried. For large files, we recommend a stable connection.'],
   ['How long does the pairing code last?', 'The code refreshes every 90 seconds. If it expires, a new one appears automatically.'],
   ['Can an AI agent send text into my room?', 'Yes. The connect screen offers a temporary send permission for trusted tools. It expires automatically and can be revoked anytime.'],
@@ -270,14 +270,14 @@ const docsFaqLd = DOCS_FAQS.map(([q, a]) => `        {
 
 const docsMain = `
           <h2>What ShareTexts is</h2>
-          <p>ShareTexts is a free web app for moving text, links, photos, videos, and files between any two devices — phone to laptop, iPhone to Windows, Android to Mac — directly in the browser. No app, no account, no cable. Transfers run peer-to-peer over WebRTC: the data moves encrypted between the two browsers and the server never sees file contents.</p>
+          <p>ShareTexts is a free web app for moving text, links, photos, videos, and files between devices — phone to laptop, iPhone to Windows, Android to Mac — in the browser. No app, no account, no cable. Live rooms encrypt transfers in transit over WebRTC, with an encrypted relay fallback when a direct connection is unavailable.</p>
           <h2>How to connect two devices</h2>
           <ol>
             <li><strong>Open</strong> sharetexts.online on both devices.</li>
             <li><strong>Find your other device.</strong> On the device you want to send to, turn on Nearby for 10 minutes — it then appears on devices on the same network. Or connect with a six-digit code, a QR code, or a share link.</li>
             <li><strong>Connect with one tap.</strong> The room is encrypted in transit between your devices.</li>
-            <li><strong>Send anything</strong> — it moves directly between the devices, never stored on a server.</li>
-            <li><strong>Receive</strong> it on the other device, then close the room. Nothing is kept.</li>
+            <li><strong>Send text and files</strong> — keep both devices open until the transfer finishes.</li>
+            <li><strong>Receive</strong> it on the other device, save what you need, then close the room.</li>
           </ol>
           <h2>What you can send</h2>
           <p>Text, links (they render as tappable preview cards), photos, videos, audio, documents — any file type, transferred as the original bytes without conversion.</p>
@@ -391,27 +391,27 @@ const privacyLd = `
 
 const privacyMain = `
           <h2>The short version</h2>
-          <p>ShareTexts moves text, photos, and files directly between <strong>your</strong> devices. Your content is end-to-end encrypted, travels peer-to-peer, and is never stored on our servers. When the room closes, everything is gone.</p>
-          <h2>What we never collect</h2>
+          <p>ShareTexts moves text, photos, and files between <strong>your</strong> devices. Live rooms encrypt transfers in transit and use a direct peer-to-peer connection when available, with an encrypted relay fallback. The service issues the room secret, so this is not a zero-knowledge system. Do not use it for secrets you cannot entrust to the service.</p>
+          <p>Temporary Spaces store content server-side for later, until closed early or their chosen expiry (6 hours to 7 days). Anyone holding the space's access token can access its content while it is open.</p>
+          <h2>What you do not need to provide</h2>
           <ul>
-            <li>The text, photos, videos, or files you send</li>
             <li>Your name, email, phone number, or any account</li>
             <li>Contacts, location, or advertising identifiers</li>
           </ul>
-          <p>Transfers are encrypted on your device with a key derived from the room's secret. That key never leaves your devices, so neither we nor anyone else can read what passes through.</p>
+          <p>Room transfers use a key derived from the room secret. Because the service issues that secret, it could derive the same key.</p>
           <h2>What the connection server sees</h2>
-          <p>Pairing requires a small signaling service. It temporarily sees connection metadata: encrypted room identifiers, rotating 6-digit codes, and WebRTC handshake data. It cannot decrypt anything. Rooms expire automatically and their state is deleted.</p>
+          <p>The signaling service sees IP addresses, room identifiers and secrets, pairing codes, WebRTC handshake data, transfer sizes, and times. Relay transfers also pass encrypted content through the service. Room state expires automatically, except rooms you choose to keep with Stay Connected. Aggregate activity counters measure service use.</p>
           <h2>What stays on your device</h2>
-          <p>To make rooms reconnectable, ShareTexts keeps a few entries in your browser's local storage: room credentials so a refresh doesn't break the pairing, recent messages so history survives a reload, preferences (theme, language, device name), and unsent drafts. All of it is removed when you close the room, and clearing your browser data removes it instantly. Nothing is synced anywhere.</p>
+          <p>Your browser stores room credentials, recent messages, preferences, and unsent drafts. Room entries are removed when you close the room. Saved Items you explicitly save stay in this browser's IndexedDB storage until you remove them or clear site data. Anyone with access to this browser profile can see them; ShareTexts adds no separate storage encryption. Saved Items are not synced.</p>
           <h2>Cookies and trackers</h2>
-          <p><strong>Cookies: none. Trackers: none. Analytics: none.</strong> There is no consent banner because there is nothing to consent to. The list of network requests the app makes is short: the signaling service, and peer-to-peer WebRTC traffic.</p>
+          <p>ShareTexts sets no tracking cookies and loads no third-party analytics scripts. The service counts aggregate product events without attaching message contents. Network requests include signaling, relay or peer-to-peer traffic, and Temporary Space storage.</p>
           <h2>Changes to this policy</h2>
-          <p>If the policy ever changes, the updated version will be published on this page. The promise doesn't change: no accounts, no storage of your content, no tracking.</p>`;
+          <p>If the policy changes, the updated version will be published on this page. This page explains how live rooms, Temporary Spaces, and local Saved Items handle your content.</p>`;
 
 emit('privacy.html', {
   head: swapMeta(base, {
     title: 'Privacy Policy — ShareTexts',
-    description: 'What ShareTexts collects: nothing. Transfers are end-to-end encrypted and peer-to-peer; no accounts, no cookies, no trackers, nothing stored on servers.',
+    description: 'How ShareTexts handles your content: encrypted live transfers, server-backed Temporary Spaces, local Saved Items, and connection metadata. No account required.',
     canonicalPath: '/privacy',
   }),
   body: shellBody({
@@ -446,7 +446,7 @@ const termsMain = `
           <h2>Using ShareTexts</h2>
           <p>ShareTexts is a free browser utility for moving content between devices you control. You don't need an account, and you don't need to give us anything to use it.</p>
           <h2>Your content is yours</h2>
-          <p>Everything you send belongs to you. ShareTexts claims no rights over your text, photos, videos, or files, and because they are end-to-end encrypted we could not read them even if we wanted to. You are responsible for what you send and to whom.</p>
+          <p>Everything you send belongs to you. ShareTexts claims no rights over your text, photos, videos, or files. Encryption in transit does not make the service unable to access content. You are responsible for what you send and to whom.</p>
           <h2>Acceptable use</h2>
           <ul>
             <li>Don't send content that is illegal where you live</li>
@@ -454,7 +454,7 @@ const termsMain = `
             <li>Don't attempt to break the pairing mechanism, rate limits, or the service itself</li>
           </ul>
           <h2>Rooms are temporary</h2>
-          <p>Rooms exist only for the length of a transfer session and expire automatically. Nothing incomplete is saved, and a closed room cannot be reopened.</p>
+          <p>Live rooms expire automatically unless you enable Stay Connected. Closing a room does not remove files already saved on a device. Temporary Spaces hold content server-side for the chosen lifetime (6 hours to 7 days), or until closed early. Saved Items remain in your browser until removed or site data is cleared. Keep a separate backup.</p>
           <h2>No warranty</h2>
           <p>ShareTexts is provided <strong>as is</strong>, without warranties of any kind. We work hard to keep transfers reliable and byte-perfect, but networks fail and browsers differ. For anything irreplaceable, keep a backup.</p>
           <h2>Contact</h2>

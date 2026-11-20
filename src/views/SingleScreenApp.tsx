@@ -189,6 +189,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   // Settings — one overlay for theme / language / stay connected / reconnect.
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsEditName, setSettingsEditName] = useState(false);
   // Saved Items — ONE library overlay mounted at the root; the landing
   // header button and the room settings row open this same view (spec:
   // one collection, never two).
@@ -1593,11 +1594,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               </div>
 
               {/* One-time notice when the auto-disambiguation renamed us. */}
-                {session.nameAutoAdjusted && !dismissedNameNotice && (
+                {session.autoAdjustedName && !dismissedNameNotice && (
                   <div role="status" className="st-band w-full sm:max-w-[340px] flex items-start gap-2 text-[12px] leading-snug">
                     <Info className="w-3.5 h-3.5 text-ember dark:text-azure-400 shrink-0 mt-px" />
                     <span className="flex-1">
-                      {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-semibold text-apple-ink dark:text-white">{session.deviceName}</span>{parts[1]}</>); })()}
+                      {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-semibold text-apple-ink dark:text-white">{session.autoAdjustedName}</span>{parts[1]}</>); })()}
                     </span>
                     <button onClick={() => setDismissedNameNotice(true)} aria-label={t('pair.dismiss')} className="shrink-0 min-w-[40px] min-h-[40px] -m-[12px] flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                       <X className="w-3 h-3" />
@@ -2234,6 +2235,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             setCmdOpen(open);
           }}
           onSpace={(which) => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet(which); }}
+          onEditDeviceName={() => { setCmdOpen(false); setSettingsEditName(true); setShowSettings(true); }}
         />
       </Suspense>
       {/* Only the ACTIVE layout is mounted — the other branch stays unmounted
@@ -2401,8 +2403,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       <Suspense fallback={null}>
       <SettingsOverlay
         open={showSettings}
-        onClose={() => setShowSettings(false)}
-        onOpenSaved={() => { setShowSettings(false); setShowSaved(true); }}
+        editDeviceName={settingsEditName}
+        onClose={() => { setShowSettings(false); setSettingsEditName(false); }}
+        onOpenSaved={() => { setShowSettings(false); setSettingsEditName(false); setShowSaved(true); }}
       />
       </Suspense>
       {/* The ONE Saved Items library — landing header and settings both open it. */}

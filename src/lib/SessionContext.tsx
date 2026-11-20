@@ -622,7 +622,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       const suggested = `${mine} 2`;
       diag('name.auto_disambiguate', true, `${mine} → ${suggested}`);
       setDeviceName(suggested);
-      setSession(s => ({ ...s, nameAutoAdjusted: true }));
+      setSession(s => ({ ...s, nameAutoAdjusted: true, autoAdjustedName: suggested }));
     };
 
     // Capability negotiation (protocol v2 hello): store the intersection of

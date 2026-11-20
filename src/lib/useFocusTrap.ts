@@ -81,6 +81,9 @@ export function useFocusTrap(
     // was "close this" and the first thing they saw was a focus ring around
     // it.
     const timer = setTimeout(() => {
+      // Native autofocus may already have placed the caret in an editor.
+      // Do not steal it (or trigger its blur-to-save) after the sheet opens.
+      if (container.contains(document.activeElement)) return;
       const explicit = container.matches('[data-autofocus]')
         ? container
         : container.querySelector<HTMLElement>('[data-autofocus]');

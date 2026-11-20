@@ -118,6 +118,8 @@ export interface SessionState {
    *  iPhone 2") because both peers still had the same default name at first
    *  connect. The UI can surface a one-time, dismissible notice about it. */
   nameAutoAdjusted?: boolean;
+  /** Historical name assigned at collision time, not the mutable current name. */
+  autoAdjustedName?: string;
   /** Stay Connected: both devices agreed to keep the room alive until one
    *  explicitly disconnects. Server exempts the room from expiry; both sides
    *  show the badge, and the landing page offers one-tap re-entry. */

@@ -377,7 +377,9 @@ export function OtpInput({
               data-filled={Boolean(slot)}
               className={cn(
                 'relative',
-                flat ? (index === 3 ? 'ml-2' : 'shrink-0') : 'min-w-0 flex-1',
+                'min-w-0 flex-1',
+                flat && 'max-w-[44px] min-[360px]:max-w-12',
+                flat && index === 3 && 'ml-2',
               )}
             >
               <input
@@ -408,7 +410,7 @@ export function OtpInput({
                 }
                 className={cn(
                   flat
-                    ? 'text-center font-semibold tabular-nums caret-transparent outline-none transition-shadow duration-150 w-[44px] h-[52px] min-[360px]:w-12 min-[360px]:h-14 rounded-[12px] text-[24px]'
+                    ? 'w-full min-w-0 text-center font-semibold tabular-nums caret-transparent outline-none transition-shadow duration-150 h-[52px] min-[360px]:h-14 rounded-[12px] text-[24px]'
                     : 'w-full text-center font-semibold tabular-nums caret-transparent outline-none',
                   'text-apple-ink dark:text-white',
                   !flat && cn(scale.box, scale.text),
