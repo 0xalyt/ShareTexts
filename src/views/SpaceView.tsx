@@ -408,7 +408,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
       const out = await createSpace({ name: name.trim() || undefined, durationMs: duration, code: code || undefined });
       productEvent('product.space_created');
       if (remind && support === 'supported') {
-        await enableReminder(out.spaceId).catch(() => { /* countdown still works */ });
+        void enableReminder(out.spaceId).catch(() => { /* countdown still works */ });
       }
       window.location.href = `/space/${out.spaceId}#k=${out.token}`;
     } catch (e) {

@@ -1102,6 +1102,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // back to the locally minted room-scoped id. Either way a refresh will
     // reclaim the SAME roster seat.
     selfPidRef.current = myPid || participantIdFor(roomId);
+    try {
+      localStorage.setItem('sharetext.deviceId', JSON.stringify({
+        ...JSON.parse(localStorage.getItem('sharetext.deviceId') || '{}'),
+        [roomId]: selfPidRef.current,
+      }));
+    } catch { /* private mode */ }
     setRecipients([]); // a fresh seat starts unaddressed
     roomRoster.reset(selfPidRef.current);
     if (roster && Array.isArray(roster.participants)) {
@@ -1179,7 +1185,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     const res = await new Promise<{ success: boolean; error?: string }>((resolve) => {
-      getSocket().emit('resume_room', { roomId, secret }, resolve);
+      getSocket().emit('resume_room', { roomId, secret, pid: participantIdFor(roomId) }, resolve);
     });
     if (!res.success) return;
     if (peerManagerRef.current) peerManagerRef.current.destroy();
@@ -1229,7 +1235,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const res = await new Promise<{ success: boolean; error?: string }>((resolve) => {
       const sock = getSocket();
       const timer = setTimeout(() => resolve({ success: false, error: 'timeout' }), 10_000);
-      sock.emit('resume_room', { roomId: s.roomId, secret: s.secret }, (r: { success: boolean; error?: string }) => {
+      sock.emit('resume_room', { roomId: s.roomId, secret: s.secret, pid: participantIdFor(s.roomId) }, (r: { success: boolean; error?: string }) => {
         clearTimeout(timer);
         resolve(r);
       });
@@ -1433,7 +1439,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const res = await new Promise<{ success: boolean; error?: string; createdAt?: number; stayConnected?: boolean }>((resolve) => {
       const socket = getSocket();
       const timer = setTimeout(() => resolve({ success: false, error: 'timeout' }), 12000);
-      socket.emit('resume_room', { roomId: stay.roomId, secret: stay.secret }, (r: { success: boolean; error?: string; createdAt?: number; stayConnected?: boolean }) => {
+      socket.emit('resume_room', { roomId: stay.roomId, secret: stay.secret, pid: participantIdFor(stay.roomId) }, (r: { success: boolean; error?: string; createdAt?: number; stayConnected?: boolean }) => {
         clearTimeout(timer);
         resolve(r);
       });

@@ -149,10 +149,10 @@ async function main() {
   // the session secret stored in A's localStorage.
   const stored = await A.evaluate(() => localStorage.getItem('sharetext.session.v1'));
   const { secret, createdAt } = JSON.parse(stored);
-  const { TOTP } = await import('otpauth');
-  // 40s window anchored at room creation (matches the app's live code).
-  const totp = new TOTP({ issuer: 'ShareText', label: 'Session', algorithm: 'SHA1', digits: 6, period: 40, secret });
-  const freshCode = totp.generate({ timestamp: Date.now() - (createdAt || 0) });
+  const freshCode = await A.evaluate(async ({ secret, createdAt }) => {
+    const { generateTOTP } = await import('/src/lib/totp.ts');
+    return generateTOTP(secret, createdAt);
+  }, { secret, createdAt });
   console.log('Fresh code for third device test:', freshCode);
   await C.goto(URL, { waitUntil: 'networkidle' });
   await C.getByTestId('home-receive').click();
