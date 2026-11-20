@@ -499,6 +499,43 @@ async function runGraceHeartbeat() {
   }
 }
 
+async function runGraceReclaim() {
+  const ctx = new FakeCtx();
+  const roomId = uuid();
+  const room = new Room(ctx, makeEnv());
+  const creator = await connect(room, roomId);
+  const created = await creator.send('create_room', { pid: 'creator-device' });
+  creator.client.close();
+  await room.webSocketClose(creator.server);
+  const deadline = ctx.storage.map.get('room').grace['creator-device'];
+  const returning = await connect(room, roomId);
+  check('grace reclaim uses a fresh cid', returning.cid !== creator.cid);
+  const denied = await returning.send('resume_room', { roomId, secret: 'wrong-secret', pid: 'creator-device' });
+  check('unauthorized resume preserves pending grace', !denied.success && ctx.storage.map.get('room').grace['creator-device'] === deadline);
+  const resumed = await returning.send('resume_room', { roomId, secret: created.secret, pid: 'creator-device' });
+  check('fresh cid resume cancels its seat grace', resumed.success && !ctx.storage.map.get('room').grace?.['creator-device']);
+  const joiner = await connect(room, roomId);
+  const joined = await joiner.send('join_with_code', { code: codeFor(created.secret, created.createdAt), pid: 'next-device' });
+  check('next device pairs within reclaimed creator grace', joined.success);
+  const now = Date.now;
+  try {
+    Date.now = () => deadline + 1;
+    await room.alarm();
+    check('old grace alarm keeps both reclaimed seats', ctx.storage.map.get('room').participants.length === 2);
+    check('old grace alarm emits no disconnect after reclaim', [returning, joiner].every(peer => !peer.inbox.some(m => m.event === 'peer_disconnected')));
+    const data = await encryptText('after reclaimed grace', await generateKey(created.secret));
+    for (const [sender, receiver] of [[returning, joiner], [joiner, returning]]) {
+      const before = receiver.inbox.length;
+      await sender.send('relay_message', { data });
+      check('reclaimed seat relays ciphertext after old grace', receiver.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+    }
+  } finally {
+    Date.now = now;
+    returning.close();
+    joiner.close();
+  }
+}
+
 // Stay Connected: room-wide promise flips, BOTH peers get the echo, the
 // state persists, and a non-member cannot flip someone else's room.
 async function runStayConnected() {
@@ -866,6 +903,7 @@ await runPush();
 await runLiveIdleExpiry();
 await runDisconnectedState();
 await runGraceHeartbeat();
+await runGraceReclaim();
 await runRegistry();
 await runMetrics();
 await runSpace();

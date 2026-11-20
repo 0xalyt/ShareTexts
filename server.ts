@@ -602,6 +602,7 @@ function seatParticipant(
 ): 'seated' | 'reclaimed' | 'full' {
   const existing = room.participants.get(info.id);
   if (existing) {
+    cancelGrace(existing.socketId);
     if (existing.socketId !== socketId) room.activePeers.delete(existing.socketId);
     existing.socketId = socketId;
     existing.name = info.name;

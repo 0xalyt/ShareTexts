@@ -10,6 +10,10 @@ try {
   const A = await a.newPage();
   const B = await b.newPage();
   let resumes = 0;
+  let disconnects = 0;
+  for (const page of [A, B]) page.on('websocket', socket => socket.on('framereceived', frame => {
+    if (typeof frame.payload === 'string' && frame.payload.includes('"peer_disconnected"')) disconnects++;
+  }));
   A.on('websocket', socket => socket.on('framesent', frame => {
     if (typeof frame.payload === 'string' && frame.payload.includes('"resume_room"')) resumes++;
   }));
@@ -17,6 +21,7 @@ try {
   await A.getByTestId('home-send').click();
   await A.waitForFunction(() => window.__sharetextDebug.session().roomId);
   const room = await A.evaluate(() => window.__sharetextDebug.session().roomId);
+  const droppedAt = Date.now();
   const lost = await A.evaluate(async () => {
     const { getSocket } = await import('/src/lib/socket.ts');
     const socket = getSocket();
@@ -38,12 +43,16 @@ try {
   await B.getByTestId('composer').first().waitFor();
   assert.ok(resumes > 0, 'visibility must re-seat the solo creator');
   assert.equal(await A.evaluate(() => window.__sharetextDebug.session().roomId), room);
+  assert.ok(Date.now() - droppedAt < 60000, 'the next device must pair within disconnect grace');
+  await A.waitForTimeout(Math.max(0, droppedAt + 62000 - Date.now()));
+  console.log(`POST_GRACE: peer_disconnected frames=${disconnects}`);
   for (const [sender, receiver, text] of [[A, B, 'solo recovered A to B'], [B, A, 'solo recovered B to A']]) {
     await sender.getByTestId('composer').first().fill(text);
     await sender.getByRole('button', { name: 'Send', exact: true }).click();
     await receiver.locator('[class~="group/msg"]').filter({ has: receiver.getByText(text, { exact: true }) }).waitFor();
   }
-  console.log('PASS: solo creator with a new unrecovered socket re-seats on visibility; next device pairs and text delivers both ways');
+  assert.equal(disconnects, 0, 'a reclaimed seat must not expire after its old socket grace');
+  console.log('PASS: solo creator re-seats on visibility; next device pairs within grace; no disconnect after grace and text delivers both ways');
 } finally {
   await browser.close();
 }
