@@ -1257,7 +1257,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const onVis = () => {
       if (document.visibilityState !== 'visible') return;
       if (!sessionRef.current.roomId) return;
-      if (classicChannelHealthy()) return;
       void reseatQuietly('visibility');
     };
     document.addEventListener('visibilitychange', onVis);

@@ -22,16 +22,12 @@ try {
   });
   const [A, B, C] = await Promise.all(contexts.map(context => context.newPage()));
   let recoveries = 0;
-  let resumes = 0;
   for (const page of [A, B, C]) page.on('websocket', socket => {
     socket.on('framereceived', frame => {
       if (typeof frame.payload === 'string' && frame.payload.includes('"peer_recovered"')) recoveries++;
     });
-    socket.on('framesent', frame => {
-      if (typeof frame.payload === 'string' && frame.payload.includes('"resume_room"')) resumes++;
-    });
   });
-  const heartbeat = page => page.evaluate(async () => {
+  const reseat = (page, visibility = false) => page.evaluate(async visibility => {
     const { getSocket } = await import('/src/lib/socket.ts');
     const socket = getSocket();
     const emit = socket.emit;
@@ -42,16 +38,16 @@ try {
         socket.emit = emit;
         return emit.call(this, event, payload, response => { clearTimeout(timer); ack?.(response); resolve({ response, reconnect: payload.reconnect === true }); });
       };
-      window.reseatHeartbeat();
+      if (visibility) document.dispatchEvent(new Event('visibilitychange'));
+      else window.reseatHeartbeat();
     });
-  });
+  }, visibility);
   await A.goto(URL);
   await A.getByTestId('home-send').click();
   await A.waitForFunction(() => window.__sharetextDebug.session().roomId);
-  const initialResumes = resumes;
-  await A.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-  await A.waitForTimeout(300);
-  assert.equal(resumes, initialResumes);
+  const solo = await reseat(A, true);
+  assert.equal(solo.response.success, true);
+  assert.equal(solo.reconnect, false);
   assert.equal(await A.evaluate(() => window.offers), 0);
   console.log('PASS: returning to a room with no other device does not request a link');
   const join = async (page, code) => {
@@ -68,14 +64,16 @@ try {
   assert.equal(await C.evaluate(() => window.__sharetextDebug.peerManager()), null, 'multi-device join intentionally has no classic link');
   const before = await Promise.all([A, B, C].map(page => page.evaluate(() => window.offers)));
   const initialRecoveries = recoveries;
-  const result = await heartbeat(C);
-  assert.equal(result.response.success, true);
-  assert.equal(result.reconnect, false, 'a parked multi-device room must only refresh its seat');
+  for (const visibility of [false, true]) {
+    const result = await reseat(C, visibility);
+    assert.equal(result.response.success, true);
+    assert.equal(result.reconnect, false, 'a parked multi-device room must only refresh its seat');
+  }
   await C.waitForTimeout(300);
   assert.equal(recoveries, initialRecoveries);
   assert.deepEqual(await Promise.all([A, B, C].map(page => page.evaluate(() => window.offers))), before);
   assert.equal(await C.evaluate(() => window.__sharetextDebug.peerManager()), null);
-  console.log('PASS: three-device heartbeat without a classic link refreshes its seat; no recovery, offers or classic manager');
+  console.log('PASS: three-device heartbeat and visibility without a classic link refresh the seat; no recovery, offers or classic manager');
 } finally {
   await browser.close();
 }
