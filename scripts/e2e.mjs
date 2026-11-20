@@ -1,5 +1,5 @@
 // E2E: create → join → connect → send → receive → refresh-reconnect → large text → third-device rejection
-import { launchBrowser, URL, sleep, readLiveCode, waitForChat } from './lib.mjs';
+import { launchBrowser, URL, sleep, readLiveCode } from './lib.mjs';
 
 function makeUnicodeText(kb) {
   const parts = [
@@ -15,6 +15,7 @@ function makeUnicodeText(kb) {
 }
 
 async function main() {
+  let failures = 0;
   const browser = await launchBrowser();
   const ctxA = await browser.newContext();
   const ctxB = await browser.newContext();
@@ -29,7 +30,7 @@ async function main() {
 
   // --- Device A: create session ---
   await A.goto(URL, { waitUntil: 'networkidle' });
-  await A.getByRole('button', { name: 'Send' }).first().click();
+  await A.getByTestId('home-send').click();
   // The pairing-code tile group (LiveCodeDisplay) marks the sending panel.
   await A.getByRole('group', { name: 'Pairing code' }).waitFor({ timeout: 10000 });
   console.log('STEP 1 OK: A created session, pairing code visible');
@@ -39,10 +40,10 @@ async function main() {
 
   // --- Device B: join ---
   await B.goto(URL, { waitUntil: 'networkidle' });
-  await B.getByRole('button', { name: 'Receive' }).first().click();
-  await B.locator('input[inputmode="numeric"]').fill(code);
-  await waitForChat(B, 'B');
-  await waitForChat(A, 'A');
+  await B.getByTestId('home-receive').click();
+  await B.getByTestId('join-code-input').locator('input').first().fill(code);
+  await B.getByTestId('composer').first().waitFor({ timeout: 20000 });
+  await A.getByTestId('composer').first().waitFor({ timeout: 20000 });
   console.log('STEP 2 OK: both devices in room (WebRTC or relay connected)');
 
   // --- A -> B small text ---
@@ -51,6 +52,7 @@ async function main() {
   await sleep(2000);
   const bBody1 = await B.locator('body').innerText();
   if (!bBody1.includes('Hello from Device A 👋')) {
+    failures++;
     console.log('STEP 3 FAIL: B did not receive message. B body:', bBody1.slice(0, 400).replace(/\n/g, ' | '));
   } else {
     console.log("STEP 3 OK: B received A's message");
@@ -62,6 +64,7 @@ async function main() {
   await sleep(2000);
   const aBody1 = await A.locator('body').innerText();
   if (!aBody1.includes('Reply from Device B')) {
+    failures++;
     console.log('STEP 4 FAIL: A did not receive reply');
   } else {
     console.log("STEP 4 OK: A received B's reply");
@@ -86,6 +89,7 @@ async function main() {
   }
   // Verify byte-for-byte: check the full text is present by comparing lengths via clipboard copy all
   console.log(receivedBig ? 'STEP 6 OK: B received large text' : 'STEP 6 FAIL: B never received large text');
+  if (!receivedBig) failures++;
 
   // --- Refresh reconnect: reload A, room must survive ---
   await A.reload({ waitUntil: 'networkidle' });
@@ -107,6 +111,7 @@ async function main() {
     await sleep(2500);
     const bBody2 = await B.locator('body').innerText();
     console.log(bBody2.includes('Back after refresh') ? 'STEP 8 OK: message sent after reconnect reached B' : 'STEP 8 FAIL: post-reconnect message lost');
+    if (!bBody2.includes('Back after refresh')) failures++;
   } else {
     console.log('STEP 8 SKIP: A has no composer after refresh');
   }
@@ -133,9 +138,10 @@ async function main() {
   if (await b2Ta.count()) {
     await b2Ta.fill('Back after tab close');
     await B2.getByRole('button', { name: 'Send', exact: true }).click();
-    await sleep(2500);
+    await A.getByText('Back after tab close', { exact: true }).waitFor({ timeout: 20000 }).catch(() => {});
     const aBody3 = await A.locator('body').innerText();
     console.log(aBody3.includes('Back after tab close') ? 'STEP 8e OK: message sent after rejoin reached A' : 'STEP 8e FAIL: post-rejoin message lost');
+    if (!aBody3.includes('Back after tab close')) failures++;
   }
 
   // --- Third device rejection ---
@@ -149,8 +155,8 @@ async function main() {
   const freshCode = totp.generate({ timestamp: Date.now() - (createdAt || 0) });
   console.log('Fresh code for third device test:', freshCode);
   await C.goto(URL, { waitUntil: 'networkidle' });
-  await C.getByRole('button', { name: 'Receive' }).first().click();
-  await C.locator('input[inputmode="numeric"]').fill(freshCode);
+  await C.getByTestId('home-receive').click();
+  await C.getByTestId('join-code-input').locator('input').first().fill(freshCode);
   await sleep(4000);
   const cBody = await C.locator('body').innerText();
   // F13 multi-device rooms: a THIRD device now JOINS the same room (there is
@@ -186,20 +192,25 @@ async function main() {
   await A.locator('input[multiple]:not([accept])').setInputFiles(paths10);
   await sleep(600);
   await A.getByRole('button', { name: /send/i }).first().click();
-  await sleep(2500);
+  await B2.waitForFunction(() => {
+    const body = document.body.innerText;
+    return ['queue-one.txt', 'queue-two.txt', 'queue-three.txt'].every(name => body.includes(name)) && body.split('Verified').length >= 4;
+  }, null, { timeout: 20000 }).catch(() => {});
   const bQueue = await B2.evaluate(() => document.body.innerText);
   const namesOk = ['queue-one.txt', 'queue-two.txt', 'queue-three.txt'].every(n => bQueue.includes(n));
-  const noneWaiting = !bQueue.includes('Waiting…');
+  const noneWaiting = !bQueue.includes('Waiting…') && bQueue.split('Verified').length >= 4;
   if (namesOk && noneWaiting) {
     console.log('STEP 10 OK: all 3 queued files completed on B, per-file rows rendered');
   } else {
     console.log('STEP 10 FAIL: files=', namesOk, 'waitingLeft=', !noneWaiting, '| B:', bQueue.slice(-400).replace(/\n/g, ' | '));
+    failures++;
   }
 
   console.log('\n--- PAGE ERRORS ---');
   console.log(logs.length ? logs.slice(0, 20).join('\n') : '(none)');
 
   await browser.close();
+  if (failures) throw new Error(`${failures} end-to-end check(s) failed`);
 }
 
 main().catch(e => { console.error('TEST FAILED:', e.message); process.exit(1); });

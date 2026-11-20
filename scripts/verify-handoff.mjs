@@ -23,6 +23,7 @@ try {
   const proxied = await policy({ 'X-Forwarded-Proto': 'https' });
   check('proxied requests retain the HTTPS directive', proxied.includes('upgrade-insecure-requests'));
   const local = await policy();
+  check('loopback HTTP does not force HTTPS', !local.includes('upgrade-insecure-requests'));
   const directives = value => value.split(';').filter(s => s !== 'upgrade-insecure-requests').sort().join(';');
   check('loopback retains every other CSP directive', directives(local) === directives(external));
 
@@ -120,7 +121,7 @@ try {
   await p.goto(BASE);
   const action = await p.getByTestId('home-receive').boundingBox();
   check('mobile sharing action is visible before scrolling', action && action.y + action.height <= 720);
-  await clickStable(p, p.getByRole('button', { name: /^receive$/i }).first());
+  await clickStable(p, p.getByTestId('home-receive'));
   const inputs = p.getByTestId('join-code-input').locator('input');
   await inputs.last().waitFor();
   const fits = await inputs.evaluateAll(els => els.every(el => { const r = el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.width > 0; }));
