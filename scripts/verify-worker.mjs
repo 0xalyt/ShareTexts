@@ -15,6 +15,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import * as OTPAuth from 'otpauth';
+import { tsImport } from 'tsx/esm/api';
+
+const { encryptText, generateKey } = await tsImport('../src/lib/crypto.ts', import.meta.url);
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -184,10 +187,7 @@ async function runRoomProtocol() {
   const rejected = await joiner.waitFor((m) => m.type === 'event' && m.event === 'relay_message' && m.payload?.data === '{"hello":"world"}', 300);
   check('malformed relay payload rejected', !rejected);
   // v2 chunk envelope — the app's text messages / hello / control packets all
-  // travel as {"version":1,"type":"chunk",payload:"enc:…"} JSON. The old
-  // gate accepted only bare base64/enc: strings, so EVERY relayed text
-  // transfer on the Cloudflare transport was silently dropped (transfers
-  // "never arrive" — the production bug). It must be forwarded.
+  // travel as chunk envelopes. Keep legacy enc: coverage alongside real encryption.
   const envelope = JSON.stringify({ version: 1, type: 'chunk', transferId: '7e2b9c0a-1111-4222-8333-444455556666', sequence: 0, total: 1, payload: 'enc:QQ==' });
   const envPromise = joiner.waitFor((m) => m.type === 'event' && m.event === 'relay_message' && m.payload?.data === envelope);
   await creator.send('relay_message', { data: envelope });
@@ -198,6 +198,39 @@ async function runRoomProtocol() {
   await creator.send('relay_message', { data: JSON.stringify({ version: 1, type: 'chunk', payload: 'plaintext-not-allowed' }) });
   const envRejected = await joiner.waitFor((m) => m.type === 'event' && m.event === 'relay_message' && m.payload?.data?.includes?.('plaintext-not-allowed'), 300);
   check('envelope with non-ciphertext payload rejected', !envRejected);
+  const encrypted = await encryptText('real client relay payload', await generateKey(secret));
+  const encryptedEmpty = await encryptText('', await generateKey(secret));
+  const wrap = payload => JSON.stringify({ version: 1, type: 'chunk', transferId: uuid(), sequence: 0, total: 1, payload });
+  for (const [name, data] of [['raw encryptText output', encrypted], ['real encryptText chunk', wrap(encrypted)], ['empty encrypted message', wrap(encryptedEmpty)]]) {
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data });
+    check(`${name} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+  }
+  const valid = JSON.parse(encrypted);
+  const invalid = [
+    ['empty payload', ''],
+    ['malformed JSON', '{'],
+    ['missing IV', JSON.stringify({ c: valid.c })],
+    ['missing ciphertext', JSON.stringify({ i: valid.i })],
+    ['extra field', JSON.stringify({ ...valid, plaintext: 'not allowed' })],
+    ['invalid IV base64', JSON.stringify({ ...valid, i: '!'.repeat(16) })],
+    ['wrong IV length', JSON.stringify({ ...valid, i: 'QUJDRA==' })],
+    ['empty ciphertext', JSON.stringify({ ...valid, c: '' })],
+    ['short ciphertext', JSON.stringify({ ...valid, c: 'QUJDRA==' })],
+    ['invalid ciphertext base64', JSON.stringify({ ...valid, c: 'not base64!' })],
+    ['noncanonical base64', JSON.stringify({ ...valid, c: 'A'.repeat(21) + 'B==' })],
+    ['non-string field', JSON.stringify({ ...valid, c: 123 })],
+    ['array instead of object', JSON.stringify([valid.i, valid.c])],
+    ['null instead of object', ' null '],
+    ['oversize payload', JSON.stringify({ ...valid, c: 'A'.repeat(512 * 1024) })],
+  ];
+  for (const [name, payload] of invalid) {
+    for (const data of [payload, wrap(payload)]) {
+      const before = joiner.inbox.length;
+      await creator.send('relay_message', { data });
+      check(`${name} rejected (${data === payload ? 'raw' : 'chunk'})`, !joiner.inbox.slice(before).some(m => m.event === 'relay_message'));
+    }
+  }
   assertState(ctx, 'TRANSFERRING');
 
   // relay binary

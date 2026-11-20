@@ -172,7 +172,7 @@ const FRAME_RATE_BIN = { limit: 1200, windowMs: 10_000 };
 /**
  * Validate and forward-shape a text relay payload BEFORE it reaches business
  * logic (the OWASP message-validation gate). The relay channel only ever
- * carries AES-GCM ciphertext produced by the client: opaque base64. Anything
+ * carries AES-GCM ciphertext produced by the client. Anything
  * else is rejected rather than fanned out — the signaling path must never
  * become a free JSON-broadcast service for malformed or hostile frames.
  */
@@ -181,7 +181,8 @@ const FRAME_RATE_BIN = { limit: 1200, windowMs: 10_000 };
  * text:
  *   · `enc:<base64>` / raw base64 — AES-GCM ciphertext blobs (pre-v2 clients);
  *   · v2 chunk envelopes ({"version":1,"type":"chunk",...}) — JSON wrapping
- *     `enc:`-ciphertext payloads. The app's TEXT messages, hello handshake,
+ *     encrypted JSON {i,c} strings or legacy `enc:` payloads. TEXT messages,
+ *     the hello handshake,
  *     receipts and control packets ALL travel as these envelopes (the only
  *     alternative is WebRTC, and relay is the fallback when it is slow or
  *     unavailable), so both shapes MUST be accepted or transfers silently
@@ -190,6 +191,21 @@ const FRAME_RATE_BIN = { limit: 1200, windowMs: 10_000 };
  * broadcast service. Content is still opaque to the server: the ciphertext
  * inside is never readable here.
  */
+function isEncryptedJson(data: string): boolean {
+  try {
+    const parsed = JSON.parse(data);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || Object.keys(parsed).length !== 2) return false;
+    const byteLength = (value: unknown): number => {
+      if (typeof value !== 'string' || !value.length || value.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) return -1;
+      const decoded = atob(value);
+      return btoa(decoded) === value ? decoded.length : -1;
+    };
+    return byteLength(parsed.i) === 12 && byteLength(parsed.c) >= 16;
+  } catch {
+    return false;
+  }
+}
+
 function validateRelayData(data: unknown): string | null {
   if (typeof data !== 'string') return null;
   if (data.length === 0 || data.length > RELAY_TEXT_MAX) return null;
@@ -198,13 +214,15 @@ function validateRelayData(data: unknown): string | null {
   }
   // Raw base64 (legacy text relay) — no structure to check beyond charset.
   if (/^[A-Za-z0-9+/=]+$/.test(data)) return data;
+  if (isEncryptedJson(data)) return data;
   // v2 chunk envelope: JSON with a known shape. Fields beyond the shape
   // (transferId, sequence, total) are validated by the receiving client; the
-  // payload must be `enc:`-ciphertext, exactly like the direct shape above.
+  // Payloads use the same encrypted shapes as the direct form above.
   try {
     const parsed = JSON.parse(data) as { version?: unknown; type?: unknown; payload?: unknown };
     if (parsed?.version !== 1 || parsed?.type !== 'chunk' || typeof parsed?.payload !== 'string') return null;
-    if (!parsed.payload.startsWith('enc:') || !/^[A-Za-z0-9+/=]+$/.test(parsed.payload.slice(4))) return null;
+    const legacy = parsed.payload.startsWith('enc:') && /^[A-Za-z0-9+/=]+$/.test(parsed.payload.slice(4));
+    if (!legacy && !isEncryptedJson(parsed.payload)) return null;
     return data;
   } catch {
     return null;
