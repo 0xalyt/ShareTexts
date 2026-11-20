@@ -4,18 +4,21 @@ import { launchBrowser, URL, readLiveCode } from './lib.mjs';
 const worker = process.env.WORKER_URL || 'http://localhost:8787';
 const canonical = 'https://sharetext-signaling.alighttt.workers.dev';
 const node = process.env.TRANSPORT === 'node';
+let proxiedLookups = 0;
 const sockets = new Set();
 const errors = [];
 let binaryFrames = 0;
 let binarySent = 0;
 const browser = await launchBrowser();
 try {
-  const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
+  // Service-worker-controlled WebKit requests can bypass Playwright's HTTP routes.
+  const contexts = await Promise.all([browser.newContext({ serviceWorkers: 'block' }), browser.newContext({ serviceWorkers: 'block' })]);
   for (const context of contexts) {
     // Production pins the canonical origin; proxy it locally without changing the client.
     if (!node) await context.route(`${canonical}/**`, async route => {
       const source = new globalThis.URL(route.request().url());
       const request = route.request();
+      if (source.pathname === '/lookup' && request.method() === 'POST') proxiedLookups++;
       const response = await fetch(`${worker}${source.pathname}${source.search}`, {
         method: request.method(),
         headers: { 'content-type': request.headers()['content-type'] || 'application/json', origin: new globalThis.URL(URL).origin },
@@ -75,6 +78,7 @@ try {
       throw error;
     });
   }
+  if (!node) assert.ok(proxiedLookups > 0, 'code lookup must traverse the local Worker proxy');
   const rejected = await Promise.all([A, B].map(page => page.evaluate(() => window.rejectedIceConstructors)));
   assert.ok(rejected.some(count => count > 0), 'WebRTC constructors must have been rejected');
   const transport = node ? 'Node' : 'Worker';
