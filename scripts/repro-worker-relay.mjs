@@ -3,6 +3,7 @@ import { launchBrowser, URL, readLiveCode } from './lib.mjs';
 
 const worker = process.env.WORKER_URL || 'http://localhost:8787';
 const canonical = 'https://sharetext-signaling.alighttt.workers.dev';
+const node = process.env.TRANSPORT === 'node';
 const sockets = new Set();
 const errors = [];
 let binaryFrames = 0;
@@ -12,7 +13,7 @@ try {
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
   for (const context of contexts) {
     // Production pins the canonical origin; proxy it locally without changing the client.
-    await context.route(`${canonical}/**`, async route => {
+    if (!node) await context.route(`${canonical}/**`, async route => {
       const source = new globalThis.URL(route.request().url());
       const request = route.request();
       const response = await fetch(`${worker}${source.pathname}${source.search}`, {
@@ -22,7 +23,7 @@ try {
       });
       await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: Buffer.from(await response.arrayBuffer()) });
     });
-    await context.routeWebSocket(`${canonical.replace('https:', 'wss:')}/**`, route => {
+    if (!node) await context.routeWebSocket(`${canonical.replace('https:', 'wss:')}/**`, route => {
       const source = new globalThis.URL(route.url());
       const upstream = new WebSocket(`${worker.replace(/^http/, 'ws')}${source.pathname}${source.search}`);
       upstream.binaryType = 'arraybuffer';
@@ -54,6 +55,10 @@ try {
   }
   const [A, B] = await Promise.all(contexts.map(context => context.newPage()));
   for (const [label, page] of [['A', A], ['B', B]]) {
+    if (node) page.on('websocket', socket => {
+      socket.on('framesent', frame => { if (typeof frame.payload !== 'string') binarySent++; });
+      socket.on('framereceived', frame => { if (typeof frame.payload !== 'string') binaryFrames++; });
+    });
     page.on('console', message => { if (message.type() === 'error') console.log(label, message.text()); });
     page.on('pageerror', error => console.log(label, error.message));
     page.on('response', response => { if (response.status() >= 400) console.log(label, 'HTTP', response.status(), response.url()); });
@@ -72,7 +77,8 @@ try {
   }
   const rejected = await Promise.all([A, B].map(page => page.evaluate(() => window.rejectedIceConstructors)));
   assert.ok(rejected.some(count => count > 0), 'WebRTC constructors must have been rejected');
-  for (const [sender, receiver, text] of [[A, B, 'Worker relay A to B'], [B, A, 'Worker relay B to A']]) {
+  const transport = node ? 'Node' : 'Worker';
+  for (const [sender, receiver, text] of [[A, B, `${transport} relay A to B`], [B, A, `${transport} relay B to A`]]) {
     await sender.locator('textarea').first().fill(text);
     await sender.getByRole('button', { name: 'Send', exact: true }).click();
     const row = receiver.locator('[class~="group/msg"]').filter({ has: receiver.getByText(text, { exact: true }) });
@@ -92,9 +98,10 @@ try {
     console.log('DIAG', await B.evaluate(() => window.__sharetextDiag?.snapshot()));
     throw error;
   });
-  assert.ok(binaryFrames > 0, 'file bytes must traverse the local Worker');
+  assert.ok(binaryFrames > 0, `file bytes must traverse the local ${transport}`);
   assert.deepEqual(errors, []);
-  console.log('PASS: forced relay 32768-byte file, receiver own row Verified; local Worker binary received');
+  assert.ok(binarySent > 0, `file bytes must be sent to the local ${transport}`);
+  console.log(`PASS: forced relay 32768-byte file, receiver own row Verified; local ${transport} binary sent=${binarySent}, received=${binaryFrames}`);
 } finally {
   await browser.close();
   for (const socket of sockets) socket.close();
