@@ -444,6 +444,31 @@ async function runDisconnectedState() {
   check('empty room storage cleared by alarm', ctx.storage.map.size === 0);
 }
 
+async function runGraceHeartbeat() {
+  const ctx = new FakeCtx();
+  const roomId = uuid();
+  const room = new Room(ctx, makeEnv());
+  const creator = await connect(room, roomId);
+  const created = await creator.send('create_room', { pid: 'creator-device' });
+  const survivor = await connect(room, roomId);
+  await survivor.send('join_with_code', { code: codeFor(created.secret, created.createdAt), pid: 'survivor' });
+  creator.client.close();
+  await room.webSocketClose(creator.server);
+  const deadline = ctx.storage.map.get('room').grace['creator-device'];
+  const now = Date.now;
+  try {
+    Date.now = () => deadline - 1000;
+    await survivor.send('resume_room', { roomId, secret: created.secret, pid: 'survivor' });
+    const alarm = await ctx.storage.getAlarm();
+    check('heartbeat preserves pending disconnect grace alarm', Number.isFinite(deadline) && alarm !== null && alarm <= deadline);
+    Date.now = () => deadline + 1;
+    await room.alarm();
+    check('departed device evicted at grace deadline after heartbeat', ctx.storage.map.get('room').participants.length === 1 && ctx.storage.map.get('room').participants[0].pid === 'survivor');
+  } finally {
+    Date.now = now;
+  }
+}
+
 // Stay Connected: room-wide promise flips, BOTH peers get the echo, the
 // state persists, and a non-member cannot flip someone else's room.
 async function runStayConnected() {
@@ -810,6 +835,7 @@ await runFreshCidRejoin();
 await runPush();
 await runLiveIdleExpiry();
 await runDisconnectedState();
+await runGraceHeartbeat();
 await runRegistry();
 await runMetrics();
 await runSpace();

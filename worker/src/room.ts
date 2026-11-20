@@ -580,7 +580,7 @@ export class Room extends DurableObject<Env> {
     r.expiresAt = now + ROOM_TTL;
     await this.ctx.storage.put('room', r);
     const alarm = await this.ctx.storage.getAlarm();
-    if (!alarm || alarm < r.expiresAt) await this.ctx.storage.setAlarm(r.expiresAt);
+    if (!alarm || alarm > r.expiresAt) await this.ctx.storage.setAlarm(r.expiresAt);
   }
 
   private async registerInRegistry(r: RoomState) {
