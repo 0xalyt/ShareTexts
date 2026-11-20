@@ -16,12 +16,21 @@
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync, openSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-// The shell exports PORT=0, so an inherited PORT would bind a random port.
-const PORT = process.env.VERIFY_BROWSER_PORT || '3010';
+// Own an isolated port, rather than silently testing a stale dev server.
+const PORT = process.env.VERIFY_BROWSER_PORT || await new Promise((resolve, reject) => {
+  const probe = createServer();
+  probe.once('error', reject);
+  probe.listen(0, '127.0.0.1', () => {
+    const { port } = probe.address();
+    probe.close(() => resolve(String(port)));
+  });
+});
 const BASE = `http://localhost:${PORT}`;
 const GATES = [
+  ['handoff', 'verify-handoff.mjs'],
   ['typing', 'verify-typing.mjs'],
   ['sheets', 'verify-sheets.mjs'],
   ['desktop', 'verify-desktop.mjs'],
@@ -44,10 +53,10 @@ try { mkdirSync('audit/tmp', { recursive: true }); } catch { /* exists */ }
 const logFd = openSync(logPath, 'a');
 
 const server = spawn('npm', ['run', 'dev'], {
-  shell: true,
+  shell: process.platform === 'win32',
   env: { ...process.env, PORT },
   stdio: ['ignore', logFd, logFd],
-  detached: false,
+  detached: process.platform !== 'win32',
 });
 
 let serverUp = false;

@@ -12,6 +12,7 @@ import { isPresenceHidden, setPresenceHidden } from '../lib/nearby';
 import { isAutoConnectEnabled, setAutoConnectEnabled } from './NearbyDevices';
 import { typingIndicatorEnabled, setTypingIndicatorEnabled } from '../lib/typing';
 import { cn } from '../lib/utils';
+import { StandardSwitch } from './StandardSwitch';
 
 /**
  * SettingsOverlay — one grouped sheet (§18, P3).
@@ -73,29 +74,15 @@ function Row({
 
 function Switch({ checked, onChange, label, testId }: { checked: boolean; onChange: (v: boolean) => void; label: string; testId?: string }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      data-testid={testId}
-      onClick={() => {
-        onChange(!checked);
+    <StandardSwitch
+      checked={checked}
+      ariaLabel={label}
+      testId={testId}
+      onChange={(next) => {
+        onChange(next);
         haptic('select');
       }}
-      className={cn(
-        'relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200',
-        checked ? 'bg-status-success' : 'bg-black/[0.12] dark:bg-white/[0.18]',
-      )}
-    >
-      <span
-        aria-hidden
-        className={cn(
-          'absolute top-[2px] h-[27px] w-[27px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] transition-transform duration-200',
-          checked ? 'translate-x-[20px]' : 'translate-x-[2px]',
-        )}
-      />
-    </button>
+    />
   );
 }
 
@@ -116,10 +103,12 @@ export function SettingsOverlay({
   open,
   onClose,
   onOpenSaved,
+  editDeviceName = false,
 }: {
   open: boolean;
   onClose: () => void;
   onOpenSaved?: () => void;
+  editDeviceName?: boolean;
 }) {
   const { t, lang, auto, setLang, useDeviceLanguage } = useI18n();
   const { choice, setChoice } = useTheme();
@@ -148,6 +137,14 @@ export function SettingsOverlay({
       setEditingName(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (open && editDeviceName) {
+      // Snapshot on entry; do not replace a draft when the peer updates.
+      setDraftName(session.deviceName || '');
+      setEditingName(true);
+    }
+  }, [open, editDeviceName]);
 
   // Swapping the column unmounts whatever had focus, which would drop focus to
   // <body> — outside the trap, so the next Tab would restart at the top of the

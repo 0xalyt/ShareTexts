@@ -67,9 +67,10 @@ export interface CommandBarProps {
    *  palette asks for them through a real callback instead of guessing at
    *  the DOM (the file's contract: every action is a real handler). */
   onSpace?: (which: 'create' | 'join') => void;
+  onEditDeviceName?: () => void;
 }
 
-export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBarProps = {}) {
+export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDeviceName }: CommandBarProps = {}) {
   const { t, lang, setLang } = useI18n();
   const { session, createSession, requestReconnect, abandonSession } = useSession();
   const { resolved, setChoice } = useTheme();
@@ -227,14 +228,12 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
       );
     }
     list.push(
-      {
+      ...(onEditDeviceName ? [{
         id: 'devicename', label: t('command.deviceName'), group: t('command.group.settings'),
         hint: session.deviceName,
         icon: <Smartphone className="w-4 h-4" />, keywords: 'identity rename device name visible',
-        // The honest quick-path: copy the current identity. (Renaming UI
-        // lives in the details sheet — a prompt here would fight its flow.)
-        run: () => { void navigator.clipboard.writeText(session.deviceName).catch(() => {}); },
-      },
+        run: onEditDeviceName,
+      }] : []),
       {
         id: 'theme', label: resolved === 'dark' ? t('command.lightMode') : t('command.darkMode'),
         group: t('command.group.settings'),
@@ -286,7 +285,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace }: CommandBar
       },
     );
     return list;
-  }, [inRoom, connected, t, lang, resolved, createSession, requestReconnect, abandonSession, setChoice, session.roomId, session.messages]);
+  }, [inRoom, connected, t, lang, resolved, createSession, requestReconnect, abandonSession, setChoice, session.roomId, session.messages, session.deviceName, onSpace, onEditDeviceName]);
 
   const filtered = useMemo(() => {
     const q = query.trim();

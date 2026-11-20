@@ -6,6 +6,8 @@
       "pattern": "\\bend[- ]to[- ]end\\b|\\bE2E\\b",
       "scope": [
         "src/lib/messages",
+        "src/views/Legal.tsx",
+        "scripts/seo-routes.mjs",
         "public/guides",
         "index.html",
         "public/llms.txt"
@@ -17,6 +19,8 @@
       "pattern": "nothing is (ever )?stored(?! (after|once|when|until|in a|on a server after))|nothing is (ever )?kept(?! (after|once|when|until|in a))",
       "scope": [
         "src/lib/messages",
+        "src/views/Legal.tsx",
+        "scripts/seo-routes.mjs",
         "public/guides",
         "index.html",
         "public/llms.txt"

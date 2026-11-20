@@ -46,36 +46,37 @@ function PrivacyContent() {
       <Section icon={<ShieldCheck className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="The short version">
         <p>
           ShareTexts moves text, photos, and files directly between <strong>your</strong> devices.
-          In a room, your content is end-to-end encrypted, travels peer-to-peer, and is never
-          stored on our servers. When the room closes, everything in it is gone — unless you
-          explicitly saved an item, which stays on your device only (see below).
+          Live rooms encrypt transfers in transit and use a direct peer-to-peer connection when
+          available, with an encrypted relay fallback. The service issues the room secret, so
+          this is not a zero-knowledge system. Do not use it for secrets you cannot entrust to the service.
         </p>
         <p>
-          <strong>Host is the one exception.</strong> A space exists so a device can
+          <strong>Temporary Spaces store content for later.</strong> A space exists so a device can
           collect later, so what you add is held until the space closes or reaches its expiry
           (6 hours to 7 days, whichever the creator chose), and it is deleted then. Closing a space
-          early deletes it early. There is no archive and nothing is kept past that point.
+          early deletes its stored content early. Keep your own copy before the space closes.
         </p>
       </Section>
 
-      <Section icon={<EyeOff className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="What we never collect">
-        <p>We do not collect, and have no way to see:</p>
+      <Section icon={<EyeOff className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="What you do not need to provide">
+        <p>ShareTexts does not ask for:</p>
         <ul className="list-disc pl-5 space-y-1.5">
-          <li>The text, photos, videos, or files you send</li>
           <li>Your name, email, phone number, or any account</li>
           <li>Contacts, location, or advertising identifiers</li>
         </ul>
         <p>
-          Transfers are encrypted on your device with a key derived from the room's secret. That
-          key never leaves your devices, so neither we nor anyone else can read what passes through.
+          Room transfers use a key derived from the room secret. Because the service issues that
+          secret, it could derive the same key. Temporary Space items are stored server-side and
+          can be accessed by anyone holding the space's access token until the space closes.
         </p>
       </Section>
 
       <Section icon={<Server className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="What the connection server sees">
         <p>
-          Pairing requires a small signaling service. It temporarily sees connection metadata:
-          encrypted room identifiers, rotating 6-digit codes, and WebRTC handshake data. It cannot
-          decrypt anything. Rooms expire automatically and their state is deleted.
+          Pairing requires a signaling service. It sees IP addresses, room identifiers and secrets,
+          pairing codes, WebRTC handshake data, transfer sizes, and times. Relay transfers also pass
+          encrypted content through the service. Room state expires automatically, except rooms
+          you choose to keep with Stay Connected. Aggregate activity counters measure service use.
         </p>
       </Section>
 
@@ -102,17 +103,16 @@ function PrivacyContent() {
 
       <Section icon={<Cookie className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="Cookies and trackers">
         <p>
-          <strong>Cookies: none. Trackers: none. Analytics: none.</strong> There is no consent
-          banner because there is nothing to consent to. ShareTexts sets no cookies, loads no
-          analytics scripts, and calls no third-party trackers. The list of network requests the
-          app makes is short: the signaling service, and peer-to-peer WebRTC traffic.
+          ShareTexts sets no tracking cookies and loads no third-party analytics scripts. The
+          service counts aggregate product events without attaching message contents. Network
+          requests include signaling, relay or peer-to-peer traffic, and Temporary Space storage.
         </p>
       </Section>
 
       <Section icon={<FileText className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="Changes to this policy">
         <p>
           If the policy ever changes, the updated version will be published on this page. The
-          promise doesn't change: no accounts, no storage of your content, no tracking.
+          page explains how live rooms, Temporary Spaces, and local Saved Items handle your content.
         </p>
       </Section>
     </div>
@@ -132,8 +132,8 @@ function TermsContent() {
       <Section icon={<FileText className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="Your content is yours">
         <p>
           Everything you send belongs to you. ShareTexts claims no rights over your text, photos,
-          videos, or files, and because they are end-to-end encrypted we could not read them even
-          if we wanted to. You are responsible for what you send and to whom.
+          videos, or files. Encryption in transit does not make the service unable to access
+          content. You are responsible for what you send and to whom.
         </p>
       </Section>
 
@@ -148,11 +148,10 @@ function TermsContent() {
 
       <Section icon={<Database className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="Rooms are temporary">
         <p>
-          Rooms exist only for the length of a transfer session and expire automatically. Nothing
-          incomplete is saved, and a closed room cannot be reopened. Treat ShareTexts like a
-          hallway between two rooms of yours: convenient for passing things through, not a place
-          to store anything. The one deliberate exception is Saved Items: an item you explicitly
-          save stays in your own browser's storage until you remove it — and it stays only there.
+          Live rooms expire automatically unless you enable Stay Connected. Closing a room does
+          not remove files already saved on a device. Temporary Spaces hold content server-side
+          for the chosen lifetime (6 hours to 7 days), or until closed early. Saved Items remain
+          in your own browser until you remove them or clear site data. Keep a separate backup.
         </p>
       </Section>
 
@@ -203,7 +202,7 @@ export function Legal({ page }: { page: LegalPage }) {
           {title}
         </h1>
         <p className="text-[16px] text-apple-ink-muted/80 dark:text-white/40 mb-9">
-          Last updated: September 2026
+          Last updated: November 2026
         </p>
         {isPrivacy ? <PrivacyContent /> : <TermsContent />}
 

@@ -5,7 +5,7 @@ import path from 'path';
 import * as OTPAuth from 'otpauth';
 import crypto from 'crypto';
 import { readFileSync, writeFileSync } from 'fs';
-import helmet from 'helmet';
+import helmet, { type HelmetOptions } from 'helmet';
 import compression from 'compression';
 import { lookup } from 'node:dns/promises';
 
@@ -56,7 +56,7 @@ function inlineScriptPins(): string[] {
 // compressed.
 app.use(compression());
 
-app.use(helmet({
+const securityOptions = {
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -110,7 +110,27 @@ app.use(helmet({
   // read the header instead of the policy.
   xFrameOptions: { action: 'deny' },
   crossOriginEmbedderPolicy: false
-}));
+} satisfies HelmetOptions;
+
+const publicSecurityHeaders = helmet(securityOptions);
+const loopbackSecurityHeaders = helmet({
+  ...securityOptions,
+  contentSecurityPolicy: {
+    directives: {
+      ...securityOptions.contentSecurityPolicy.directives,
+      // Safari upgrades even localhost assets to HTTPS. Local HTTP has no
+      // TLS listener; keep every other directive, including script hashes.
+      upgradeInsecureRequests: null,
+    },
+  },
+});
+app.use((req, res, next) => {
+  const peer = req.socket.remoteAddress;
+  const localPeer = peer === '127.0.0.1' || peer === '::1' || peer === '::ffff:127.0.0.1';
+  const localHost = ['localhost', '127.0.0.1', '[::1]'].includes(req.hostname);
+  const directLocalHTTP = localPeer && localHost && !req.secure && !req.headers['x-forwarded-proto'];
+  return (directLocalHTTP ? loopbackSecurityHeaders : publicSecurityHeaders)(req, res, next);
+});
 
 // Never serve build metadata. `dist/server.cjs.map` contains the ENTIRE server
 // source (esbuild writes it beside the bundle), and express.static would hand

@@ -466,10 +466,27 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
             : t('space.codeInvalid')}
         </p>
 
-        {/* Progressive disclosure (§2): the primary path is CODE → Create.
-            Name, lifetime and the reminder are real options, but they are
-            not the first decision — collapsed by default so a first-time
-            create is one simple action, one tap away when wanted. */}
+        {/* Expiry is part of the access decision, not an optional preference.
+            Keep the selected lifetime visible before the create action. */}
+        <fieldset className="mt-5" data-testid="space-create-duration">
+          <legend className="text-[13px] font-medium text-apple-ink dark:text-white/80">{t('space.durationLabel')}</legend>
+          <div className="mt-2 grid grid-cols-2 min-[440px]:grid-cols-4 gap-2">
+            {DURATIONS.map(d => (
+              <label key={d.ms} className="relative cursor-pointer">
+                <input type="radio" name="space-duration" value={d.ms} checked={duration === d.ms} onChange={() => setDuration(d.ms)} className="peer sr-only" />
+                <span className="rounded-[12px] px-1.5 py-2.5 min-h-[52px] flex flex-col items-center justify-center border border-apple-divider dark:border-white/10 text-apple-ink dark:text-white/80 peer-checked:bg-apple-ink peer-checked:text-white peer-checked:border-apple-ink dark:peer-checked:bg-white dark:peer-checked:text-night-900 dark:peer-checked:border-white peer-focus-visible:ring-2 peer-focus-visible:ring-ember peer-focus-visible:ring-offset-2 transition-colors">
+                  <span className="text-[13px] font-semibold tabular-nums leading-none">{new Intl.NumberFormat(lang, { style: 'unit', unit: d.ms >= 24 * HOUR ? 'day' : 'hour', unitDisplay: 'long' }).format(d.ms >= 24 * HOUR ? d.ms / (24 * HOUR) : d.ms / HOUR)}</span>
+                  <span className="mt-1 text-[12px] font-medium tabular-nums leading-snug text-center opacity-70">
+                    {(() => { const end = new Date(Date.now() + d.ms); return d.ms <= 24 * HOUR ? fmtTime(lang, end) : d.ms <= 72 * HOUR ? fmtWeekdayTime(lang, end) : fmtShortDate(lang, end); })()}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-[12px] text-apple-ink-muted dark:text-white/45">{t('space.durationMax')}</p>
+        </fieldset>
+
+        {/* Name and reminders are optional; the lifetime above is always visible. */}
         <details className="mt-4 group" data-testid="space-create-optional">
           <summary className="cursor-pointer list-none min-h-[42px] rounded-[12px] inline-flex w-full items-center justify-center gap-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors">
             <ChevronDown className="w-4 h-4 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
@@ -486,37 +503,6 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
           maxLength={80}
           className="mt-1.5 w-full rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:ring-2 focus:ring-azure-500/40"
         />
-
-        <p className="mt-5 text-[13px] font-medium text-apple-ink dark:text-white/80">{t('space.durationLabel')}</p>
-        <div className="mt-2 grid grid-cols-4 gap-2" role="radiogroup" aria-label={t('space.durationLabel')}>
-          {DURATIONS.map(d => (
-            <button
-              key={d.ms}
-              role="radio" aria-checked={duration === d.ms}
-              onClick={() => setDuration(d.ms)}
-              className={`rounded-[12px] px-1.5 py-2.5 min-h-[52px] flex flex-col items-center justify-center border transition-colors ${
-                duration === d.ms
-                  ? 'bg-apple-ink text-white dark:bg-white dark:text-night-900 border-apple-ink dark:border-white'
-                  : 'bg-white dark:bg-white/[0.04] border-apple-divider dark:border-white/[0.1] text-apple-ink dark:text-white/80 hover:border-apple-ink/30 dark:hover:border-white/30'
-              }`}
-            >
-              <span className="text-[13px] font-semibold tabular-nums leading-none">{d.label}</span>
-              {/* "6 hours" is an amount; the CLOCK TIME is the decision. Each
-                  option carries when it would actually end (time only inside a
-                  day, weekday + time within three, date beyond) — no words to
-                  translate, just the honest timestamp. */}
-              <span className="mt-1 text-[12px] font-medium tabular-nums leading-none opacity-60 whitespace-nowrap">
-                {(() => {
-                  const end = new Date(Date.now() + d.ms);
-                  if (d.ms <= 24 * HOUR) return fmtTime(lang, end);
-                  if (d.ms <= 72 * HOUR) return fmtWeekdayTime(lang, end);
-                  return fmtShortDate(lang, end);
-                })()}
-              </span>
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-[12px] text-apple-ink-muted dark:text-white/45">{t('space.durationMax')}</p>
 
         <label className="mt-5 flex items-center gap-2.5 select-none">
           <input
