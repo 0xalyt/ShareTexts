@@ -28,7 +28,6 @@
 .landing-shortcut { margin-top: 24px; }
 .landing-mobile-demo { margin-block: 32px 8px; }
 .landing-utilities { margin-top: 20px; }
-.landing-activity { margin-top: 12px; }
 .landing-browsers { padding-block: 48px; text-align: center; }
 .landing-browsers h2 { color: var(--color-apple-ink-muted); }
 .landing-browsers ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 40px; margin-top: 24px; }
