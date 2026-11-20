@@ -22,6 +22,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 const PORT = process.env.VERIFY_BROWSER_PORT || '3010';
 const BASE = `http://localhost:${PORT}`;
 const GATES = [
+  ['handoff', 'verify-handoff.mjs'],
   ['typing', 'verify-typing.mjs'],
   ['sheets', 'verify-sheets.mjs'],
   ['desktop', 'verify-desktop.mjs'],

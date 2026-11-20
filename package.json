@@ -56,6 +56,7 @@
     "verify:basics": "node scripts/verify-basics.mjs",
     "verify:seo": "node scripts/verify-seo-run.mjs",
     "verify:layout": "node scripts/verify-browser.mjs desktop,sheets,no-flash,room-paint,basics",
+    "verify:handoff": "node scripts/verify-browser.mjs handoff",
     "verify:circle-worker": "node scripts/verify-circle-worker.mjs",
     "verify:circle-pairing": "node scripts/verify-circle-pairing.mjs",
     "verify:zero-knowledge": "node scripts/verify-zero-knowledge.mjs",

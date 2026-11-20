@@ -57,6 +57,9 @@ jobs:
       - name: Composer geometry gate
         run: URL=http://localhost:3311 node scripts/verify-composer.mjs
 
+      - name: Landing handoff and audit regressions
+        run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-handoff.mjs
+
       - name: Browser E2E (create → join → transfer → reconnect → rejoin)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
 
