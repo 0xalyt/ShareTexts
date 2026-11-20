@@ -16,7 +16,7 @@
  * original closures did.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { SessionState, ChatMessage } from '../../types';
 import { TransferCancelledError, TransferInterruptedError, hasSendProgress, chunkCountForSize, sendQueueDepth, clearTransferState } from '../webrtc';
@@ -26,7 +26,7 @@ import { connMachine } from '../connectionState';
 import { speedTrackerFor, dropSpeedTracker } from '../speedEngine';
 import { beginTransferRecord, finishTransferRecord } from '../transferMetrics';
 import { productEvent } from '../telemetry';
-import { saveSendable, getSendable, deleteSendable, saveTransferState, deleteTransferState } from '../transferStore';
+import { saveSendable, getSendable, deleteSendable, saveTransferState, deleteTransferState, saveReceivedFile, getReceivedFile, deleteReceivedFile } from '../transferStore';
 import { sanitizeFilename } from '../utils';
 import { recordTransferBytes } from '../pairing';
 import { normalizePastedText } from '../textFidelity';
@@ -43,6 +43,7 @@ import type { RecipientTransfer } from '../../types';
 type RecipientTransferPatch = RecipientTransfer;
 
 export interface MessageEngineDeps {
+  getRoomId: () => string | null;
   setSession: Dispatch<SetStateAction<SessionState>>;
   /** Live mirror of session.messages (fresh at all times). */
   getMessages: () => ChatMessage[];
@@ -161,11 +162,18 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
   // delivers files as ~45KB base64 chunks (to fit WS frame caps on both
   // transports); this buffer reassembles them before the bubble appears.
   const pushBuffersRef = useRef<Map<string, { name: string; mimeType: string; size: number; chunkCount: number; timestamp: number; chunks: string[]; filled: number }>>(new Map());
+  const runtimeGeneration = useRef(0);
 
   const receivedIntegrityRef = useRef(new ReceivedFileIntegrity(
     (message, checksum) => updateMessageAttachment(message.id, { checksum }),
-    (message, expected, actual) => {
+    async (message, expected, actual, blob) => {
       const ok = actual === expected;
+      const roomId = deps.getRoomId();
+      const generation = runtimeGeneration.current;
+      if (ok && roomId) await saveReceivedFile(roomId, message.attachment!.id, expected, blob,
+        () => deps.getRoomId() === roomId && runtimeGeneration.current === generation && getMessages().some(m => m.id === message.id));
+      if (!ok && roomId) await deleteReceivedFile(roomId, message.attachment!.id);
+      if (deps.getRoomId() !== roomId || runtimeGeneration.current !== generation) return;
       diag('transfer.checksum', ok, ok ? 'verified' : `mismatch expected ${expected.slice(0, 12)}… got ${actual.slice(0, 12)}…`);
       if (!ok) finishTransferRecord(message.attachment!.id, 'received', 0, 'checksum-mismatch', { name: message.attachment?.name, kind: 'file', verified: false });
       updateMessageAttachment(message.id, ok
@@ -173,6 +181,34 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         : { status: 'failed', note: 'checksum-mismatch', progress: 1, verified: false });
     },
   ));
+
+  const localRestores = useRef(new Map<string, Promise<boolean>>());
+  const restoreReceivedMessages = async (): Promise<Set<string>> => {
+    const roomId = deps.getRoomId();
+    const generation = runtimeGeneration.current;
+    const restored = new Set<string>();
+    if (!roomId) return restored;
+    await Promise.all(getMessages().map(async m => {
+      const a = m.attachment;
+      if (m.sender !== 'partner' || a?.status !== 'restoring' || !a.verified || !a.checksum) return;
+      const key = `${roomId}/${a.id}`;
+      let pending = localRestores.current.get(key);
+      if (!pending) {
+        pending = getReceivedFile(roomId, a.id, a.checksum, a.size).then(blob => {
+          if (!blob || deps.getRoomId() !== roomId || runtimeGeneration.current !== generation || localRestores.current.get(key) !== pending || !getMessages().some(item => item.id === m.id)) return false;
+          const url = URL.createObjectURL(blob);
+          updateMessageAttachment(m.id, { status: 'complete', progress: 1, verified: true, url, note: undefined });
+          return true;
+        });
+        localRestores.current.set(key, pending);
+      }
+      if (await pending) restored.add(m.id);
+    }));
+    return restored;
+  };
+  const roomId = deps.getRoomId();
+  const messages = getRenderMessages();
+  useEffect(() => { void restoreReceivedMessages(); }, [roomId, messages]);
 
   const updateMessageAttachment = (messageId: string, updates: Partial<NonNullable<ChatMessage['attachment']>>) => {
     setSession(s => {
@@ -555,7 +591,10 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     };
   };
 
-  const handleChannelOpen = (pm: PeerManager) => {
+  const handleChannelOpen = async (pm: PeerManager) => {
+    const roomId = deps.getRoomId();
+    const restored = await restoreReceivedMessages();
+    if (deps.getRoomId() !== roomId || pm.isDestroyed()) return;
     // If a transfer was interrupted by the drop, resume it from the
     // position the peer actually received — never from zero.
     void resumeInterruptedTransfers();
@@ -571,7 +610,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       }
       // Restored files we received but no longer hold bytes for: ask the
       // peer to re-send them now that the channel is open.
-      if (m.sender === 'partner' && m.attachment?.status === 'restoring') {
+      if (m.sender === 'partner' && m.attachment?.status === 'restoring' && !restored.has(m.id)) {
         try { void pm.send(JSON.stringify({ kind: 'resend_request', id: m.id })); } catch { /* channel closed */ }
       }
     }
@@ -1076,11 +1115,13 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
   }, []);
 
   const clearRuntimeState = useCallback(() => {
+    runtimeGeneration.current++;
     pendingFilesRef.current.clear();
     receivedIdsRef.current.clear();
     progressRef.current.clear();
     pushBuffersRef.current.clear();
     receivedIntegrityRef.current.clear();
+    localRestores.current.clear();
   }, []);
 
   /**
@@ -1156,6 +1197,11 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
    *  keep. */
   const deleteLocalMessage = (messageId: string): void => {
     if (!messageId) return;
+    const message = getMessages().find(m => m.id === messageId);
+    const roomId = deps.getRoomId();
+    if (roomId && message?.attachment) void deleteReceivedFile(roomId, message.attachment.id);
+    if (roomId && message?.attachment) localRestores.current.delete(`${roomId}/${message.attachment.id}`);
+    if (message?.attachment?.url) URL.revokeObjectURL(message.attachment.url);
     setSession(s => ({ ...s, messages: s.messages.filter(m => m.id !== messageId) }));
   };
 

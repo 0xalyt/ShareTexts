@@ -14,7 +14,7 @@ export class ReceivedFileIntegrity {
 
   constructor(
     private onChecksum: (message: ChatMessage, checksum: string) => void,
-    private onResult: (message: ChatMessage, expected: string, actual: string) => void,
+    private onResult: (message: ChatMessage, expected: string, actual: string, blob: Blob) => void,
   ) {}
 
   private entry(id: string): ReceivedFile {
@@ -60,7 +60,7 @@ export class ReceivedFileIntegrity {
     file.verifying = true;
     void sha256Hex(blob).then(actual => {
       if (this.files.get(id) === file && file.blob === blob && file.checksum === checksum) {
-        this.onResult(message, checksum, actual);
+        this.onResult(message, checksum, actual, blob);
         file.blob = undefined;
       }
     }).catch(() => { /* leave complete, unverified */ }).finally(() => {

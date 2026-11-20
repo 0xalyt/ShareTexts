@@ -179,6 +179,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // Deps are fresh closures per render — the same closure semantics the
   // original render-scoped functions had.
   const messageEngine = useMessageEngine({
+    getRoomId: () => sessionRef.current.roomId,
     setSession,
     getMessages: () => messagesRef.current,
     getRenderMessages: () => sessionRef.current.messages,
