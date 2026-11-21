@@ -127,7 +127,8 @@ async function sample(): Promise<void> {
 }
 
 /** Begin sampling the given peer connection ~once per second. */
-export function startNetStats(pc: RTCPeerConnection): void {
+export function startNetStats(pc: RTCPeerConnection | null): void {
+  if (!pc) { stopNetStats(); return; }
   pcRef = new WeakRef(pc);
   if (timer) return;
   // Immediate first sample, then a steady 1 s cadence.

@@ -58,21 +58,47 @@ export function MessageActions({
 
   // Escape closes, and a tap anywhere outside closes. Both are the same
   // promise a sheet makes, and this surface is a sheet in spirit.
+  // Keyed on `open` alone: MessageCard passes a fresh onClose every render, so
+  // it is read through a ref — otherwise each progress tick would re-run this
+  // and pull focus back to the first row.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const openerRef = useRef<HTMLElement | null>(null);
+  const restoreFocus = () => {
+    const opener = openerRef.current;
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
+  };
   useEffect(() => {
     if (!open) return;
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const items = (): HTMLElement[] => Array.from(rootRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
+    const focusFrame = requestAnimationFrame(() => items()[0]?.focus({ preventScroll: true }));
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+      if (e.key === 'Escape') { e.stopPropagation(); onCloseRef.current(); restoreFocus(); return; }
+      // Tab means "I'm done": close and let focus go where Tab takes it.
+      if (e.key === 'Tab') { onCloseRef.current(); return; }
+      const list = items();
+      const at = list.indexOf(document.activeElement as HTMLElement);
+      const next = e.key === 'ArrowDown' ? (at + 1) % list.length
+        : e.key === 'ArrowUp' ? (at - 1 + list.length) % list.length
+        : e.key === 'Home' ? 0
+        : e.key === 'End' ? list.length - 1
+        : -1;
+      if (next < 0 || !list.length) return;
+      e.preventDefault();
+      list[next].focus({ preventScroll: true });
     };
     const onDown = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) onClose();
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) onCloseRef.current();
     };
     window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', onDown, true);
     return () => {
+      cancelAnimationFrame(focusFrame);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('pointerdown', onDown, true);
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -157,7 +183,7 @@ export function MessageActions({
             type="button"
             role="menuitem"
             data-testid={`action-${row.key}`}
-            onClick={() => { row.run(); onClose(); }}
+            onClick={(e) => { row.run(); onClose(); if (e.detail === 0) restoreFocus(); }}
             className={cn(
               'flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] font-medium transition-colors',
               row.destructive
