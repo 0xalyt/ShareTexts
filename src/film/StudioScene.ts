@@ -3,7 +3,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-const ROOT = '/film/out/launch-v2';
 const ease = (t: number, start: number, duration: number) => {
   const p = THREE.MathUtils.clamp((t - start) / duration, 0, 1);
   return p * p * p * (p * (p * 6 - 15) + 10);
@@ -62,12 +61,14 @@ function keyboard() {
   });
 }
 
-export async function createStudio(canvas: HTMLCanvasElement) {
+export async function createStudio(canvas: HTMLCanvasElement, dark = false) {
+  const ROOT = `/film/out/${dark ? 'launch-v3-dark' : 'launch-v2'}`;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
   renderer.setSize(1920, 1080, false); renderer.setPixelRatio(1);
-  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12;
+  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = dark ? 0.95 : 1.12;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.VSMShadowMap;
-  const scene = new THREE.Scene(); scene.background = new THREE.Color('#ffffff');
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(dark ? '#181818' : '#ffffff');
+  scene.environmentIntensity = dark ? 0.65 : 1;
   const room = new RoomEnvironment(), pmrem = new THREE.PMREMGenerator(renderer);
   const environment = pmrem.fromScene(room, 0.04); scene.environment = environment.texture;
   room.dispose(); pmrem.dispose();
@@ -77,8 +78,17 @@ export async function createStudio(canvas: HTMLCanvasElement) {
   Object.assign(key.shadow.camera, { left: -15, right: 15, top: 15, bottom: -15, near: 1, far: 50 });
   key.shadow.normalBias = 0.035; key.shadow.bias = -0.00015;
   key.shadow.radius = 7; key.shadow.blurSamples = 16;
-  scene.add(key, new THREE.HemisphereLight(0xffffff, 0xc9c9d0, 1.7));
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: 0.09 }));
+  scene.add(key, new THREE.HemisphereLight(dark ? 0xb9c6dd : 0xffffff, dark ? 0x111115 : 0xc9c9d0, dark ? 0.65 : 1.7));
+  if (dark) {
+    // Broad cool edge light defines graphite hardware; a restrained warm
+    // bounce ties the set to the orange handoff instead of a luminous field.
+    const edge = new THREE.DirectionalLight(0xdde7ff, 3.2); edge.position.set(7, 8, -7);
+    const bounce = new THREE.PointLight(0xff824f, 12, 18, 2); bounce.position.set(-5, 4, 2);
+    scene.add(edge, bounce);
+  }
+  // A matte shadow catcher keeps the charcoal cyclorama seamless with the
+  // page. A lit finite plane would introduce a grey field and a hard horizon.
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: dark ? 0.32 : 0.09 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
   const loader = new THREE.TextureLoader();
   const names = ['phone-sending', 'phone-complete', 'laptop-empty', 'laptop-complete'];
@@ -88,7 +98,7 @@ export async function createStudio(canvas: HTMLCanvasElement) {
     if (!response.ok) throw new Error('Generate display textures with scripts/render-launch-film.mjs first');
     return response.json();
   });
-  const silver = new THREE.MeshStandardMaterial({ color: '#a9aaae', metalness: 0.96, roughness: 0.27 });
+  const silver = new THREE.MeshStandardMaterial({ color: dark ? '#737985' : '#a9aaae', metalness: 0.96, roughness: dark ? 0.23 : 0.27 });
   const rim = new THREE.MeshStandardMaterial({ color: '#44454b', metalness: 1, roughness: 0.2 });
   const black = new THREE.MeshPhysicalMaterial({ color: '#08090b', roughness: 0.16, metalness: 0.2, clearcoat: 1 });
 
@@ -141,7 +151,7 @@ export async function createStudio(canvas: HTMLCanvasElement) {
     // The type/brand plate fully occludes the studio. Do not spend GPU time
     // drawing an invisible world; the composite remains a pure function of t.
     if (time >= 6.1 && time <= 11.9) return;
-    // Finish on the identical opening pose, not a blank white loop frame.
+    // Finish on the identical opening pose, not a blank loop frame.
     const t = time >= 11.5 ? 0 : time;
     const reveal = ease(t, 1.25, 2.1), settle = ease(t, 4.1, 1.15);
     phone.position.set(-4.55, 3.34, 1.05);
