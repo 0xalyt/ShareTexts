@@ -172,16 +172,16 @@
       <span aria-current="page">Browser-Based File Transfer</span>
     </nav>
     <h1>Browser-Based File Transfer</h1>
-    <p class="subtitle">Transfer files between any two devices using only a web browser. No software to install, no accounts to create, no cloud storage involved.</p>
+    <p class="subtitle">Transfer files between any two devices using only a web browser. No software to install, no accounts to create, live-room content is not stored server-side.</p>
 
     <div class="callout"><p><strong>What is browser-based file transfer?</strong> It means moving a file from one device to another using only web browsers — no apps, no downloads, no accounts. ShareTexts uses WebRTC, a browser technology that lets two devices connect directly and transfer data peer-to-peer.</p></div>
 
     <h2>How It Works</h2>
-    <p>When you use ShareTexts, the file doesn't travel to a cloud server and back. Instead:</p>
+    <p>In a live room, ShareTexts tries a direct connection and falls back to an encrypted relay when needed:</p>
     <ul>
       <li>Both devices connect using encrypted browser technology (WebRTC)</li>
       <li>The file moves directly from Device A to Device B</li>
-      <li>No copy is stored on any server</li>
+      <li>Live-room content is not stored server-side. Temporary Spaces store text and links until they close or expire; saved items stay in your browser.</li>
       <li>The temporary connection closes when you're done</li>
     </ul>
 
@@ -263,7 +263,7 @@
       </nav>
     </div>
     <div class="footer-bottom">
-      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Nothing stored</p>
+      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Your devices</p>
       <a href="https://x.com/0xalyt" target="_blank" rel="noopener noreferrer" title="Maker: Garv — @0xalyt" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;min-height:32px"><img src="/brand/maker-garv.webp?v=2" alt="" width="24" height="24" loading="lazy" decoding="async" style="width:24px;height:24px;border-radius:999px;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 1px rgba(0,0,0,0.10)" /><span>@0xalyt</span></a>
     </div>
     <script>document.getElementById('st-year').textContent = new Date().getFullYear();</script>

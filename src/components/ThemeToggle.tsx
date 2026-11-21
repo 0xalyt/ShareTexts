@@ -51,12 +51,12 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     >
       <span
         aria-hidden
-        className="relative flex items-center justify-center w-[18px] h-[18px]"
+        className="relative flex items-center justify-center w-5 h-5"
       >
         {/* SUN — disc + eight rays. Leaves by scaling down and rotating out. */}
         <motion.svg
           viewBox="0 0 24 24"
-          className="absolute inset-0 w-[18px] h-[18px]"
+          className="absolute inset-0 w-5 h-5"
           fill="none"
           stroke="currentColor"
           strokeWidth={1.5}
@@ -82,7 +82,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
         {/* MOON — arrives by growing out of the sun's own rotation. */}
         <motion.svg
           viewBox="0 0 24 24"
-          className="absolute inset-0 w-[18px] h-[18px]"
+          className="absolute inset-0 w-5 h-5"
           fill="none"
           stroke="currentColor"
           strokeWidth={1.5}

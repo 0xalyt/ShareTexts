@@ -13,7 +13,7 @@ import { useTriggerOrigin } from '../lib/useTriggerOrigin';
  *
  *   · STANDALONE (the header globe) is a dropdown. There is a whole page
  *     under it, so a short list can hang off the button.
- *   · INLINE (a row inside the More sheet) opens a SHEET, not a dropdown.
+ *   · INLINE (a row inside More or the footer) opens a SHEET, not a dropdown.
  *     It used to open the same dropdown downward from the last row of the
  *     sheet — 404px of list starting at y=828 in an 844px viewport, i.e.
  *     entirely off screen, while the sheet grew a scrollable tail under a
