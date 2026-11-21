@@ -54,7 +54,7 @@ export function PageHeader({
         <div className="flex items-center gap-2 shrink-0">
           <a
             href="/"
-            className="flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 rounded-full text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+            className="hidden min-[375px]:flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 rounded-full text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
             aria-label={t('app.backHome')}
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
@@ -75,11 +75,11 @@ export function PageHeader({
           {/* The current page reads as quiet text, not a link: it is where you
               already are. */}
           {currentLabel && (
-            <span aria-current="page" className="min-w-0 truncate text-[13px] font-medium text-apple-ink/70 dark:text-white/70">
+            <span aria-current="page" className="min-w-0 text-end text-[13px] font-medium leading-snug [overflow-wrap:anywhere] text-apple-ink/70 dark:text-white/70">
               {currentLabel}
             </span>
           )}
-          <span aria-hidden className="h-5 w-px shrink-0 bg-apple-divider dark:bg-white/10" />
+          <span aria-hidden className="hidden h-5 w-px shrink-0 bg-apple-divider dark:bg-white/10 sm:block" />
           <span className="shrink-0"><ThemeToggle /></span>
         </div>
       </div>
