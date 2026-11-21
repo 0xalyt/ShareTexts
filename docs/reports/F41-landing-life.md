@@ -40,7 +40,7 @@ The release implementation is in `BrowserCompatibility.tsx:16–80`, `ProductDet
 | --- | --- |
 | `npx tsc --noEmit` after each implementation/integration commit | Passed. |
 | `npm run build` | Passed; `audit/tmp/landing-life-build.log`. |
-| `npm run verify:bundle` | Passed; entry 176.5 KB gzip against 180 KB budget, below the 177 KB working target; `audit/tmp/landing-life-bundle.log`. |
+| `npm run verify:bundle` | Passed; after current-main integration entry is 178.1 KB gzip against the 180 KB hard budget (above the 177 KB working target); `audit/tmp/landing-life-integrated-bundle.log`. |
 | `npm run smoke:local` | Passed production-server pairing, text, link and origin checks; `audit/tmp/landing-life-smoke.log`. |
 | `npm run verify:handoff` | Passed English, Spanish and Arabic at 320/360/390/1440px, plus existing guide, film, keyboard and settings regressions; `audit/tmp/landing-life-handoff.log`. |
 | QR pixels | Regression decodes the rendered 144px website QR to the current origin, not a fabricated room. |
@@ -50,6 +50,8 @@ The release implementation is in `BrowserCompatibility.tsx:16–80`, `ProductDet
 The automated Space-CTA assertion now targets `landing-open-space` rather than an ambiguous button selector because the section gained two preview buttons. It still verifies that the real creation form opens; no assertion was removed.
 
 The first pre-push layout gate caught the new browser section's 24px desktop heading below the 30px minimum. The final type treatment uses the design skill's 30/36 desktop and 24/32 phone steps. The gate is unchanged. Final re-run output is kept in `audit/tmp/landing-life-push.log`.
+
+Current-main integration retains every new linked-device translation alongside every landing translation, without touching their values. A dictionary-union comparison and TypeScript passed. Production build, bundle, sharing smoke and the full landing handoff gate passed again; see the `landing-life-integrated-*` logs under `audit/tmp/`. The recorded implementation is unchanged; production integration remains to be checked after merge.
 
 ## Recorded production-build UI verification
 

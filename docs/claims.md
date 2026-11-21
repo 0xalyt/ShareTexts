@@ -57,6 +57,22 @@ No string ships that is not TRUE after the fix column lands.
 | --- | --- | --- | --- |
 | P1 | "Linked devices are end-to-end encrypted." | **PENDING — not claimable** | The Circle design (`docs/adr/0001-circle.md`) makes it true by construction: the server never receives `K`, and `scripts/verify-circle-crypto.mjs` proves the seal refuses tampering, reordering and cross-circle replay. It becomes claimable only when `scripts/verify-zero-knowledge.mjs` (M3 STEP 4) shows nothing readable is stored or logged. Until then `docs/claims.forbidden.json` keeps the phrase forbidden and no public copy changes. |
 
+## Hop — linked devices ("My devices")
+
+| # | Claim (surface) | Proof | Verdict |
+| --- | --- | --- | --- |
+| H1 | "what you send is waiting on the other device the next time it opens ShareTexts. It can be closed or offline when you send." — `hop.intro.body` | `scripts/verify-hop.mjs`: the receiving tab is closed, two items are sent, the tab is reopened and both are there, in order, before any tap. | **TRUE** (Chromium; real phones UNVERIFIED) |
+| H2 | "Each item is encrypted on this device before it leaves, and the server keeps only that encrypted copy, for 30 days at most." — `hop.intro.note` | Items are sealed with AES-GCM under a key the Worker never receives (`src/lib/circle/items.ts`, `docs/adr/0001-circle.md`); `scripts/verify-zero-knowledge.mjs` checks the stored bytes; `worker/src/limits.ts` `itemTtlMs` is 30 days, and `tidy()` in `src/lib/hop/hop.ts` removes an item sooner once every device has it. | **TRUE** |
+| H3 | "No account." — `hop.intro.note` | A device is a key pair made in the browser (`src/lib/circle/keys.ts`); nothing asks for an email, phone number or password. | **TRUE** |
+| H4 | "Delivered" — `hop.state.delivered` | Shown only after another device has acknowledged the item (`syncDelivered`); `verify-hop` asserts the waiting wording first and Delivered only after the receipt. | **TRUE** |
+| H5 | "Waiting for a connection" while offline — `hop.state.queued` | `verify-hop` goes offline, sends, checks the item stays queued, goes online and checks it arrives once. | **TRUE** |
+| H6 | "If it shows these four in this order, it is really yours." — `hop.confirm.body` | The four emoji come from the ECDH secret between the two devices, the join secret that only travelled in the scanned code, and a transcript both sides compute themselves (`shortAuthString`). A server that swaps a key produces different emoji; `verify-hop` asserts both screens agree and that the scanner is not linked before the other device confirms. | **TRUE** |
+
+Not claimed, on purpose: "end-to-end" (still forbidden by the linter until the
+owner flips P1), instant delivery (Hop asks the mailbox every few seconds while
+open; there is no push yet), and anything about iPhone or Firefox, which have
+not been tested on real devices.
+
 Also listed under PR "UNVERIFIED for owner decision": repo website field +
 `sharetext-phi.vercel.app` DNS-side 301 (vercel.json redirect shipped; DNS
 record needs dashboard access).
