@@ -23,7 +23,8 @@ Hero film/player/assets, supporting pages and transport/protocol code are untouc
 - `npm run verify:handoff`: passed, including new guide checks in English/Spanish/Arabic at 320/390/1440px; current screenshots are `audit/tmp/handoff-320.png`, `handoff-390.png`, `handoff-1440.png`, `landing-story-1440.png`, `landing-1024-700.png` and dark variants.
 - `npm run verify:layout`: passed desktop, sheets, no-flash, first-room-paint and basics. Landing radii remain 8/12/16/24px, section edges match, and the phone has no horizontal overflow.
 - `npm run smoke:local`: production build and server, code pairing, text/link delivery and console checks passed. The existing smoke reaction step remains explicitly disabled, not claimed as tested.
-- Fresh recorded walkthrough and CI: pending before merge.
+- First fresh recorded walkthrough caught an Arabic 320px illustration defect before merge: a proportional locale fallback widened the Latin sample beyond the sender card. Latin code samples now use the existing monospace token, and compact mini-card geometry covers the 360px intermediate width too. The browser gate now measures rendered code ranges against the padded card and all six receiver cells in English/Spanish/Arabic at 320/360/390/1440px.
+- Initial CI: all six checks passed, including Chromium/Firefox/WebKit. Corrected-revision CI and replacement walkthrough remain pending before merge.
 
 ## Corrected diagnosis
 
