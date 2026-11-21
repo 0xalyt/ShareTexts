@@ -43,7 +43,12 @@ try {
   const directives = value => value.split(';').filter(s => s !== 'upgrade-insecure-requests').sort().join(';');
   check('loopback retains every other CSP directive', directives(local) === directives(external));
 
-  const noRtc = await browser.newContext();
+  // Isolate capabilities from service-worker caching and the live worker's CORS.
+  const noRtc = await browser.newContext({ serviceWorkers: 'block' });
+  await noRtc.route('**/stats', route => route.fulfill({
+    json: { users: 0, roomsCreated: 0 },
+    headers: { 'access-control-allow-origin': '*' },
+  }));
   await noRtc.addInitScript(() => {
     for (const key of ['RTCPeerConnection', 'webkitRTCPeerConnection']) {
       Object.defineProperty(window, key, { value: undefined, configurable: true });
@@ -62,7 +67,7 @@ try {
   await reader.goto(BASE, { waitUntil: 'domcontentloaded' });
   await reader.getByRole('heading', { name: "Your browser can't make device-to-device connections", exact: true }).waitFor();
   check('unsupported transfer browsers still get an honest explanation', await reader.getByTestId('home-send').count() === 0);
-  check('reading without WebRTC has no runtime errors', readingErrors.length === 0);
+  assert.deepEqual(readingErrors, [], 'reading without WebRTC has no runtime errors');
   await noRtc.close();
 
   for (const locale of ['en', 'es', 'ar']) {
