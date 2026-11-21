@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check } from 'lucide-react';
+import { AlloSymbol } from './AlloSymbol';
 import { LANGS, useI18n } from '../lib/i18n';
 import { cn } from '../lib/utils';
 import { Sheet } from './ui/Sheet';
@@ -152,7 +152,7 @@ export function LanguageMenu({
                   Beta
                 </span>
               )}
-              {active && <Check className="w-3.5 h-3.5 shrink-0 text-ember dark:text-ember" />}
+              {active && <AlloSymbol name="check" size={14} className="text-ember dark:text-ember" />}
             </button>
           </li>
         );

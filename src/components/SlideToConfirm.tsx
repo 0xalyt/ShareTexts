@@ -35,8 +35,8 @@ import { ArrowRight, Check } from 'lucide-react';
 // ---------------------------------------------------------------------------
 
 /** Knob diameter and track inset — the original's PAD 4, scaled to the rail. */
-const PAD = 3;
-const KNOB = 40;
+const PAD = 4;
+const KNOB = 44;
 /** Fraction of the travel that counts as armed. */
 const ARM_RATIO = 0.82;
 
@@ -87,6 +87,8 @@ export function SlideToConfirm({
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
   const armedRef = useRef(false);
+  const gesture = useRef<{ id: number; startX: number; from: number; max: number } | null>(null);
+  const position = useRef(0);
   const [x, setX] = useState(0);
   const [confirmed, setConfirmed] = useState(false);
 
@@ -99,36 +101,41 @@ export function SlideToConfirm({
   // Original's handleDown: capture the pointer on the knob; the move handler
   // on the same element keeps receiving events past the track's bounds.
   const handleDown = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (confirmed) return;
+    if (confirmed || event.button !== 0 || gesture.current) return;
     draggingRef.current = true;
     armedRef.current = false;
+    gesture.current = { id: event.pointerId, startX: event.clientX, from: position.current, max: maxX() };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handleMove = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (!draggingRef.current || confirmed) return;
-    const track = trackRef.current;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
+    const drag = gesture.current;
+    if (!drag || event.pointerId !== drag.id) return;
     const next = Math.min(
-      Math.max(event.clientX - rect.left - PAD - KNOB / 2, 0),
-      maxX(),
+      Math.max(drag.from + event.clientX - drag.startX, 0),
+      drag.max,
     );
     const wasArmed = armedRef.current;
-    const nowArmed = next >= maxX() - 4;
+    const nowArmed = drag.max > 0 && next >= drag.max - 4;
     if (nowArmed && !wasArmed) hapticTick();
     armedRef.current = nowArmed;
+    position.current = next;
     setX(next);
   };
 
-  const handleUp = () => {
-    if (!draggingRef.current) return;
+  const handleUp = (event: React.PointerEvent<HTMLButtonElement>, cancelled = false) => {
+    const drag = gesture.current;
+    if (!drag || event.pointerId !== drag.id) return;
+    gesture.current = null;
     draggingRef.current = false;
-    if (x >= maxX() - 4) {
-      setX(maxX());
+    if (!cancelled && drag.max > 0 && position.current >= drag.max - 4) {
+      position.current = drag.max;
+      setX(drag.max);
       setConfirmed(true);
       onConfirm?.();
     } else {
+      position.current = 0;
       setX(0);
       armedRef.current = false;
     }
@@ -145,7 +152,8 @@ export function SlideToConfirm({
       event.preventDefault();
       if (!armed) {
         armedRef.current = true;
-        setX(maxX());
+        position.current = maxX();
+        setX(position.current);
         hapticTick();
       } else {
         setConfirmed(true);
@@ -155,6 +163,7 @@ export function SlideToConfirm({
     if (event.key === 'Escape' && armed) {
       event.preventDefault();
       armedRef.current = false;
+      position.current = 0;
       setX(0);
     }
   };
@@ -205,8 +214,9 @@ export function SlideToConfirm({
           disabled={confirmed}
           onPointerDown={handleDown}
           onPointerMove={handleMove}
-          onPointerUp={handleUp}
-          onPointerCancel={handleUp}
+          onPointerUp={(event) => handleUp(event)}
+          onPointerCancel={(event) => handleUp(event, true)}
+          onLostPointerCapture={(event) => handleUp(event, true)}
           onKeyDown={handleKeyDown}
           className={cn(
             'absolute top-1 left-1 flex touch-none items-center justify-center rounded-full will-change-transform',

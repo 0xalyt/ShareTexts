@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { Check } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -44,8 +45,6 @@ const SHAPE_SPRING = { type: 'spring', stiffness: 420, damping: 41, mass: 1 } as
 /** Same rule at a quicker stiffness: 2·√(520·1) ≈ 45.6. */
 const CONTENT_SPRING = { type: 'spring', stiffness: 520, damping: 45.6, mass: 1 } as const;
 
-/** Shortest time the fold stays legible when the work resolves instantly. */
-const MIN_FOLD_MS = 520;
 /** How long the done state holds before the pill settles back. */
 const HOLD_DONE_MS = 1500;
 
@@ -99,10 +98,11 @@ export function MorphButton({
   'aria-label': ariaLabel,
   ref,
 }: MorphButtonProps) {
-  const reduce = useReducedMotion();
+  const reduce = useMotionPreference();
   const innerRef = useRef<HTMLButtonElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const running = useRef(false);
+  const generation = useRef(0);
 
   /** Resting box, measured — the surface animates in px from here. */
   const [box, setBox] = useState({ w: 0, h: 52 });
@@ -130,6 +130,7 @@ export function MorphButton({
   }, []);
 
   useEffect(() => () => {
+    generation.current += 1;
     if (timer.current) clearTimeout(timer.current);
   }, []);
 
@@ -149,21 +150,23 @@ export function MorphButton({
     }
     if (!onPress) return;
 
+    if (timer.current) clearTimeout(timer.current);
     running.current = true;
+    const request = ++generation.current;
     setOwnPhase('loading');
-    const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
     try {
       await onPress();
     } catch {
+      if (request !== generation.current) return;
       // A failed action must give the button back, not strand it in a circle.
       running.current = false;
       setOwnPhase('idle');
       return;
     }
-    const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - started;
-    const remaining = MIN_FOLD_MS - elapsed;
-    if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
-    if (timer.current) clearTimeout(timer.current);
+    if (request !== generation.current) return;
+    // Feedback follows the operation, never a minimum animation runtime.
+    // The success hold is visual only: another action can interrupt it.
+    running.current = false;
     setOwnPhase('done');
     timer.current = setTimeout(settle, holdDoneMs);
   }, [collapsed, disabled, holdDoneMs, onPress, settle, state]);
@@ -212,9 +215,9 @@ export function MorphButton({
         <motion.span
           key={phase}
           className="morph-btn__layer"
-          initial={{ opacity: 0, scale: 0.7 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.7 }}
+          exit={{ opacity: 0, scale: 0.95 }}
           transition={contentTransition}
         >
           {phase === 'loading' ? (
