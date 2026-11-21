@@ -1,3 +1,4 @@
+import { useId, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
@@ -7,10 +8,9 @@ export { BrowserCompatibility } from '../landing/BrowserCompatibility';
 /* ---------------------------------------------------------------------------
  * LandingSections — the scroll tail of the front door.
  *
- * Phase 5 order (DESIGN.md §20a): hero → Three things → The small things →
- * FAQ → final call → footer. Each section is at most one phone viewport high,
- * and each story is one bold lead word, ONE plain sentence, and a recording of
- * the real product doing it — no invented screens, no mock notifications.
+ * Hero → handoff guide → the separate Temporary Spaces story → FAQ → footer.
+ * The guide's examples are explicitly labelled illustrations, never live
+ * rooms or pretend controls. Both instructions stay readable at every step.
  *
  * Copy rules: short sentences, verbs, no marketing slop, no "!", every claim
  * backed by docs/redesign/claims.md. Strings live in messages/en.ts.
@@ -30,31 +30,60 @@ function SectionHead({ heading, id }: { heading: string; id?: string }) {
   );
 }
 
-/* ── Three things — lead word, one sentence, one real recording ───────────── */
+/* ── Handoff guide — one idea at a time, with no automatic progression ───── */
 
 const STORIES = ['pair', 'send'] as const;
 
 export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const guideId = useId();
+  const [step, setStep] = useState<{ key: typeof STORIES[number]; animate: boolean }>({ key: 'pair', animate: false });
+  const number = (value: number) => new Intl.NumberFormat(lang, { minimumIntegerDigits: 2 }).format(value);
   return (
     <section aria-labelledby="how-title" className="landing-story w-full py-16">
-      <SectionHead id="how-title" heading={t('home.three.heading')} />
-      <ol className="landing-story-live">
-        {STORIES.map((key, i) => (
-          <li key={key}>
-            <div className="landing-story-art">
-              {key === 'pair' ? <PairingDetail /> : <TransferDetail />}
-            </div>
-            <div className="landing-story-copy">
-              <span className="landing-story-index" aria-hidden="true">0{i + 1}</span>
-              <div>
-                <h3>{t(`home.three.${key}.lead`)}</h3>
-                <p>{t(`home.three.${key}.body`)}</p>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ol>
+      <div className="landing-guide">
+        <div>
+          <SectionHead id="how-title" heading={t('home.three.heading')} />
+          <ol className="landing-guide-steps" aria-label={t('home.how.eyebrow')}>
+            {STORIES.map((key, i) => (
+              <li key={key}>
+                <button
+                  type="button"
+                  className="landing-guide-step"
+                  data-testid={`landing-guide-${key}`}
+                  aria-pressed={step.key === key}
+                  aria-controls={`${guideId}-example`}
+                  aria-labelledby={`${guideId}-label ${guideId}-${key}-title`}
+                  aria-describedby={`${guideId}-${key}-body`}
+                  onClick={event => {
+                    if (key !== step.key) setStep({ key, animate: event.detail > 0 });
+                  }}
+                >
+                  <span className="landing-guide-index" aria-hidden="true">{number(i + 1)}</span>
+                  <span>
+                    <strong id={`${guideId}-${key}-title`}>{t(`home.three.${key}.lead`)}</strong>
+                    <span id={`${guideId}-${key}-body`} className="landing-guide-body">{t(`home.three.${key}.body`)}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <figure id={`${guideId}-example`} className="landing-guide-frame">
+          {/* Explanation, not ambient motion: only pointer selection fades
+              between illustrations. Persistent layers let rapid selections
+              retarget from their current values instead of restarting.
+              Keyboard selection and reduced motion are instantaneous. */}
+          <div className="landing-guide-example" data-animate={step.animate}>
+            <div className="landing-guide-layer" data-active={step.key === 'pair'}><PairingDetail /></div>
+            <div className="landing-guide-layer" data-active={step.key === 'send'}><TransferDetail /></div>
+          </div>
+          <figcaption>
+            <span id={`${guideId}-label`}>{t('demo.handoff.illustration')}</span>
+            <span aria-hidden="true">{number(step.key === 'pair' ? 1 : 2)} / {number(2)}</span>
+          </figcaption>
+        </figure>
+      </div>
       {/* A server-backed shelf is an alternative to a live room, not step
           three of a transfer. Give it its own space and a real way in. */}
       <div className="landing-story-later">

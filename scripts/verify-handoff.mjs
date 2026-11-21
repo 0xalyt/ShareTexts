@@ -27,7 +27,7 @@ try {
   check('loopback retains every other CSP directive', directives(local) === directives(external));
 
   for (const locale of ['en', 'es', 'ar']) {
-    for (const width of [320, 390, 1440]) {
+    for (const width of [320, 360, 390, 1440]) {
       const ctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
       await ctx.addInitScript((lang) => localStorage.setItem('sharetext.locale', lang), locale);
       const page = await ctx.newPage();
@@ -61,6 +61,34 @@ try {
         };
       });
       check(`${locale}/${width}: film controls fit and remain tappable`, !facts.clipped && !facts.overflow);
+      const guidePair = page.getByTestId('landing-guide-pair');
+      const guideSend = page.getByTestId('landing-guide-send');
+      check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
+      const guideBounds = await page.locator('.landing-guide-frame').boundingBox();
+      await guideSend.click();
+      check(`${locale}/${width}: selecting Send changes only the illustrative example`, await guideSend.getAttribute('aria-pressed') === 'true' && await page.locator('.landing-guide-layer[data-active="true"] .landing-transfer-detail').count() === 1 && await page.getByTestId('home-send').count() === 1);
+      const guideAfter = await page.locator('.landing-guide-frame').boundingBox();
+      check(`${locale}/${width}: example switches without resizing or clipping`, Math.abs(guideBounds.width - guideAfter.width) < 1 && Math.abs(guideBounds.height - guideAfter.height) < 1 && guideAfter.x >= 0 && guideAfter.x + guideAfter.width <= width);
+      check(`${locale}/${width}: reduced-motion example switches do not animate`, await page.locator('.landing-guide-layer[data-active="true"]').evaluate(el => getComputedStyle(el).transitionDuration === '0s' && getComputedStyle(el).opacity === '1'));
+      await guidePair.focus();
+      await page.keyboard.press('Space');
+      check(`${locale}/${width}: keyboard selects Pair without motion`, await guidePair.getAttribute('aria-pressed') === 'true' && await page.locator('.landing-guide-example').getAttribute('data-animate') === 'false' && await page.locator('.landing-guide-layer[data-active="true"] .landing-pair-detail').count() === 1);
+      await page.evaluate(() => document.fonts.ready);
+      check(`${locale}/${width}: sample code fits its padded card and every receiver cell`, await page.locator('.landing-pair-detail').evaluate(el => {
+        const code = el.querySelector('.landing-example-code');
+        const card = code.closest('.landing-mini-device');
+        const style = getComputedStyle(card);
+        const bounds = card.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(code);
+        const glyphs = range.getBoundingClientRect();
+        return glyphs.left >= bounds.left + parseFloat(style.paddingLeft) && glyphs.right <= bounds.right - parseFloat(style.paddingRight) && [...el.querySelectorAll('.landing-code-cells span')].every(cell => {
+          range.selectNodeContents(cell);
+          const text = range.getBoundingClientRect();
+          const box = cell.getBoundingClientRect();
+          return text.left >= box.left && text.right <= box.right;
+        });
+      }));
       if (locale === 'en') {
         await page.evaluate(() => document.fonts.ready);
         const longestHeadingFits = await page.locator('h1').evaluate(el => {
