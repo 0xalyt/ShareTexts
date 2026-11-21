@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { get as getHTTP } from 'node:http';
 import { get as getHTTPS } from 'node:https';
-import { launchBrowser, clickStable } from './lib.mjs';
+import { launchBrowser, clickStable, resolveEngine } from './lib.mjs';
 import jsQR from 'jsqr';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
@@ -185,6 +185,72 @@ try {
         check(`${locale}/${width}: headline is localized`, !(await page.locator('h1').innerText()).includes('Share'));
       }
       check(`${locale}/${width}: no runtime errors`, errors.length === 0);
+      await ctx.close();
+    }
+  }
+
+  // Theme is a media contract too. In particular, a saved override must not
+  // preload the OS's opposite poster. Decode real artwork so a white cut
+  // mislabeled "dark" cannot pass just because its filename looks right.
+  for (const width of [390, 1440]) {
+    for (const [os, saved, expected] of [
+      ['light', null, 'light'], ['dark', null, 'dark'],
+      ['light', 'dark', 'dark'], ['dark', 'light', 'light'],
+    ]) {
+      const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: os, reducedMotion: 'reduce' });
+      if (saved) await ctx.addInitScript(theme => localStorage.setItem('sharetext.theme', theme), saved);
+      const page = await ctx.newPage();
+      if (resolveEngine().name === 'firefox') {
+        // Firefox drops context-level color emulation on its first real
+        // navigation. Prime an inert response, then establish the OS before
+        // the first landing visit; no app/poster has been fetched yet.
+        await page.goto(new URL('/health', BASE).href);
+        await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
+      }
+      const requests = [];
+      page.on('request', request => { if (/\/film\/.*-poster\./.test(request.url())) requests.push(request.url()); });
+      await page.goto(BASE, { waitUntil: 'networkidle' });
+      const demo = page.getByTestId('hero-demo');
+      await demo.waitFor();
+      const inspect = () => page.evaluate(() => {
+        const video = document.querySelector('[data-testid="hero-demo"] video');
+        const links = [...document.querySelectorAll('link[rel~="preload"][as="image"]')]
+          .filter(link => new URL(link.href).pathname.startsWith('/film/'));
+        return { dark: document.documentElement.classList.contains('dark'), poster: video.poster,
+          preload: links.length === 1 ? links[0].href : '', priority: links[0]?.getAttribute('fetchpriority') };
+      });
+      const state = await inspect();
+      const name = `${width}px OS=${os} saved=${saved || 'system'}`;
+      check(`${name}: OS precondition is real`, await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches) === (os === 'dark'));
+      check(`${name}: the shown theme wins`, state.dark === (expected === 'dark'));
+      check(`${name}: exactly one matching high-priority poster`, state.preload === state.poster && state.priority === 'high');
+      check(`${name}: no opposite poster requested at boot`, requests.length > 0 && requests.every(url => url === state.poster));
+      const brightness = await page.evaluate(async () => {
+        const image = new Image(); image.src = document.querySelector('[data-testid="hero-demo"] video').poster;
+        await image.decode();
+        const canvas = document.createElement('canvas'); canvas.width = 16; canvas.height = 9;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0, 16, 9);
+        return [[0, 0], [15, 0], [0, 8], [15, 8]].reduce((sum, [x, y]) => {
+          const pixel = ctx.getImageData(x, y, 1, 1).data;
+          return sum + (pixel[0] + pixel[1] + pixel[2]) / 12;
+        }, 0);
+      });
+      check(`${name}: the real poster belongs to its theme (${brightness.toFixed(1)}/255)`, expected === 'dark' ? brightness < 55 : brightness > 200);
+      if (!saved) {
+        await page.emulateMedia({ colorScheme: os === 'dark' ? 'light' : 'dark', reducedMotion: 'reduce' });
+        await page.waitForFunction(({ wasDark, oldPoster }) => document.documentElement.classList.contains('dark') !== wasDark &&
+          document.querySelector('[data-testid="hero-demo"] video').poster !== oldPoster, { wasDark: state.dark, oldPoster: state.poster });
+        const changed = await inspect();
+        check(`${name}: live OS changes keep poster/preload together`, changed.preload === changed.poster && changed.priority === 'high');
+      }
+      await demo.locator('.hero-film-play').click();
+      await page.waitForFunction(() => Boolean(document.querySelector('[data-testid="hero-demo"] video').getAttribute('src')));
+      const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster, full: el.querySelector('.hero-film-watch').href }));
+      check(`${name}: movie, still and full export use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4') && assets.full === assets.poster.replace('-poster.jpg', '-full.mp4'));
+      for (const url of [assets.movie, assets.full]) {
+        const file = await page.request.get(url, { headers: { Range: 'bytes=0-63' } });
+        check(`${name}: the encoded movie exists (${new URL(url).pathname})`, file.ok() && /video\/mp4/.test(file.headers()['content-type'] || ''));
+      }
       await ctx.close();
     }
   }

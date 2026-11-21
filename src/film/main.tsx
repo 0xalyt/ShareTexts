@@ -16,11 +16,12 @@ if (!root) throw new Error('film-root missing');
    devices, no lit desk, four movements. That is what the site's hero plays. */
 const hero = /(?:^|[?&])mode=hero(?:&|$)/.test(window.location.search);
 const launch = new URLSearchParams(window.location.search).get('mode') === 'launch';
-// The white studio film uses the same product palette regardless of the OS.
+// Authoring uses an explicit palette, never the renderer machine's OS theme.
 if (launch) {
-  document.documentElement.classList.remove('dark');
-  document.documentElement.style.background = '#fff';
-  document.body.style.background = '#fff';
+  const dark = new URLSearchParams(location.search).get('theme') === 'dark';
+  document.documentElement.classList.toggle('dark', dark);
+  document.documentElement.style.background = dark ? '#181818' : '#fff';
+  document.body.style.background = dark ? '#181818' : '#fff';
 }
 
 createRoot(root).render(

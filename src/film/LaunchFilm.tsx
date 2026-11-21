@@ -19,11 +19,12 @@ export function LaunchFilm() {
   const [time, setTime] = useState(0);
   const { t } = useI18n();
   const texture = new URLSearchParams(location.search).get('texture');
+  const dark = new URLSearchParams(location.search).get('theme') === 'dark';
   useEffect(() => {
     if (texture || !canvas.current) return;
     let live = true;
     let dispose: (() => void) | undefined;
-    void createStudio(canvas.current).then(studio => {
+    void createStudio(canvas.current, dark).then(studio => {
       dispose = studio.dispose;
       if (!live) { dispose(); return; }
       window.__film = async next => {
@@ -34,7 +35,7 @@ export function LaunchFilm() {
       studio.seek(0);
     });
     return () => { live = false; delete window.__film; dispose?.(); };
-  }, [texture]);
+  }, [texture, dark]);
 
   if (texture) {
     const phone = texture.startsWith('phone');
@@ -51,7 +52,7 @@ export function LaunchFilm() {
     <canvas ref={canvas} width="1920" height="1080" className="studio-canvas" style={{ opacity: 1 - at(5.55, 0.55) + at(11.9, 0.65) }} />
     <div className="studio-type" style={{ opacity: 1 - copyOut }}>
       <div><span style={{ transform: `translateY(${104 * (1 - first)}%)` }}>{t('film.from')}</span></div>
-      <div><span style={{ transform: `translateY(${104 * (1 - second)}%)`, color: '#ee6417' }}>{t('film.to')}</span></div>
+      <div><span style={{ transform: `translateY(${104 * (1 - second)}%)`, color: dark ? '#ff813d' : '#ee6417' }}>{t('film.to')}</span></div>
     </div>
     <div className="studio-brand" style={{ opacity: mark * (1 - brandOut), transform: `translateY(${16 * (1 - mark)}px)` }}>
       <div style={{ transform: `translateX(${178 * (1 - wordmark)}px) rotate(${24 * (1 - mark)}deg)` }}><ShareTextsLogo size={130} /></div>
