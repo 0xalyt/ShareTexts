@@ -113,10 +113,12 @@ export class Registry extends DurableObject<Env> {
 
   /** Bounded per-IP fixed window. /rate-check takes one attempt and returns
    *  ok=false once the limit is hit; /rate-lease takes up to
-   *  limit/RATE_LEASE_DIVISOR attempts at once and says how many it granted
+   *  up to `want` attempts at once — never more than limit/RATE_LEASE_DIVISOR,
+   *  nor more than half of what is left in the window, so leases shrink to
+   *  single attempts as the limit nears — and says how many it granted
    *  (0 = limited) and when the window resets. */
   private async rateCheck(request: Request, lease: boolean): Promise<Response> {
-    let body: { ip?: string; scope?: string };
+    let body: { ip?: string; scope?: string; want?: number };
     try {
       body = (await request.json()) as typeof body;
     } catch {
@@ -132,8 +134,15 @@ export class Registry extends DurableObject<Env> {
       bucket = { count: 0, windowStart: now };
       this.rateBuckets.set(key, bucket);
     }
-    const want = lease ? Math.max(1, Math.floor(cfg.limit / RATE_LEASE_DIVISOR)) : 1;
-    const granted = Math.max(0, Math.min(want, cfg.limit - bucket.count));
+    const left = cfg.limit - bucket.count;
+    const want = lease
+      ? Math.min(
+          Math.max(1, Math.floor(Number(body.want) || 1)),
+          Math.max(1, Math.floor(cfg.limit / RATE_LEASE_DIVISOR)),
+          Math.max(1, Math.floor(left / 2)),
+        )
+      : 1;
+    const granted = Math.max(0, Math.min(want, left));
     bucket.count += granted;
     if (!lease) return json({ ok: granted > 0 });
     return json({ ok: granted > 0, granted, resetAt: bucket.windowStart + cfg.windowMs });

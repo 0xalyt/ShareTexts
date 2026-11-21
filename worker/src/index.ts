@@ -17,7 +17,7 @@ let lobbySecretCache: { value: string; expires: number } | null = null;
 
 /** Rate-limit attempts this isolate has leased from the Registry, per
  *  scope:ip. `exhausted` caches a Registry "no" until the window resets. */
-const rateLeases = new Map<string, { tokens: number; resetAt: number; exhausted: boolean }>();
+const rateLeases = new Map<string, { tokens: number; used: number; resetAt: number; exhausted: boolean }>();
 const RATE_LEASES_MAX = 10_000;
 
 /** /stats is an approximate public counter polled by every open landing
@@ -537,15 +537,21 @@ async function rateLimited(env: Env, scope: string, ip: string): Promise<boolean
   const key = scope + ':' + ip;
   const now = Date.now();
   const held = rateLeases.get(key);
-  if (held && now < held.resetAt) {
-    if (held.tokens > 0) { held.tokens--; return true; }
-    if (held.exhausted) return false;
+  const live = held && now < held.resetAt ? held : null;
+  if (live) {
+    if (live.tokens > 0) { live.tokens--; live.used++; return true; }
+    if (live.exhausted) return false;
   }
+  // Ask for as many attempts as this isolate has already spent for this key
+  // this window (at least one). A visitor whose requests scatter across
+  // isolates leases one at a time, so nothing is stranded where they never
+  // return; only a key that keeps landing here earns bigger leases.
+  const used = live?.used ?? 0;
   const stub = env.REGISTRY.get(env.REGISTRY.idFromName('registry-' + dayKey()));
   const res = await stub.fetch(
     new Request('https://internal/rate-lease', {
       method: 'POST',
-      body: JSON.stringify({ ip, scope }),
+      body: JSON.stringify({ ip, scope, want: Math.max(1, used) }),
     })
   );
   if (res.status !== 200) return false;
@@ -557,7 +563,13 @@ async function rateLimited(env: Env, scope: string, ip: string): Promise<boolean
     // Dropping a live lease only forfeits attempts already counted.
     if (rateLeases.size >= RATE_LEASES_MAX) rateLeases.clear();
   }
-  rateLeases.set(key, { tokens: Math.max(0, granted - 1), resetAt, exhausted: granted === 0 });
+  const sameWindow = live && live.resetAt === resetAt;
+  rateLeases.set(key, {
+    tokens: Math.max(0, granted - 1),
+    used: (sameWindow ? used : 0) + (granted > 0 ? 1 : 0),
+    resetAt,
+    exhausted: granted === 0,
+  });
   return granted > 0;
 }
 
