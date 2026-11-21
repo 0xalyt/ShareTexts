@@ -878,6 +878,19 @@ const en = {
   "saved.view": "View",
   "saved.showMore": "Show more",
   "saved.savedOn": "Saved {date}",
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "Different browsers. Same handoff.",
+  "home.browser.body": "They don’t have to match. Just open ShareTexts on both.",
+  "home.browser.open": "Open on your other device",
+  "home.browser.qr": "Show website QR",
+  "home.browser.qrHint": "Scan to open this page. Pair with a room code next.",
+  "home.browser.copyFailed": "Select and copy the address, or scan the QR.",
+  "home.space.storage": "Spaces use temporary server storage. Share the code only with people you trust.",
+  "home.space.preview": "Interactive preview. Nothing is saved.",
+  "home.space.open": "While open",
+  "home.space.closed": "After expiry",
+  "home.space.example": "Weekend plans",
+  "home.space.note": "Train at 09:30. Coffee before we go?",
 };
 
 export default en;

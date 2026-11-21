@@ -1,4 +1,5 @@
-import { ArrowRight, Check, FileText, Laptop, Link, Smartphone } from 'lucide-react';
+import { useId, useState } from 'react';
+import { ArrowRight, Check, Clock3, FileText, Laptop, Link, Smartphone } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 
 /** Below-the-fold product vignettes. Deliberately not clickable mock controls:
@@ -40,9 +41,32 @@ export function TransferDetail() {
 }
 
 export function SpaceDetail() {
-  return <div className="landing-space-detail" aria-hidden="true">
-    <div className="landing-space-sheet landing-space-sheet-back"><FileText /></div>
-    <div className="landing-space-sheet"><Link /><span>sharetexts.online</span><i /><i /></div>
-    <div className="landing-space-clock"><svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="16" /><path d="M20 10v10l7 4" /></svg></div>
-  </div>;
+  const { t } = useI18n();
+  const id = useId();
+  const [preview, setPreview] = useState({ open: true, animate: false });
+  return <figure className="landing-space-preview" aria-labelledby={`${id}-caption`}>
+    <div className="landing-space-window" data-open={preview.open} data-animate={preview.animate}>
+      <div className="landing-space-window-header" aria-hidden="true">
+        <span>{t('home.space.example')}</span>
+        <span><Clock3 />{t('space.retention')}</span>
+      </div>
+      {/* Sample content is never uploaded. Both layers stay mounted so rapid
+          reversals retarget the fade; keyboard and reduced-motion are instant. */}
+      <div id={`${id}-example`} className="landing-space-stage" aria-hidden="true">
+        <div className="landing-space-open">
+          <div className="landing-space-note"><FileText /><p>{t('home.space.note')}</p><span>{t('space.addedByYou')}</span></div>
+          <div className="landing-space-link"><Link /><div><strong>{t('nav.docs')}</strong><bdi dir="ltr">sharetexts.online/docs</bdi></div></div>
+          <div className="landing-space-devices"><Laptop /><span /><Smartphone /></div>
+        </div>
+        <div className="landing-space-closed"><Clock3 /><strong>{t('space.closedTitle')}</strong><p>{t('space.closedBody')}</p></div>
+      </div>
+      <div className="landing-space-switch" role="group" aria-label={t('home.space.preview')}>
+        {[true, false].map(open => <button key={String(open)} type="button" className="landing-quiet-button" aria-controls={`${id}-example`} aria-pressed={preview.open === open} onClick={event => setPreview({ open, animate: event.detail > 0 })}>
+          {t(open ? 'home.space.open' : 'home.space.closed')}
+        </button>)}
+      </div>
+    </div>
+    <figcaption id={`${id}-caption`}>{t('home.space.preview')}</figcaption>
+    <span className="sr-only" role="status">{t(preview.open ? 'home.space.open' : 'space.closedBody')}</span>
+  </figure>;
 }

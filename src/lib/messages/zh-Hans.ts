@@ -842,6 +842,19 @@ const zh: Dict = {
   "saved.view": "查看",
   "saved.showMore": "显示更多",
   "saved.savedOn": "收藏于 {date}",
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "浏览器不同。传递一样简单。",
+  "home.browser.body": "无需使用相同的浏览器。在两台设备上打开 ShareTexts 即可。",
+  "home.browser.open": "在另一台设备上打开",
+  "home.browser.qr": "显示网站二维码",
+  "home.browser.qrHint": "扫码打开此页面，然后使用房间代码连接。",
+  "home.browser.copyFailed": "选中并复制地址，或扫描二维码。",
+  "home.space.storage": "空间使用临时服务器存储。请仅与信任的人分享代码。",
+  "home.space.preview": "可交互预览。不会保存任何内容。",
+  "home.space.open": "开放期间",
+  "home.space.closed": "到期之后",
+  "home.space.example": "周末计划",
+  "home.space.note": "火车09:30出发。出发前喝杯咖啡？",
 };
 
 export default zh;

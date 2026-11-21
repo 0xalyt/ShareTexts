@@ -843,6 +843,19 @@ const de: Dict = {
   "saved.view": "Ansehen",
   "saved.showMore": "Mehr anzeigen",
   "saved.savedOn": "Gespeichert am {date}",
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "Andere Browser. Gleiche Übergabe.",
+  "home.browser.body": "Sie müssen nicht gleich sein. Öffne ShareTexts einfach auf beiden.",
+  "home.browser.open": "Auf deinem anderen Gerät öffnen",
+  "home.browser.qr": "Website-QR anzeigen",
+  "home.browser.qrHint": "Scannen, um diese Seite zu öffnen. Danach mit einem Raumcode verbinden.",
+  "home.browser.copyFailed": "Adresse markieren und kopieren oder den QR scannen.",
+  "home.space.storage": "Spaces nutzen temporären Serverspeicher. Teile den Code nur mit Personen, denen du vertraust.",
+  "home.space.preview": "Interaktive Vorschau. Nichts wird gespeichert.",
+  "home.space.open": "Solange geöffnet",
+  "home.space.closed": "Nach Ablauf",
+  "home.space.example": "Wochenendpläne",
+  "home.space.note": "Zug um 09:30 Uhr. Kaffee vor der Abfahrt?",
 };
 
 export default de;

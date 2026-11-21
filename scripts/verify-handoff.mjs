@@ -4,10 +4,27 @@ import { mkdirSync } from 'node:fs';
 import { get as getHTTP } from 'node:http';
 import { get as getHTTPS } from 'node:https';
 import { launchBrowser, clickStable } from './lib.mjs';
+import jsQR from 'jsqr';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const browser = await launchBrowser();
 const check = (name, condition) => { assert.ok(condition, name); console.log(`PASS ${name}`); };
+async function decodeWebsiteQr(page) {
+  const pixels = await page.locator('.landing-browser-qr svg').evaluate(async svg => {
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const img = new Image();
+    const loaded = new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; });
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+    await loaded;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 288;
+    const context = canvas.getContext('2d');
+    context.drawImage(img, 0, 0, 288, 288);
+    return Array.from(context.getImageData(0, 0, 288, 288).data);
+  });
+  return jsQR(Uint8ClampedArray.from(pixels), 288, 288)?.data;
+}
 const policy = (headers = {}) => new Promise((resolve, reject) => {
   const get = BASE.startsWith('https:') ? getHTTPS : getHTTP;
   get(BASE, { headers }, response => {
@@ -89,6 +106,37 @@ try {
           return text.left >= box.left && text.right <= box.right;
         });
       }));
+      const browsers = page.locator('.landing-browsers');
+      const copyAddress = page.getByTestId('landing-copy-address');
+      const defaultCopyLabel = await copyAddress.innerText();
+      await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.__copiedWebsite = value; } } }));
+      await copyAddress.click();
+      await page.waitForFunction(() => Boolean(window.__copiedWebsite));
+      check(`${locale}/${width}: copying the website uses the real origin without room credentials`, await page.evaluate(() => window.__copiedWebsite) === new URL(BASE).origin && await copyAddress.innerText() !== defaultCopyLabel);
+      const successFeedback = await browsers.getByRole('status').innerText();
+      await page.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error('permission denied'); }; });
+      await copyAddress.click();
+      check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await browsers.getByRole('status').innerText()).length > 12 && await browsers.getByRole('status').innerText() !== successFeedback);
+      const websiteQr = page.getByTestId('landing-website-qr');
+      await websiteQr.click();
+      await browsers.getByTestId('qr-art').waitFor();
+      check(`${locale}/${width}: website QR disclosure stays inside the viewport with six readable browser names`, await websiteQr.getAttribute('aria-expanded') === 'true' && await browsers.locator('li').count() === 6 && await browsers.evaluate(el => {
+        const bounds = el.getBoundingClientRect();
+        return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
+      }));
+      if (locale === 'en' && width === 320) check('website QR decodes to the homepage, not a fake room', await decodeWebsiteQr(page) === new URL(BASE).origin);
+      await websiteQr.focus();
+      await page.keyboard.press('Escape');
+      check(`${locale}/${width}: Escape closes the website QR and restores focus without creating a room`, await websiteQr.getAttribute('aria-expanded') === 'false' && await websiteQr.evaluate(el => el === document.activeElement) && await page.getByTestId('home-send').isVisible());
+      const shelf = page.locator('.landing-space-preview');
+      const shelfButtons = shelf.getByRole('button');
+      const shelfBefore = await shelf.boundingBox();
+      await shelfButtons.nth(1).click();
+      const shelfAfter = await shelf.boundingBox();
+      check(`${locale}/${width}: expiry preview is labelled, reversible and does not resize`, await shelfButtons.nth(1).getAttribute('aria-pressed') === 'true' && await shelf.locator('figcaption').innerText() !== '' && Math.abs(shelfBefore.height - shelfAfter.height) < 1 && await shelf.locator('.landing-space-closed').evaluate(el => getComputedStyle(el).opacity === '1'));
+      await shelfButtons.nth(0).focus();
+      await page.keyboard.press('Space');
+      check(`${locale}/${width}: keyboard restores the open example instantly`, await shelfButtons.nth(0).getAttribute('aria-pressed') === 'true' && await shelf.locator('.landing-space-open').evaluate(el => getComputedStyle(el).opacity === '1' && getComputedStyle(el).transitionDuration === '0s'));
       if (locale === 'en') {
         await page.evaluate(() => document.fonts.ready);
         const longestHeadingFits = await page.locator('h1').evaluate(el => {
@@ -106,8 +154,7 @@ try {
         check(`${width}: the longest rotating headline stays inside its column`, longestHeadingFits);
         await page.locator('h1').evaluate(el => el.scrollIntoView({ block: 'center' }));
         await page.screenshot({ path: `audit/tmp/handoff-${width}.png`, fullPage: false });
-        const later = page.locator('.landing-story-later');
-        await later.getByRole('button').click();
+        await page.getByTestId('landing-open-space').click();
         await page.getByTestId('space-create-duration').waitFor();
         check(`${width}: the later-sharing story opens real space creation`, await page.getByTestId('space-create-duration').isVisible());
         await page.keyboard.press('Escape');

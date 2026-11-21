@@ -62,6 +62,19 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   'action.save': 'Guardar',
   'action.copy': 'Copiar',
   'msg.copy': 'Copiar',
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "Navegadores diferentes. A mesma transferência.",
+  "home.browser.body": "Não precisam de ser iguais. Basta abrir o ShareTexts nos dois.",
+  "home.browser.open": "Abrir no seu outro dispositivo",
+  "home.browser.qr": "Mostrar QR do site",
+  "home.browser.qrHint": "Leia o QR para abrir esta página. Depois, ligue com um código de sala.",
+  "home.browser.copyFailed": "Selecione e copie o endereço ou leia o QR.",
+  "home.space.storage": "Os espaços usam armazenamento temporário no servidor. Partilhe o código apenas com pessoas de confiança.",
+  "home.space.preview": "Pré-visualização interativa. Nada é guardado.",
+  "home.space.open": "Enquanto aberto",
+  "home.space.closed": "Após expirar",
+  "home.space.example": "Planos para o fim de semana",
+  "home.space.note": "Comboio às 09:30. Um café antes de sair?",
 };
 
 export default ptPT;

@@ -842,6 +842,19 @@ const ja: Dict = {
   "saved.view": "表示",
   "saved.showMore": "もっと見る",
   "saved.savedOn": "{date} に保存",
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "違うブラウザでも。同じように受け渡し。",
+  "home.browser.body": "同じブラウザでなくても大丈夫。両方でShareTextsを開くだけ。",
+  "home.browser.open": "もう一方のデバイスで開く",
+  "home.browser.qr": "サイトのQRを表示",
+  "home.browser.qrHint": "スキャンしてこのページを開きます。その後、ルームコードで接続します。",
+  "home.browser.copyFailed": "アドレスを選択してコピーするか、QRをスキャンしてください。",
+  "home.space.storage": "スペースはサーバーに一時保存されます。コードは信頼できる人にだけ共有してください。",
+  "home.space.preview": "操作できるプレビューです。何も保存されません。",
+  "home.space.open": "開いている間",
+  "home.space.closed": "期限が切れた後",
+  "home.space.example": "週末の予定",
+  "home.space.note": "電車は09:30。出発前にコーヒーでも？",
 };
 
 export default ja;
