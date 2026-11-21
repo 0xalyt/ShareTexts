@@ -11,7 +11,7 @@ export function BrowserCompatibility() {
   const { t } = useI18n();
   return (
     <section className="landing-browsers w-full" aria-labelledby="browsers-title">
-      <h2 id="browsers-title" className="st-h2">{t('home.browsers')}</h2>
+      <p id="browsers-title">{t('home.browsers')}</p>
       <ul className="landing-browser-list">
         {BROWSERS.map(([slug, name]) => <li key={slug}>
           <img src={`/browsers/${slug}.svg`} width="28" height="28" loading="lazy" decoding="async" alt="" />

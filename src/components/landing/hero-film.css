@@ -1,24 +1,36 @@
 .hero-film { width: 100%; min-width: 0; margin: 0; }
-.hero-film-picture { position: relative; overflow: hidden; aspect-ratio: 16 / 9; background: #fff; border-radius: 16px; border: 1px solid var(--color-apple-divider); }
+.hero-film-picture { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 9; background: #fff; border-radius: 16px; border: 1px solid var(--color-apple-divider); }
 .hero-film-picture video { display: block; width: 100%; height: 100%; object-fit: contain; }
 .hero-film-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.hero-film-caption { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 16px; }
+/* A small visual control, not a small target. Fitts's Law: 36px disc, 48px hit area. */
+.hero-film-play { position: absolute; z-index: 1; right: 8px; bottom: 8px; display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 50%; color: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hero-film-play::before { content: ''; position: absolute; inset: 6px; z-index: -1; border-radius: inherit; background: #28282be6; }
+.hero-film-play svg { width: 14px; height: 14px; fill: currentColor; }
+.hero-film-play:active svg { transform: scale(.92); }
+.hero-film-caption { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0 12px; padding-top: 4px; }
 .hero-film-eyebrow { color: var(--color-ember-ink); font-size: 12px; font-weight: 600; }
-.hero-film-caption p { max-width: 40ch; margin-top: 8px; color: var(--color-apple-ink-muted); font-size: 14px; line-height: 20px; text-wrap: pretty; }
-.hero-film-play { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; border: 1px solid var(--color-apple-divider); border-radius: 50%; color: var(--color-apple-ink); cursor: pointer; }
-.hero-film-play svg { width: 16px; height: 16px; fill: currentColor; }
-.hero-film-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-.hero-film-download { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; color: var(--color-apple-ink-muted); }
-.hero-film-download svg { width: 18px; height: 18px; }
-.hero-film-play:active { transform: scale(.97); }
-.hero-film-watch { display: flex; align-items: center; gap: 8px; width: fit-content; min-height: 48px; margin-top: 8px; color: var(--color-apple-ink-muted); font-size: 12px; font-weight: 600; }
-.hero-film-watch svg { width: 16px; height: 16px; }
-.hero-film-play:focus-visible, .hero-film-watch:focus-visible, .hero-film-download:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 4px; }
+.hero-film-actions { display: flex; align-items: center; gap: 4px; margin-inline-start: auto; }
+.hero-film-watch { display: flex; align-items: center; gap: 6px; width: fit-content; min-height: 48px; color: var(--color-apple-ink-muted); font-size: 12px; font-weight: 500; }
+.hero-film-watch svg { width: 14px; height: 14px; flex-shrink: 0; }
+.hero-film-download { display: grid; place-items: center; width: 44px; height: 48px; border-radius: 50%; color: var(--color-apple-ink-muted); }
+.hero-film-download svg { width: 15px; height: 15px; }
+.hero-film-play:focus-visible { outline: 2px solid #1d1d1f; outline-offset: -2px; }
+.hero-film-watch:focus-visible, .hero-film-download:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; border-radius: 4px; }
 .dark .hero-film-eyebrow { color: var(--color-ember); }
-.dark .hero-film-caption p, .dark .hero-film-watch { color: #a1a1a6; }
-.dark .hero-film-play { color: #ededf2; }
-.dark .hero-film-download { color: #a1a1a6; }
+.dark .hero-film-watch, .dark .hero-film-download { color: #a1a1a6; }
+/* The white studio is the film's art direction, not an app surface. A matte
+   cinema surround and soft light spill make that distinction in dark mode. */
+.dark .hero-film {
+  padding: 9px 9px 0;
+  border: 1px solid #ffffff18;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #35353c, #222226 60%, #1c1c20);
+  box-shadow: 0 24px 64px #0005, 0 0 80px -24px #ffffff1f, inset 0 1px 0 #ffffff0d;
+}
+.dark .hero-film-picture { border-color: #ffffff40; border-radius: 15px; box-shadow: 0 8px 24px #0003; }
+.dark .hero-film-caption { padding: 3px 5px 0; }
 @media (hover: hover) and (pointer: fine) {
-  .hero-film-play:hover { background: var(--color-apple-parchment); }
-  .hero-film-watch:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .hero-film-play:hover::before { background: #1d1d1f; }
+  .hero-film-watch:hover { color: var(--color-apple-ink); text-decoration: underline; text-underline-offset: 4px; }
+  .dark .hero-film-watch:hover { color: #ededf2; }
 }
