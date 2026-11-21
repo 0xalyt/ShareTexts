@@ -778,6 +778,93 @@ async function runRegistry() {
   check('rate limit is per-IP (fresh IP allowed)', (await fresh.json()).ok === true);
   const unknown = await reg.fetch(new Request('http://x/rate-check', { method: 'POST', body: JSON.stringify({ ip: 'unknown', scope: 'lookup' }) }));
   check('rate limit skips unknown IPs (dev/test)', (await unknown.json()).ok === true);
+
+  // Leases come out of the same counter: however they are split, one IP
+  // never gets more than the limit per window.
+  let granted = 0;
+  for (let i = 0; i < 10; i++) {
+    const r = await reg.fetch(new Request('http://x/rate-lease', { method: 'POST', body: JSON.stringify({ ip: '203.0.113.9', scope: 'lookup', want: 99 }) }));
+    const out = await r.json();
+    granted += out.granted;
+    if (i === 0) check('rate lease grants a share and a reset time', out.granted === 4 && out.resetAt > Date.now(), JSON.stringify(out));
+  }
+  check('rate leases never exceed the per-window limit', granted === 20, `got ${granted}`);
+}
+
+/** The router spends leased attempts locally: the 21st lookup from one IP
+ *  still 429s, and the Registry is asked far less than once per request. */
+async function runRateLease() {
+  const registry = new Registry(new FakeCtx(), {});
+  let leaseCalls = 0;
+  const env = {
+    REGISTRY: { idFromName: name => name, get: () => ({ fetch: (req) => {
+      if (new URL(req.url).pathname === '/rate-lease') leaseCalls++;
+      return registry.fetch(req);
+    } }) },
+  };
+  const statuses = [];
+  for (let i = 0; i < 30; i++) {
+    const res = await worker.fetch(new Request('https://worker.test/lookup', {
+      method: 'POST', headers: { 'cf-connecting-ip': '198.51.100.20', 'content-type': 'application/json' },
+      body: JSON.stringify({ code: '123456' }),
+    }), env);
+    statuses.push(res.status);
+  }
+  const limited = statuses.filter((st) => st === 429).length;
+  check('router allows exactly 20 lookups per IP per window, then 429s', limited === 10 && statuses.slice(0, 20).every((st) => st !== 429), statuses.join(','));
+  check('router leases attempts instead of one Registry call per request', leaseCalls <= 10, `got ${leaseCalls}`);
+  const other = await worker.fetch(new Request('https://worker.test/lookup', {
+    method: 'POST', headers: { 'cf-connecting-ip': '198.51.100.21', 'content-type': 'application/json' },
+    body: JSON.stringify({ code: '123456' }),
+  }), env);
+  check('router rate limit stays per-IP', other.status !== 429, `got ${other.status}`);
+}
+
+/** Leases are per isolate and Cloudflare may spread one visitor's requests
+ *  over several. A visitor whose requests scatter must not be refused before
+ *  they have made at least half the limit, and across isolates the total
+ *  allowed per window must never pass the limit. */
+async function runRateLeaseIsolates() {
+  const isolates = [];
+  for (let i = 0; i < 8; i++) {
+    isolates.push((await import(pathToFileURL(path.join(tmp, 'index.js')).href + cacheBust + '&isolate=' + i)).default);
+  }
+  let seed = 7;
+  const rand = (n) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+  let earliestRefusal = Infinity;
+  let maxAllowed = 0;
+  for (let trial = 0; trial < 60; trial++) {
+    const registry = new Registry(new FakeCtx(), {});
+    const env = { REGISTRY: { idFromName: name => name, get: () => registry } };
+    const spread = 2 + (trial % 7);
+    const ip = '198.51.100.' + (100 + trial);
+    let allowed = 0;
+    for (let i = 0; i < 40; i++) {
+      const res = await isolates[rand(spread)].fetch(new Request('https://worker.test/lookup', {
+        method: 'POST', headers: { 'cf-connecting-ip': ip, 'content-type': 'application/json' },
+        body: JSON.stringify({ code: '123456' }),
+      }), env);
+      if (res.status === 429) earliestRefusal = Math.min(earliestRefusal, i);
+      else allowed++;
+    }
+    maxAllowed = Math.max(maxAllowed, allowed);
+  }
+  check('a visitor spread over 2-8 isolates is never refused before half the limit', earliestRefusal >= 10, `first 429 at attempt ${earliestRefusal + 1}`);
+  check('across isolates one IP never gets more than the limit', maxAllowed <= 20, `got ${maxAllowed}`);
+
+  // An ordinary visit: make a room, join one, a couple of retries, every
+  // request on a different isolate. Nothing is refused.
+  const registry = new Registry(new FakeCtx(), {});
+  const env = { REGISTRY: { idFromName: name => name, get: () => registry } };
+  const statuses = [];
+  for (let i = 0; i < 8; i++) {
+    const res = await isolates[i].fetch(new Request('https://worker.test/lookup', {
+      method: 'POST', headers: { 'cf-connecting-ip': '198.51.100.250', 'content-type': 'application/json' },
+      body: JSON.stringify({ code: '123456' }),
+    }), env);
+    statuses.push(res.status);
+  }
+  check('an ordinary visit across 8 isolates is never refused', statuses.every((st) => st !== 429), statuses.join(','));
 }
 
 /**
@@ -829,6 +916,14 @@ async function runMetrics() {
   await other.fetch(new Request('http://x/event', { method: 'POST', body: JSON.stringify({ name: 'joins.succeeded' }) }));
   snap = await (await other.fetch(new Request('http://x/metrics'))).json();
   check('non-room metrics do not inflate the rooms counter', snap.lifetime_rooms_created === 0, `got ${snap.lifetime_rooms_created}`);
+
+  // Rooms flush buffered counters as one batch.
+  const batch = new Metrics(new FakeCtx(), {});
+  const okBatch = await batch.fetch(new Request('http://x/event', { method: 'POST', body: JSON.stringify({ counts: { 'rooms.created': 2, 'relay.binary_messages': 5 } }) }));
+  snap = await (await batch.fetch(new Request('http://x/metrics'))).json();
+  check('a batch adds every count once', okBatch.status === 200 && snap.lifetime_rooms_created === 2 && snap.totals['relay.binary_messages'] === 5, JSON.stringify(snap.totals));
+  const badBatch = await batch.fetch(new Request('http://x/event', { method: 'POST', body: JSON.stringify({ counts: { 'rooms.created': -3 } }) }));
+  check('a batch with a bad count is rejected whole', badBatch.status === 400);
 }
 
 // ── Temporary Space (F14) DO ──────────────────────────────────────────────
@@ -978,6 +1073,8 @@ await runGraceHeartbeat();
 await runGraceReclaim();
 await runConnectionReclaims();
 await runRegistry();
+await runRateLease();
+await runRateLeaseIsolates();
 await runMetrics();
 await runSpace();
 
