@@ -30,7 +30,7 @@
       { "@type": "HowToStep", "name": "Open ShareTexts", "text": "Visit sharetexts.online on both devices." },
       { "@type": "HowToStep", "name": "Pair devices", "text": "One device generates a 6-digit code. The other enters it. Devices connect via WebRTC." },
       { "@type": "HowToStep", "name": "Transfer", "text": "Files and text move directly between devices, encrypted in transit." },
-      { "@type": "HowToStep", "name": "Close", "text": "The temporary room closes. No data is stored." }
+      { "@type": "HowToStep", "name": "Close", "text": "Close the live room when done. Items you saved remain on your device." }
     ]
   }
   </script>
@@ -148,7 +148,7 @@
     <h1>How ShareTexts Works</h1>
     <p class="subtitle">A detailed explanation of how ShareTexts transfers files between devices — from pairing to encrypted transfer to completion.</p>
 
-    <div class="callout"><p><strong>The simple version:</strong> Open ShareTexts on both devices. Connect with a code. Send your file. It moves directly between devices, encrypted. Close the tab when done and nothing from the transfer is stored.</p></div>
+    <div class="callout"><p><strong>The simple version:</strong> Open ShareTexts on both devices. Connect with a code. Send your file in a live room, directly when possible, with an encrypted relay fallback. Live-room content is not stored server-side. Temporary Spaces store content for later; saved items stay in your browser.</p></div>
 
     <h2>The Transfer Flow</h2>
     <div class="flow">
@@ -173,7 +173,7 @@
       <div class="step-box">
         <div class="num">4</div>
         <h3>WebRTC connection established</h3>
-        <p>The browsers negotiate a direct peer-to-peer connection using WebRTC. The signaling server helps them find each other, then steps aside. All subsequent data flows directly between devices.</p>
+        <p>The browsers negotiate a direct peer-to-peer connection using WebRTC. The signaling server helps them find each other. Data travels directly when possible, with an encrypted relay fallback when needed.</p>
       </div>
       <div class="flow-line"></div>
       <div class="step-box">
@@ -191,7 +191,7 @@
       <div class="step-box">
         <div class="num">7</div>
         <h3>Close the room</h3>
-        <p>When you close the tab or the session expires, the room is destroyed. No files, messages, or metadata are stored on any server.</p>
+        <p>Live rooms expire unless you enable Stay Connected. Closing a room does not remove files or items already saved on a device. Temporary Spaces store content server-side for 6 hours to 7 days, or until closed early. See the <a href="/privacy">privacy policy</a> for connection metadata.</p>
       </div>
     </div>
 
@@ -230,7 +230,7 @@
       <p style="margin-bottom:8px;"><strong>Protocol:</strong> <span class="tech">DTLS-SRTP</span> over WebRTC DataChannel</p>
       <p style="margin-bottom:8px;"><strong>Scope:</strong> All data between devices is encrypted in transit</p>
       <p style="margin-bottom:8px;"><strong>Key exchange:</strong> DTLS handshake during connection setup</p>
-      <p style="margin:0;"><strong>Server visibility:</strong> The signaling server sees connection metadata but not file contents</p>
+      <p style="margin:0;"><strong>Server visibility:</strong> The service sees connection metadata and issues the room secret. This is not zero knowledge; Temporary Space content is stored server-side.</p>
     </div>
 
     <h2>File Integrity</h2>
@@ -304,7 +304,7 @@
       </nav>
     </div>
     <div class="footer-bottom">
-      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Nothing stored</p>
+      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Your devices</p>
       <a href="https://x.com/0xalyt" target="_blank" rel="noopener noreferrer" title="Maker: Garv — @0xalyt" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;min-height:32px"><img src="/brand/maker-garv.webp?v=2" alt="" width="24" height="24" loading="lazy" decoding="async" style="width:24px;height:24px;border-radius:999px;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 1px rgba(0,0,0,0.10)" /><span>@0xalyt</span></a>
     </div>
     <script>document.getElementById('st-year').textContent = new Date().getFullYear();</script>

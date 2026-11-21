@@ -15,6 +15,20 @@ const RULES = JSON.parse(readFileSync('docs/claims.forbidden.json', 'utf8')).rul
 const byId = new Map(RULES.map((r) => [r.id, new RegExp(r.pattern, 'i')]));
 
 const CASES = [
+  ['nothing-stored', 'No app · No account · Nothing stored', true],
+  ['nothing-stored', 'Nothing is ever stored.', true],
+  ['nothing-stored', 'No data is stored on any server.', true],
+  ['nothing-stored', 'No data is ever stored on any server.', true],
+  ['nothing-stored', 'The server never sees your content.', true],
+  ['nothing-stored', 'No copy is stored after it finishes.', true],
+  ['nothing-stored', 'No files, messages, or metadata are stored on any server.', true],
+  ['nothing-stored', 'No server storage', true],
+  ['nothing-stored', 'Nothing is kept after the room closes.', true],
+  ['nothing-stored', 'Transfers are never stored on a server.', true],
+  ['nothing-stored', 'Rooms keep nothing after they close.', true],
+  ['nothing-stored', 'Temporary Spaces store content server-side until closed or expired.', false],
+  ['nothing-stored', 'Live-room content is not stored server-side. Saved items stay in this browser.', false],
+  ['nothing-stored', 'No app · No account · Your devices', false],
   ['nearby-appears', 'It appears under Available while ShareTexts is open on both devices; otherwise connect with a code.', true],
   ['nearby-appears', 'The other device appears automatically while ShareTexts is open on both.', true],
   ['nearby-appears', 'Turn on Nearby for 10 minutes on your other device and it appears here.', false],

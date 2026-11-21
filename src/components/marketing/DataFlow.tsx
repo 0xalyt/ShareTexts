@@ -9,10 +9,9 @@ import { cn } from '../../lib/utils';
  *
  * Three facts, in the order they matter, and nothing decorative:
  *
- *   1. The signaling server only INTRODUCES the two devices — it carries the
- *      room code and the handshake, never the content.
- *   2. The content itself goes device → device, encrypted end to end.
- *   3. Nothing is left behind: no copy on a server, no history to leak.
+ *   1. The signaling server introduces the devices.
+ *   2. Live transfers are encrypted in transit, with a relay fallback.
+ *   3. Live rooms, Temporary Spaces and saved items have separate lifetimes.
  *
  * Shape follows that order: two device tiles that are unmistakably the same
  * weight, a wire between them that a packet visibly rides, and the server
@@ -29,12 +28,12 @@ const STEPS: { icon: React.ElementType; title: string; body: string }[] = [
   {
     icon: Lock,
     title: 'The bytes go device to device',
-    body: 'Files, photos and text travel between the two browsers, encrypted in transit. Direct connections never send your content through the server.',
+    body: 'Live transfers are encrypted in transit, directly when possible, with an encrypted relay fallback.',
   },
   {
     icon: Check,
-    title: 'The room closes and it is gone',
-    body: 'Close the room (or let it expire) and the connection, the code and everything inside it stop existing. No account, no history, no copy.',
+    title: 'Choose what to keep',
+    body: 'Live-room content is not stored server-side. Temporary Spaces store content until closed or expired. Saved items stay in this browser.',
   },
 ];
 
@@ -110,8 +109,8 @@ export function DataFlow({ className }: { className?: string }) {
           <Server className="h-4 w-4" aria-hidden />
         </span>
         <p className="max-w-[420px] text-left text-[12px] leading-snug text-apple-ink-muted dark:text-white/50">
-          Our signaling server sits beside the wire, not in it: it hands over the room code and steps
-          out. It never sees a file, a photo, or a word you type.
+          The service handles connection metadata and issues the room secret, so this is not zero
+          knowledge. Temporary Space content is stored server-side. Read the <a href="/privacy" className="underline underline-offset-4">privacy policy</a> for the full distinction.
         </p>
       </div>
 

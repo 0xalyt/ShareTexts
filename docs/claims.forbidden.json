@@ -10,20 +10,34 @@
         "scripts/seo-routes.mjs",
         "public/guides",
         "index.html",
-        "public/llms.txt"
+        "public/llms.txt",
+        "src/views/Docs.tsx",
+        "src/components/marketing/SiteFooter.tsx",
+        "src/components/HeroDeviceDemo.tsx",
+        "src/film",
+        "scripts/gen-search-pages.mjs",
+        "scripts/render-film.mjs",
+        "src/components/marketing/DataFlow.tsx"
       ],
       "reason": "Rooms are encrypted in transit only — the Worker mints the room secret, so it could derive the key. E2E becomes claimable only when the Circle work (M3/M4) proves zero-knowledge."
     },
     {
       "id": "nothing-stored",
-      "pattern": "nothing is (ever )?stored(?! (after|once|when|until|in a|on a server after))|nothing is (ever )?kept(?! (after|once|when|until|in a))",
+      "pattern": "\\bnothing (?:is |is ever |ever )?(?:stored|kept)\\b|\\bno (?:server )?storage\\b|\\bno (?:data|files(?:, messages, or metadata)?) (?:is|are) (?:ever )?stored\\b|\\bnever stored on (?:a|any) server\\b|\\b(?:rooms (?:keep|store)|keep) nothing\\b|leave nothing on our servers|\\bno copy is stored\\b|\\bno account, no history, no copy\\b|never sees a file|(?:server|service).{0,40}never sees? (?:your content|file contents|content)",
       "scope": [
         "src/lib/messages",
         "src/views/Legal.tsx",
         "scripts/seo-routes.mjs",
         "public/guides",
         "index.html",
-        "public/llms.txt"
+        "public/llms.txt",
+        "src/views/Docs.tsx",
+        "src/components/marketing/SiteFooter.tsx",
+        "src/components/HeroDeviceDemo.tsx",
+        "src/film",
+        "scripts/gen-search-pages.mjs",
+        "scripts/render-film.mjs",
+        "src/components/marketing/DataFlow.tsx"
       ],
       "reason": "Temporary Spaces hold items for a chosen duration, and the server keeps room state, IPs, sizes and times. An absolute is false; say what is actually true."
     },

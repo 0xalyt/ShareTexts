@@ -59,7 +59,7 @@ const dur = (file) =>
 const VO_BODY = `Open it on both devices. Your other device appears in the room.
 One tap, and you are connected. Now send anything.
 Text from the phone. A photo. A file. They land on the laptop.
-Direct on your network, end to end. Encrypted. Nothing is kept.`;
+Direct when possible, with an encrypted relay fallback. Encrypted in transit.`;
 const VO_TAG = 'ShareTexts. Move anything between your devices.';
 const VO_TAG_AT = 26.9;
 

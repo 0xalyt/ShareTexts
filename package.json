@@ -40,7 +40,7 @@
     "verify:bundle": "node scripts/verify-bundle.mjs",
     "verify:locale-boot": "node scripts/verify-locale-boot.mjs",
     "verify:robust": "node scripts/verify-robust.mjs",
-    "verify:claims": "node scripts/verify-claims.mjs",
+    "verify:claims": "node scripts/verify-claims.mjs && node scripts/verify-claims-selftest.mjs && node scripts/verify-footer.mjs",
     "verify:icons": "node scripts/verify-icons.mjs",
     "verify:chaos": "node scripts/verify-chaos.mjs",
     "verify:no-flash": "node scripts/verify-no-flash.mjs",
