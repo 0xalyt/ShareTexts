@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const fr: Dict = {
+  'reading.englishOnly': "Cette page est actuellement disponible uniquement en anglais.",
   'film.download': "Télécharger le film",
   'film.from': "D’un écran",
   'film.to': "à l’autre.",
@@ -845,7 +846,7 @@ const fr: Dict = {
   "saved.showMore": "Afficher plus",
   "saved.savedOn": "Enregistré le {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "Des navigateurs différents. Le même partage.",
+  "home.browser.heading": "Fonctionne dans tous les navigateurs modernes",
   "home.browser.body": "Pas besoin des mêmes navigateurs. Ouvrez simplement ShareTexts sur les deux.",
   "home.browser.open": "Ouvrir sur votre autre appareil",
   "home.browser.qr": "Afficher le QR du site",
