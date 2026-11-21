@@ -3,6 +3,7 @@ import '../index.css';
 import { I18nProvider } from '../lib/i18n';
 import { FilmStage } from './FilmStage';
 import { HeroCut } from './HeroCut';
+import { LaunchFilm } from './LaunchFilm';
 
 const root = document.getElementById('film-root');
 if (!root) throw new Error('film-root missing');
@@ -14,7 +15,14 @@ if (!root) throw new Error('film-root missing');
 /* `?mode=hero` renders the simplified hero cut (HeroCut): the same two
    devices, no lit desk, four movements. That is what the site's hero plays. */
 const hero = /(?:^|[?&])mode=hero(?:&|$)/.test(window.location.search);
+const launch = new URLSearchParams(window.location.search).get('mode') === 'launch';
+// The white studio film uses the same product palette regardless of the OS.
+if (launch) {
+  document.documentElement.classList.remove('dark');
+  document.documentElement.style.background = '#fff';
+  document.body.style.background = '#fff';
+}
 
 createRoot(root).render(
-  <I18nProvider>{hero ? <HeroCut /> : <FilmStage />}</I18nProvider>,
+  <I18nProvider>{launch ? <LaunchFilm /> : hero ? <HeroCut /> : <FilmStage />}</I18nProvider>,
 );

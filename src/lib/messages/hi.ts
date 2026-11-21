@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const hi: Dict = {
+  'film.download': "फ़िल्म डाउनलोड करें",
+  'film.from': "एक स्क्रीन से",
+  'film.to': "दूसरी स्क्रीन तक।",
+  'film.title': "ShareTexts की परिचय फ़िल्म",
+  'film.label': "भेजने के लिए बना।",
+  'film.summary': "रूम खोलें। डिवाइस जोड़ें। सीधे भेजें।",
+  'film.play': "फ़िल्म चलाएँ",
+  'film.pause': "फ़िल्म रोकें",
+  'film.watch': "फ़िल्म देखें",
   'home.browsers': 'आधुनिक ब्राउज़र में चलता है',
   'home.titleSuffix': 'अपने डिवाइसों के बीच।',
   'home.later.heading': 'बाद में वापस आकर लें।',

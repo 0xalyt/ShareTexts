@@ -601,15 +601,23 @@ function seatParticipant(
   info: { id: string; name: string; platform: string }
 ): 'seated' | 'reclaimed' | 'full' {
   const existing = room.participants.get(info.id);
+  if (!existing && liveParticipants(room).length >= MAX_PARTICIPANTS) return 'full';
+  const byRoom = socketParticipants.get(socketId) ?? new Map<string, string>();
+  byRoom.set(room.id, info.id);
+  socketParticipants.set(socketId, byRoom);
   if (existing) {
-    if (existing.socketId !== socketId) room.activePeers.delete(existing.socketId);
+    cancelGrace(existing.socketId);
+    if (existing.socketId !== socketId) {
+      room.activePeers.delete(existing.socketId);
+      socketParticipants.delete(existing.socketId);
+      socketRooms.delete(existing.socketId);
+    }
     existing.socketId = socketId;
     existing.name = info.name;
     existing.platform = info.platform;
     room.activePeers.add(socketId);
     return 'reclaimed';
   }
-  if (liveParticipants(room).length >= MAX_PARTICIPANTS) return 'full';
   room.participants.set(info.id, {
     id: info.id,
     socketId,
@@ -1360,7 +1368,7 @@ io.on('connection', (socket) => {
   // Rejoin after a page refresh — or after a RESTART, for Stay Connected
   // rooms. Requires the session secret, which only a device that previously
   // joined the room can hold.
-  safeOn('resume_room', ({ roomId, secret, pid: resumePid }, cb) => {
+  safeOn('resume_room', ({ roomId, secret, pid: resumePid, reconnect }, cb) => {
     let room = rooms.get(roomId);
     if (!room || room.secret !== secret) {
       // Restart resurrection: if this room carries a live Stay Connected
@@ -1406,6 +1414,7 @@ io.on('connection', (socket) => {
     // id reclaims its seat (same logical device); an unknown id is a new
     // member of a room this device had not seated in before.
     const selfId = typeof resumePid === 'string' && /^[0-9a-f-]{36}$/i.test(resumePid) ? resumePid : crypto.randomUUID();
+    const sameSeat = room.participants.get(selfId)?.socketId === socket.id && room.activePeers.has(socket.id);
     const result = seatParticipant(room, socket.id, { id: selfId, name: 'Device', platform: platformLabel });
     if (result === 'full') {
       return cb({ success: false, error: 'This room is at its internal capacity. Please start a new session.' });
@@ -1419,10 +1428,10 @@ io.on('connection', (socket) => {
     // RECLAIMED seat means the same logical device returned → survivors
     // re-offer to it (peer_recovered semantics). A genuinely NEW seat is a
     // roster join → the delta decides the initiator deterministically.
-    if (result === 'reclaimed') {
+    if (result === 'reclaimed' && (!sameSeat || reconnect === true)) {
       room.rosterSeq++;
       socket.to(roomId).emit('peer_recovered', { peerId: selfId, roster: { participants: rosterList(room), seq: room.rosterSeq } });
-    } else {
+    } else if (result === 'seated') {
       const seniority = [...room.participants.values()].sort((a, b) => a.joinedAt - b.joinedAt || (a.id < b.id ? -1 : 1));
       socket.to(roomId).emit('peer_joined', {
         peerId: selfId,

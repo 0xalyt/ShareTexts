@@ -70,18 +70,22 @@ export function participantIdFor(roomId: string): string {
     let id = map[roomId];
     if (!id || typeof id !== 'string' || !/^[0-9a-f-]{36}$/i.test(id)) {
       id = crypto.randomUUID();
-      map[roomId] = id;
-      // Bound the map: keep only the 20 most recent rooms.
-      const keys = Object.keys(map);
-      if (keys.length > 20) {
-        for (const k of keys.slice(0, keys.length - 20)) delete map[k];
-      }
-      localStorage.setItem(DEVICE_ID_KEY, JSON.stringify(map));
+      saveParticipantId(roomId, id);
     }
     return id;
   } catch {
     return crypto.randomUUID();
   }
+}
+
+export function saveParticipantId(roomId: string, participantId: string): void {
+  try {
+    const map: Record<string, string> = JSON.parse(localStorage.getItem(DEVICE_ID_KEY) || '{}');
+    map[roomId] = participantId;
+    const keys = Object.keys(map);
+    for (const key of keys.slice(0, Math.max(0, keys.length - 20))) delete map[key];
+    localStorage.setItem(DEVICE_ID_KEY, JSON.stringify(map));
+  } catch { /* private mode */ }
 }
 
 export function forgetParticipantId(roomId: string): void {

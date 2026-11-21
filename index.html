@@ -10,7 +10,7 @@
     <!-- The hero's first frame, fetched while the document is still parsing:
          the film panel paints a real picture instead of a black box, and the
          video itself can wait until it is on screen. -->
-    <link rel="preload" as="image" href="/film/sharetexts-hero-v3-poster.jpg" fetchpriority="high" />
+    <link rel="preload" as="image" href="/film/sharetexts-launch-v1-poster.jpg" fetchpriority="high" />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
     <meta name="application-name" content="ShareTexts" />
@@ -170,6 +170,14 @@
           var meta = document.querySelector('meta[name="theme-color"]');
           if (meta) meta.content = dark ? '#181818' : '#fbfbfd';
         } catch (e) { /* storage unavailable — system default applies */ }
+        // A tab that reloads inside a linked room boots straight back into
+        // it, so the placeholder must be room-shaped: a landing skeleton
+        // there is a screen the user never asked for. Same test as
+        // storedRoomWasLinked() in src/lib/session/persistence.ts.
+        try {
+          var s = location.pathname === '/' && JSON.parse(localStorage.getItem('sharetext.session.v1') || 'null');
+          if (s && s.roomId && (s.partnerName || (s.messages && s.messages.length))) document.documentElement.classList.add('st-resume');
+        } catch (e) { /* no stored room — the landing skeleton is right */ }
         // Slow-boot honesty (mirrors the in-app connecting screen): an 8s boot
         // is NOT normal — say so instead of shimmering forever. Folded into
         // this whitelisted script so the strict CSP keeps exactly ONE inline
@@ -281,6 +289,15 @@
           @media (prefers-reduced-motion: reduce) {
             #loading-shell .st-sk::after { animation: none; opacity: 0; }
           }
+          /* Room resume: the same three regions as SkeletonScreen's room
+             variant (device bar, message column, composer), so shell →
+             skeleton → room replaces blocks in place. */
+          #loading-shell .st-skel-room { display: none; height: 100dvh; flex-direction: column; }
+          html.st-resume #loading-shell .st-skel { display: none; }
+          html.st-resume #loading-shell .st-skel-room { display: flex; }
+          #loading-shell .st-skel-room__bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; }
+          #loading-shell .st-skel-room__list { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 12px; padding: 0 16px 16px; }
+          #loading-shell .st-skel-room__composer { display: flex; align-items: center; gap: 8px; padding: 0 16px 20px; }
           #st-boot-slow {
             margin: 0; max-width: 34ch; text-align: center;
             font-size: 12.5px; font-weight: 500; line-height: 1.5; color: #6e6e73;
@@ -313,6 +330,25 @@
           </div>
           <div class="st-skel__film--side">
             <div class="st-sk st-sk--film" style="margin-top: 0"></div>
+          </div>
+        </div>
+        <div class="st-skel-room" aria-hidden="true">
+          <div class="st-skel-room__bar">
+            <div class="st-sk" style="width: 32px; height: 32px; border-radius: 12px"></div>
+            <div>
+              <div class="st-sk" style="width: 96px; height: 12px; border-radius: 999px"></div>
+              <div class="st-sk" style="width: 64px; height: 8px; margin-top: 6px; border-radius: 999px"></div>
+            </div>
+          </div>
+          <div class="st-skel-room__list">
+            <div class="st-sk" style="width: 58%; height: 40px; border-radius: 16px"></div>
+            <div class="st-sk" style="width: 46%; height: 48px; border-radius: 16px; align-self: flex-end"></div>
+            <div class="st-sk" style="width: 38%; height: 40px; border-radius: 16px"></div>
+          </div>
+          <div class="st-skel-room__composer">
+            <div class="st-sk" style="width: 44px; height: 44px; border-radius: 999px"></div>
+            <div class="st-sk" style="flex: 1; height: 44px; border-radius: 24px"></div>
+            <div class="st-sk" style="width: 44px; height: 44px; border-radius: 999px"></div>
           </div>
         </div>
       </div>

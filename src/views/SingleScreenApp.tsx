@@ -69,9 +69,9 @@ import { CommandBarChip } from '../components/CommandBarChip';
 // The palette is 6 KB gzip that exists only after a keystroke or a click.
 const CommandBar = lazy(() => import('../components/CommandBar').then(m => ({ default: m.CommandBar })));
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
-import { loadStoredSession } from '../lib/session/persistence';
+import { loadStoredSession, storedRoomWasLinked } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
-import { HandoffDemo } from '../components/landing/HandoffDemo';
+import { HeroLaunchFilm } from '../components/HeroLaunchFilm';
 import '../components/landing/landing-page.css';
 import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, LandingFaq, BrowserCompatibility } from '../components/marketing/LandingSections';
@@ -180,6 +180,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     // until the channel reopens — no state argues with the initial one.
     const stored = loadStoredSession();
     if (!stored?.roomId) return 'idle';
+    // A room that already had its other device resumes AS the room: its
+    // messages are in storage and the reconnect banner tells the rest. The
+    // pairing screen here was a lie for a beat — a code nobody needs.
+    if (storedRoomWasLinked(stored)) return 'connected';
     return stored.isCreator ? 'sending' : 'connecting';
   });
   const [isCreating, setIsCreating] = useState(false);
@@ -405,8 +409,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // partnerConnecting (peer_recovered after a drop) is a RECONNECT, not a
   // first connect: the room stays up — ChatView's reconnect banner is the
   // right surface — instead of bouncing back to the connecting screen.
-  const everConnectedRoomRef = useRef<string | null>(null);
-  const everConnectedRef = useRef(false);
+  const resumedLinked = useRef<{ roomId: string | null; linked: boolean } | null>(null);
+  if (resumedLinked.current === null) {
+    const stored = loadStoredSession();
+    resumedLinked.current = { roomId: stored?.roomId ?? null, linked: storedRoomWasLinked(stored) };
+  }
+  const everConnectedRoomRef = useRef<string | null>(resumedLinked.current.linked ? resumedLinked.current.roomId : null);
+  const everConnectedRef = useRef(resumedLinked.current.linked);
   /* --- stuck-handshake honesty ------------------------------------------- */
   // A connecting screen that spins forever teaches users the app is broken.
   // Two thresholds, one message each: 15s "still trying, hang on" (with a
@@ -1207,7 +1216,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   copy so there is one clock and one set of controls. */}
               <div className="landing-mobile-demo st-hide-landscape order-7 lg:hidden flex justify-center">
                 <div className="w-full max-w-[560px]">
-                  {!isDesktopLayout && <HandoffDemo />}
+                  {!isDesktopLayout && <HeroLaunchFilm />}
                 </div>
               </div>
               {/* Stay Connected re-entry: the room this device promised to
@@ -2070,15 +2079,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             {/* Left: the words and the actions (headline → subline → live
                 tracker → Send/Receive → nearby discovery → the quiet tail). */}
             <div className="w-full min-w-0">{idleHeroNode}</div>
-            {/* Right: the product, running — and the LARGER half of the
-                composition (F24). The demo carries the hero's visual weight:
-                a wider pane, a taller canvas, and screens that scale with
-                their frames. Not a screenshot and not a still: it plays the
-                whole story — open, pair, send, arrive, close — on two live
-                device screens, with a caption on the same clock. On a very
-                short window the landing simply scrolls to it. */}
+            {/* The launch film replaces the interactive illustration. Only
+                the active responsive placement mounts a video/player. */}
             <div className="w-full max-w-[620px] mx-auto">
-              {isDesktopLayout && <HandoffDemo />}
+              {isDesktopLayout && <HeroLaunchFilm />}
             </div>
           </div>
           <BrowserCompatibility />

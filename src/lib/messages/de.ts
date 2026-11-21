@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const de: Dict = {
+  'film.download': "Film herunterladen",
+  'film.from': "Von einem Bildschirm",
+  'film.to': "zum anderen.",
+  'film.title': "Der ShareTexts Produktfilm",
+  'film.label': "Zum Teilen gemacht.",
+  'film.summary': "Raum öffnen. Geräte verbinden. Direkt senden.",
+  'film.play': "Film abspielen",
+  'film.pause': "Film pausieren",
+  'film.watch': "Film ansehen",
   'home.browsers': 'Für moderne Browser',
   'home.titleSuffix': 'zwischen deinen Geräten.',
   'home.later.heading': 'Hol es später ab.',

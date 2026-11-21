@@ -1,9 +1,10 @@
 import { ChatMessage } from '../../types';
+import { pruneReceivedFiles } from '../transferStore';
 
 /**
  * Persistence layer for session credentials, message snapshots and the
- * Stay Connected promise. Pure localStorage — no React, no networking.
- * Extracted verbatim from SessionContext (Round 03); semantics unchanged.
+ * Stay Connected promise, with history-scoped cleanup of local receive bytes.
+ * No React or networking.
  */
 
 export const STORAGE_KEY = 'sharetext.session.v1';
@@ -36,10 +37,22 @@ export function loadStoredSession(): StoredSession | null {
   return null;
 }
 
+/** True when the stored room had already reached its other device. */
+export function storedRoomWasLinked(s: StoredSession | null): boolean {
+  return Boolean(s?.roomId && (s.partnerName || (s.messages?.length ?? 0) > 0));
+}
+
 export function saveStoredSession(s: StoredSession | null) {
   try {
+    const previous = loadStoredSession();
     if (s) localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
     else localStorage.removeItem(STORAGE_KEY);
+    if (previous?.roomId !== s?.roomId) removeUnreferencedReceivedFiles(previous?.roomId);
+    if (s) {
+      const stay = loadLastStayRoom();
+      const messages = [...(s.messages ?? []), ...(stay?.roomId === s.roomId ? stay.messages ?? [] : [])];
+      void pruneReceivedFiles(s.roomId, messages.flatMap(m => m.attachment ? [m.attachment.id] : []));
+    }
   } catch { /* ignore */ }
 }
 
@@ -62,9 +75,17 @@ export function loadLastStayRoom(): LastStayRoom | null {
 }
 export function saveLastStayRoom(v: LastStayRoom | null) {
   try {
+    const previous = loadLastStayRoom();
     if (v) localStorage.setItem(LAST_STAY_KEY, JSON.stringify(v));
     else localStorage.removeItem(LAST_STAY_KEY);
+    if (previous?.roomId !== v?.roomId) removeUnreferencedReceivedFiles(previous?.roomId);
   } catch { /* ignore */ }
+}
+
+function removeUnreferencedReceivedFiles(roomId: string | undefined) {
+  if (roomId && loadStoredSession()?.roomId !== roomId && loadLastStayRoom()?.roomId !== roomId) {
+    void pruneReceivedFiles(roomId);
+  }
 }
 /** Refresh ONLY the credential half of the last-stay record, preserving any
  *  message snapshot already saved for that room. */
@@ -78,8 +99,8 @@ export function saveLastStayCredentials(roomId: string, secret: string) {
  * they must NEVER be persisted. A restored session that keeps the old `blob:`
  * URL renders a broken preview (and logs REQFAIL) after every reload. Strip
  * the URL on the way out AND on the way in (for data stored before this fix),
- * and mark partner files we received but no longer hold as 'restoring' — the
- * peer is asked to re-send the bytes the moment the channel reopens.
+ * and mark received files as 'restoring' until the local byte store is read.
+ * Only a local miss needs a resend when the channel reopens.
  */
 export function sanitizeStoredMessages(msgs: ChatMessage[] | undefined): ChatMessage[] {
   if (!msgs) return [];

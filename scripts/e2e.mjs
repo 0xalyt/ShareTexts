@@ -1,5 +1,21 @@
 // E2E: create → join → connect → send → receive → refresh-reconnect → large text → third-device rejection
 import { launchBrowser, URL, sleep, readLiveCode } from './lib.mjs';
+import { tsImport } from 'tsx/esm/api';
+
+const { generateTOTP } = await tsImport('../src/lib/totp.ts', import.meta.url);
+
+function messageRow(page, text) {
+  return page.locator('[class~="group/msg"]').filter({ has: page.getByText(text, { exact: true }) });
+}
+
+async function visibleMessageRow(page, text) {
+  const row = messageRow(page, text);
+  await row.waitFor({ state: 'attached', timeout: 20000 });
+  if (await row.count() !== 1) throw new Error(`expected one message row for ${JSON.stringify(text)}`);
+  await row.scrollIntoViewIfNeeded();
+  await row.getByText(text, { exact: true }).waitFor({ state: 'visible', timeout: 20000 });
+  return row;
+}
 
 function makeUnicodeText(kb) {
   const parts = [
@@ -49,47 +65,83 @@ async function main() {
   // --- A -> B small text ---
   await A.locator('textarea').first().fill('Hello from Device A 👋');
   await A.getByRole('button', { name: 'Send', exact: true }).click();
-  await sleep(2000);
-  const bBody1 = await B.locator('body').innerText();
-  if (!bBody1.includes('Hello from Device A 👋')) {
-    failures++;
-    console.log('STEP 3 FAIL: B did not receive message. B body:', bBody1.slice(0, 400).replace(/\n/g, ' | '));
-  } else {
+  try {
+    await visibleMessageRow(B, 'Hello from Device A 👋');
     console.log("STEP 3 OK: B received A's message");
+  } catch {
+    failures++;
+    console.log('STEP 3 FAIL: B did not receive message');
   }
 
   // --- B -> A reply ---
   await B.locator('textarea').first().fill('Reply from Device B');
   await B.getByRole('button', { name: 'Send', exact: true }).click();
-  await sleep(2000);
-  const aBody1 = await A.locator('body').innerText();
-  if (!aBody1.includes('Reply from Device B')) {
+  try {
+    await visibleMessageRow(A, 'Reply from Device B');
+    console.log("STEP 4 OK: A received B's reply");
+  } catch {
     failures++;
     console.log('STEP 4 FAIL: A did not receive reply');
-  } else {
-    console.log("STEP 4 OK: A received B's reply");
   }
 
   // --- Copy button on A: the sent message must copy verbatim ---
-  await A.getByRole('button', { name: 'Copy message' }).first().click();
+  const copiedText = 'Hello from Device A 👋';
+  const copyRow = await visibleMessageRow(A, copiedText);
+  await A.evaluate(() => {
+    const write = navigator.clipboard.writeText.bind(navigator.clipboard);
+    window.restoreTestClipboard = () => { navigator.clipboard.writeText = write; };
+    navigator.clipboard.writeText = async text => {
+      try {
+        await write(text);
+        window.testClipboardWrite = { text, ok: true };
+      } catch (error) {
+        window.testClipboardWrite = { text, ok: false, error: String(error) };
+        throw error;
+      }
+    };
+  });
+  await copyRow.getByRole('button', { name: 'Copy message' }).click();
   await sleep(500);
-  const clip = await A.evaluate(() => navigator.clipboard.readText().catch(() => ''));
-  console.log(clip === 'Hello from Device A 👋' ? 'STEP 5 OK: Copy put the message on the clipboard' : 'STEP 5 WARN: clipboard read failed or mismatched');
+  const clip = await A.evaluate(() => navigator.clipboard.readText().then(text => ({ text }), error => ({ error: String(error) })));
+  if ('text' in clip) {
+    if (clip.text !== copiedText) throw new Error('Copy clipboard content mismatched');
+    console.log('STEP 5 OK: Copy put the message on the clipboard');
+  } else {
+    await A.waitForFunction(() => window.testClipboardWrite);
+    const result = await A.evaluate(() => window.testClipboardWrite);
+    if (!result.ok || result.text !== copiedText) throw new Error(`Clipboard write failed: ${JSON.stringify(result)}`);
+    console.log(`STEP 5 OK: native clipboard write resolved with exact text; readback unavailable: ${clip.error}`);
+  }
+  await A.evaluate(() => window.restoreTestClipboard());
 
   // --- Large unicode text A -> B ---
   const big = makeUnicodeText(120); // ~120 KB
-  await A.locator('textarea').first().fill(big);
+  if (browser.browserType().name() === 'webkit') {
+    await A.getByTestId('composer').first().evaluate((textarea, text) => {
+      const data = new DataTransfer();
+      data.setData('text/plain', text);
+      textarea.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: data }));
+    }, big);
+  } else {
+    await A.getByTestId('composer').first().fill(big);
+  }
+  await A.waitForFunction(text => document.querySelector('[data-testid="composer"]')?.value === text, big);
   await A.getByRole('button', { name: 'Send', exact: true }).click();
   console.log('STEP 6: sent ~120KB unicode text, waiting for B to receive…');
-  let receivedBig = false;
-  for (let i = 0; i < 30; i++) {
-    await sleep(1000);
-    const body = await B.locator('body').innerText();
-    if (body.includes('café naïve résumé')) { receivedBig = true; break; }
+  {
+    const row = B.locator('[class~="group/msg"]').filter({ has: B.getByRole('button', { name: 'Show full text', exact: true }) });
+    await row.waitFor({ state: 'attached', timeout: 30000 });
+    await row.scrollIntoViewIfNeeded();
+    await row.getByRole('button', { name: 'Show full text', exact: true }).click();
+    const expandedRow = B.locator('[class~="group/msg"]').filter({ has: B.getByRole('button', { name: 'Collapse', exact: true }) });
+    const fullText = await expandedRow.locator('.st-verbatim').evaluate(element => {
+      const copy = element.cloneNode(true);
+      copy.querySelectorAll('button').forEach(button => button.remove());
+      return copy.textContent;
+    });
+    if (fullText !== big) throw new Error('Received large text differs from the sent content');
   }
-  // Verify byte-for-byte: check the full text is present by comparing lengths via clipboard copy all
-  console.log(receivedBig ? 'STEP 6 OK: B received large text' : 'STEP 6 FAIL: B never received large text');
-  if (!receivedBig) failures++;
+  console.log('STEP 6 OK: B received exact large text in its own expanded row');
 
   // --- Refresh reconnect: reload A, room must survive ---
   await A.reload({ waitUntil: 'networkidle' });
@@ -108,12 +160,16 @@ async function main() {
   if (await taA.count()) {
     await taA.fill('Back after refresh');
     await A.getByRole('button', { name: 'Send', exact: true }).click();
-    await sleep(2500);
-    const bBody2 = await B.locator('body').innerText();
-    console.log(bBody2.includes('Back after refresh') ? 'STEP 8 OK: message sent after reconnect reached B' : 'STEP 8 FAIL: post-reconnect message lost');
-    if (!bBody2.includes('Back after refresh')) failures++;
+    try {
+      await visibleMessageRow(B, 'Back after refresh');
+      console.log('STEP 8 OK: message sent after reconnect reached B');
+    } catch {
+      console.log('STEP 8 FAIL: post-reconnect message lost');
+      failures++;
+    }
   } else {
-    console.log('STEP 8 SKIP: A has no composer after refresh');
+    console.log('STEP 8 FAIL: A has no composer after refresh');
+    failures++;
   }
 
   // --- Close B's tab entirely, then reopen it — the room must be rejoined
@@ -138,10 +194,23 @@ async function main() {
   if (await b2Ta.count()) {
     await b2Ta.fill('Back after tab close');
     await B2.getByRole('button', { name: 'Send', exact: true }).click();
-    await A.getByText('Back after tab close', { exact: true }).waitFor({ timeout: 20000 }).catch(() => {});
-    const aBody3 = await A.locator('body').innerText();
-    console.log(aBody3.includes('Back after tab close') ? 'STEP 8e OK: message sent after rejoin reached A' : 'STEP 8e FAIL: post-rejoin message lost');
-    if (!aBody3.includes('Back after tab close')) failures++;
+    try {
+      await visibleMessageRow(A, 'Back after tab close');
+      const sentRow = await visibleMessageRow(B2, 'Back after tab close');
+      // A receipt can precede a different recipient's failed leg. Observe
+      // the sender through the bounded link-open/fallback window as well.
+      const failed = await sentRow.getByText("Couldn't send", { exact: true })
+        .waitFor({ state: 'visible', timeout: 20000 }).then(() => true, () => false);
+      const status = (await sentRow.innerText()).replace(/\n/g, ' | ');
+      if (failed) throw new Error(`B reports ${status}`);
+      console.log('STEP 8e OK: message sent after rejoin reached A; B has no Couldn\'t send status | B:', status);
+    } catch (e) {
+      console.log('STEP 8e FAIL:', e.message);
+      failures++;
+    }
+  } else {
+    console.log('STEP 8e FAIL: B has no composer after rejoin');
+    failures++;
   }
 
   // --- Third device rejection ---
@@ -149,10 +218,7 @@ async function main() {
   // the session secret stored in A's localStorage.
   const stored = await A.evaluate(() => localStorage.getItem('sharetext.session.v1'));
   const { secret, createdAt } = JSON.parse(stored);
-  const { TOTP } = await import('otpauth');
-  // 40s window anchored at room creation (matches the app's live code).
-  const totp = new TOTP({ issuer: 'ShareText', label: 'Session', algorithm: 'SHA1', digits: 6, period: 40, secret });
-  const freshCode = totp.generate({ timestamp: Date.now() - (createdAt || 0) });
+  const freshCode = generateTOTP(secret, createdAt);
   console.log('Fresh code for third device test:', freshCode);
   await C.goto(URL, { waitUntil: 'networkidle' });
   await C.getByTestId('home-receive').click();
@@ -192,17 +258,22 @@ async function main() {
   await A.locator('input[multiple]:not([accept])').setInputFiles(paths10);
   await sleep(600);
   await A.getByRole('button', { name: /send/i }).first().click();
-  await B2.waitForFunction(() => {
-    const body = document.body.innerText;
-    return ['queue-one.txt', 'queue-two.txt', 'queue-three.txt'].every(name => body.includes(name)) && body.split('Verified').length >= 4;
-  }, null, { timeout: 20000 }).catch(() => {});
-  const bQueue = await B2.evaluate(() => document.body.innerText);
-  const namesOk = ['queue-one.txt', 'queue-two.txt', 'queue-three.txt'].every(n => bQueue.includes(n));
-  const noneWaiting = !bQueue.includes('Waiting…') && bQueue.split('Verified').length >= 4;
-  if (namesOk && noneWaiting) {
+  let completeFiles = 0;
+  for (const name of ['queue-one.txt', 'queue-two.txt', 'queue-three.txt']) {
+    try {
+      const row = await visibleMessageRow(B2, name);
+      await row.getByText('Verified', { exact: true }).waitFor({ state: 'visible', timeout: 20000 });
+      if ((await row.innerText()).includes('Waiting…')) throw new Error('row is still waiting');
+      completeFiles++;
+      console.log(`STEP 10 file OK: ${name} — own row Verified`);
+    } catch (e) {
+      console.log(`STEP 10 file FAIL: ${name} — ${e.message}`);
+    }
+  }
+  if (completeFiles === 3) {
     console.log('STEP 10 OK: all 3 queued files completed on B, per-file rows rendered');
   } else {
-    console.log('STEP 10 FAIL: files=', namesOk, 'waitingLeft=', !noneWaiting, '| B:', bQueue.slice(-400).replace(/\n/g, ' | '));
+    console.log(`STEP 10 FAIL: ${completeFiles}/3 file rows Verified`);
     failures++;
   }
 
