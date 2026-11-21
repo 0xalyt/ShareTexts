@@ -20,8 +20,14 @@ import { TransferFlight } from '/src/components/TransferFlight';
 import { SlideToConfirm } from '/src/components/SlideToConfirm';
 import { Segmented } from '/src/components/ui/Segmented';
 import { Sheet } from '/src/components/ui/Sheet';
+import { PairingGuide } from '/src/components/ui/PairingGuide';
+import { ConnectHandshake } from '/src/components/ConnectHandshake';
+import { TransferStamp } from '/src/components/TransferStamp';
+import { AttachmentPanel, AttachmentTrigger } from '/src/components/AttachmentPanel';
+import { initMotionIntent } from '/src/lib/motionIntent';
 import '/src/index.css';
 import '/src/styles/apple-dna.css';
+initMotionIntent();
 function Fixture() {
   const [number, setNumber] = useState(209);
   const [progress, setProgress] = useState(0);
@@ -29,9 +35,15 @@ function Fixture() {
   const [tab, setTab] = useState('one');
   const [calls, setCalls] = useState(0);
   const [confirmed, setConfirmed] = useState(0);
+  const [guide, setGuide] = useState(0);
+  const [complete, setComplete] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [selected, setSelected] = useState('');
+  const trigger = useRef(null);
   const feed = useRef(null);
   const resolve = useRef(null);
-  window.contracts = { setNumber, setProgress };
+  window.contracts = { setNumber, setProgress, setComplete, setConnected };
   return <MotionConfig reducedMotion="user"><I18nProvider>
     <main style={{ padding: 16, width: 320 }}>
       <span id="ticker"><NumberTicker value={number} /></span>
@@ -46,6 +58,16 @@ function Fixture() {
       <div id="feed" ref={feed} style={{ position: 'relative', height: 240, width: 280, marginTop: 20 }} />
       <TransferFlight feedRef={feed} progress={progress} reverse={false} name="photo.jpg" size={1024} />
       <Sheet open={open} onClose={() => setOpen(false)} label="Test sheet" testId="sheet"><div style={{ height: 400 }}>Sheet content</div></Sheet>
+      <section className="st-task" style={{ marginTop: 24 }}>
+        <button id="guide" onClick={() => setGuide(n => n + 1)}>Show handoff</button>
+        {guide > 0 && <div key={guide}><PairingGuide /><PairingGuide receiving /><ConnectHandshake phase={connected ? 'connected' : 'connecting'} /></div>}
+        <TransferStamp name="notes.pdf" complete={complete} />
+        <output id="selected">{selected}</output>
+        <div style={{ position: 'relative', marginTop: 280 }}>
+          <AttachmentTrigger isOpen={menu} onToggle={() => setMenu(v => !v)} buttonRef={trigger} />
+          <AttachmentPanel isOpen={menu} onClose={() => setMenu(false)} buttonRef={trigger} onSelectType={setSelected} />
+        </div>
+      </section>
     </main>
   </I18nProvider></MotionConfig>;
 }
@@ -154,8 +176,64 @@ try {
 
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await until(() => page.locator('.num-ticker__strip').count(), count => count === 0, 'Live reduced-motion preference was ignored');
+        await page.emulateMedia({ reducedMotion });
+
+        // Onboarding explains direction once; typing and later pointer use
+        // must not replay a keyboard-opened scene.
+        await page.locator('#guide').click();
+        const guides = page.locator('.st-pair-guide');
+        assert.equal(await guides.first().getAttribute('data-motion-enter'), 'true');
+        assert.equal(await guides.last().getAttribute('data-receiving'), 'true');
+        const paperAnimations = await guides.first().locator('.st-pair-paper').evaluate(el => getComputedStyle(el).animationName);
+        assert.equal(paperAnimations, reducedMotion === 'reduce' ? 'none' : 'st-pair-handoff');
+        assert.equal(await page.locator('[data-testid="connect-check"]').count(), 0, 'Never show success before connected');
+        await page.evaluate(() => window.contracts.setConnected(true));
+        await page.locator('[data-testid="connect-check"]').waitFor();
+        await page.locator('#guide').focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await guides.first().getAttribute('data-motion-enter'), 'false');
+        await page.locator('[data-testid="transfer-stamp"]').click();
+        assert.equal(await guides.first().locator('.st-pair-paper').evaluate(el => getComputedStyle(el).animationName), 'none');
+
+        // Completion changes the mark, not the object's size/type. It is
+        // truthful and immediately available with all animation disabled.
+        const stamp = page.locator('[data-testid="transfer-stamp"]');
+        assert.equal(await stamp.getAttribute('data-complete'), 'false');
+        assert.equal(await stamp.locator('.st-transfer-stamp-check').evaluate(el => getComputedStyle(el).opacity), '0');
+        const before = await stamp.boundingBox();
+        await page.evaluate(() => window.contracts.setComplete(true));
+        await until(() => stamp.locator('.st-transfer-stamp-check').evaluate(el => getComputedStyle(el).opacity), value => value === '1', 'Completion stamp did not arrive');
+        const after = await stamp.boundingBox();
+        assert.equal(before.width, after.width);
+        assert.equal(before.height, after.height);
+        await page.evaluate(() => window.contracts.setComplete(false));
+        await until(() => stamp.locator('.st-transfer-stamp-check').evaluate(el => getComputedStyle(el).opacity), value => value === '0', 'Incomplete file retained success stamp');
+
+        // Pointer menu originates at the +, all choices are actionable as a
+        // group. Escape/keyboard paths do not wait through the pointer reveal.
+        const trigger = page.getByTestId('add-attachment');
+        await trigger.click();
+        const menu = page.getByRole('menu');
+        await menu.waitFor();
+        assert.match(await menu.evaluate(el => getComputedStyle(el).transformOrigin), /^22px /);
+        await page.getByRole('menuitem', { name: /files/i }).click();
+        assert.equal(await page.locator('#selected').innerText(), 'file');
+        await menu.waitFor({ state: 'detached' });
+        await trigger.focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await menu.evaluate(el => getComputedStyle(el).opacity), '1');
+        assert.equal(await page.getByRole('menuitem').first().evaluate(el => el === document.activeElement), true);
+        await page.keyboard.press('End');
+        assert.equal(await page.getByRole('menuitem').last().evaluate(el => el === document.activeElement), true);
+        await page.keyboard.press('Escape');
+        await menu.waitFor({ state: 'detached' });
+        assert.equal(await trigger.evaluate(el => el === document.activeElement), true);
+        await page.keyboard.press('Space');
+        assert.equal(await menu.evaluate(el => getComputedStyle(el).opacity), '1');
+        await page.keyboard.press('Escape');
+        await menu.waitFor({ state: 'detached' });
         assert.deepEqual(errors, []);
-        console.log(`PASS ${engine} ${reducedMotion}: digits, immediate/repeatable feedback, keyboard tabs, contained flight, gesture cancellation, sheet drag, live preference`);
+        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/keyboard return`);
         await page.close();
       }
     } finally { await browser.close(); }

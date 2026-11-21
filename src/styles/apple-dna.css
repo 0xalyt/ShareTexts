@@ -942,6 +942,30 @@ without the row jumping. The transform/stagger lives in the component
   stroke-dashoffset: 88;
   animation: st-draw-line 600ms linear forwards;
 }
+.st-connect-device {
+  transition: transform var(--st-dur-medium) var(--ease-out),
+    color var(--st-dur-short), background-color var(--st-dur-short), border-color var(--st-dur-short);
+}
+
+/* The object stays the object: a real completion adds a seal instead of
+   replacing its file type with an unrelated celebration. No history replay. */
+.st-transfer-stamp { display: inline-flex; position: relative; flex-shrink: 0; }
+.st-transfer-stamp-check {
+  display: grid; place-items: center; position: absolute; right: -4px; bottom: -4px;
+  width: 20px; height: 20px; border: 2px solid var(--color-apple-canvas); border-radius: 50%;
+  background: var(--color-status-success); color: white; opacity: 0; transform: scale(.85);
+  transform-origin: center; transition: transform var(--st-dur-medium) var(--ease-out), opacity var(--st-dur-micro);
+}
+.st-transfer-stamp-check svg { width: 12px; height: 12px; }
+.st-transfer-stamp[data-complete='true'] .st-transfer-stamp-check { opacity: 1; transform: scale(1); }
+:root[data-motion-intent='keyboard'] .st-transfer-stamp-check { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .st-transfer-stamp-check { transition: none; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-testid='connect-handshake'][data-motion-enter='true']:not([data-phase='connected']) .st-connect-device:first-child { transform: translateX(-6px); }
+  [data-testid='connect-handshake'][data-motion-enter='true']:not([data-phase='connected']) .st-connect-device:last-of-type { transform: translateX(6px); }
+}
 .st-connect-line[data-connected='true'] {
   stroke-dashoffset: 0;
   animation: none;
@@ -961,6 +985,7 @@ without the row jumping. The transform/stagger lives in the component
   to   { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .st-connect-device { transition: none; }
   .st-connect-line { animation: none; stroke-dashoffset: 0; }
   .st-connect-check { animation: st-check-fade 120ms linear both; }
 }
