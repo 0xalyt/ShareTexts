@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { get as getHTTP } from 'node:http';
 import { get as getHTTPS } from 'node:https';
-import { launchBrowser, clickStable } from './lib.mjs';
+import { launchBrowser, clickStable, resolveEngine } from './lib.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const browser = await launchBrowser();
@@ -152,6 +152,13 @@ try {
       const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: os, reducedMotion: 'reduce' });
       if (saved) await ctx.addInitScript(theme => localStorage.setItem('sharetext.theme', theme), saved);
       const page = await ctx.newPage();
+      if (resolveEngine().name === 'firefox') {
+        // Firefox drops context-level color emulation on its first real
+        // navigation. Prime an inert response, then establish the OS before
+        // the first landing visit; no app/poster has been fetched yet.
+        await page.goto(new URL('/health', BASE).href);
+        await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
+      }
       const requests = [];
       page.on('request', request => { if (/\/film\/.*-poster\./.test(request.url())) requests.push(request.url()); });
       await page.goto(BASE, { waitUntil: 'networkidle' });
@@ -166,6 +173,7 @@ try {
       });
       const state = await inspect();
       const name = `${width}px OS=${os} saved=${saved || 'system'}`;
+      check(`${name}: OS precondition is real`, await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches) === (os === 'dark'));
       check(`${name}: the shown theme wins`, state.dark === (expected === 'dark'));
       check(`${name}: exactly one matching high-priority poster`, state.preload === state.poster && state.priority === 'high');
       check(`${name}: no opposite poster requested at boot`, requests.length > 0 && requests.every(url => url === state.poster));
