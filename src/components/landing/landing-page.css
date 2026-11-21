@@ -94,8 +94,9 @@ html[st-theme-vt]:has(.landing-header) {
 .landing-quiet-button > svg { width: 16px; height: 16px; flex-shrink: 0; stroke-width: 1.5; }
 .landing-quiet-button:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 4px; }
 .landing-quiet-button:active { transform: scale(.98); }
-/* Reserve one line so success feedback does not move the next section. */
-.landing-browser-feedback { min-height: 20px; margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--color-apple-ink-muted); }
+/* Keep the live region mounted without an empty row in the idle card. */
+.landing-browser-feedback { margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--color-apple-ink-muted); }
+.landing-browser-feedback:empty { margin-top: 0; }
 .landing-browser-qr { display: grid; grid-template-columns: 144px minmax(0,1fr); align-items: center; gap: 20px; padding-top: 20px; margin-top: 12px; border-top: 1px solid var(--color-apple-divider); }
 .landing-browser-qr[hidden] { display: none; }
 .landing-browser-qr > svg { display: block; border-radius: 12px; }
@@ -167,6 +168,10 @@ html[st-theme-vt]:has(.landing-header) {
 .landing-space-window-header > span:last-child { display: flex; align-items: center; gap: 8px; flex-shrink: 0; color: var(--color-apple-ink-muted); font-size: 12px; font-weight: 400; }
 .landing-space-window svg { width: 20px; height: 20px; flex-shrink: 0; stroke-width: 1.5; }
 .landing-space-window-header svg { width: 16px; height: 16px; }
+/* Reserve the longer translated status in both states, not a false duration. */
+.landing-space-preview-status { display: grid; }
+.landing-space-preview-status > span { grid-area: 1 / 1; visibility: hidden; }
+.landing-space-preview-status > span[data-active="true"] { visibility: visible; }
 /* Grid layers keep the larger state's natural height, including translated
    or enlarged text. Opacity alone explains expiry without layout movement. */
 .landing-space-stage { display: grid; min-height: 280px; }
