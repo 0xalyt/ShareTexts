@@ -15,6 +15,8 @@ const RULES = JSON.parse(readFileSync('docs/claims.forbidden.json', 'utf8')).rul
 const byId = new Map(RULES.map((r) => [r.id, new RegExp(r.pattern, 'i')]));
 
 const CASES = [
+  ['close-tab-erases', '關閉分頁，一切即消失。', true],
+  ['close-tab-erases', '已儲存的項目保留在瀏覽器中。', false],
   ['nothing-stored', 'No app · No account · Nothing stored', true],
   ['nothing-stored', 'Nothing is ever stored.', true],
   ['nothing-stored', 'No data is stored on any server.', true],

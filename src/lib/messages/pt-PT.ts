@@ -32,7 +32,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   // mouth: the home screen
   'home.subheading': 'Chegou o AirDrop para todos',
   'home.subtitle':
-    'Do telemóvel para o portátil, ou do portátil para o telemóvel. Nada para instalar, nenhuma conta. As fotografias e os ficheiros chegam na qualidade original.',
+    'Textos, ligações, fotografias e ficheiros. Abra esta página nos dois dispositivos.',
   'home.how.1': 'Abra o ShareTexts nos dois dispositivos.',
 
   // files and what you do with them

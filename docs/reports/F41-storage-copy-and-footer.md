@@ -29,7 +29,8 @@ stronger encryption than the implementation provides.
 ## Regression protection
 
 - Expanded forbidden storage-claim variants and audited source scopes.
-- Added representative positive and negative claim fixtures: 21 checks pass.
+- Added representative positive and negative claim fixtures: 23 checks pass,
+  including the stale Traditional Chinese “close the tab, everything vanishes” claim.
 - Added `verify-footer.mjs` to `npm run verify:claims` for shared/About parity,
   explicit audited locale keys, static guide promises and footer language mode.
 - Deliberate blurb, navigation, guide-promise and locale-key drift fixtures were

@@ -18,6 +18,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   'footer.devices': '你的裝置',
   'demo.s7': '用完後關閉房間。',
   'home.faq.a6': '即時房間在傳輸過程中加密。服務會簽發房間密鑰，因此並非零知識系統。臨時空間的文字和連結會儲存在伺服器上，直到空間關閉或到期。已儲存的項目保留在瀏覽器中。詳情請參閱隱私政策。',
+  'home.faq.q6': '隱私和安全有保障嗎？',
   'home.faq.a1': '在自己的裝置間傳送文字、連結、照片和檔案。即時傳送用即時房間，稍後取得文字和連結用臨時空間。',
   'app.ended.sub': '無需帳號。已儲存的項目保留在此瀏覽器中。',
   'film.download': "下載影片",
@@ -34,7 +35,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   'home.receive': '接收',
   'home.subheading': '人人可用的 AirDrop，來了',
   'home.subtitle':
-    '手機到電腦，或電腦到手機。無需安裝應用程式，無需註冊帳號。照片與檔案以原始畫質傳送。關閉分頁，一切即消失。',
+    '文字、連結、照片和檔案。在兩台裝置上開啟本頁即可。',
   'home.how.1': '在兩台裝置上開啟 ShareTexts。',
 
   // files

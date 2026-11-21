@@ -52,7 +52,7 @@ const locales = constant('src/lib/messages/registry.ts', 'LANGS').elements.map(l
 for (const code of locales) {
   const file = `${code}.ts`;
   const locale = dictionary(`src/lib/messages/${file}`);
-  for (const key of ['footer.devices', 'home.faq.a1', 'home.faq.a6', 'app.ended.sub', 'demo.s7']) {
+  for (const key of ['footer.devices', 'home.subtitle', 'home.faq.a1', 'home.faq.a6', 'app.ended.sub', 'demo.s7']) {
     assert.ok(locale[key]?.trim(), `${file}: missing explicit audited copy for ${key}`);
   }
   assert.ok(!('footer.temporary' in locale), `${file}: obsolete storage promise`);

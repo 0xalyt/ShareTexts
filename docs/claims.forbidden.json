@@ -22,6 +22,12 @@
       "reason": "Rooms are encrypted in transit only — the Worker mints the room secret, so it could derive the key. E2E becomes claimable only when the Circle work (M3/M4) proves zero-knowledge."
     },
     {
+      "id": "close-tab-erases",
+      "pattern": "(?:關閉分頁|关闭标签页)[，, ]*一切(?:即|都)?消失",
+      "scope": ["src/lib/messages"],
+      "reason": "Closing a tab does not erase server-stored Temporary Spaces or browser-local saved items."
+    },
+    {
       "id": "nothing-stored",
       "pattern": "\\bnothing (?:is |is ever |ever )?(?:stored|kept)\\b|\\bno (?:server )?storage\\b|\\bno (?:data|files(?:, messages, or metadata)?) (?:is|are) (?:ever )?stored\\b|\\bnever stored on (?:a|any) server\\b|\\b(?:rooms (?:keep|store)|keep) nothing\\b|leave nothing on our servers|\\bno copy is stored\\b|\\bno account, no history, no copy\\b|never sees a file|(?:server|service).{0,40}never sees? (?:your content|file contents|content)",
       "scope": [
