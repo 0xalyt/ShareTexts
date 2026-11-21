@@ -74,6 +74,12 @@ Excluded `.git` and `node_modules` directories, files larger than 2,000,000 byte
 - `last30days/assets/dog-original.jpeg (4014063 bytes)`
 - `last30days/assets/swimmom-mockup.jpeg (2764821 bytes)`
 
+Unused taste-skill hero photographs removed (528,724 bytes total). These files were named only in `assets/layout/img/credits.json`, not loaded by the skill, its referenced documentation, scripts or demo pages. The upstream credits ledger and LICENSE are retained. Catalogued photographs, icon/demo assets and dynamically selected runtime fallback images remain because the skill uses them.
+
+- `design-taste-frontend/assets/layout/img/photo-1068.jpg (159463 bytes)`
+- `design-taste-frontend/assets/layout/img/photo-559.jpg (340249 bytes)`
+- `design-taste-frontend/assets/layout/img/photo-954.jpg (29012 bytes)`
+
 ## Existing skill decisions
 
 - animate: replaced (larger); 19867 → 20182 upstream bytes
