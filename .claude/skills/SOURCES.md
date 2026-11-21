@@ -16,12 +16,13 @@ SHAs identify the upstream clones reviewed; retained existing skills are not cla
 | break-ui | https://github.com/emilkowalski/skills — `skills/break-ui` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
 | choreograph | https://github.com/emilkowalski/skills — `skills/choreograph` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
 | code-review | https://github.com/getsentry/skills — `skills/code-review` | Apache-2.0 | `a582c51ee29d0f35e6ac321340796f77d43da733` |
-| composition-patterns | https://github.com/vercel-labs/agent-skills — `skills/composition-patterns` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
+| vercel-composition-patterns | https://github.com/vercel-labs/agent-skills — `skills/composition-patterns` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
 | design | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill — `.claude/skills/design` | MIT | `2de1134dc4d1cfe112934611ae5803ae17a1bd7e` |
 | design-system | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill — `.claude/skills/design-system` | MIT | `2de1134dc4d1cfe112934611ae5803ae17a1bd7e` |
 | diagram-design | https://github.com/cathrynlavery/diagram-design — `skills/diagram-design` | MIT | `d74d8c2d0c78a9e1efd43137f6a9a51182a8b5f0` |
 | dimensional-drawing | https://github.com/enesozturk/dimensional-drawing — `skills/dimensional-drawing` | MIT | `5c457437c8c83524308aad3b7443e81adcc13153` |
 | dimensional-drawing-motion | https://github.com/enesozturk/dimensional-drawing — `skills/dimensional-drawing-motion` | MIT | `5c457437c8c83524308aad3b7443e81adcc13153` |
+| domain-modeling | https://github.com/mattpocock/skills — `skills/engineering/domain-modeling` | MIT | `abeeaf95660ba9e8b7c753eb38f441ca707a8823` |
 | emil-design-eng | https://github.com/emilkowalski/skills — `skills/emil-design-eng` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
 | figma-designer | https://github.com/elayadesign/ai-design-skills — `skills/figma-designer` | MIT | `456d9e0d3e2d84c748bb143c6ca3d90c45e16213` |
 | find-animation-opportunities | https://github.com/emilkowalski/skills — `skills/find-animation-opportunities` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
@@ -29,6 +30,7 @@ SHAs identify the upstream clones reviewed; retained existing skills are not cla
 | frontend-design | https://github.com/anthropics/skills — `skills/frontend-design` | Apache-2.0 | `e4bb5d960d87126ff3b3a8af1a104b7db67560ba` |
 | gestures | https://github.com/emilkowalski/skills — `skills/gestures` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
 | grill-with-docs | https://github.com/mattpocock/skills — `skills/engineering/grill-with-docs` | MIT | `abeeaf95660ba9e8b7c753eb38f441ca707a8823` |
+| grilling | https://github.com/mattpocock/skills — `skills/productivity/grilling` | MIT | `abeeaf95660ba9e8b7c753eb38f441ca707a8823` |
 | hallmark | https://github.com/nutlope/hallmark — `skills/hallmark` | MIT | `04977e15f3dfd6ee4b74c887dac3eb52665d6c92` |
 | humanizer | https://github.com/blader/humanizer — `.` | MIT | `a32f24407364c74c812b43c15926d638bee1e072` |
 | impeccable | https://github.com/pbakaus/impeccable — `.claude/skills/impeccable` | Apache-2.0 | `b49177d32788f2dc585c42831d845dacf1ebed2c` |
@@ -41,18 +43,18 @@ SHAs identify the upstream clones reviewed; retained existing skills are not cla
 | ponytail | https://github.com/DietrichGebert/ponytail — `skills/ponytail` | MIT | `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846` |
 | ponytail-review | https://github.com/DietrichGebert/ponytail — `skills/ponytail-review` | MIT | `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846` |
 | prototype | https://github.com/emilkowalski/skills — `skills/prototype` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
-| react-best-practices | https://github.com/vercel-labs/agent-skills — `skills/react-best-practices` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
-| react-view-transitions | https://github.com/vercel-labs/agent-skills — `skills/react-view-transitions` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
+| vercel-react-best-practices | https://github.com/vercel-labs/agent-skills — `skills/react-best-practices` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
+| vercel-react-view-transitions | https://github.com/vercel-labs/agent-skills — `skills/react-view-transitions` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
 | reanimate | https://github.com/NiazMorshed2007/reanimate — `skills/reanimate` | MIT | `3f7a55a2986a84ca2173e86ee9127eefe31d046d` |
 | remove-animations | https://github.com/emilkowalski/skills — `skills/remove-animations` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
 | research | https://github.com/mattpocock/skills — `skills/engineering/research` | MIT | `abeeaf95660ba9e8b7c753eb38f441ca707a8823` |
 | reverse-engineer-anything | https://github.com/morluto/rea — `.agents/skills/reverse-engineer-anything` | MIT | `d989ff06e8bdc5705ddab72b4e3c7f3965eb6043` |
 | review-animations | https://github.com/emilkowalski/skills — `skills/review-animations` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
-| scrapling | https://github.com/D4Vinci/Scrapling — `agent-skill/Scrapling-Skill` | BSD-3-Clause | `2998c9ebba52ef6116f0a483c7d2f21908250024` |
+| scrapling-official | https://github.com/D4Vinci/Scrapling — `agent-skill/Scrapling-Skill` | BSD-3-Clause | `2998c9ebba52ef6116f0a483c7d2f21908250024` |
 | security-review | https://github.com/getsentry/skills — `skills/security-review` | Apache-2.0 | `a582c51ee29d0f35e6ac321340796f77d43da733` |
 | stageshow | https://github.com/benjitaylor/skills — `stageshow` | MIT | `299140fafd08df55a9c234e610c3f64af3f45531` |
 | systematic-debugging | https://github.com/obra/superpowers — `skills/systematic-debugging` | MIT | `22f0b463e7a5e579904dd6211a520321035526f7` |
-| taste-skill | https://github.com/Leonxlnx/taste-skill — `skills/taste-skill` | MIT | `f6b76575f949707b4e3c37cd86cb44b0b98643e8` |
+| design-taste-frontend | https://github.com/Leonxlnx/taste-skill — `skills/taste-skill` | MIT | `f6b76575f949707b4e3c37cd86cb44b0b98643e8` |
 | test-driven-development | https://github.com/obra/superpowers — `skills/test-driven-development` | MIT | `22f0b463e7a5e579904dd6211a520321035526f7` |
 | to-spec | https://github.com/mattpocock/skills — `skills/engineering/to-spec` | MIT | `abeeaf95660ba9e8b7c753eb38f441ca707a8823` |
 | ui-styling | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill — `.claude/skills/ui-styling` | MIT | `2de1134dc4d1cfe112934611ae5803ae17a1bd7e` |
@@ -86,6 +88,6 @@ Excluded `.git` and `node_modules` directories, files larger than 2,000,000 byte
 - landing-page-design: retained (not larger); 22115 → 22115 upstream bytes
 - figma-designer: retained (not larger); 22079 → 22079 upstream bytes
 
-## Compatibility caveats
+## Manifest compatibility
 
-Upstream manifests are unchanged. Freebuff requires frontmatter name to equal directory name, so its loader rejects these requested folder names: composition-patterns (vercel-composition-patterns), react-best-practices (vercel-react-best-practices), react-view-transitions (vercel-react-view-transitions), scrapling (scrapling-official), taste-skill (design-taste-frontend). These need aliases or manifest changes before Freebuff can discover them. grill-with-docs invokes grilling and domain-modeling, which were not requested and are not installed here.
+Upstream manifests are unchanged. Folders were renamed to match their frontmatter names: composition-patterns → vercel-composition-patterns, react-best-practices → vercel-react-best-practices, react-view-transitions → vercel-react-view-transitions, scrapling → scrapling-official, taste-skill → design-taste-frontend. The grilling and domain-modeling dependencies invoked by grill-with-docs are installed alongside it.
