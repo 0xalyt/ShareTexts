@@ -131,6 +131,8 @@ for (const [w, h] of [[1024, 768], [1440, 900]]) {
     continue;
   }
   const at = frames[first];
+  const railVisibility = await a.locator('#main-content .route-stack').evaluate(el => getComputedStyle(el).contentVisibility);
+  out(`${w}×${h} — the room rail is not virtualized`, railVisibility === 'visible', railVisibility);
   const later = (key) => frames.findIndex((f) => f[key]);
   const settle = (key) => Math.max(0, later(key) - first);
 
@@ -144,6 +146,41 @@ for (const [w, h] of [[1024, 768], [1440, 900]]) {
   const cls = shifts.filter((s) => s.t >= t0 - 16 && s.t <= t0 + 1200).reduce((n, s) => n + s.v, 0);
   out(`${w}×${h} — room entry shifts less than 0.02`, cls <= 0.02, `CLS ${cls.toFixed(4)}`);
 
+  await ctxA.close();
+  await ctxB.close();
+}
+
+{
+  const { a, b, ctxA, ctxB } = await pairRoom();
+  for (const event of ['visibilitychange', 'beforeunload']) {
+    const text = `Flush received history on ${event}.`;
+    await a.locator('textarea').first().fill(text);
+    await a.locator('textarea').first().press('Enter');
+    await b.getByText(text, { exact: true }).waitFor({ timeout: 20000 });
+    const persisted = await b.evaluate(({ event, text }) => {
+      const visibility = Object.getOwnPropertyDescriptor(document, 'visibilityState');
+      try {
+        if (event === 'visibilitychange') {
+          Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+          document.dispatchEvent(new Event(event));
+        } else window.dispatchEvent(new Event(event));
+        return JSON.parse(localStorage.getItem('sharetext.session.v1'))?.messages?.some(m => m.text === text);
+      } finally {
+        if (visibility) Object.defineProperty(document, 'visibilityState', visibility);
+        else delete document.visibilityState;
+      }
+    }, { event, text });
+    out(`${event} synchronously persists the latest received message`, persisted);
+  }
+  const text = 'Persist this message before the receiving tab closes.';
+  await a.locator('textarea').first().fill(text);
+  await a.locator('textarea').first().press('Enter');
+  await b.getByText(text, { exact: true }).waitFor({ timeout: 20000 });
+  await b.close();
+  const reopened = await ctxB.newPage();
+  await reopened.goto(BASE, { waitUntil: 'domcontentloaded' });
+  const restored = await reopened.getByText(text, { exact: true }).waitFor({ timeout: 25000 }).then(() => true, () => false);
+  out('a received message survives immediately closing and reopening its tab', restored);
   await ctxA.close();
   await ctxB.close();
 }
