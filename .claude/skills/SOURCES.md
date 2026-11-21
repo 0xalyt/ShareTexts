@@ -61,7 +61,7 @@ SHAs identify the upstream clones reviewed; retained existing skills are not cla
 | verification-before-completion | https://github.com/obra/superpowers — `skills/verification-before-completion` | MIT | `22f0b463e7a5e579904dd6211a520321035526f7` |
 | web-design-guidelines | https://github.com/vercel-labs/agent-skills — `skills/web-design-guidelines` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
 | webapp-testing | https://github.com/anthropics/skills — `skills/webapp-testing` | Apache-2.0 | `e4bb5d960d87126ff3b3a8af1a104b7db67560ba` |
-| writing-guidelines | https://github.com/vercel-labs/agent-skills — `skills/writing-guidelines` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` |
+| writing-guidelines | https://github.com/vercel-labs/agent-skills — `skills/writing-guidelines` | MIT (README declaration; no LICENSE file) | `5a37a6329fbad3666c3207392a6a7c0110e92efb` | Local edit: rules pinned to `references/command.md` from vercel-labs/writing-guidelines `83e2316b034cf572400513538e4e4da01c4cc742` instead of fetched live. |
 
 ## Asset exclusions
 
