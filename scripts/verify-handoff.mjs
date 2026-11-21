@@ -69,6 +69,18 @@ try {
       const media = demo.locator('video');
       check(`${locale}/${width}: reduced motion does not request the film`, await media.getAttribute('src') === null);
       check(`${locale}/${width}: a meaningful still is available`, (await media.getAttribute('poster')).endsWith('-poster.jpg'));
+      // Observe the real built/dev HTML and mounted player, not two copies of
+      // an expected version string. A stale or duplicate preload wastes the
+      // first high-priority image request even when playback itself works.
+      const poster = await demo.evaluate(el => ({
+        displayed: el.querySelector('video')?.poster,
+        preloads: [...document.querySelectorAll('link[rel~="preload"][as="image"]')]
+          .filter(link => new URL(link.href).pathname.startsWith('/film/'))
+          .map(link => ({ href: link.href, priority: link.getAttribute('fetchpriority') })),
+      }));
+      check(`${locale}/${width}: exactly one high-priority preload matches the player poster`,
+        Boolean(poster.displayed) && poster.preloads.length === 1 &&
+        poster.preloads[0].href === poster.displayed && poster.preloads[0].priority === 'high');
       check(`${locale}/${width}: the film has a localized text alternative`, (await demo.locator('figcaption p').innerText()).length > 12);
       const facts = await demo.evaluate(el => {
         const r = el.getBoundingClientRect();

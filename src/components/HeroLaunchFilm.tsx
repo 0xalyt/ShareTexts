@@ -2,13 +2,12 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { ArrowUpRight, Download, Pause, Play } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
+import { heroFilmAssets } from '../lib/heroFilmAssets';
 import './landing/hero-film.css';
 
 type Connection = EventTarget & { saveData?: boolean };
 const connection = () => (navigator as Navigator & { connection?: Connection }).connection;
-const MOVIE = '/film/sharetexts-launch-v2.mp4';
-const FULL_MOVIE = '/film/sharetexts-launch-v2-full.mp4';
-const POSTER = '/film/sharetexts-launch-v2-poster.jpg';
+const { movie: MOVIE, fullMovie: FULL_MOVIE, poster: POSTER } = heroFilmAssets;
 
 /** Pre-rendered film; no media request until visible. Motion/data preferences
  * require explicit play. Visibility pauses preserve the visitor's choice. */
