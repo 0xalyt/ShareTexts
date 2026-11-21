@@ -49,6 +49,10 @@ try {
     json: { users: 0, roomsCreated: 0 },
     headers: { 'access-control-allow-origin': '*' },
   }));
+  await noRtc.route('**/api/event?*', route => route.fulfill({
+    status: 204,
+    headers: { 'access-control-allow-origin': '*' },
+  }));
   await noRtc.addInitScript(() => {
     for (const key of ['RTCPeerConnection', 'webkitRTCPeerConnection']) {
       Object.defineProperty(window, key, { value: undefined, configurable: true });
