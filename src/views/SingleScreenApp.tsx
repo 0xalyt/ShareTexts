@@ -102,7 +102,12 @@ import {
   Plus, ChevronRight, File as FileIcon, Bookmark, MoreHorizontal,
   Search, Compass, ShieldCheck, FileText,
 } from 'lucide-react';
-import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages } from 'lucide-react';
+import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages, MonitorSmartphone } from 'lucide-react';
+import { HOP } from '../lib/brand';
+import { HOP_EVENT, parseHopLink, readHopCache, readSharedText, type HopLink } from '../lib/hop/flag';
+// Hop (linked devices) carries WebCrypto and IndexedDB code: it loads when a
+// person opens it or already has linked devices, never for a first visit.
+const HopSheet = lazy(() => import('../components/hop/HopSheet').then(m => ({ default: m.HopSheet })));
 // The Space sheets live in SpaceView, which is already a lazy route. Importing
 // the sheets statically dragged the WHOLE view (10.7 KB gzip) into the entry.
 const SpaceCreateSheet = lazy(() => import('./SpaceView').then(m => ({ default: m.SpaceCreateSheet })));
@@ -203,6 +208,28 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // Nearby moved into a sheet (§18): discovery keeps running underneath, the
   // list is the same component, and Home stays two rows instead of a panel.
   const [nearbySheet, setNearbySheet] = useState(false);
+  // Hop: a `#hop=` link (a scanned code) or text from the OS share sheet
+  // opens My devices on arrival. Both are read once and then removed from
+  // the address bar, so a reload or a shared screenshot cannot replay them.
+  const [hopArrival] = useState<{ link: HopLink | null; shared: string | null }>(() => {
+    if (typeof window === 'undefined') return { link: null, shared: null };
+    const link = parseHopLink(window.location.hash);
+    const shared = readSharedText(window.location.search);
+    if (link || shared) window.history.replaceState(null, '', window.location.pathname);
+    return { link, shared };
+  });
+  const [hopLink, setHopLink] = useState(hopArrival.link);
+  const [hopShared, setHopShared] = useState(hopArrival.shared);
+  const [hopSheet, setHopSheet] = useState(() => Boolean(hopArrival.link || hopArrival.shared));
+  const [hopMounted, setHopMounted] = useState(hopSheet);
+  const [hop, setHop] = useState(readHopCache);
+  useEffect(() => {
+    const sync = () => setHop(readHopCache());
+    window.addEventListener(HOP_EVENT, sync);
+    if (readHopCache()) void import('../lib/hop/hop').then(m => m.startHop());
+    return () => window.removeEventListener(HOP_EVENT, sync);
+  }, []);
+  const openHop = useCallback(() => { setHopMounted(true); setHopSheet(true); }, []);
   // One device on a phone (§18): the two-device scene needs ~520px to read;
   // below 640 it only ever clipped the laptop, so the phone stands alone.
   const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches);
@@ -1302,6 +1329,24 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   used), Temporary Space opens a chooser instead of putting two
                   buttons and a recents rail in the hero. */}
               <div className="landing-utilities order-8 flex w-full flex-col" data-testid="home-rows">
+                {/* My devices comes first: for anyone who has linked a device
+                    it is the shortest path on the page. */}
+                <ListRow
+                  title={t('hop.title')}
+                  subtitle={hop?.devices.length
+                    ? hop.devices.map(d => d.label || t('hop.devices.unnamed')).join(', ')
+                    : t('hop.row.hint')}
+                  trailing={hop?.unread ? (
+                    <span className="rounded-full bg-ember/12 px-2 py-0.5 text-[12px] font-semibold text-ember-ink dark:text-ember" data-testid="home-hop-new">
+                      {t('hop.row.new', { count: hop.unread })}
+                    </span>
+                  ) : (
+                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45">{HOP}</span>
+                  )}
+                  leading={<MonitorSmartphone className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
+                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(false); openHop(); }}
+                  testId="home-hop"
+                />
                 <ListRow
                   title={t('nearby.title')}
                   subtitle={nearbyStatus || undefined}
@@ -2301,6 +2346,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         onOpenSaved={() => { setShowSettings(false); setSettingsEditName(false); setShowSaved(true); }}
       />
       </Suspense>
+      {hopMounted && (
+        <Suspense fallback={null}>
+          <HopSheet
+            open={hopSheet}
+            onClose={() => setHopSheet(false)}
+            incomingLink={hopLink}
+            sharedText={hopShared}
+            onConsumed={() => { setHopLink(null); setHopShared(null); }}
+          />
+        </Suspense>
+      )}
       {/* The ONE Saved Items library — landing header and settings both open it. */}
       <Suspense fallback={null}>
         <SavedItemsOverlay open={showSaved} onClose={() => setShowSaved(false)} />
