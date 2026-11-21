@@ -61,6 +61,18 @@ try {
         };
       });
       check(`${locale}/${width}: film controls fit and remain tappable`, !facts.clipped && !facts.overflow);
+      const guidePair = page.getByTestId('landing-guide-pair');
+      const guideSend = page.getByTestId('landing-guide-send');
+      check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
+      const guideBounds = await page.locator('.landing-guide-frame').boundingBox();
+      await guideSend.click();
+      check(`${locale}/${width}: selecting Send changes only the illustrative example`, await guideSend.getAttribute('aria-pressed') === 'true' && await page.locator('.landing-guide-frame .landing-transfer-detail').count() === 1 && await page.getByTestId('home-send').count() === 1);
+      const guideAfter = await page.locator('.landing-guide-frame').boundingBox();
+      check(`${locale}/${width}: example switches without resizing or clipping`, Math.abs(guideBounds.width - guideAfter.width) < 1 && Math.abs(guideBounds.height - guideAfter.height) < 1 && guideAfter.x >= 0 && guideAfter.x + guideAfter.width <= width);
+      check(`${locale}/${width}: reduced-motion example switches do not animate`, await page.locator('.landing-guide-example').evaluate(el => getComputedStyle(el).animationName === 'none'));
+      await guidePair.focus();
+      await page.keyboard.press('Space');
+      check(`${locale}/${width}: keyboard selects Pair without motion`, await guidePair.getAttribute('aria-pressed') === 'true' && await page.locator('.landing-guide-example').getAttribute('data-animate') === 'false' && await page.locator('.landing-guide-frame .landing-pair-detail').count() === 1);
       if (locale === 'en') {
         await page.evaluate(() => document.fonts.ready);
         const longestHeadingFits = await page.locator('h1').evaluate(el => {
