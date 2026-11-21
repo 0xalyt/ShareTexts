@@ -91,11 +91,12 @@ export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
           <span className="landing-space-label">{t('space.entryTitle')}</span>
           <h3>{t('home.later.heading')}</h3>
           <p>{t('home.three.keep.body')}</p>
-          <button type="button" onClick={onOpenSpace} className="landing-text-action">
+          <p className="landing-space-storage">{t('home.space.storage')}</p>
+          <button type="button" onClick={onOpenSpace} className="landing-text-action" data-testid="landing-open-space">
             {t('space.createHeading')}<ArrowRight aria-hidden="true" />
           </button>
         </div>
-        <div className="landing-story-later-art" aria-hidden="true">
+        <div className="landing-story-later-art">
           <SpaceDetail />
         </div>
       </div>

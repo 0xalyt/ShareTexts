@@ -842,6 +842,21 @@ const ar: Dict = {
   "saved.view": "عرض",
   "saved.showMore": "عرض المزيد",
   "saved.savedOn": "حُفظ في {date}",
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "متصفحات مختلفة. والمشاركة نفسها.",
+  "home.browser.body": "لا يلزم استخدام المتصفح نفسه. افتح ShareTexts على الجهازين فحسب.",
+  "home.browser.open": "افتحه على جهازك الآخر",
+  "home.browser.qr": "إظهار رمز الموقع",
+  "home.browser.qrHint": "امسح الرمز لفتح هذه الصفحة. ثم اتصل باستخدام رمز الغرفة.",
+  "home.browser.copyFailed": "حدد العنوان وانسخه، أو امسح الرمز.",
+  "home.space.storage": "تستخدم المساحات تخزينًا مؤقتًا على الخادم. شارك الرمز مع من تثق بهم فقط.",
+  "home.space.preview": "معاينة تفاعلية. لا يُحفظ أي شيء.",
+  "home.space.open": "أثناء فتحها",
+  "home.space.closed": "بعد انتهاء الصلاحية",
+  "home.space.example": "خطط نهاية الأسبوع",
+  "home.space.note": "القطار الساعة 09:30. ما رأيك بقهوة قبل الانطلاق؟",
+  "home.browser.hideQr": "إخفاء رمز الموقع",
+
   // Hop — linked devices (My devices)
   "hop.title": "أجهزتي",
   "hop.row.hint": "اربطها مرة واحدة وأرسل في أي وقت",
