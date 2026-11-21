@@ -21,13 +21,10 @@
  *    (shrink + fade); cancel/disconnect → it fades away mid-path.
  */
 import { motion } from 'motion/react';
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useMotionPreference } from '../lib/useMotionPreference';
+import { useEffect, useState, type RefObject } from 'react';
 import { FileText } from 'lucide-react';
-
-/** Strong ease-in-out for on-screen movement (animate skill table). */
-const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const;
-/** Strong ease-out for the landing settle. */
-const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+import { DUR, EASE, SPRING } from '../lib/motion/tokens';
 
 const CHIP_W = 148;
 const CHIP_H = 40;
@@ -87,8 +84,8 @@ function ProgressRing({ progress }: { progress: number }) {
 }
 
 export function TransferFlight({ feedRef, progress, reverse, name, size }: TransferFlightProps) {
+  const reduced = useMotionPreference();
   const [track, setTrack] = useState<{ from: number; to: number; y: number } | null>(null);
-  const chipRef = useRef<HTMLDivElement>(null);
 
   // Measure the feed once (and on resize): x0 = partner side (left), x1 =
   // this device's side (right). Fixed positioning means scrolling the feed
@@ -98,12 +95,23 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
       const el = feedRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      if (r.width < 40) return;
-      setTrack({ from: r.left + 8, to: r.right - 8, y: r.bottom - BAND_OFFSET });
+      if (r.width < CHIP_W + 16) { setTrack(null); return; }
+      // Endpoints describe the tile's CENTRE, not its outside edge. The whole
+      // object must stay in the feed, even at 0/100% on a narrow phone.
+      setTrack({
+        from: r.left + 8 + CHIP_W / 2,
+        to: r.right - 8 - CHIP_W / 2,
+        y: Math.max(r.top + CHIP_H / 2 + 16, r.bottom - BAND_OFFSET),
+      });
     };
     measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    if (feedRef.current) observer?.observe(feedRef.current);
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
   }, [feedRef]);
 
   if (!track) return null;
@@ -112,36 +120,41 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
   // partner (left); a receive comes from the partner (left) to us (right).
   const start = reverse ? track.from : track.to;
   const end = reverse ? track.to : track.from;
-  const p = Math.min(1, Math.max(0, progress));
+  const p = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
   const x = start + (end - start) * p;
+  const arc = -16 * Math.sin(Math.PI * p);
   // Gentle mid-flight swell — the object approaches, then settles.
   const swell = 1 + 0.05 * Math.sin(Math.PI * p);
   const width = track.to - track.from;
   // The progress line grows FROM the sender's side toward the receiver.
-  const lineBase = reverse ? track.from : track.to;
   const lineOrigin = reverse ? 'left' : 'right';
 
   return (
     <>
       {/* Faint connection line, filled by real progress (transform only). */}
-      <motion.div
+      {!reduced && <motion.div
+        aria-hidden
         data-testid="transfer-line"
-        className="fixed left-0 top-0 z-20 pointer-events-none"
-        style={{ transformOrigin: lineOrigin, willChange: 'transform' }}
-        animate={{ transform: `translate(${lineBase}px, ${track.y + CHIP_H / 2 - 1}px) scaleX(${p})` }}
-        transition={{ duration: 0.25, ease: EASE_IN_OUT }}
+        className="fixed z-20 pointer-events-none"
+        style={{ left: track.from, top: track.y, transformOrigin: lineOrigin }}
+        initial={false}
+        animate={{ scaleX: p }}
+        transition={{ type: 'spring', ...SPRING.snap }}
       >
         <div className="h-px bg-ember/25 dark:bg-azure-400/25" style={{ width }} />
-      </motion.div>
+      </motion.div>}
 
       {/* The traveling object. */}
       <motion.div
-        ref={chipRef}
+        aria-hidden
         data-testid="transfer-flight"
-        className="fixed left-0 top-0 z-30 pointer-events-none"
-        style={{ willChange: 'transform' }}
-        animate={{ transform: `translate(${x - CHIP_W / 2}px, ${track.y - CHIP_H / 2}px)` }}
-        transition={{ duration: 0.25, ease: EASE_IN_OUT }}
+        className="fixed z-30 pointer-events-none"
+        // Keep layout placement separate from animated travel. Globally
+        // suppressed transforms must never move the tile to viewport (0,0).
+        style={{ left: (reduced ? (track.from + track.to) / 2 : track.from) - CHIP_W / 2, top: track.y - CHIP_H / 2, width: CHIP_W }}
+        initial={false}
+        animate={reduced ? { x: 0, y: 0 } : { x: x - track.from, y: arc }}
+        transition={reduced ? { duration: 0 } : { type: 'spring', ...SPRING.snap }}
       >
         <motion.div
           variants={{
@@ -149,17 +162,18 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
             settle: { opacity: 0, scale: 0.9 },
             fade: { opacity: 0, scale: 0.86 },
           }}
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: swell }}
+          initial={{ opacity: 0, scale: reduced ? 1 : 0.95 }}
+          animate={{ opacity: 1, scale: reduced ? 1 : swell }}
           exit={(custom: unknown) => (custom === 'settle' ? 'settle' : 'fade')}
-          transition={{ duration: 0.2, ease: EASE_OUT }}
-          className="relative flex items-center gap-2 pl-1.5 pr-3 rounded-[12px] bg-white dark:bg-apple-tile-2 border border-apple-divider dark:border-white/10 shadow-[0_10px_28px_rgba(15,18,32,0.16)]"
+          transition={{ duration: DUR.short / 1000, ease: EASE.out }}
+          style={{ height: CHIP_H }}
+          className="relative flex items-center gap-2 pl-1.5 pr-2 rounded-[12px] bg-white dark:bg-apple-tile-2 border border-apple-divider dark:border-white/10 shadow-[0_10px_28px_rgba(15,18,32,0.16)]"
         >
           <span className="relative w-7 h-7 rounded-[8px] bg-ember/12 dark:bg-azure-400/14 flex items-center justify-center shrink-0">
             <ProgressRing progress={p} />
             <FileText className="w-3.5 h-3.5 text-brand-strong dark:text-azure-400" />
           </span>
-          <span className="max-w-[96px] truncate text-[12px] font-semibold text-apple-ink dark:text-white" title={name}>{name}</span>
+          <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-apple-ink dark:text-white" title={name}>{name}</span>
           <span className="text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/40 whitespace-nowrap tnum">{formatBytes(size)}</span>
         </motion.div>
       </motion.div>

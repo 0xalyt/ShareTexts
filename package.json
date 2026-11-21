@@ -49,6 +49,7 @@
     "verify:sheets": "node scripts/verify-sheets.mjs",
     "verify:sheet-drag": "node scripts/verify-sheet-drag.mjs",
     "verify:entrances": "node scripts/verify-entrances.mjs",
+    "verify:motion": "node scripts/verify-motion-contracts.mjs",
     "verify:tabs": "node scripts/verify-tabs.mjs",
     "verify:landing-motion": "node scripts/verify-landing-motion.mjs",
     "verify:desktop": "node scripts/verify-desktop.mjs",

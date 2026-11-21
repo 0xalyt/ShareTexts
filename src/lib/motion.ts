@@ -7,19 +7,21 @@
  * tuned springs (they already follow these curves in spirit).
  *
  *   fast   — 120ms, press/selection answers
- *   state  — 240ms, a state visibly changed (toggle, swap, banner)
- *   enter  — 400ms, something arrived (card, section, overlay)
+ *   state  — 180ms, a state visibly changed (toggle, swap, banner)
+ *   enter  — 280ms, something arrived (card, section, overlay)
  *
  * All curves are Apple-like ease-outs (fast start, gentle settle);
- * MotionConfig reducedMotion="user" flattens transforms globally.
+ * MotionConfig reducedMotion="user" suppresses animated transforms; data
+ * still needs a static equivalent (see useMotionPreference).
  */
 import type { Transition } from 'motion/react';
+import { DUR, EASE } from './motion/tokens';
 
-export const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+export const EASE_OUT = EASE.out;
 
-export const DUR_FAST = 0.12;
-export const DUR_STATE = 0.24;
-export const DUR_ENTER = 0.4;
+export const DUR_FAST = DUR.micro / 1000;
+export const DUR_STATE = DUR.short / 1000;
+export const DUR_ENTER = DUR.medium / 1000;
 
 /** Press/selection feedback. */
 export const tapTransition: Transition = { duration: DUR_FAST, ease: EASE_OUT };
