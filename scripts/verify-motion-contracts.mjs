@@ -4,7 +4,7 @@
  * BROWSERS=chromium,firefox,webkit tests the same contracts across engines.
  * The fixture exists only in this test server, never in the shipped app. */
 import assert from 'node:assert/strict';
-import { createServer } from 'vite';
+import { createServer, transformWithEsbuild } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import * as engines from 'playwright';
@@ -45,7 +45,7 @@ function Fixture() {
       <button id="open" onClick={() => setOpen(true)}>Open sheet</button>
       <div id="feed" ref={feed} style={{ position: 'relative', height: 240, width: 280, marginTop: 20 }} />
       <TransferFlight feedRef={feed} progress={progress} reverse={false} name="photo.jpg" size={1024} />
-      <Sheet open={open} onClose={() => setOpen(false)} label="Test sheet" testId="sheet"><p>Sheet content</p></Sheet>
+      <Sheet open={open} onClose={() => setOpen(false)} label="Test sheet" testId="sheet"><div style={{ height: 400 }}>Sheet content</div></Sheet>
     </main>
   </I18nProvider></MotionConfig>;
 }
@@ -57,7 +57,11 @@ const server = await createServer({
   plugins: [react(), tailwindcss(), {
     name: 'motion-contract-fixture',
     resolveId(id) { if (id === '/__motion_contracts.tsx') return '\0motion-contracts.tsx'; },
-    load(id) { if (id === '\0motion-contracts.tsx') return fixture; },
+    async load(id) {
+      if (id === '\0motion-contracts.tsx') {
+        return (await transformWithEsbuild(fixture, 'motion-contracts.tsx', { loader: 'tsx', jsx: 'automatic' })).code;
+      }
+    },
     configureServer(vite) {
       vite.middlewares.use(async (req, res, next) => {
         if (req.url !== '/__motion_contracts') return next();
@@ -125,11 +129,13 @@ try {
 
         // Cancelling a fully dragged destructive control MUST NOT confirm it.
         const knob = page.locator('[data-testid="slide"] button');
+        await knob.evaluate(el => el.addEventListener('pointerdown', event => { el.dataset.pointerId = String(event.pointerId); }, { once: true }));
         const k = await knob.boundingBox();
         await page.mouse.move(k.x + 4, k.y + k.height / 2);
         await page.mouse.down();
         await page.mouse.move(k.x + 280, k.y + k.height / 2, { steps: 5 });
-        await knob.dispatchEvent('pointercancel', { pointerId: 1, pointerType: 'mouse' });
+        const pointerId = Number(await knob.getAttribute('data-pointer-id'));
+        await knob.dispatchEvent('pointercancel', { pointerId, pointerType: 'mouse' });
         await page.mouse.up();
         assert.equal(await page.locator('#confirmed').innerText(), '0');
 
@@ -137,7 +143,7 @@ try {
         await page.locator('#open').click();
         const handle = page.locator('[data-testid="sheet"] [data-sheet-handle]');
         await handle.waitFor({ state: 'visible' });
-        await until(() => page.locator('[data-testid="sheet"]').boundingBox(), box => box && box.y < 800, 'Sheet did not open');
+        await handle.hover(); // Wait for entrance geometry to settle before grabbing.
         const h = await handle.boundingBox();
         await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
         await page.mouse.down();
