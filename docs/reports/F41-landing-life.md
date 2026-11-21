@@ -53,19 +53,19 @@ The first pre-push layout gate caught the new browser section's 24px desktop hea
 
 ## Recorded production-build UI verification
 
-[Replacement walkthrough](https://app.devin.ai/sessions/519f23e8501a4602b8ad36b0399832ca?testRecording=d3e2e8ac-6013-43f3-bb32-ef7a44071d44), on implementation `5f7d82a` in an isolated local production build. This is not a claim that this pass was live at recording time.
+[Release walkthrough](https://app.devin.ai/sessions/519f23e8501a4602b8ad36b0399832ca?testRecording=fee4292e-065e-4cf1-85e4-e49f945540d5), on final implementation `9589d71` in an isolated local production build. This is not a claim that this pass was live at recording time.
 
 Fresh idle English desktop 1440px and phone 390px, plus Arabic RTL 320px, showed Send/Receive without an active room or overlay. The recording covers the Show/Hide correction, actual clipboard contents, browser-enforced clipboard denial, Escape/focus, reversible shelf, keyboard behavior and the real creation form. No room/Space creation requests came from the preview, copy or website QR.
 
-The preceding full run additionally inspected 768/1024px, dark mode, reduced motion, guide keyboard selection and film pause/resume. No horizontal or inspected text overflow was observed. Screenshots: `/home/ubuntu/screenshots/life-fixed-desktop-qr.png`, `life-fixed-desktop-space-open.png`, `life-fixed-desktop-space-expired.png`, `life-fixed-en-390-hero.png`, `life-fixed-ar-320-qr.png`.
+The final release run also checked dark desktop and reduced motion. The desktop heading measured 30/36px, with 24/32px on both phone cases. No horizontal or inspected text overflow was observed. Current screenshots under `/home/ubuntu/screenshots/`: `pr12-9589d71-desktop-browser-band.png`, `pr12-9589d71-desktop-space-open.png`, `pr12-9589d71-desktop-space-expired.png`, `pr12-9589d71-en-390-browser-band.png`, `pr12-9589d71-ar-320-browser-band.png`, `pr12-9589d71-dark-1440-browser.png`. Earlier full-run evidence also covers 768/1024px, guide selection and film pause/resume.
 
 ## QR loading finding
 
 The QR is not mounted until requested. The shared renderer can still download before that: unchanged `SingleScreenApp.tsx:108–109,2381–2382` mounts the Space sheets, `SpaceView.tsx:23` imports `QrArt`, and `public/sw.js:51–78` precaches dynamic chunks. These files match main. Altering application startup or offline caching is outside this landing slice; no network-deferral claim is made.
 
-## Setup-note plan
+## Setup note
 
-Keep dependency maintenance and the dev startup command unchanged. Add one production-QA knowledge entry to the existing repo blueprint: build first, then run `NODE_ENV=production PORT=3013 node dist/server.cjs` in the foreground, using a free port if occupied. This is documentation only, not an automatically started server.
+Dependency maintenance and the dev startup command are unchanged. The owner accepted the repo-blueprint knowledge entry: build first, then run `NODE_ENV=production PORT=3013 node dist/server.cjs` in the foreground, using a free port if occupied. This is documentation only, not an automatically started server.
 
 ## NOT VERIFIED
 
