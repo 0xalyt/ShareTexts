@@ -1,0 +1,97 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { launchBrowser, URL, readLiveCode, gotoPage } from './lib.mjs';
+import { browserDiagnostics } from './browser-diagnostics.mjs';
+import { tsImport } from 'tsx/esm/api';
+
+const { generateTOTP } = await tsImport('../src/lib/totp.ts', import.meta.url);
+
+const browser = await launchBrowser();
+const diagnostics = browserDiagnostics(browser, 'relay-files');
+const count = Number(process.env.DEVICES || 3);
+const upstreamSockets = new Set();
+assert.ok(count === 2 || count === 3);
+const files = [1, 2, 3].map(number => ({ name: `relay-queue-${number}.bin`, mimeType: 'application/octet-stream', buffer: Buffer.alloc(18000 + number * 7919, number * 37) }));
+try {
+  const pages = [];
+  let binarySent = 0;
+  for (let i = 0; i < count; i++) {
+    const context = await diagnostics.newContext({ serviceWorkers: 'block', acceptDownloads: true });
+    await context.route(/workers\.dev/, route => route.abort());
+    await context.routeWebSocket(/workers\.dev/, route => route.close());
+    if (process.env.WORKER_URL) {
+      const worker = process.env.VITE_SIGNALING_URL || 'http://localhost:8787';
+      await context.route(`${worker}/**`, async route => {
+        const target = route.request().url().replace(worker, process.env.WORKER_URL);
+        await route.fulfill({ response: await route.fetch({ url: target }) });
+      });
+      await context.routeWebSocket(`${worker.replace(/^http/, 'ws')}/**`, route => {
+        const upstream = new WebSocket(route.url().replace(worker.replace(/^http/, 'ws'), process.env.WORKER_URL.replace(/^http/, 'ws')));
+        upstream.binaryType = 'arraybuffer';
+        upstreamSockets.add(upstream);
+        const queued = [];
+        route.onMessage(data => upstream.readyState === WebSocket.OPEN ? upstream.send(data) : queued.push(data));
+        upstream.onopen = () => queued.splice(0).forEach(data => upstream.send(data));
+        upstream.onmessage = ({ data }) => route.send(typeof data === 'string' ? data : Buffer.from(data));
+        upstream.onerror = () => route.close();
+        upstream.onclose = () => route.close();
+        route.onClose(() => upstream.close());
+      });
+    }
+    await context.addInitScript(() => {
+      window.RTCPeerConnection = class { constructor() { throw new DOMException('Forced relay regression', 'NotSupportedError'); } };
+    });
+    const page = await context.newPage();
+    if (i === 0) page.on('websocket', socket => socket.on('framesent', ({ payload }) => { if (typeof payload !== 'string') binarySent++; }));
+    pages.push(page);
+    await gotoPage(page, URL, { waitUntil: 'domcontentloaded' });
+  }
+  const [sender, ...receivers] = pages;
+  await sender.getByTestId('home-send').click();
+  await sender.getByTestId('pairing-code').waitFor({ timeout: 45000 });
+  const initialCode = await readLiveCode(sender);
+  for (const receiver of receivers) {
+    const stored = await sender.evaluate(() => localStorage.getItem('sharetext.session.v1'));
+    const session = stored ? JSON.parse(stored) : null;
+    const code = session?.secret ? generateTOTP(session.secret, session.createdAt) : initialCode;
+    await receiver.getByTestId('home-receive').click();
+    await receiver.getByTestId('join-code-input').locator('input').first().fill(code);
+    await receiver.getByTestId('composer').first().waitFor({ timeout: 25000 });
+  }
+  await sender.getByTestId('composer').first().waitFor({ timeout: 25000 });
+  // A text round-trip establishes that every new per-peer relay is installed.
+  for (const [index, receiver] of receivers.entries()) {
+    const text = `relay-ready-${index}`;
+    await receiver.locator('textarea').first().fill(text);
+    await receiver.getByRole('button', { name: 'Send', exact: true }).click();
+    await sender.getByText(text, { exact: true }).waitFor({ timeout: 20000 });
+  }
+  await sender.locator('textarea').first().fill('relay-ready-sender');
+  await sender.getByRole('button', { name: 'Send', exact: true }).click();
+  for (const receiver of receivers) await receiver.getByText('relay-ready-sender', { exact: true }).waitFor({ timeout: 20000 });
+  console.log('PASS forced-relay text in both directions');
+  await sender.locator('input[multiple]:not([accept])').setInputFiles(files);
+  await sender.getByText(files[2].name, { exact: true }).waitFor();
+  await sender.getByRole('button', { name: 'Send', exact: true }).click();
+  for (const [index, receiver] of receivers.entries()) {
+    for (const file of files) {
+      const row = receiver.locator('[class~="group/msg"]').filter({ has: receiver.getByText(file.name, { exact: true }) });
+      await row.getByText('Verified', { exact: true }).waitFor({ timeout: 30000 });
+      assert.equal(await row.count(), 1);
+      const downloaded = receiver.waitForEvent('download');
+      await row.getByTestId('transfer-download').click();
+      const download = await downloaded;
+      assert.equal(await download.failure(), null);
+      assert.deepEqual(await readFile(await download.path()), file.buffer);
+      console.log(`PASS ${String.fromCharCode(66 + index)} ${file.name}: Verified, bytes match (${file.buffer.length})`);
+    }
+  }
+  if (!process.env.WORKER_URL) assert.ok(binarySent >= files.length * receivers.length, 'forced relay must send binary chunks');
+  console.log(`PASS ${count}-device forced-relay files: all receivers verified all 3 files; binarySent=${binarySent}`);
+} catch (error) {
+  await diagnostics.captureFailure(error);
+  throw error;
+} finally {
+  for (const upstream of upstreamSockets) upstream.close();
+  await browser.close();
+}

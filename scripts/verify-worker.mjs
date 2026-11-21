@@ -96,7 +96,9 @@ async function connect(room, roomId, forceCid) {
   const server = lastPair.server;
   const inbox = [];
   const binary = [];
+  const frames = [];
   client.onmessage = (ev) => {
+    frames.push(ev.data);
     if (typeof ev.data === 'string') inbox.push(JSON.parse(ev.data));
     else binary.push(ev.data);
   };
@@ -119,7 +121,7 @@ async function connect(room, roomId, forceCid) {
     try { client.close(1000, 'test'); } catch { /* noop */ }
     try { room.webSocketClose(server); } catch { /* noop */ }
   };
-  return { client, server, inbox, binary, send, waitFor, cid, close };
+  return { client, server, inbox, binary, frames, send, waitFor, cid, close };
 }
 
 const codeFor = (secret, createdAt = 0) => new OTPAuth.TOTP({ issuer: 'ShareText', label: 'Session', algorithm: 'SHA1', digits: 6, period: 40, secret }).generate({ timestamp: Date.now() - createdAt });
@@ -299,6 +301,9 @@ async function runRoomProtocol() {
   await room.webSocketMessage(creator.server, chunk.buffer);
   const rb = await binPromise;
   check('relay_message (binary) forwarded intact', rb instanceof ArrayBuffer && new Uint8Array(rb)[21] === 98);
+  const binaryIndex = joiner.frames.indexOf(rb);
+  const label = JSON.parse(joiner.frames[binaryIndex - 1]);
+  check('binary sender label immediately precedes unchanged legacy frame', label.event === 'relay_binary' && label.payload.from === 'pid-creator-device-00000000');
 
   // abuse control: text frames over the per-connection rate limit are dropped
   const before = joiner.inbox.length;
@@ -313,6 +318,12 @@ async function runRoomProtocol() {
   const thirdRes = await third.send('join_with_code', { code, pid: 'pid-third-device-00000000' });
   check('third device joins the same room (no product cap)', thirdRes.success === true && thirdRes.myParticipantId === 'pid-third-device-00000000', thirdRes.error);
   check('roster holds all three participants', (ctx.storage.map.get('room')?.participants?.length ?? 0) === 3);
+  await third.send('signal', { to: 'pid-creator-device-00000000', signal: { type: 'answer', sdp: 'v=0 test' } });
+  const binaryBefore = [joiner.binary.length, third.binary.length];
+  await room.webSocketMessage(creator.server, chunk.buffer);
+  await sleep(25);
+  check('unaddressed binary reaches both peers despite unrelated targeted signal', joiner.binary.length === binaryBefore[0] + 1 && third.binary.length === binaryBefore[1] + 1);
+  check('legacy raw-binary consumer receives original bytes with new Worker', new Uint8Array(third.binary.at(-1))[21] === 98);
   // A FORGED roster claim — reusing another device's pid — is just a seat
   // reclaim (the room secret gates every action): the roster must not grow.
   const fourth = await connect(room, roomId);

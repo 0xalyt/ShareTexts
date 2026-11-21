@@ -315,14 +315,6 @@ export class Room extends DurableObject<Env> {
   /** Per-connection abuse buckets — in-memory only (see FrameBucket). */
   private frameBuckets = new Map<string, FrameBucket>();
 
-  /** The `to` participant id carried on the most recent TEXT frame — binary
-   *  relay chunks carry no envelope, so the addressing of the text frame that
-   *  preceded them (same sender, same turn) decides whether the binary data
-   *  is targeted or broadcast. In-memory, per-wake: worst case a wedged
-   *  binary stream temporarily fans out to all members, the same behavior
-   *  the pre-multi-device relay had. */
-  private lastBinaryTo: string | null = null;
-
   /** Sliding-window-per-fixed-bucket frame gate. Returns false when the
    *  connection exceeded its text or binary frame allowance for the current
    *  window — the frame is silently dropped (the sender sees a stalled
@@ -660,17 +652,16 @@ export class Room extends DurableObject<Env> {
       await this.touch();
       await this.markTransferring();
       await count(this.env, 'relay.binary_messages');
-      // Multi-device fan-out: targeted when the sender addressed one
-      // participant, to every other member otherwise (the 1-to-1 case is
-      // unchanged — two members, so "broadcast" reaches exactly the peer).
+      // Raw chunks have no target. Copies are deduplicated by transfer/sequence.
       const r = this.room!;
-      const toPid = this.targetPid(r, this.lastBinaryTo);
-      const targets = toPid
-        ? r.participants.filter((p) => p.pid === toPid)
-        : r.participants.filter((p) => p.cid !== cid);
+      const from = r.participants.find((p) => p.cid === cid)?.pid ?? cid;
+      const targets = r.participants.filter((p) => p.cid !== cid);
       for (const t of targets) {
         const ws2 = this.openSocket(t.cid);
-        if (ws2) ws2.send(message);
+        if (ws2) {
+          ws2.send(JSON.stringify({ type: 'event', event: 'relay_binary', payload: { from } }));
+          ws2.send(message);
+        }
       }
       return;
     }
@@ -690,10 +681,6 @@ export class Room extends DurableObject<Env> {
     if (typeof msg.event !== 'string') {
       return this.ackErr(cid, msg.id, 'INVALID_MESSAGE', 'Unknown message type.');
     }
-    // Remember the addressing of text frames so a following binary relay
-    // chunk (envelope-less by design) inherits the same target.
-    this.lastBinaryTo = typeof msg.payload?.to === 'string' ? msg.payload.to : null;
-
     switch (msg.event) {
       case 'create_room':
         return this.handleCreate(cid, msg.id, msg.payload);

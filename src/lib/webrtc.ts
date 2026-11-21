@@ -190,6 +190,12 @@ interface PartialReceive {
   updatedAt: number;
 }
 const partialReceives = new Map<string, PartialReceive>();
+const completedReceives = new Set<string>();
+
+function rememberCompletedReceive(transferId: string) {
+  completedReceives.add(transferId);
+  if (completedReceives.size > 256) completedReceives.delete(completedReceives.values().next().value!);
+}
 
 // Chunks can race ahead of their metadata: metadata is a chunk-envelope text
 // message that decrypts asynchronously, so a fast 1-chunk file can have its
@@ -255,6 +261,7 @@ export function clearAllTransferState() {
     if (p.opfs && p.received < p.total) void closeOpfsSink(p.opfs);
   }
   partialReceives.clear();
+  completedReceives.clear();
   sendProgress.clear();
   ackWaiters.clear();
   orphanChunks.clear();
@@ -1034,6 +1041,7 @@ export class PeerManager {
   }
 
   public expectBinaryTransfer(transferId: string, totalChunks: number) {
+    if (completedReceives.has(transferId)) return;
     const existing = partialReceives.get(transferId);
     const totalBytes = totalChunks * CHUNK_SIZE;
     // Stream to disk for large files when the browser supports it; small files
@@ -1155,6 +1163,7 @@ export class PeerManager {
       const view = new DataView(data);
       const transferIdBytes = new Uint8Array(data, 0, 16);
       const transferId = bytesToUuid(transferIdBytes);
+      if (completedReceives.has(transferId)) return;
       const sequence = view.getUint32(16, true);
       const payload = data.slice(20);
 
@@ -1214,6 +1223,7 @@ export class PeerManager {
               // backing after a grace period so the browser's storage quota
               // isn't eaten by finished transfers.
               const file = await opfs.handle.getFile();
+              rememberCompletedReceive(transferId);
               transfer.updatedAt = Date.now();
               scheduleOpfsSweep(opfs);
               if (this.onFileComplete) this.onFileComplete(transferId, file);
@@ -1269,6 +1279,7 @@ export class PeerManager {
             }
             diag('transfer.received_complete', true, transferId.slice(0, 8));
             const blob = new Blob(transfer.chunks);
+            rememberCompletedReceive(transferId);
             partialReceives.delete(transferId);
             if (this.onFileComplete) {
               this.onFileComplete(transferId, blob);
