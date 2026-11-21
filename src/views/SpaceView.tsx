@@ -12,6 +12,7 @@
  */
 
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import '../components/ui/task-surfaces.css';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -879,7 +880,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
 
   return (
     <div
-      className="min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans flex flex-col"
+      className="st-space min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans flex flex-col"
       onDragOver={e => { e.preventDefault(); if (e.dataTransfer.types.includes('Files')) setDragOver(true); }}
       onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false); }}
       onDrop={e => {
@@ -1027,12 +1028,10 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             {/* The drop affordance — the SAME surface the real shelf uses,
                 so “nothing here” and “something is here” never look like
                 two different products. */}
-            <div className="st-tile mt-6 w-full max-w-[420px] flex items-center justify-center gap-2.5 rounded-[12px] px-4 py-4 text-[13px] font-semibold text-apple-ink-muted dark:text-white/55">
-              <span className="st-glyph w-8 h-8 shrink-0" aria-hidden>
-                <Plus className="w-4 h-4" />
-              </span>
+            <button type="button" className="st-space-empty-action press" onClick={() => composerRef.current?.focus()} data-testid="space-empty-write">
+              <Plus className="w-4 h-4 shrink-0" aria-hidden />
               {t('space.composerPlaceholder')}
-            </div>
+            </button>
           </div>
         ) : (
           <ul className="space-y-2.5" aria-label={t('space.contentLabel')}>

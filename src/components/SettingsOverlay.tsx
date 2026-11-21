@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, ChevronRight, X } from 'lucide-react';
+import { Check, ChevronRight, Settings2, X } from 'lucide-react';
+import './ui/task-surfaces.css';
 import { Sheet } from './ui/Sheet';
 import { Segmented } from './ui/Segmented';
 import { useI18n, LANGS, type Lang } from '../lib/i18n';
@@ -88,7 +89,7 @@ function Switch({ checked, onChange, label, testId }: { checked: boolean; onChan
 
 function Group({ title, children, testId }: { title: string; children: React.ReactNode; testId?: string }) {
   return (
-    <section className="mt-5 first:mt-2" data-testid={testId}>
+    <section className="st-task-settings-group mt-5 first:mt-2" data-testid={testId}>
       <h4 className="px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55">
         {title}
       </h4>
@@ -189,10 +190,13 @@ export function SettingsOverlay({
       closeButton={false}
       scroll="none"
       testId="settings-overlay"
-      panelClassName="sm:pb-2"
+      panelClassName="st-task-sheet sm:pb-2"
     >
               <div className="flex items-center justify-between px-4 pt-2 pb-1">
-                <h3 id="settings-title" className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('settings.title')}</h3>
+                <div className="st-task-sheet-heading">
+                  <span className="st-task-sheet-mark" aria-hidden><Settings2 className="h-5 w-5" /></span>
+                  <h3 id="settings-title" className="st-task-sheet-title text-apple-ink dark:text-white">{t('settings.title')}</h3>
+                </div>
                 <button
                   type="button"
                   onClick={onClose}
