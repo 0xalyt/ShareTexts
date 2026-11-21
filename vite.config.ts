@@ -3,8 +3,23 @@ import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'path';
-import {defineConfig, type Connect, type ViteDevServer} from 'vite';
+import {defineConfig, type Connect, type Plugin, type ViteDevServer} from 'vite';
 import {visualizer} from 'rollup-plugin-visualizer';
+import {heroFilmAssets} from './src/lib/heroFilmAssets';
+
+/** Start the player's first picture during HTML parsing in dev and production.
+ *  A shared source keeps new film cuts from preloading the previous poster. */
+const heroFilmPoster = (): Plugin => ({
+  name: 'hero-film-poster',
+  transformIndexHtml(_html, context) {
+    if (path.basename(context.filename) !== 'index.html') return;
+    return [{
+      tag: 'link',
+      attrs: { rel: 'preload', as: 'image', href: heroFilmAssets.poster, fetchpriority: 'high' },
+      injectTo: 'head-prepend',
+    }];
+  },
+});
 
 /** Serve the static guides hub at its canonical extensionless URL in dev.
  *  Production does the same (server.ts app.get('/guides'), vercel.json
@@ -56,6 +71,7 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
+      heroFilmPoster(),
       guidesHub(),
       precacheManifest(),
       // Only with ANALYZE=1 (`npm run build:analyze`): a treemap of what is
