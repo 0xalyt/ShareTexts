@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import '../components/ui/task-surfaces.css';
 import { EASE } from '../lib/motion/tokens';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
@@ -1010,7 +1011,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   return (
     <div
       data-app-state="connected"
-      className={cn("relative flex flex-col bg-apple-canvas dark:bg-night-950 font-sans", panelMode === "embedded" ? "h-full" : "h-dvh")}
+      className={cn("st-room relative flex flex-col bg-apple-canvas dark:bg-night-950 font-sans", panelMode === "embedded" ? "h-full" : "h-dvh")}
       style={visualHeight ? { height: `${visualHeight}px` } : undefined}
       // The WHOLE room is the drop surface: header, messages, composer —
       // release anywhere. The messages list keeps its own handlers too;
@@ -1080,9 +1081,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             </span>
           </span>
           <ArrowRightLeft className="hidden sm:block w-3.5 h-3.5 shrink-0 text-apple-ink-muted/60 dark:text-white/30" />
-          {/* The partner tile breathes while the link is live — one slow
-              alpha ring, the same "alive" grammar as the tracker dot. It
-              halts with the link (dimmed, no ring when disconnected). */}
+          {/* The status is steady once connected. Only an in-progress
+              connection earns motion; a healthy room stays quiet to read. */}
           <span className={cn(
             "relative shrink-0 flex items-center justify-center w-8 h-8 rounded-[12px] transition-colors",
             disconnected
@@ -1092,7 +1092,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 : "bg-status-success/10 border border-status-success/20 text-status-success"
           )}>
             {session.connectionType === 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[12px] bg-status-warning/20 st-halo-ring" />}
-            {!disconnected && session.connectionType !== 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[12px] bg-status-success/20 st-halo-ring" />}
             <PartnerDeviceIcon className="relative w-4 h-4" />
           </span>
           {/* One line of truth: who is on the other side, and one word about
@@ -1464,8 +1463,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   </p>
                 </div>
               ) : (
-                <div className="flex flex-col items-start max-w-[440px]">
-                  <SceneEmptyRoom size={112} className="text-apple-ink dark:text-white" />
+                <div className="st-room-start flex flex-col items-start max-w-[520px]">
+                  <SceneEmptyRoom size={88} className="text-apple-ink dark:text-white" />
                   {session.partnerName && (
                     <p className="text-[18px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white mt-4 max-w-[380px] leading-snug">
                       {t('chat.empty.dest', { name: session.partnerName })}
@@ -1474,11 +1473,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   <p className="text-[13px] text-apple-ink-muted dark:text-white/60 max-w-[360px] leading-relaxed mt-1.5">
                     {t('chat.empty.body')}
                   </p>
-                  {/* The same three starters, as text. Each still does exactly
+                  {/* The same three starters, with explicit hit areas. Each does exactly
                       what it says: the greeting is TYPED for them to edit
                       (never auto-sent), the photo starter opens the picker,
                       the link starter puts the caret in the field. */}
-                  <div className="mt-2.5 flex flex-wrap items-center gap-x-5">
+                  <div className="st-room-starters">
                     {([
                       { key: 'chat.suggest.hi', run: () => { setInputText(t('chat.suggest.hi')); requestAnimationFrame(() => textareaRef.current?.focus()); } },
                       { key: 'chat.suggest.photo', run: () => imageInputRef.current?.click() },
@@ -1489,9 +1488,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                         type="button"
                         data-testid={s.key}
                         onClick={s.run}
-                        style={{ ['--st-tap-grow' as string]: '4px' }}
-                        className="st-tap inline-flex items-center min-h-[44px] text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 underline decoration-apple-ink-muted/30 dark:decoration-white/25 underline-offset-[6px] hover:text-ember dark:hover:text-azure-400 hover:decoration-ember/60 dark:hover:decoration-azure-400/60 active:opacity-60 transition-colors"
+                        className="st-tap"
                       >
+                        {s.key === 'chat.suggest.hi' ? <Pencil className="h-3.5 w-3.5" aria-hidden /> : s.key === 'chat.suggest.photo' ? <Plus className="h-3.5 w-3.5" aria-hidden /> : <Link2 className="h-3.5 w-3.5" aria-hidden />}
                         {t(s.key)}
                       </button>
                     ))}

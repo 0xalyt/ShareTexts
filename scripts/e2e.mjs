@@ -44,6 +44,48 @@ async function main() {
   A.on('pageerror', e => logs.push(`[A:ERROR] ${e.message}`));
   B.on('pageerror', e => logs.push(`[B:ERROR] ${e.message}`));
 
+  // Keep failure evidence even when an awaited step throws before the footer.
+  // Observe only: never intercept frames or log payloads, room secrets or SDP.
+  const observed = new Map();
+  function observe(name, page) {
+    const frames = { relaySent: 0, relayReceived: 0, binarySent: 0, binaryReceived: 0 };
+    observed.set(name, { page, frames });
+    page.on('websocket', ws => {
+      for (const direction of ['sent', 'received']) {
+        ws.on(direction === 'sent' ? 'framesent' : 'framereceived', ({ payload }) => {
+          if (typeof payload !== 'string') {
+            frames[direction === 'sent' ? 'binarySent' : 'binaryReceived']++;
+          } else {
+            try {
+              if (JSON.parse(payload).event === 'relay_message') {
+                frames[direction === 'sent' ? 'relaySent' : 'relayReceived']++;
+              }
+            } catch { /* not a signaling envelope */ }
+          }
+        });
+      }
+    });
+  }
+  observe('A', A);
+  observe('B', B);
+  async function diagnostics(checkpoint) {
+    for (const [device, { page, frames }] of observed) {
+      if (page.isClosed()) continue;
+      const state = await page.evaluate(() => ({
+        build: document.querySelector('meta[name="sharetexts-build"]')?.content,
+        // Stage names/timestamps establish route and ordering without identifiers.
+        transport: (window.__sharetextDiag?.snapshot() || [])
+          .filter(e => /^(webrtc\.|transport\.)/.test(e.stage))
+          .map(({ t, stage, ok }) => ({ t, stage, ok })),
+        rows: [...document.querySelectorAll('[class~="group/msg"]')]
+          .slice(0, 12).map(row => row.textContent?.slice(0, 200)),
+      })).catch(error => ({ unavailable: error.message }));
+      console.log('E2E_DIAG', JSON.stringify({ checkpoint, device, engine: browser.browserType().name(), version: browser.version(), frames, ...state }));
+    }
+  }
+
+  try {
+
   // --- Device A: create session ---
   await A.goto(URL, { waitUntil: 'networkidle' });
   await A.getByTestId('home-send').click();
@@ -83,6 +125,7 @@ async function main() {
     failures++;
     console.log('STEP 4 FAIL: A did not receive reply');
   }
+  await diagnostics('first-text-and-reply');
 
   // --- Copy button on A: the sent message must copy verbatim ---
   const copiedText = 'Hello from Device A 👋';
@@ -178,6 +221,7 @@ async function main() {
   console.log('STEP 8b: B\'s tab closed — reopening to test rejoin…');
   await sleep(2500);
   const B2 = await ctxB.newPage();
+  observe('B2', B2);
   B2.on('pageerror', e => logs.push(`[B2:ERROR] ${e.message}`));
   await B2.goto(URL, { waitUntil: 'networkidle' });
   await sleep(6000);
@@ -277,11 +321,13 @@ async function main() {
     failures++;
   }
 
-  console.log('\n--- PAGE ERRORS ---');
-  console.log(logs.length ? logs.slice(0, 20).join('\n') : '(none)');
-
-  await browser.close();
   if (failures) throw new Error(`${failures} end-to-end check(s) failed`);
+  } finally {
+    await diagnostics('finished');
+    console.log('\n--- PAGE ERRORS ---');
+    console.log(logs.length ? logs.slice(0, 20).join('\n') : '(none)');
+    await browser.close();
+  }
 }
 
 main().catch(e => { console.error('TEST FAILED:', e.message); process.exit(1); });
