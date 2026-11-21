@@ -5,9 +5,11 @@ import { get as getHTTP } from 'node:http';
 import { get as getHTTPS } from 'node:https';
 import { launchBrowser, clickStable, resolveEngine } from './lib.mjs';
 import jsQR from 'jsqr';
+import { browserDiagnostics } from './browser-diagnostics.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const browser = await launchBrowser();
+const diagnostics = browserDiagnostics(browser, 'handoff');
 const check = (name, condition) => { assert.ok(condition, name); console.log(`PASS ${name}`); };
 async function decodeWebsiteQr(page) {
   const pixels = await page.locator('.landing-browser-qr svg').evaluate(async svg => {
@@ -45,7 +47,7 @@ try {
 
   for (const locale of ['en', 'es', 'ar']) {
     for (const width of [320, 360, 390, 1440]) {
-      const ctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
+      const ctx = await diagnostics.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
       await ctx.addInitScript((lang) => localStorage.setItem('sharetext.locale', lang), locale);
       const page = await ctx.newPage();
       page.setDefaultTimeout(15_000);
@@ -102,7 +104,7 @@ try {
       await guidePair.focus();
       await page.keyboard.press('Space');
       check(`${locale}/${width}: keyboard selects Pair without motion`, await guidePair.getAttribute('aria-pressed') === 'true' && await page.locator('.landing-guide-example').getAttribute('data-animate') === 'false' && await page.locator('.landing-guide-layer[data-active="true"] .landing-pair-detail').count() === 1);
-      await page.evaluate(() => document.fonts.ready);
+      await page.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
       check(`${locale}/${width}: sample code fits its padded card and every receiver cell`, await page.locator('.landing-pair-detail').evaluate(el => {
         const code = el.querySelector('.landing-example-code');
         const card = code.closest('.landing-mini-device');
@@ -151,7 +153,7 @@ try {
       await page.keyboard.press('Space');
       check(`${locale}/${width}: keyboard restores the open example instantly`, await shelfButtons.nth(0).getAttribute('aria-pressed') === 'true' && await shelf.locator('.landing-space-open').evaluate(el => getComputedStyle(el).opacity === '1' && getComputedStyle(el).transitionDuration === '0s'));
       if (locale === 'en') {
-        await page.evaluate(() => document.fonts.ready);
+        await page.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
         const longestHeadingFits = await page.locator('h1').evaluate(el => {
           const copy = el.cloneNode(true);
           copy.style.cssText = `position:absolute;visibility:hidden;width:${el.getBoundingClientRect().width}px`;
@@ -197,19 +199,19 @@ try {
       ['light', null, 'light'], ['dark', null, 'dark'],
       ['light', 'dark', 'dark'], ['dark', 'light', 'light'],
     ]) {
-      const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: os, reducedMotion: 'reduce' });
+      const ctx = await diagnostics.newContext({ viewport: { width, height: 900 }, colorScheme: os, reducedMotion: 'reduce' });
       if (saved) await ctx.addInitScript(theme => localStorage.setItem('sharetext.theme', theme), saved);
       const page = await ctx.newPage();
       if (resolveEngine().name === 'firefox') {
         // Firefox drops context-level color emulation on its first real
         // navigation. Prime an inert response, then establish the OS before
         // the first landing visit; no app/poster has been fetched yet.
-        await page.goto(new URL('/health', BASE).href);
+        await page.goto(new URL('/health', BASE).href, { waitUntil: 'domcontentloaded' });
         await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
       }
       const requests = [];
       page.on('request', request => { if (/\/film\/.*-poster\./.test(request.url())) requests.push(request.url()); });
-      await page.goto(BASE, { waitUntil: 'networkidle' });
+      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       const inspect = () => page.evaluate(() => {
@@ -227,7 +229,12 @@ try {
       check(`${name}: no opposite poster requested at boot`, requests.length > 0 && requests.every(url => url === state.poster));
       const brightness = await page.evaluate(async () => {
         const image = new Image(); image.src = document.querySelector('[data-testid="hero-demo"] video').poster;
-        await image.decode();
+        let timer;
+        try {
+          await Promise.race([image.decode(), new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error('Poster decode timed out after 10000ms')), 10000);
+          })]);
+        } finally { clearTimeout(timer); }
         const canvas = document.createElement('canvas'); canvas.width = 16; canvas.height = 9;
         const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0, 16, 9);
         return [[0, 0], [15, 0], [0, 8], [15, 8]].reduce((sum, [x, y]) => {
@@ -255,10 +262,11 @@ try {
     }
   }
 
-  const laptop = await browser.newContext({ viewport: { width: 1024, height: 700 }, reducedMotion: 'reduce' });
+  const laptop = await diagnostics.newContext({ viewport: { width: 1024, height: 700 }, reducedMotion: 'reduce' });
   const shortPage = await laptop.newPage();
-  await shortPage.goto(BASE);
+  await shortPage.goto(BASE, { waitUntil: 'domcontentloaded' });
   await shortPage.getByTestId('hero-demo').waitFor();
+  await shortPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const shortLayout = await shortPage.evaluate(() => {
     const send = document.querySelector('[data-testid="home-send"]').getBoundingClientRect();
     const demo = document.querySelector('[data-testid="hero-demo"]').getBoundingClientRect();
@@ -271,10 +279,12 @@ try {
   // A command's painted label must agree with its accessible name on the
   // first frame after typing, not disappear through an exit/enter sequence.
   for (const theme of ['light', 'dark']) {
-    const typing = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'no-preference' });
+    const typing = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'no-preference' });
     await typing.addInitScript(value => localStorage.setItem('sharetext.theme', value), theme);
     const entry = await typing.newPage();
-    await entry.goto(BASE);
+    await entry.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await entry.getByTestId('intent-input').waitFor();
+    await entry.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     const input = entry.getByTestId('intent-input');
     const button = entry.getByTestId('intent-submit');
     for (const [value, label] of [['', 'Create room'], ['A note', 'Send this'], ['482716', 'Join room'], ['', 'Create room'], ['482', 'Send this'], ['482716', 'Join room'], ['', 'Create room']]) {
@@ -319,11 +329,12 @@ try {
   }
 
   for (const width of [390, 1440]) {
-    const dark = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
+    const dark = await diagnostics.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
     await dark.addInitScript(() => localStorage.setItem('sharetext.theme', 'dark'));
     const darkPage = await dark.newPage();
-    await darkPage.goto(BASE);
+    await darkPage.goto(BASE, { waitUntil: 'domcontentloaded' });
     await darkPage.getByTestId('hero-demo').waitFor();
+    await darkPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     check(`${width}: dark landing retains its theme without overflow`, await darkPage.evaluate(() =>
       document.documentElement.classList.contains('dark') && document.documentElement.scrollWidth <= innerWidth
     ));
@@ -331,9 +342,9 @@ try {
     await dark.close();
   }
 
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  const ctx = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
-  await page.goto(BASE);
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   const demo = page.getByTestId('hero-demo');
   await demo.scrollIntoViewIfNeeded();
   await page.waitForTimeout(3600);
@@ -383,9 +394,11 @@ try {
   check('expiry uses native keyboard radio navigation', !(await day.isChecked()));
   await ctx.close();
 
-  const phone = await browser.newContext({ viewport: { width: 320, height: 720 }, reducedMotion: 'reduce' });
+  const phone = await diagnostics.newContext({ viewport: { width: 320, height: 720 }, reducedMotion: 'reduce' });
   const p = await phone.newPage();
-  await p.goto(BASE);
+  await p.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await p.getByTestId('home-receive').waitFor();
+  await p.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const action = await p.getByTestId('home-receive').boundingBox();
   check('mobile sharing action is visible before scrolling', action && action.y + action.height <= 720);
   await p.getByTestId('home-send').focus();
@@ -403,6 +416,9 @@ try {
   const fits = await inputs.evaluateAll(els => els.every(el => { const r = el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.width > 0; }));
   check('all six receive digits fit at 320px', fits && await inputs.count() === 6);
   await phone.close();
+} catch (error) {
+  await diagnostics.captureFailure(error).catch(e => console.error('Failure diagnostics:', e));
+  throw error;
 } finally {
   await browser.close();
 }
