@@ -1,6 +1,7 @@
 // E2E: create → join → connect → send → receive → refresh-reconnect → large text → third-device rejection
 import { launchBrowser, URL, sleep, readLiveCode } from './lib.mjs';
 import { tsImport } from 'tsx/esm/api';
+import { browserDiagnostics } from './browser-diagnostics.mjs';
 
 const { generateTOTP } = await tsImport('../src/lib/totp.ts', import.meta.url);
 
@@ -33,9 +34,11 @@ function makeUnicodeText(kb) {
 async function main() {
   let failures = 0;
   const browser = await launchBrowser();
-  const ctxA = await browser.newContext();
-  const ctxB = await browser.newContext();
-  const ctxC = await browser.newContext();
+  const artifacts = browserDiagnostics(browser, 'e2e');
+  try {
+  const ctxA = await artifacts.newContext();
+  const ctxB = await artifacts.newContext();
+  const ctxC = await artifacts.newContext();
   const A = await ctxA.newPage();
   const B = await ctxB.newPage();
   const C = await ctxC.newPage();
@@ -87,17 +90,25 @@ async function main() {
   try {
 
   // --- Device A: create session ---
-  await A.goto(URL, { waitUntil: 'networkidle' });
+  await A.goto(URL, { waitUntil: 'domcontentloaded' });
+  await A.getByTestId('home-send').waitFor();
+  const createStarted = Date.now();
   await A.getByTestId('home-send').click();
   // The pairing-code tile group (LiveCodeDisplay) marks the sending panel.
-  await A.getByRole('group', { name: 'Pairing code' }).waitFor({ timeout: 10000 });
+  // socketReady + health probe, two create ACKs, retry socketReady + probe.
+  const createTimeout = 16000 + 3500 + 2 * 9000 + 4000 + 3500;
+  try {
+    await A.getByRole('group', { name: 'Pairing code' }).waitFor({ timeout: createTimeout });
+  } finally {
+    console.log(`CREATE elapsed=${Date.now() - createStarted}ms budget=${createTimeout}ms`);
+  }
   console.log('STEP 1 OK: A created session, pairing code visible');
   await ctxA.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: URL.match(/^https?:\/\/[^/]+/)?.[0] || URL }).catch(() => {});
   const code = await readLiveCode(A);
   console.log('Live code:', code);
 
   // --- Device B: join ---
-  await B.goto(URL, { waitUntil: 'networkidle' });
+  await B.goto(URL, { waitUntil: 'domcontentloaded' });
   await B.getByTestId('home-receive').click();
   await B.getByTestId('join-code-input').locator('input').first().fill(code);
   await B.getByTestId('composer').first().waitFor({ timeout: 20000 });
@@ -223,7 +234,7 @@ async function main() {
   const B2 = await ctxB.newPage();
   observe('B2', B2);
   B2.on('pageerror', e => logs.push(`[B2:ERROR] ${e.message}`));
-  await B2.goto(URL, { waitUntil: 'networkidle' });
+  await B2.goto(URL, { waitUntil: 'domcontentloaded' });
   await sleep(6000);
   const b2Body = await B2.locator('body').innerText();
   const b2Composer = await B2.getByTestId('composer').count();
@@ -264,7 +275,7 @@ async function main() {
   const { secret, createdAt } = JSON.parse(stored);
   const freshCode = generateTOTP(secret, createdAt);
   console.log('Fresh code for third device test:', freshCode);
-  await C.goto(URL, { waitUntil: 'networkidle' });
+  await C.goto(URL, { waitUntil: 'domcontentloaded' });
   await C.getByTestId('home-receive').click();
   await C.getByTestId('join-code-input').locator('input').first().fill(freshCode);
   await sleep(4000);
@@ -326,6 +337,11 @@ async function main() {
     await diagnostics('finished');
     console.log('\n--- PAGE ERRORS ---');
     console.log(logs.length ? logs.slice(0, 20).join('\n') : '(none)');
+  }
+  } catch (error) {
+    await artifacts.captureFailure(error).catch(e => console.error('Failure diagnostics:', e));
+    throw error;
+  } finally {
     await browser.close();
   }
 }
