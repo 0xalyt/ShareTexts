@@ -11,8 +11,9 @@
  *   enter  — 280ms, something arrived (card, section, overlay)
  *
  * All curves are Apple-like ease-outs (fast start, gentle settle);
- * MotionConfig reducedMotion="user" suppresses animated transforms; data
- * still needs a static equivalent (see useMotionPreference).
+ * MotionConfig reducedMotion="user" makes positional transforms instant;
+ * choose explicit static feedback where jumping would distract (see
+ * useMotionPreference).
  */
 import type { Transition } from 'motion/react';
 import { DUR, EASE } from './motion/tokens';

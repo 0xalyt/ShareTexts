@@ -167,10 +167,10 @@ export function NumberTicker({
   }, [reduce]);
 
   const plain = label ?? `${prefix ?? ''}${formatted}${suffix ?? ''}`;
-  // MotionConfig suppresses spatial transforms, including the strip's y.
-  // A zero-duration strip would therefore show the first glyph (0), not the
-  // requested digit. Render real text instead: correct on first paint, when
-  // the preference changes, and with animations completely disabled.
+  // MotionConfig jumps positional transforms to their targets, but does not
+  // remove the column's width/opacity stagger. Render real text instead:
+  // no rolling artwork, width measurement, or delayed digit entrances in the
+  // static path, including live preference changes while a room stays open.
   if (reduce) {
     return (
       <span className={cn('num-ticker', className)}>

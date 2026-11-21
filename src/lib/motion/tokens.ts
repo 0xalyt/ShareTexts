@@ -19,9 +19,9 @@
  * feel slower than the operation it describes. Long-running loops are
  * reserved for STATE (connecting, transferring) and are always frozen
  * under prefers-reduced-motion (MotionConfig reducedMotion="user" in
- * main.tsx suppresses animated transforms; it does NOT zero durations or
- * place transformed data correctly. Render a static equivalent for digit
- * strips and progress travel; CSS guards the keyframe side).
+ * main.tsx makes positional transforms instant, but does NOT remove every
+ * duration, stagger, or CSS keyframe. Prefer static digits and anchored
+ * progress feedback; CSS guards the keyframe side).
  *
  * ── Springs vs easing ──────────────────────────────────────────────────
  * Springs (direct manipulation, sheets, cards, device selection) re-target

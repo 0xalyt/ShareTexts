@@ -9,8 +9,8 @@
  *
  * Motion rules (per the animate skill):
  *  - tool: Motion (already the app's animation system; MotionConfig
- *    reducedMotion="user" globally disables the transform travel for
- *    users who prefer reduced motion — opacity fades remain).
+ *    reducedMotion="user" makes transform travel instant for users who
+ *    prefer reduced motion; this component instead keeps a stationary tile).
  *  - properties: transform (translate3d + scaleX) and opacity only — the
  *    overlay is position:fixed, so nothing in the feed reflows while it
  *    flies.
@@ -149,8 +149,8 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
         aria-hidden
         data-testid="transfer-flight"
         className="fixed z-30 pointer-events-none"
-        // Keep layout placement separate from animated travel. Globally
-        // suppressed transforms must never move the tile to viewport (0,0).
+        // Keep layout placement separate from animated travel. The static
+        // path stays anchored inside the feed instead of jumping per tick.
         style={{ left: (reduced ? (track.from + track.to) / 2 : track.from) - CHIP_W / 2, top: track.y - CHIP_H / 2, width: CHIP_W }}
         initial={false}
         animate={reduced ? { x: 0, y: 0 } : { x: x - track.from, y: arc }}

@@ -19,9 +19,11 @@ Implementation guidance for ShareTexts' shared interaction primitives. Extend
 
 ## Motion-on / motion-off are the same product
 
-- `MotionConfig reducedMotion="user"` suppresses animated transforms; it does
-  **not** turn a transformed digit strip into the right number. Render the
-  actual formatted number as text in the static path.
+- `MotionConfig reducedMotion="user"` jumps positional transforms to their
+  targets; it does **not** remove width/opacity staggers or CSS animations.
+  Render the actual formatted number as text in the static path, without
+  measuring or mounting digit strips. Use a stationary transfer tile rather
+  than jumping it to a different position for every progress tick.
 - Motion 12's `useReducedMotion` snapshots the preference at mount. Shared
   data/gesture primitives use `useMotionPreference`, a live media-query
   subscription that also respects explicit `MotionConfig` overrides.
