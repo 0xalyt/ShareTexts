@@ -606,6 +606,7 @@ const es: Dict = {
   'space.cancel': 'Cancelar',
   'space.contentLabel': 'Contenido compartido',
   'space.empty': 'Todavía no hay nada',
+  'space.emptyAction': 'Escribir una nota',
   'space.emptyHint': 'Añade texto, enlaces, fotos o cualquier archivo abajo.',
   'space.composerPlaceholder': 'Añade algo: texto, un enlace…',
   'space.addFile': 'Archivo',

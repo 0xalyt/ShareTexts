@@ -62,7 +62,32 @@ jobs:
         run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-handoff.mjs
 
       - name: Browser E2E (create → join → transfer → reconnect → rejoin)
+        id: browser_e2e
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
+
+      # A failed delivery must be compared with main on this exact runner,
+      # not another provider/region. This control never changes the PR result.
+      - name: Main control on the same failed WebKit runner
+        if: ${{ failure() && steps.browser_e2e.outcome == 'failure' && matrix.browsers == 'webkit' && github.event_name == 'pull_request' }}
+        env:
+          BASELINE_REF: ${{ github.event.pull_request.base.sha }}
+        run: |
+          BASELINE_DIR="$RUNNER_TEMP/sharetexts-main-control"
+          git fetch --depth=1 origin "$BASELINE_REF"
+          git worktree add --detach "$BASELINE_DIR" FETCH_HEAD
+          npm ci --prefix "$BASELINE_DIR"
+          npm run build --prefix "$BASELINE_DIR"
+          PORT=3312 npm run start --prefix "$BASELINE_DIR" > "$RUNNER_TEMP/sharetexts-main-control-server.log" 2>&1 &
+          ready=false
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3312/health > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            cat "$RUNNER_TEMP/sharetexts-main-control-server.log"
+            exit 1
+          fi
+          BROWSER=webkit URL=http://localhost:3312 node scripts/e2e.mjs
 
       - name: Screenshots (this engine)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs

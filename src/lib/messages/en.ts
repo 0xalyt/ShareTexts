@@ -700,6 +700,7 @@ const en = {
   'space.cancel': 'Cancel',
   'space.contentLabel': 'Shared content',
   'space.empty': 'Nothing here yet',
+  'space.emptyAction': 'Write a note',
   'space.emptyHint': 'Add text, links, photos, or any file below.',
   'space.composerPlaceholder': 'Add something: text, a link…',
   'space.addFile': 'File',

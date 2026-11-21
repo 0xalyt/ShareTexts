@@ -18,8 +18,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X, Search, Trash2, Copy, Check, Download, ExternalLink,
-  FileText, Link as Link2, ChevronDown, ChevronUp,
+  Bookmark, FileText, Link as Link2, ChevronDown, ChevronUp,
 } from 'lucide-react';
+import './ui/task-surfaces.css';
 import { useI18n } from '../lib/i18n';
 import { fmtDateTime } from '../lib/format';
 import type { I18nApi } from '../lib/i18n';
@@ -590,13 +591,17 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
         closeButton={false}
         scroll="none"
         testId="saved-overlay"
-        panelClassName="sm:max-w-[460px]"
+        panelClassName="st-task-sheet sm:max-w-[460px]"
       >
         <div className="px-6 pt-1 sm:pt-5 pb-1 flex items-start justify-between gap-3 shrink-0">
           <div className="min-w-0">
-            <h3 id="saved-title" className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">
-              {t('saved.title')}
-            </h3>
+            <div className="st-task-sheet-heading">
+              <span className="st-task-sheet-mark" aria-hidden><Bookmark className="h-5 w-5" /></span>
+              <h3 id="saved-title" className="st-task-sheet-title text-apple-ink dark:text-white">
+                {t('saved.title')}
+              </h3>
+            </div>
+            <p className="st-task-local-note">{t('saved.localNote')}</p>
             {snapshot.status === 'ready' && items.length > 0 && (
               <p className="text-[12px] text-apple-ink-muted dark:text-white/45 tnum">{countLabel}</p>
             )}
@@ -624,9 +629,6 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
 
         {items.length > 0 && snapshot.status === 'ready' && (
           <div className="shrink-0 px-4 sm:px-5 pt-3 pb-2 mt-1 border-t border-apple-divider dark:border-white/[0.06] flex items-center justify-between gap-3">
-            <p className="text-[11px] leading-snug text-apple-ink-muted dark:text-white/40 max-w-[62%]">
-              {t('saved.localNote')}
-            </p>
             <button
               type="button"
               onClick={() => setConfirmClear(true)}
