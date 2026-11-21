@@ -72,6 +72,7 @@ const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = {
  *  `limit` per window in total; a lease left unused in another isolate only
  *  makes the limit stricter for that window. */
 const RATE_LEASE_DIVISOR = 5;
+const RATE_LEASE_FIRST = 20;
 
 export class Registry extends DurableObject<Env> {
   private rateBuckets = new Map<string, RateBucket>();
@@ -113,7 +114,8 @@ export class Registry extends DurableObject<Env> {
 
   /** Bounded per-IP fixed window. /rate-check takes one attempt and returns
    *  ok=false once the limit is hit; /rate-lease takes up to
-   *  up to `want` attempts at once — never more than limit/RATE_LEASE_DIVISOR,
+   *  up to `want` attempts at once (at least limit/RATE_LEASE_FIRST, so
+   *  high-limit scopes start with a few) — never more than limit/RATE_LEASE_DIVISOR,
    *  nor more than half of what is left in the window, so leases shrink to
    *  single attempts as the limit nears — and says how many it granted
    *  (0 = limited) and when the window resets. */
@@ -137,7 +139,7 @@ export class Registry extends DurableObject<Env> {
     const left = cfg.limit - bucket.count;
     const want = lease
       ? Math.min(
-          Math.max(1, Math.floor(Number(body.want) || 1)),
+          Math.max(1, Math.floor(cfg.limit / RATE_LEASE_FIRST), Math.floor(Number(body.want) || 1)),
           Math.max(1, Math.floor(cfg.limit / RATE_LEASE_DIVISOR)),
           Math.max(1, Math.floor(left / 2)),
         )
