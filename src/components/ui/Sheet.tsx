@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, animate, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, animate, motion } from 'motion/react';
+import { useMotionPreference } from '../../lib/useMotionPreference';
 import { X } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 import { useFocusTrap } from '../../lib/useFocusTrap';
 import { hapticTick } from '../../lib/haptics';
-import { DUR, EASE, settleSeconds } from '../../lib/motion/tokens';
+import { DUR, EASE, rubberBand, settleSeconds } from '../../lib/motion/tokens';
 import { cn } from '../../lib/utils';
 
 /**
@@ -149,7 +150,7 @@ export function Sheet({
   children,
 }: SheetProps) {
   const { t } = useI18n();
-  const reduced = useReducedMotion();
+  const reduced = useMotionPreference();
   const trapRef = useFocusTrap(open);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -278,7 +279,8 @@ export function Sheet({
   } | null>(null);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!open || !draggable || reduced) return;
+    // Reduced motion removes the release animation, not direct manipulation.
+    if (!open || !draggable || gesture.current) return;
     // Mouse drags are text selection on desktop; the dialog dismisses with
     // the ✕, Escape or the backdrop instead.
     if (e.button !== 0) return;
@@ -322,14 +324,18 @@ export function Sheet({
       // A CSS transition is how a release settles; catching the panel mid-flight
       // must stop it first, or the drag would be animated by the position it is
       // trying to leave.
-      el.style.transition = 'none';
       const moving = el.getAnimations();
-      if (moving.length) {
-        for (const a of moving) a.pause();
-        const t = getComputedStyle(el).transform;
-        base = t && t !== 'none' ? new DOMMatrixReadOnly(t).m42 : 0;
-        for (const a of moving) a.cancel();
-      }
+      for (const a of moving) a.pause();
+      // Read BEFORE cancelling the CSS transition, otherwise its painted
+      // position is lost and a caught sheet jumps to the old destination.
+      const painted = getComputedStyle(el);
+      const t = painted.transform;
+      base = t && t !== 'none' ? new DOMMatrixReadOnly(t).m42 : 0;
+      const max = parseFloat(painted.maxHeight);
+      for (const a of moving) a.cancel();
+      el.style.transition = 'none';
+      if (Number.isFinite(max)) physics.current.max = max;
+      paint(base, physics.current.max);
     }
 
     gesture.current = {
@@ -395,7 +401,7 @@ export function Sheet({
       const limit = fullMax();
       const want = g.startMax - raw;
       if (want <= limit) paint(0, want);
-      else paint((raw + (limit - g.startMax)) * 0.18, limit);
+      else paint(-rubberBand(want - limit, vh()), limit);
       return;
     }
 
@@ -428,8 +434,8 @@ export function Sheet({
 
   const endGesture = (e: React.PointerEvent<HTMLDivElement>, cancelled: boolean) => {
     const g = gesture.current;
-    gesture.current = null;
     if (!g || e.pointerId !== g.id) return;
+    gesture.current = null;
     const el = panelRef.current;
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* fine */ }
     if (el) {
@@ -483,17 +489,17 @@ export function Sheet({
       }
       node.style.transition = `transform ${settleSeconds(toY - fromY, velocity)}s cubic-bezier(0.32, 0.72, 0, 1)`;
       node.style.transform = toY === 0 ? '' : `translate3d(0, ${Math.round(toY)}px, 0)`;
-      const done = () => {
-        node.style.transition = '';
-        node.removeEventListener('transitionend', done);
-      };
-      node.addEventListener('transitionend', done, { once: true });
+      // No transitionend dependency: cancellation or animations-off must not
+      // leave stale cleanup callbacks that clobber the next gesture.
     };
 
     const home = () => {
       if (!el) return;
       settle(el, 0);
-      if (bd) animate(bd, { opacity: 1 }, { duration: DUR.short / 1000 });
+      if (bd) {
+        if (reduced) bd.style.opacity = '1';
+        else animate(bd, { opacity: 1 }, { duration: DUR.short / 1000 });
+      }
       physics.current.y = 0;
     };
 
@@ -631,7 +637,7 @@ export function Sheet({
         {backdrop}
         <motion.div
           className="w-full flex justify-center sm:block"
-          animate={{ y: open ? 0 : '100%', opacity: open ? 1 : 0.4, scale: 1 }}
+          animate={{ y: reduced || open ? 0 : '100%', opacity: open ? 1 : 0.4, scale: 1 }}
           transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE.out }}
           style={{ visibility: open ? 'visible' : 'hidden', maxWidth }}
         >
