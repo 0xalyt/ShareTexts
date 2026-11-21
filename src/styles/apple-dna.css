@@ -891,7 +891,6 @@ without the row jumping. The transform/stagger lives in the component
 /* Display type: never tighter than 1.1 or the lines of a phone H1 collide. */
 .st-display {
   line-height: 1.1;
-  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 

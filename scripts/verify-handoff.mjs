@@ -293,7 +293,9 @@ try {
         if (hover) await button.hover();
         else await entry.mouse.move(0, 0);
         const readable = await button.evaluate(async (el, expected) => {
-          const text = el.querySelector('span');
+          // Decorative font symbols are spans too. Measure the action label,
+          // not the mobile-only, aria-hidden glyph that precedes it.
+          const text = el.querySelector('[data-intent-label]');
           if (!text || text.textContent.trim() !== expected || el.getAttribute('aria-label') !== expected) return false;
           const canvas = document.createElement('canvas');
           canvas.width = canvas.height = 1;
