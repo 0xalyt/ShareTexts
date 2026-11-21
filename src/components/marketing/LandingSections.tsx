@@ -1,7 +1,8 @@
 import { ArrowRight } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
-import { StoryArt } from '../landing/StoryArt';
+import { PairingDetail, TransferDetail, SpaceDetail } from '../landing/ProductDetails';
+export { BrowserCompatibility } from '../landing/BrowserCompatibility';
 
 /* ---------------------------------------------------------------------------
  * LandingSections — the scroll tail of the front door.
@@ -21,7 +22,7 @@ import { StoryArt } from '../landing/StoryArt';
  * designed. The heading alone carries the rank. */
 function SectionHead({ heading, id }: { heading: string; id?: string }) {
   return (
-    <div className="mb-8 max-w-[560px]">
+    <div className="landing-section-head mb-8 max-w-[560px]">
       <h2 id={id} className="st-h2 text-apple-ink dark:text-white">
         {heading}
       </h2>
@@ -41,8 +42,8 @@ export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
       <ol className="landing-story-live">
         {STORIES.map((key, i) => (
           <li key={key}>
-            <div className="landing-story-art st-art-panel" aria-hidden="true">
-              <StoryArt story={key} label={t(`home.three.${key}.lead`)} />
+            <div className="landing-story-art">
+              {key === 'pair' ? <PairingDetail /> : <TransferDetail />}
             </div>
             <div className="landing-story-copy">
               <span className="landing-story-index" aria-hidden="true">0{i + 1}</span>
@@ -58,30 +59,17 @@ export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
           three of a transfer. Give it its own space and a real way in. */}
       <div className="landing-story-later">
         <div className="landing-story-later-copy">
-          <h3>{t('space.entryTitle')}</h3>
+          <span className="landing-space-label">{t('space.entryTitle')}</span>
+          <h3>{t('home.later.heading')}</h3>
           <p>{t('home.three.keep.body')}</p>
           <button type="button" onClick={onOpenSpace} className="landing-text-action">
             {t('space.createHeading')}<ArrowRight aria-hidden="true" />
           </button>
         </div>
         <div className="landing-story-later-art" aria-hidden="true">
-          <StoryArt story="keep" label={t('home.three.keep.lead')} />
+          <SpaceDetail />
         </div>
       </div>
-    </section>
-  );
-}
-
-/** Names, not approximate logo drawings or an endorsement strip. All are
- * visible at once; the visitor never waits for their browser to scroll by. */
-export function BrowserCompatibility() {
-  const { t } = useI18n();
-  return (
-    <section className="landing-browsers w-full" aria-labelledby="browsers-title">
-      <h2 id="browsers-title" className="st-h2">{t('home.browsers')}</h2>
-      <ul aria-labelledby="browsers-title">
-        {['Chrome', 'Safari', 'Firefox', 'Edge', 'Samsung Internet'].map(name => <li key={name}>{name}</li>)}
-      </ul>
     </section>
   );
 }
@@ -112,7 +100,7 @@ export function LandingFaq() {
     <section aria-labelledby="faq-title" className="landing-faq w-full py-16">
       <h2 id="faq-title" className="st-h2">{t('home.faq.heading')}</h2>
       <div>
-        <FaqSection items={items} pinFirst hideLabel defaultOpen={0} />
+        <FaqSection items={items} pinFirst hideLabel defaultOpen={0} className="landing-faq-list" />
         <a href="/docs" className="landing-text-action">
           {t('home.faq.more')}<ArrowRight aria-hidden="true" />
         </a>

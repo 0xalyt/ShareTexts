@@ -1006,14 +1006,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       >
         {t('app.skip')}
       </a>
-    <header className="shrink-0 sticky top-0 z-30 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150 border-b border-black/[0.055] dark:border-white/[0.07]">
+    <header className={cn('shrink-0 sticky top-0 z-30 bg-apple-canvas/85 dark:bg-night-900/85 backdrop-blur-xl backdrop-saturate-150 border-b border-black/[0.055] dark:border-white/[0.07]', panelMode === 'idle' && 'landing-header')}>
       {/* One max-width, shared with the hero, the scroll tail and the footer:
           the wordmark, the headline and the section rules all start on the
           same left edge at every width (they used to start 80px apart). */}
       <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-3 px-5 sm:h-16 sm:px-6 lg:px-8 2xl:px-12">
         {/* Brand lockup — the shared BrandLockup: mark + wordmark as ONE
             equal-height object, display-face wordmark, minimal gap. */}
-        <BrandLockup />
+        <BrandLockup className={panelMode === 'idle' ? 'landing-brand' : undefined} />
         {/* ONE capsule holds every header control: search, language, saved,
             docs, then a hairline and the theme glyph. Grouped, they read as
             a single instrument cluster instead of five loose marks drifting
@@ -1178,12 +1178,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {t('home.subtitle')}
               </p>
               <div className="landing-actions order-4 grid w-full grid-cols-2 gap-3">
-                {/* Both doors carry the same weight AND the same recipe —
-                    Send and Receive are the only two things this product
-                    does, so they are one family with two members. The glossy
-                    pill (ember fill, top-lit 1px inner stroke, soft drop
-                    shadow, white inner shadow, ember outer ring) is the
-                    owner's ask for these two doors only. */}
+                {/* One tactile family, with Send as the filled primary and
+                    Receive as its quieter surface companion. Both retain
+                    immediate press feedback and the same target geometry. */}
                 <GlossyButton onClick={handleSend} data-testid="home-send" className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</GlossyButton>
                 <GlossyButton
                   onClick={handleReceive}

@@ -4,6 +4,8 @@ export const STATUS = 'draft' as const;
 
 const pt: Dict = {
   'home.browsers': 'Funciona em navegadores modernos',
+  'home.titleSuffix': 'entre seus dispositivos.',
+  'home.later.heading': 'Volte para buscar depois.',
   "demo.handoff.title": "Como o ShareTexts transfere entre dispositivos",
   "demo.handoff.eyebrow": "Uma pequena transferência",
   "demo.handoff.illustration": "Demonstração ilustrativa",
@@ -107,7 +109,7 @@ const pt: Dict = {
   'room.offlineCount': '{count} offline',
   'home.title': 'Mova qualquer coisa\nentre seus dispositivos.',
   'home.subheading': 'Chegou o AirDrop para todos',
-  'home.subtitle': 'Do celular para o laptop, ou do laptop para o celular. Sem app para instalar, sem conta para criar. Fotos e arquivos chegam em qualidade original — nada é comprimido. Ao fechar a aba, tudo some.',
+  'home.subtitle': 'Textos, links, fotos e arquivos. Abra esta página nos dois dispositivos.',
   "home.announce": "Espaços temporários para textos e links",
   'home.send': 'Enviar',
   'home.sendHint': 'Criar uma sala',
@@ -771,7 +773,7 @@ const pt: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'O que ele faz',
-  'home.three.heading': 'De um aparelho para o outro.',
+  'home.three.heading': 'Um código.\nE pode continuar.',
   'home.three.pair.lead': 'Parear',
   'home.three.pair.body': 'Abra Enviar em um aparelho e Receber no outro. Um código de seis dígitos liga os dois.',
   'home.three.send.lead': 'Enviar',

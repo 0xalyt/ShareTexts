@@ -4,7 +4,7 @@ import { useI18n } from '../lib/i18n';
 /**
  * ShuffleHeading — the hero line types itself into a different noun.
  *
- * "Share [anything] between any devices easily." cycles the noun with a real
+ * "Share [anything] across your devices." cycles the noun with a real
  * type-in / type-out, because the point of that line is *variety*: the thing
  * changes while the promise stays put.
  *
@@ -148,7 +148,7 @@ export function ShuffleHeading({ className }: { className?: string }) {
     <h1
       className={`landing-heading st-display text-[clamp(32px,8.8vw,46px)] leading-[1.06] lg:text-[clamp(44px,4.05vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start ${className ?? ''}`}
     >
-      <span className="sr-only">Share anything between any devices easily.</span>
+      <span className="sr-only">{t('home.title').replace(/\n/g, ' ')}</span>
       <span aria-hidden className="flex flex-col items-center lg:items-start">
         {/* Line one: "Share" + the word, centred as a unit. The slot is as
             wide as the word currently being typed, so there is never a void
@@ -191,7 +191,7 @@ export function ShuffleHeading({ className }: { className?: string }) {
             longer than the column on a phone, so it will take two rows there —
             balanced rows, not a stub). */}
         <span className="mt-[0.06em] text-[1em] font-[inherit] leading-[1.06] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start text-balance">
-          between any devices easily.
+          {t('home.titleSuffix')}
         </span>
       </span>
     </h1>

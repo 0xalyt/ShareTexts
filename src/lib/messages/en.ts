@@ -78,9 +78,11 @@ const en = {
   'room.offlineCount': '{count} offline',
 
   'home.browsers': 'Works in modern browsers',
-  'home.title': 'Move anything\nbetween your devices.',
+  'home.titleSuffix': 'across your devices.',
+  'home.later.heading': 'Come back for it later.',
+  'home.title': 'Share anything\nacross your devices.',
   'home.subheading': 'Introducing Airdrop for everyone',
-  'home.subtitle': 'Two devices, one page. Nothing to install, and the transfer is encrypted.',
+  'home.subtitle': 'Text, links, photos and files. Open this page on both devices.',
   // Short enough to sit on one line inside the hero pill on a 390px phone —
   // the long version truncated to "…a shelf that deletes …" and read as a
   // broken element rather than a link.
@@ -179,7 +181,7 @@ const en = {
 
   // ── front door: three stories, the small things, honest FAQ, footer ──
   'home.three.eyebrow': 'What it does',
-  'home.three.heading': 'From one device to the other.',
+  'home.three.heading': 'One code.\nThen carry on.',
   'home.three.pair.lead': 'Pair',
   'home.three.pair.body': 'Open Send on one device and Receive on the other. A six-digit code joins them.',
   'home.three.send.lead': 'Send',

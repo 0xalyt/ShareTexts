@@ -4,6 +4,8 @@ export const STATUS = 'draft' as const;
 
 const ar: Dict = {
   'home.browsers': 'يعمل في المتصفحات الحديثة',
+  'home.titleSuffix': 'بين أجهزتك.',
+  'home.later.heading': 'عد لأخذها لاحقًا.',
   "demo.handoff.title": "كيف ينقل ShareTexts المحتوى بين الأجهزة",
   "demo.handoff.eyebrow": "نقلة صغيرة",
   "demo.handoff.illustration": "عرض توضيحي",
@@ -107,7 +109,7 @@ const ar: Dict = {
   'room.offlineCount': '{count} غير متصلة',
   'home.title': 'انقل أي شيء\nبين أجهزتك.',
   'home.subheading': 'AirDrop للجميع، أخيرًا',
-  'home.subtitle': 'من الهاتف إلى الحاسوب، أو العكس. لا تطبيق للتثبيت ولا حساب للإنشاء. تصل الصور والملفات بجودتها الأصلية — لا ضغط ولا تغيير. وعند إغلاق التبويب، يختفي كل شيء.',
+  'home.subtitle': 'نصوص وروابط وصور وملفات. افتح هذه الصفحة على الجهازين.',
   "home.announce": "مساحات مؤقتة للنصوص والروابط",
   'home.send': 'إرسال',
   'home.sendHint': 'إنشاء غرفة',
@@ -770,7 +772,7 @@ const ar: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'ما يفعله',
-  'home.three.heading': 'من جهاز إلى آخر.',
+  'home.three.heading': 'رمز واحد.\nوتابع ما تفعله.',
   'home.three.pair.lead': 'الاقتران',
   'home.three.pair.body': 'افتح «إرسال» على جهاز و«استقبال» على الآخر. رمز من ستة أرقام يجمعهما.',
   'home.three.send.lead': 'إرسال',

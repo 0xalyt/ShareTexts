@@ -4,6 +4,8 @@ export const STATUS = 'draft' as const;
 
 const hi: Dict = {
   'home.browsers': 'आधुनिक ब्राउज़र में चलता है',
+  'home.titleSuffix': 'अपने डिवाइसों के बीच।',
+  'home.later.heading': 'बाद में वापस आकर लें।',
   "demo.handoff.title": "ShareTexts से डिवाइस के बीच कैसे भेजें",
   "demo.handoff.eyebrow": "एक छोटा-सा आदान-प्रदान",
   "demo.handoff.illustration": "समझाने के लिए डेमो",
@@ -107,7 +109,7 @@ const hi: Dict = {
   'room.offlineCount': '{count} ऑफ़लाइन',
   'home.title': 'कुछ भी भेजें\nअपने डिवाइसों के बीच।',
   'home.subheading': 'अब हर किसी के लिए AirDrop',
-  'home.subtitle': 'फ़ोन से लैपटॉप, या लैपटॉप से फ़ोन। कोई ऐप इंस्टॉल नहीं, कोई खाता नहीं। फ़ोटो और फ़ाइलें मूल गुणवत्ता में पहुँचती हैं — कुछ भी कंप्रेस नहीं होता। टैब बंद करते ही सब खत्म।',
+  'home.subtitle': 'टेक्स्ट, लिंक, फ़ोटो और फ़ाइलें। दोनों डिवाइसों पर यह पेज खोलें।',
   "home.announce": "टेक्स्ट और लिंक के लिए अस्थायी स्पेस",
   'home.send': 'भेजें',
   'home.sendHint': 'रूम बनाएँ',
@@ -770,7 +772,7 @@ const hi: Dict = {
 
   // ── P5 front door — English placeholder (docs/redesign/i18n-todo.md) ──
   'home.three.eyebrow': 'यह क्या करता है',
-  'home.three.heading': 'एक डिवाइस से दूसरे तक।',
+  'home.three.heading': 'एक कोड।\nफिर काम जारी रखें।',
   'home.three.pair.lead': 'जोड़ें',
   'home.three.pair.body': 'एक डिवाइस पर भेजें और दूसरे पर प्राप्त करें खोलें। छह अंकों का कोड दोनों को जोड़ता है।',
   'home.three.send.lead': 'भेजें',
