@@ -8,9 +8,9 @@ import { gotoPage } from './lib.mjs';
 
 const directory = mkdtempSync(path.join(tmpdir(), 'sharetexts-relay-'));
 try {
-  const stub = 'export const getSocket=()=>({on(){},off(){}}); export const diag=()=>{}; export const devLog=()=>{}; export const beginTransferRecord=()=>{}; export const finishTransferRecord=()=>{}; export const recordTransferProgress=()=>{}; export const setCurrentTransport=()=>{}; export const productEvent=()=>{}; export const setDataChannel=()=>{};';
+  const stub = 'export const getSocket=()=>({on(){},off(){},emit:(...args)=>globalThis.__relayFrames?.push(args)}); export const diag=()=>{}; export const devLog=()=>{}; export const beginTransferRecord=()=>{}; export const finishTransferRecord=()=>{}; export const recordTransferProgress=()=>{}; export const setCurrentTransport=()=>{}; export const productEvent=()=>{}; export const setDataChannel=()=>{};';
   await build({
-    entryPoints: ['src/lib/webrtc.ts', 'src/lib/cloudflareSocket.ts', 'src/lib/crypto.ts', 'src/lib/binaryUtils.ts'],
+    entryPoints: ['src/lib/webrtc.ts', 'src/lib/cloudflareSocket.ts', 'src/lib/crypto.ts', 'src/lib/binaryUtils.ts', 'src/lib/relayBinary.ts'],
     bundle: true, platform: 'node', format: 'esm', outdir: directory,
     define: { 'import.meta.env': '{}' }, logLevel: 'silent',
     plugins: [{ name: 'browser-services', setup(builder) {
@@ -24,6 +24,7 @@ try {
   const { PeerManager, clearAllTransferState } = await load('webrtc');
   const { generateKey, encryptBinaryChunk } = await load('crypto');
   const { uuidToBytes } = await load('binaryUtils');
+  const { relayBinaryFrames, RelayBinaryAssembler } = await load('relayBinary');
   const transport = new CloudflareSocket('http://localhost:8787');
   const received = [];
   transport.on('relay_message', frame => received.push(frame));
@@ -57,9 +58,51 @@ try {
   const key = await generateKey('relay-regression-secret');
   const complete = [];
   let progress = 0;
-  const peer = Object.assign(Object.create(PeerManager.prototype), {
+  const peer = Object.assign(new PeerManager('relay-test', 'secret', false, key), {
     cryptoKey: key, onFileComplete: (id, blob) => complete.push({ id, blob }), onFileProgress: () => progress++,
   });
+  const fullPacket = new Uint8Array(131120);
+  fullPacket.set(uuidToBytes(crypto.randomUUID()));
+  for (let i = 20; i < fullPacket.length; i++) fullPacket[i] = i % 251;
+  const fragments = relayBinaryFrames(fullPacket.buffer);
+  assert.ok(fragments.length > 1);
+  assert.ok(fragments.every(frame => frame.byteLength <= 126 * 1024));
+  const assembly = new RelayBinaryAssembler();
+  assert.equal(assembly.push(fragments[1]), null);
+  assert.equal(assembly.push(fragments[1]), null);
+  assert.equal(assembly.push(fragments[0]), null);
+  assert.deepEqual(new Uint8Array(assembly.push(fragments[2])), fullPacket);
+  assert.equal(assembly.push(raw), raw);
+  assert.equal(assembly.push(new ArrayBuffer(0)).byteLength, 0);
+  const malformed = fragments[0].slice(0);
+  new DataView(malformed).setUint32(32, 1, true);
+  assert.equal(assembly.push(malformed), null);
+  new DataView(malformed).setUint32(28, 0xffffffff, true);
+  assert.equal(assembly.push(malformed), null);
+  assert.equal(assembly.push(fragments[0].slice(0, 12)), null);
+  assembly.push(fragments[0]); assembly.clear();
+  assert.equal(assembly.push(fragments[1]), null);
+  assert.equal(assembly.push(fragments[2]), null);
+  assert.throws(() => relayBinaryFrames(new ArrayBuffer(132 * 1024 + 1)), RangeError);
+  peer.relayCapabilityWaiters = new Set();
+  peer.routeControl({ type: 'hello', features: ['relay-fragments-v1'] });
+  assert.equal(peer.peerRelayFragments, true);
+  peer.routeControl({ type: 'hello', features: ['resume'] });
+  assert.equal(peer.peerRelayFragments, false);
+  globalThis.__relayFrames = [];
+  await peer.sendRelayBinary(fullPacket.buffer);
+  assert.equal(globalThis.__relayFrames.length, 1);
+  assert.equal(globalThis.__relayFrames[0][1].data, fullPacket.buffer);
+  globalThis.__relayFrames = [];
+  peer.peerRelayFragments = null;
+  const waitingForHello = peer.sendRelayBinary(fullPacket.buffer);
+  assert.equal(globalThis.__relayFrames.length, 0);
+  peer.routeControl({ type: 'hello', features: ['relay-fragments-v1'] });
+  await waitingForHello;
+  assert.equal(globalThis.__relayFrames.length, 3);
+  assert.ok(globalThis.__relayFrames.every(([, frame]) => frame.data.byteLength <= 126 * 1024));
+  delete globalThis.__relayFrames;
+  console.log('PASS relay fragmentation: bounded frames, exact out-of-order reassembly, duplicates, empty/legacy, malformed bounds, reset, legacy capability fallback');
   async function packet(id, sequence, bytes) {
     const encrypted = await encryptBinaryChunk(bytes.buffer, key);
     const result = new Uint8Array(20 + encrypted.byteLength);
@@ -98,6 +141,21 @@ try {
   await peer.handleIncomingData(retry);
   assert.equal(complete.length, 3);
   assert.deepEqual(new Uint8Array(await complete.at(-1).blob.arrayBuffer()), new Uint8Array([9]));
+  const largeId = crypto.randomUUID();
+  const largeBytes = new Uint8Array(128 * 1024).fill(73);
+  const largeFrames = relayBinaryFrames(await packet(largeId, 0, largeBytes));
+  peer.relayAssembly = new RelayBinaryAssembler();
+  for (const frame of largeFrames.toReversed()) peer.acceptRelay(frame);
+  await new Promise(resolve => setImmediate(resolve));
+  peer.expectBinaryTransfer(largeId, 1);
+  for (let i = 0; i < 100 && complete.length < 4; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(complete.length, 4);
+  assert.deepEqual(new Uint8Array(await complete.at(-1).blob.arrayBuffer()), largeBytes);
+  for (const frame of largeFrames) peer.acceptRelay(frame);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(complete.length, 4);
+  peer.destroy();
+  console.log('PASS full encrypted 128-KiB chunk: fragmented relay arrives before metadata, decrypts intact, completes once');
   clearAllTransferState();
   console.log('PASS binary receive: concurrent/late duplicates complete once, early metadata race, empty frame, malformed/decryption retry');
 

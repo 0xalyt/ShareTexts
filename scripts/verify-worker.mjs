@@ -304,6 +304,12 @@ async function runRoomProtocol() {
   const binaryIndex = joiner.frames.indexOf(rb);
   const label = JSON.parse(joiner.frames[binaryIndex - 1]);
   check('binary sender label immediately precedes unchanged legacy frame', label.event === 'relay_binary' && label.payload.from === 'pid-creator-device-00000000');
+  const beforeLarge = joiner.binary.length;
+  await room.webSocketMessage(creator.server, new ArrayBuffer(131120));
+  await room.webSocketMessage(creator.server, new ArrayBuffer(132 * 1024));
+  await room.webSocketMessage(creator.server, new ArrayBuffer(132 * 1024 + 1));
+  await sleep(25);
+  check('legacy full encrypted chunk and cap boundary pass; oversized binary is dropped', joiner.binary.length === beforeLarge + 2 && joiner.binary.at(-2).byteLength === 131120 && joiner.binary.at(-1).byteLength === 132 * 1024);
 
   // abuse control: text frames over the per-connection rate limit are dropped
   const before = joiner.inbox.length;

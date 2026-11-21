@@ -11,10 +11,16 @@ const diagnostics = browserDiagnostics(browser, 'relay-files');
 const count = Number(process.env.DEVICES || 3);
 const upstreamSockets = new Set();
 assert.ok(count === 2 || count === 3);
-const files = [1, 2, 3].map(number => ({ name: `relay-queue-${number}.bin`, mimeType: 'application/octet-stream', buffer: Buffer.alloc(18000 + number * 7919, number * 37) }));
+const files = [1, 2, 3].map(number => ({ name: `relay-queue-${number}.bin`, mimeType: 'application/octet-stream', buffer: Buffer.alloc(600000 + number * 7919, number * 37) }));
 try {
   const pages = [];
   let binarySent = 0;
+  let maxBinaryBytes = 0;
+  const observeBinary = payload => {
+    if (typeof payload === 'string') return;
+    binarySent++;
+    maxBinaryBytes = Math.max(maxBinaryBytes, payload.byteLength);
+  };
   for (let i = 0; i < count; i++) {
     const context = await diagnostics.newContext({ serviceWorkers: 'block', acceptDownloads: true });
     await context.route(/workers\.dev/, route => route.abort());
@@ -30,7 +36,11 @@ try {
         upstream.binaryType = 'arraybuffer';
         upstreamSockets.add(upstream);
         const queued = [];
-        route.onMessage(data => upstream.readyState === WebSocket.OPEN ? upstream.send(data) : queued.push(data));
+        route.onMessage(data => {
+          if (i === 0) observeBinary(data);
+          if (upstream.readyState === WebSocket.OPEN) upstream.send(data);
+          else queued.push(data);
+        });
         upstream.onopen = () => queued.splice(0).forEach(data => upstream.send(data));
         upstream.onmessage = ({ data }) => route.send(typeof data === 'string' ? data : Buffer.from(data));
         upstream.onerror = () => route.close();
@@ -42,9 +52,9 @@ try {
       window.RTCPeerConnection = class { constructor() { throw new DOMException('Forced relay regression', 'NotSupportedError'); } };
     });
     const page = await context.newPage();
-    if (i === 0) page.on('websocket', socket => socket.on('framesent', ({ payload }) => { if (typeof payload !== 'string') binarySent++; }));
+    if (i === 0 && !process.env.WORKER_URL) page.on('websocket', socket => socket.on('framesent', ({ payload }) => observeBinary(payload)));
     pages.push(page);
-    await gotoPage(page, URL, { waitUntil: 'domcontentloaded' });
+    await gotoPage(page, i > 0 && process.env.RECEIVER_URL ? process.env.RECEIVER_URL : URL, { waitUntil: 'domcontentloaded' });
   }
   const [sender, ...receivers] = pages;
   await sender.getByTestId('home-send').click();
@@ -86,8 +96,9 @@ try {
       console.log(`PASS ${String.fromCharCode(66 + index)} ${file.name}: Verified, bytes match (${file.buffer.length})`);
     }
   }
-  if (!process.env.WORKER_URL) assert.ok(binarySent >= files.length * receivers.length, 'forced relay must send binary chunks');
-  console.log(`PASS ${count}-device forced-relay files: all receivers verified all 3 files; binarySent=${binarySent}`);
+  assert.ok(binarySent >= files.length * receivers.length, 'forced relay must send binary chunks');
+  assert.ok(maxBinaryBytes <= Number(process.env.MAX_BINARY_BYTES || 128 * 1024), `relay frame exceeds cap: ${maxBinaryBytes}`);
+  console.log(`PASS ${count}-device forced-relay files: all receivers verified all 3 files; binarySent=${binarySent}; maxBinaryBytes=${maxBinaryBytes}`);
 } catch (error) {
   await diagnostics.captureFailure(error);
   throw error;

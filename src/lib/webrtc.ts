@@ -6,6 +6,7 @@ import { beginTransferRecord, finishTransferRecord, recordTransferProgress, setC
 import { productEvent } from './telemetry';
 import type { ChunkEnvelope } from './protocol';
 import { setDataChannel } from './netStats';
+import { RelayBinaryAssembler, relayBinaryFrames, RELAY_PACKET_LIMIT } from './relayBinary';
 
 type SignalData = { type: 'offer' | 'answer'; sdp: string } | { type: 'candidate'; candidate: RTCIceCandidateInit };
 
@@ -439,6 +440,9 @@ export class PeerManager {
   private cryptoKey: CryptoKey | null = null;
   private cryptoPromise: Promise<CryptoKey>;
   private destroyed = false;
+  private peerRelayFragments: boolean | null = null;
+  private relayCapabilityWaiters = new Set<() => void>();
+  private relayAssembly = new RelayBinaryAssembler();
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private relayFallbackTimer: ReturnType<typeof setTimeout> | null = null;
   /** Bandwidth samples (bytes/sec) for adaptive PIPELINE DEPTH pacing.
@@ -910,6 +914,9 @@ export class PeerManager {
         if (this.onDisconnectImmediate) this.onDisconnectImmediate();
         return;
       case 'hello':
+        if (this.peerRelayFragments === null) void this.sendHello();
+        this.peerRelayFragments = Array.isArray(inner.features) && inner.features.includes('relay-fragments-v1');
+        for (const done of this.relayCapabilityWaiters) done();
         if (typeof inner.name === 'string' && this.onHello) this.onHello(inner.name);
         if (this.onPeerCapabilities) {
           // Capability negotiation: intersect our features with the peer's so
@@ -1002,8 +1009,27 @@ export class PeerManager {
    *  once destroyed. */
   public acceptRelay = (data: string | ArrayBuffer) => {
     if (this.destroyed) return;
+    if (data instanceof ArrayBuffer) {
+      const packet = this.relayAssembly.push(data);
+      if (!packet) return;
+      data = packet;
+    }
     void this.handleIncomingData(data);
   };
+
+  private async sendRelayBinary(packet: ArrayBuffer): Promise<void> {
+    if (packet.byteLength > RELAY_PACKET_LIMIT && this.peerRelayFragments === null) {
+      void this.sendHello();
+      await new Promise<void>(resolve => {
+        const done = () => { clearTimeout(timer); this.relayCapabilityWaiters.delete(done); resolve(); };
+        const timer = setTimeout(done, 2000);
+        this.relayCapabilityWaiters.add(done);
+      });
+    }
+    if (this.destroyed) throw new TransferInterruptedError();
+    const frames = this.peerRelayFragments ? relayBinaryFrames(packet) : [packet];
+    for (const data of frames) getSocket().emit('relay_message', { roomId: this.roomId, to: this.peerId, data });
+  }
 
   private setupSocketListeners() {
     // Register with the shared multi-device router instead of touching the
@@ -1034,6 +1060,7 @@ export class PeerManager {
             const peer = this.resolveRelayPeer?.();
             if (peer) this.attach(peer);
           }
+          void this.sendHello();
           if (this.peerId && this.onOpen) this.onOpen();
         }
       }
@@ -1344,7 +1371,7 @@ export class PeerManager {
    * of guessing (the receiver simply never uses features the peer lacks).
    */
   public static readonly TRANSFER_PROTOCOL = 2;
-  private static readonly FEATURES = ['resume', 'hash', 'pause', 'control-channel'] as const;
+  private static readonly FEATURES = ['resume', 'hash', 'pause', 'control-channel', 'relay-fragments-v1'] as const;
 
   /**
    * Announce this device's name + capabilities (reads localStorage at send
@@ -1676,7 +1703,7 @@ export class PeerManager {
           setCurrentTransport('relay');
           if (this.onConnectionTypeChange) this.onConnectionTypeChange('relay');
           if (this.onTransportReady) { this.onTransportReady(); this.onTransportReady = null; }
-          getSocket().emit('relay_message', { roomId: this.roomId, to: this.peerId, data: entry.packet.buffer });
+          await this.sendRelayBinary(entry.packet.buffer as ArrayBuffer);
         }
 
         sendIdx++;
@@ -1874,6 +1901,8 @@ export class PeerManager {
   }
 
   public destroy() {
+    this.relayAssembly.clear();
+    for (const done of this.relayCapabilityWaiters) done();
     this.destroyed = true;
     this.transferControllers.forEach(c => c.abort(new TransferInterruptedError()));
     this.transferControllers.clear();
