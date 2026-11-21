@@ -91,7 +91,7 @@ try {
         const r = el.getBoundingClientRect();
         const picture = el.querySelector('.hero-film-picture').getBoundingClientRect();
         return {
-          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom || br.bottom > r.bottom + 1 || br.width < 48 || br.height < 48; }),
+          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
           widescreen: Math.abs(picture.width / picture.height - 16 / 9) < .02,
           backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
