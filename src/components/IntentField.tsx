@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { ArrowRight, ClipboardPaste, KeyRound, SendHorizontal } from 'lucide-react';
+import { ClipboardPaste, KeyRound, SendHorizontal } from 'lucide-react';
+import { AlloSymbol } from './AlloSymbol';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 
@@ -178,8 +179,8 @@ export function IntentField({
                 : 'bg-apple-ink/[0.06] text-apple-ink hover:bg-apple-ink/[0.1] dark:bg-white/[0.1] dark:text-white dark:hover:bg-white/[0.14]',
           )}
         >
-          <ArrowRight className="h-4 w-4 sm:hidden" strokeWidth={2.4} aria-hidden />
-          <span className="hidden sm:block">{label}</span>
+          <AlloSymbol name="right" size={16} className="sm:hidden" />
+          <span data-intent-label className="hidden sm:block">{label}</span>
         </button>
       </div>
 

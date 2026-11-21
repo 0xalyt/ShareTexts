@@ -15,6 +15,7 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  'reading.englishOnly': "Esta página está atualmente disponível apenas em inglês.",
   'footer.devices': 'Os seus dispositivos',
   'demo.s7': 'Feche a sala quando terminar.',
   'home.faq.a6': 'As salas em direto são encriptadas em trânsito. O serviço emite o segredo da sala, pelo que não é um sistema de conhecimento zero. Os Espaços temporários guardam textos e ligações no servidor até serem fechados ou expirarem. Os itens guardados ficam no navegador. Consulte a política de privacidade.',
@@ -68,7 +69,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   'action.copy': 'Copiar',
   'msg.copy': 'Copiar',
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "Navegadores diferentes. A mesma transferência.",
+  "home.browser.heading": "Funciona em todos os navegadores modernos",
   "home.browser.body": "Não precisam de ser iguais. Basta abrir o ShareTexts nos dois.",
   "home.browser.open": "Abrir no seu outro dispositivo",
   "home.browser.qr": "Mostrar QR do site",
