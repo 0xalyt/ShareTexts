@@ -854,6 +854,7 @@ const hi: Dict = {
   "home.space.preview": "इंटरैक्टिव पूर्वावलोकन। कुछ भी सेव नहीं होता।",
   "home.space.open": "खुला रहने पर",
   "home.space.closed": "समय समाप्त होने पर",
+  "home.space.expired": "समय समाप्त",
   "home.space.example": "सप्ताहांत की योजना",
   "home.space.note": "ट्रेन 09:30 बजे है। निकलने से पहले कॉफ़ी?",
   "home.browser.hideQr": "वेबसाइट का QR छिपाएँ",

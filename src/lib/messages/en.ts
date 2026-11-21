@@ -890,6 +890,7 @@ const en = {
   "home.space.preview": "Interactive preview. Nothing is saved.",
   "home.space.open": "While open",
   "home.space.closed": "After expiry",
+  "home.space.expired": "Expired",
   "home.space.example": "Weekend plans",
   "home.space.note": "Train at 09:30. Coffee before we go?",
   "home.browser.hideQr": "Hide website QR",

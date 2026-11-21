@@ -854,6 +854,7 @@ const zh: Dict = {
   "home.space.preview": "可交互预览。不会保存任何内容。",
   "home.space.open": "开放期间",
   "home.space.closed": "到期之后",
+  "home.space.expired": "已过期",
   "home.space.example": "周末计划",
   "home.space.note": "火车09:30出发。出发前喝杯咖啡？",
   "home.browser.hideQr": "隐藏网站二维码",
