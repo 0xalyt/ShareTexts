@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { AlloSymbol } from '../AlloSymbol';
 import { cn } from '../../lib/utils';
 import { BrandLockup } from '../BrandLockup';
 import { XProfileLink } from '../XProfileLink';
@@ -64,6 +64,7 @@ export function SiteFooter({ className }: { className?: string }) {
   const year = new Date().getFullYear();
   return (
     <footer
+      data-testid="site-footer"
       className={cn(
         // Its own band, edge to edge: the tone change is the divider, so the
         // footer needs no border and no shadow on top of it.
@@ -99,7 +100,7 @@ export function SiteFooter({ className }: { className?: string }) {
               className="mt-5 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-apple-ink px-4 text-[13px] font-semibold text-white transition-colors hover:bg-apple-ink/90 dark:bg-white dark:text-night-900 dark:hover:bg-white/90"
             >
               {t('footer.open')}
-              <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+              <AlloSymbol name="right" size={14} />
             </a>
           </div>
 

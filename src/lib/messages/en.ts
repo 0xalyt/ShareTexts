@@ -1,4 +1,5 @@
 const en = {
+  'reading.englishOnly': "This page is currently available in English only.",
   'film.download': "Download film",
   'film.from': "From one screen",
   'film.to': "to the other.",
@@ -880,7 +881,7 @@ const en = {
   "saved.showMore": "Show more",
   "saved.savedOn": "Saved {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "Different browsers. Same handoff.",
+  "home.browser.heading": "Works in all modern browsers",
   "home.browser.body": "They don’t have to match. Just open ShareTexts on both.",
   "home.browser.open": "Open on your other device",
   "home.browser.qr": "Show website QR",

@@ -1,9 +1,9 @@
 import { useId, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { AlloSymbol } from '../AlloSymbol';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
 import { PairingDetail, TransferDetail, SpaceDetail } from '../landing/ProductDetails';
-export { BrowserCompatibility } from '../landing/BrowserCompatibility';
+export { BrowserCompatibility, WebsiteHandoff } from '../landing/BrowserCompatibility';
 
 /* ---------------------------------------------------------------------------
  * LandingSections — the scroll tail of the front door.
@@ -93,7 +93,7 @@ export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
           <p>{t('home.three.keep.body')}</p>
           <p className="landing-space-storage">{t('home.space.storage')}</p>
           <button type="button" onClick={onOpenSpace} className="landing-text-action" data-testid="landing-open-space">
-            {t('space.createHeading')}<ArrowRight aria-hidden="true" />
+            {t('space.createHeading')}<AlloSymbol name="right" />
           </button>
         </div>
         <div className="landing-story-later-art">
@@ -130,7 +130,7 @@ export function LandingFaq() {
       <div>
         <FaqSection items={items} pinFirst hideLabel defaultOpen={0} className="landing-faq-list" />
         <a href="/docs" className="landing-text-action">
-          {t('home.faq.more')}<ArrowRight aria-hidden="true" />
+          {t('home.faq.more')}<AlloSymbol name="right" />
         </a>
       </div>
     </section>

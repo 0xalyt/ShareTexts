@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Share2, Link as Link2, Check, Copy, QrCode } from 'lucide-react';
+import { Share2, Link as Link2, Copy, QrCode } from 'lucide-react';
+import { AlloSymbol } from './AlloSymbol';
 
 /** lucide ships one "share" glyph; both aliases point at it so every share
  *  affordance in the product stays one symbol (all on lucide since Phase 3). */
@@ -122,7 +123,7 @@ export function ShareMenu({
       ? [{
           id: 'code' as const,
           label: done === 'code' ? t('action.copied') : t('create.copyCode'),
-          icon: done === 'code' ? <Check /> : <Copy />,
+          icon: done === 'code' ? <AlloSymbol name="check" /> : <Copy />,
           onClick: () => { void copy(code, 'code'); },
         }]
       : []),
@@ -238,7 +239,7 @@ export function ShareMenu({
                   : 'border-apple-divider dark:border-white/10 text-apple-ink dark:text-white/85 hover:bg-apple-parchment dark:hover:bg-white/[0.07]'
               )}
             >
-              {done === 'link' ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+              {done === 'link' ? <AlloSymbol name="check" size={14} /> : <Link2 className="w-3.5 h-3.5" />}
               {done === 'link' ? t('action.copied') : t('space.copyLink')}
             </button>
           </motion.div>

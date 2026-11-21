@@ -1,5 +1,16 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "**": false
+    }
+  },
   "redirects": [
+    {
+      "source": "/guides/about.html",
+      "destination": "/about",
+      "permanent": true
+    },
     {
       "source": "/(.*)",
       "has": [
@@ -44,7 +55,7 @@
     },
     {
       "source": "/about",
-      "destination": "/guides/about.html"
+      "destination": "/seo/about.html"
     },
     {
       "source": "/docs",
