@@ -13,6 +13,8 @@ type SignalData = { type: 'offer' | 'answer'; sdp: string } | { type: 'candidate
  *  JSON form; file transfers use the compact binary variant. */
 export type TransferPayload = ChunkEnvelope;
 
+let compatibleIceServers: RTCIceServer[] | undefined;
+
 /**
  * ICE servers: Google STUN for direct NAT traversal, plus a free public TURN
  * relay (openrelay.metered.ca) so restrictive networks (symmetric NAT, hotel
@@ -317,6 +319,14 @@ export class TransferCancelledError extends Error {
   }
 }
 
+export class TransferInterruptedError extends TransferCancelledError {
+  constructor() {
+    super();
+    this.message = 'Transfer interrupted';
+    this.name = 'TransferInterruptedError';
+  }
+}
+
 /**
  * Multi-device signal router. In a multi-device room SEVERAL PeerManagers
  * are alive at once, all sharing the page's ONE signaling socket. A blanket
@@ -366,9 +376,21 @@ const signalRouter = {
     });
     socket.on('relay_message', (msg: LinkFrame) => {
       const from = typeof msg?.from === 'string' ? msg.from : '';
-      const target = targetFor(from);
+      const target = !from && msg.data instanceof ArrayBuffer
+        ? this.classicBinaryTarget()
+        : targetFor(from);
       if (target && msg.data !== undefined) target.acceptRelay(msg.data);
     });
+  },
+  classicBinaryTarget(): PeerManager | undefined {
+    const candidates = new Set<PeerManager>(this.links.values());
+    if (this.fallback) candidates.add(this.fallback);
+    const classic = [...candidates].filter(pm => {
+      if (pm.isDestroyed()) return false;
+      const peer = pm.resolveRelayPeer?.();
+      return peer && (!pm.boundId || pm.boundId === peer);
+    });
+    return classic.length === 1 ? classic[0] : undefined;
   },
   register(peerId: string, pm: PeerManager): void {
     this.ensure();
@@ -473,6 +495,7 @@ export class PeerManager {
   public lastPace: { transferId: string; bytesPerSec: number; depth: number; buffered: number } | null = null;
 
   private isRelayFallback = false;
+  private opening: Promise<boolean> | null = null;
   private iceCandidatesQueue: RTCIceCandidateInit[] = [];
   /** Wall-clock bookkeeping for the room-level connection manager: when the
    *  channel last left the open state, and when this manager was created.
@@ -546,6 +569,7 @@ export class PeerManager {
   /** Shared offer + bounded auto-retry loop (used by initiate and manual retry). */
   private startOfferCycle() {
     this.createPeerConnection();
+    if (!this.pc) return;
     this.dc = this.pc!.createDataChannel('chat', { negotiated: false });
     this.setupDataChannel(this.dc);
     this.openControlChannel();
@@ -578,6 +602,7 @@ export class PeerManager {
    *  (shared body of the automatic retry). */
   private startOfferCycleBody() {
     this.createPeerConnection();
+    if (!this.pc) return;
     this.dc = this.pc!.createDataChannel('chat', { negotiated: false });
     this.setupDataChannel(this.dc);
     this.openControlChannel();
@@ -596,6 +621,7 @@ export class PeerManager {
   }
 
   public onNegotiating?: () => void;
+  public resolveRelayPeer?: () => string | null;
 
   private sendOffer() {
     if (!this.pc || !this.peerId) return;
@@ -621,8 +647,33 @@ export class PeerManager {
 
   private createPeerConnection() {
     if (this.destroyed) return;
-    this.pc = new RTCPeerConnection({ iceServers: iceServers(), bundlePolicy: 'max-bundle' });
+    if (compatibleIceServers?.length === 0) return;
+    const servers = compatibleIceServers ?? iceServers();
+    try {
+      this.pc = new RTCPeerConnection({ iceServers: servers, bundlePolicy: 'max-bundle' });
+    } catch {
+      if (compatibleIceServers) return;
+      compatibleIceServers = servers.flatMap(server => {
+        const urls = (Array.isArray(server.urls) ? server.urls : [server.urls]).filter(url => {
+          try {
+            const probe = new RTCPeerConnection({ iceServers: [{ ...server, urls: url }], bundlePolicy: 'max-bundle' });
+            probe.close();
+            return true;
+          } catch {
+            diag('webrtc.ice_url_rejected', false);
+            return false;
+          }
+        });
+        return urls.length ? [{ ...server, urls }] : [];
+      });
+      diag('webrtc.ice_config_filtered', true, `${compatibleIceServers.length} server(s)`);
+      if (!compatibleIceServers.length) return;
+      try {
+        this.pc = new RTCPeerConnection({ iceServers: compatibleIceServers, bundlePolicy: 'max-bundle' });
+      } catch { return; }
+    }
 
+    if (!this.pc) return;
     this.pc.onicecandidate = (event) => {
       if (event.candidate && this.peerId) {
         getSocket().emit('signal', {
@@ -897,6 +948,7 @@ export class PeerManager {
       this.createPeerConnection();
     }
 
+    if (!this.pc) return;
     try {
       if (signal.type === 'offer') {
         diag('webrtc.offer_received', true, `from ${(from || '').slice(0, 8)}`);
@@ -971,6 +1023,10 @@ export class PeerManager {
           this.isRelayFallback = true;
           diag('webrtc.relay_fallback', true);
           if (this.onConnectionTypeChange) this.onConnectionTypeChange('relay');
+          if (!this.peerId) {
+            const peer = this.resolveRelayPeer?.();
+            if (peer) this.attach(peer);
+          }
           if (this.peerId && this.onOpen) this.onOpen();
         }
       }
@@ -1489,6 +1545,7 @@ export class PeerManager {
    */
   public async sendFile(file: File, transferId: string, startIndex = 0) {
     const key = await this.waitForCrypto();
+    if (this.destroyed) throw new TransferInterruptedError();
     if (!key) return;
     // Deterministic grid: the chunk size is FIXED (CHUNK_SIZE) and every
     // offset derives from chunkCountForSize — the same function the receiver
@@ -1501,6 +1558,7 @@ export class PeerManager {
     const controller = new AbortController();
     this.transferControllers.set(transferId, controller);
     const signal = controller.signal;
+    const cancellation = () => signal.reason instanceof TransferInterruptedError ? signal.reason : new TransferCancelledError();
     const prog: SendProgress = sendProgress.get(transferId) ?? { sentUpTo: 0, total: numChunks, acked: 0, updatedAt: Date.now() };
     prog.total = numChunks;
     prog.updatedAt = Date.now();
@@ -1522,7 +1580,7 @@ export class PeerManager {
     // bubble flips from 'Waiting…' to a live percentage at the same moment.
     void this.sendControl({ type: 'queued_start', transferId });
     try {
-      if (signal.aborted) throw new TransferCancelledError();
+      if (signal.aborted) throw cancellation();
 
     // Adaptive pipeline depth: overlap read + encrypt + send. Depth is the
     // ONLY pacing knob — it bounds how much is in flight without touching
@@ -1560,7 +1618,7 @@ export class PeerManager {
     }
 
       while (sendIdx < numChunks) {
-        if (signal.aborted) throw new TransferCancelledError();
+        if (signal.aborted) throw cancellation();
         // Peer- or user-requested pause: idle WITHOUT exiting the loop, so
         // resume continues seamlessly and cancel still works while paused.
         if (this.pauseSends.has(transferId)) {
@@ -1573,7 +1631,7 @@ export class PeerManager {
         // With the fixed grid a null entry means the loop overshot the file —
         // an invariant violation. Fail loudly instead of silently truncating.
         if (!entry || signal.aborted) {
-          if (signal.aborted) throw new TransferCancelledError();
+          if (signal.aborted) throw cancellation();
           throw new Error('chunk pipeline produced no data (grid invariant violated)');
         }
 
@@ -1772,8 +1830,9 @@ export class PeerManager {
     if (this.destroyed) return Promise.resolve(false);
     if (this.dc && this.dc.readyState === 'open') return Promise.resolve(true);
     if (!this.peerId) return Promise.resolve(false);
-    this.startOfferCycle();
-    return new Promise<boolean>((resolve) => {
+    if (this.isRelayFallback) return Promise.resolve(true);
+    if (this.opening) return this.opening;
+    this.opening = new Promise<boolean>((resolve) => {
       const prev = this.onOpen;
       const finish = (ok: boolean) => {
         if (settled) return;
@@ -1785,7 +1844,12 @@ export class PeerManager {
       let settled = false;
       const timer = setTimeout(() => finish(false), timeoutMs);
       this.onOpen = () => { prev?.(); finish(true); };
-    });
+      if (!this.pc || this.pc.connectionState === 'failed' || this.pc.connectionState === 'closed') {
+        this.teardownPeerConnection();
+        this.startOfferCycle();
+      }
+    }).finally(() => { this.opening = null; });
+    return this.opening;
   }
 
   /** Test/debug hook — the underlying RTCPeerConnection (never the secret). */
@@ -1800,7 +1864,7 @@ export class PeerManager {
 
   public destroy() {
     this.destroyed = true;
-    this.transferControllers.forEach(c => c.abort());
+    this.transferControllers.forEach(c => c.abort(new TransferInterruptedError()));
     this.transferControllers.clear();
     if (this.retryTimer) clearInterval(this.retryTimer);
     if (this.relayFallbackTimer) clearTimeout(this.relayFallbackTimer);

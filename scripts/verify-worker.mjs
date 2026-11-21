@@ -15,6 +15,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import * as OTPAuth from 'otpauth';
+import { tsImport } from 'tsx/esm/api';
+
+const { encryptText, generateKey } = await tsImport('../src/lib/crypto.ts', import.meta.url);
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -153,6 +156,18 @@ async function runRoomProtocol() {
   check('joiner ack carries the roster snapshot', joined.roster?.participants?.length === 2 && joined.myParticipantId === SECOND_PID);
   assertState(ctx, 'CONNECTED');
 
+  const beforeHeartbeat = creator.inbox.length;
+  for (let heartbeat = 0; heartbeat < 3; heartbeat++) {
+    const refreshed = await joiner.send('resume_room', { roomId, secret, pid: SECOND_PID });
+    check('same-cid heartbeat acknowledged', refreshed.success === true);
+  }
+  check('same-cid heartbeat emits no recovery or join', !creator.inbox.slice(beforeHeartbeat).some(m =>
+    m.type === 'event' && (m.event === 'peer_recovered' || m.event === 'peer_joined')));
+  const beforeReconnect = creator.inbox.length;
+  await joiner.send('resume_room', { roomId, secret, pid: SECOND_PID, reconnect: true });
+  check('explicit same-cid reconnect emits recovery', creator.inbox.slice(beforeReconnect).filter(m => m.event === 'peer_recovered').length === 1);
+  creator.inbox.splice(beforeReconnect);
+
   // signal forwarding — addressed by PARTICIPANT id now (the modern wire form)
   const sigPromise = creator.waitFor((m) => m.type === 'event' && m.event === 'signal');
   await joiner.send('signal', { to: SECOND_PID === 'pid-second-device-00000000' ? 'pid-creator-device-00000000' : SECOND_PID, signal: { type: 'offer', sdp: 'v=0 fake sdp' } });
@@ -176,10 +191,7 @@ async function runRoomProtocol() {
   const rejected = await joiner.waitFor((m) => m.type === 'event' && m.event === 'relay_message' && m.payload?.data === '{"hello":"world"}', 300);
   check('malformed relay payload rejected', !rejected);
   // v2 chunk envelope — the app's text messages / hello / control packets all
-  // travel as {"version":1,"type":"chunk",payload:"enc:…"} JSON. The old
-  // gate accepted only bare base64/enc: strings, so EVERY relayed text
-  // transfer on the Cloudflare transport was silently dropped (transfers
-  // "never arrive" — the production bug). It must be forwarded.
+  // travel as chunk envelopes. Keep legacy enc: coverage alongside real encryption.
   const envelope = JSON.stringify({ version: 1, type: 'chunk', transferId: '7e2b9c0a-1111-4222-8333-444455556666', sequence: 0, total: 1, payload: 'enc:QQ==' });
   const envPromise = joiner.waitFor((m) => m.type === 'event' && m.event === 'relay_message' && m.payload?.data === envelope);
   await creator.send('relay_message', { data: envelope });
@@ -190,6 +202,85 @@ async function runRoomProtocol() {
   await creator.send('relay_message', { data: JSON.stringify({ version: 1, type: 'chunk', payload: 'plaintext-not-allowed' }) });
   const envRejected = await joiner.waitFor((m) => m.type === 'event' && m.event === 'relay_message' && m.payload?.data?.includes?.('plaintext-not-allowed'), 300);
   check('envelope with non-ciphertext payload rejected', !envRejected);
+  const encrypted = await encryptText('real client relay payload', await generateKey(secret));
+  const encryptedEmpty = await encryptText('', await generateKey(secret));
+  const wrap = payload => JSON.stringify({ version: 1, type: 'chunk', transferId: uuid(), sequence: 0, total: 1, payload });
+  for (const [name, data] of [['raw encryptText output', encrypted], ['real encryptText chunk', wrap(encrypted)], ['empty encrypted message', wrap(encryptedEmpty)]]) {
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data });
+    check(`${name} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+  }
+  const valid = JSON.parse(encrypted);
+  const longEncrypted = await encryptText('long relay text '.repeat(20000), await generateKey(secret));
+  const chunkSize = 128 * 1024;
+  const total = Math.ceil(longEncrypted.length / chunkSize);
+  check('real encrypted relay message spans multiple chunks', total > 2);
+  const longChunks = Array.from({ length: total }, (_, sequence) => ({ version: 1, type: 'chunk', transferId: uuid(), sequence, total, payload: longEncrypted.slice(sequence * chunkSize, (sequence + 1) * chunkSize) }));
+  for (const packet of longChunks) {
+    const data = JSON.stringify(packet);
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data });
+    check(`encrypted fragment ${packet.sequence + 1}/${total} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+  }
+  const padded = await encryptText('x'.repeat(98265), await generateKey(secret));
+  check('real ciphertext padding crosses the client chunk boundary', padded[chunkSize - 1] === '=' && padded[chunkSize] === '=');
+  for (let sequence = 0; sequence < 2; sequence++) {
+    const data = JSON.stringify({ version: 1, type: 'chunk', transferId: uuid(), sequence, total: 2, payload: padded.slice(sequence * chunkSize, (sequence + 1) * chunkSize) });
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data });
+    check(`padding-split fragment ${sequence} forwarded intact`, joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+  }
+  for (const text of ['', 'x', 'xx']) {
+    const ciphertext = await encryptText(text, await generateKey(secret));
+    let allForwarded = true;
+    for (let offset = 1; offset < ciphertext.length; offset++) {
+      // A fresh wake keeps this exhaustive test independent of frame-rate limits.
+      const wake = new Room(ctx, makeEnv());
+      const transferId = uuid();
+      for (const [sequence, payload] of [ciphertext.slice(0, offset), ciphertext.slice(offset)].entries()) {
+        const data = JSON.stringify({ version: 1, type: 'chunk', transferId, sequence, total: 2, payload });
+        const before = joiner.inbox.length;
+        await wake.webSocketMessage(creator.server, JSON.stringify({ v: 1, event: 'relay_message', payload: { data } }));
+        allForwarded &&= joiner.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data);
+      }
+    }
+    check(`real encryptText output split at every offset (${text.length} plaintext bytes)`, allForwarded);
+  }
+  for (const [sequence, payload] of [[0, '{"i":"bad"'], [1, 'AAAA=AAAA'], [1, 'AAAA===' ], [1, 'AAAA"x}'], [1, 'A'.repeat(chunkSize + 1)]]) {
+    const wake = new Room(ctx, makeEnv());
+    const before = joiner.inbox.length;
+    await wake.webSocketMessage(creator.server, JSON.stringify({ v: 1, event: 'relay_message', payload: { data: JSON.stringify({ version: 1, type: 'chunk', transferId: uuid(), sequence, total: 2, payload }) } }));
+    check('invalid split ciphertext rejected', !joiner.inbox.slice(before).some(m => m.event === 'relay_message'));
+  }
+  for (const patch of [{ total: 1 }, { total: 1.5 }, { total: 2 ** 32 }, { sequence: -1 }, { sequence: total }, { sequence: 0.5 }, { transferId: '' }, { payload: '' }, { payload: longChunks[0].payload.slice(1) }, { payload: ' '.repeat(chunkSize) }]) {
+    const before = joiner.inbox.length;
+    await creator.send('relay_message', { data: JSON.stringify({ ...longChunks[0], ...patch }) });
+    check('malformed encrypted fragment rejected', !joiner.inbox.slice(before).some(m => m.event === 'relay_message'));
+  }
+  const invalid = [
+    ['empty payload', ''],
+    ['malformed JSON', '{'],
+    ['missing IV', JSON.stringify({ c: valid.c })],
+    ['missing ciphertext', JSON.stringify({ i: valid.i })],
+    ['extra field', JSON.stringify({ ...valid, plaintext: 'not allowed' })],
+    ['invalid IV base64', JSON.stringify({ ...valid, i: '!'.repeat(16) })],
+    ['wrong IV length', JSON.stringify({ ...valid, i: 'QUJDRA==' })],
+    ['empty ciphertext', JSON.stringify({ ...valid, c: '' })],
+    ['short ciphertext', JSON.stringify({ ...valid, c: 'QUJDRA==' })],
+    ['invalid ciphertext base64', JSON.stringify({ ...valid, c: 'not base64!' })],
+    ['noncanonical base64', JSON.stringify({ ...valid, c: 'A'.repeat(21) + 'B==' })],
+    ['non-string field', JSON.stringify({ ...valid, c: 123 })],
+    ['array instead of object', JSON.stringify([valid.i, valid.c])],
+    ['null instead of object', ' null '],
+    ['oversize payload', JSON.stringify({ ...valid, c: 'A'.repeat(512 * 1024) })],
+  ];
+  for (const [name, payload] of invalid) {
+    for (const data of [payload, wrap(payload)]) {
+      const before = joiner.inbox.length;
+      await creator.send('relay_message', { data });
+      check(`${name} rejected (${data === payload ? 'raw' : 'chunk'})`, !joiner.inbox.slice(before).some(m => m.event === 'relay_message'));
+    }
+  }
   assertState(ctx, 'TRANSFERRING');
 
   // relay binary
@@ -381,6 +472,88 @@ async function runDisconnectedState() {
   const fresh2 = new Room(ctx, makeEnv());
   await fresh2.alarm();
   check('empty room storage cleared by alarm', ctx.storage.map.size === 0);
+}
+
+async function runGraceHeartbeat() {
+  const ctx = new FakeCtx();
+  const roomId = uuid();
+  const room = new Room(ctx, makeEnv());
+  const creator = await connect(room, roomId);
+  const created = await creator.send('create_room', { pid: 'creator-device' });
+  const survivor = await connect(room, roomId);
+  await survivor.send('join_with_code', { code: codeFor(created.secret, created.createdAt), pid: 'survivor' });
+  creator.client.close();
+  await room.webSocketClose(creator.server);
+  const deadline = ctx.storage.map.get('room').grace['creator-device'];
+  const now = Date.now;
+  try {
+    Date.now = () => deadline - 1000;
+    await survivor.send('resume_room', { roomId, secret: created.secret, pid: 'survivor' });
+    const alarm = await ctx.storage.getAlarm();
+    check('heartbeat preserves pending disconnect grace alarm', Number.isFinite(deadline) && alarm !== null && alarm <= deadline);
+    Date.now = () => deadline + 1;
+    await room.alarm();
+    check('departed device evicted at grace deadline after heartbeat', ctx.storage.map.get('room').participants.length === 1 && ctx.storage.map.get('room').participants[0].pid === 'survivor');
+  } finally {
+    Date.now = now;
+  }
+}
+
+async function runGraceReclaim() {
+  const ctx = new FakeCtx();
+  const roomId = uuid();
+  const room = new Room(ctx, makeEnv());
+  const creator = await connect(room, roomId);
+  const created = await creator.send('create_room', { pid: 'creator-device' });
+  creator.client.close();
+  await room.webSocketClose(creator.server);
+  const deadline = ctx.storage.map.get('room').grace['creator-device'];
+  const returning = await connect(room, roomId);
+  check('grace reclaim uses a fresh cid', returning.cid !== creator.cid);
+  const denied = await returning.send('resume_room', { roomId, secret: 'wrong-secret', pid: 'creator-device' });
+  check('unauthorized resume preserves pending grace', !denied.success && ctx.storage.map.get('room').grace['creator-device'] === deadline);
+  const resumed = await returning.send('resume_room', { roomId, secret: created.secret, pid: 'creator-device' });
+  check('fresh cid resume cancels its seat grace', resumed.success && !ctx.storage.map.get('room').grace?.['creator-device']);
+  const joiner = await connect(room, roomId);
+  const joined = await joiner.send('join_with_code', { code: codeFor(created.secret, created.createdAt), pid: 'next-device' });
+  check('next device pairs within reclaimed creator grace', joined.success);
+  const now = Date.now;
+  try {
+    Date.now = () => deadline + 1;
+    await room.alarm();
+    check('old grace alarm keeps both reclaimed seats', ctx.storage.map.get('room').participants.length === 2);
+    check('old grace alarm emits no disconnect after reclaim', [returning, joiner].every(peer => !peer.inbox.some(m => m.event === 'peer_disconnected')));
+    const data = await encryptText('after reclaimed grace', await generateKey(created.secret));
+    for (const [sender, receiver] of [[returning, joiner], [joiner, returning]]) {
+      const before = receiver.inbox.length;
+      await sender.send('relay_message', { data });
+      check('reclaimed seat relays ciphertext after old grace', receiver.inbox.slice(before).some(m => m.event === 'relay_message' && m.payload?.data === data));
+    }
+  } finally {
+    Date.now = now;
+    returning.close();
+    joiner.close();
+  }
+}
+
+async function runConnectionReclaims() {
+  const ctx = new FakeCtx();
+  const roomId = uuid();
+  const room = new Room(ctx, makeEnv());
+  let current = await connect(room, roomId);
+  const created = await current.send('create_room', { pid: 'creator-device' });
+  let resumed = true;
+  for (let i = 0; i < 12; i++) {
+    current.client.close();
+    await room.webSocketClose(current.server);
+    current = await connect(room, roomId);
+    const result = await current.send('resume_room', { roomId, secret: created.secret, pid: 'creator-device' });
+    resumed &&= result.success === true;
+  }
+  check('twelve Worker fresh-cid reclaims succeed', resumed);
+  check('Worker reclaim connection cache stays bounded', room.conns.size === 1);
+  check('Worker reclaim durable connection records stay bounded', (await ctx.storage.list({ prefix: 'conn:' })).size === 1);
+  current.close();
 }
 
 // Stay Connected: room-wide promise flips, BOTH peers get the echo, the
@@ -749,6 +922,9 @@ await runFreshCidRejoin();
 await runPush();
 await runLiveIdleExpiry();
 await runDisconnectedState();
+await runGraceHeartbeat();
+await runGraceReclaim();
+await runConnectionReclaims();
 await runRegistry();
 await runMetrics();
 await runSpace();

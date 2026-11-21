@@ -15,7 +15,7 @@ import { loadStoredSession, saveStoredSession, loadLastStayRoom, saveLastStayRoo
 // Multi-device room: roster mirror (membership vs. per-device links) and the
 // per-peer connection manager. A participant's link state never mutates
 // another participant's row; the roster store is the single source of truth.
-import { roomRoster, participantIdFor, type RosterEntry } from './roomRoster';
+import { roomRoster, participantIdFor, saveParticipantId, type RosterEntry } from './roomRoster';
 import { PeerConnectionManager } from './peerConnections';
 import { DEVICE_NAME_KEY, platformDefaultName, guessDeviceName, ensureDeviceNameSeeded } from './session/deviceIdentity';
 import { sha256Hex } from './session/fileIntegrity';
@@ -179,6 +179,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // Deps are fresh closures per render — the same closure semantics the
   // original render-scoped functions had.
   const messageEngine = useMessageEngine({
+    getRoomId: () => sessionRef.current.roomId,
     setSession,
     getMessages: () => messagesRef.current,
     getRenderMessages: () => sessionRef.current.messages,
@@ -553,6 +554,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useTransferWakeLock(session.messages);
 
   const setupPeerManager = (pm: PeerManager) => {
+    pm.resolveRelayPeer = () => {
+      const others = roomRoster.otherEntries().filter(e => e.link !== 'offline');
+      return roomRoster.size === 2 && others.length === 1 ? others[0].id : null;
+    };
     pm.onConnectionTypeChange = (type) => {
       setSession(s => ({ ...s, connectionType: type }));
     };
@@ -883,12 +888,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             // Persist THIS device's participant id for the new room so a
             // refresh reclaims the same roster seat.
             selfPidRef.current = res.myParticipantId || participantIdFor(res.roomId);
-            try {
-              localStorage.setItem('sharetext.deviceId', JSON.stringify({
-                ...JSON.parse(localStorage.getItem('sharetext.deviceId') || '{}'),
-                [res.roomId]: selfPidRef.current,
-              }));
-            } catch { /* private mode */ }
+            saveParticipantId(res.roomId, selfPidRef.current);
             roomRoster.reset(selfPidRef.current);
             if (res.roster && Array.isArray(res.roster.participants)) {
               roomRoster.applySnapshot(res.roster as never);
@@ -1102,6 +1102,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // back to the locally minted room-scoped id. Either way a refresh will
     // reclaim the SAME roster seat.
     selfPidRef.current = myPid || participantIdFor(roomId);
+    saveParticipantId(roomId, selfPidRef.current);
     setRecipients([]); // a fresh seat starts unaddressed
     roomRoster.reset(selfPidRef.current);
     if (roster && Array.isArray(roster.participants)) {
@@ -1178,18 +1179,16 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     } catch {
       return;
     }
-    const res = await new Promise<{ success: boolean; error?: string }>((resolve) => {
-      getSocket().emit('resume_room', { roomId, secret }, resolve);
-    });
-    if (!res.success) return;
     if (peerManagerRef.current) peerManagerRef.current.destroy();
     const gen = ++pmGenerationRef.current;
-    void createPeerManager(roomId, secret, false).then(pm => {
-      if (gen !== pmGenerationRef.current) { pm.destroy(); return; } // superseded
-      peerManagerRef.current = pm;
-      setupPeerManager(pm);
-    });
+    const pm = await createPeerManager(roomId, secret, false);
+    if (gen !== pmGenerationRef.current) { pm.destroy(); return; }
+    peerManagerRef.current = pm;
+    setupPeerManager(pm);
     setSession(s => ({ ...s, connectionType: 'connecting' }));
+    await new Promise<void>((resolve) => {
+      getSocket().emit('resume_room', { roomId, secret, pid: participantIdFor(roomId), reconnect: true }, () => resolve());
+    });
   };
   requestReconnectRef.current = requestReconnect;
 
@@ -1213,8 +1212,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const stopSeatKeepalive = useCallback(() => {
     if (seatKeepaliveRef.current) { clearInterval(seatKeepaliveRef.current); seatKeepaliveRef.current = null; }
   }, []);
-  /** Channel truth: is the WebRTC link (or its relay stand-in) actually up? */
-  const channelHealthy = (): boolean => {
+  /** Multi-device links recover per recipient on demand, not via a classic link. */
+  const classicChannelHealthy = (): boolean => {
+    if (roomRoster.size !== 2) return true;
     const pc = peerManagerRef.current?.getPeerConnection?.() ?? null;
     if (!pc) return peerManagerRef.current != null && sessionRef.current.connectionType === 'relay';
     const st = (pc as RTCPeerConnection).connectionState;
@@ -1226,36 +1226,20 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     try {
       await ensureSocketConnected(8000);
     } catch { return; }
+    if (!classicChannelHealthy() && sessionRef.current.connectionType !== 'disconnected') {
+      await requestReconnectRef.current();
+      return;
+    }
     const res = await new Promise<{ success: boolean; error?: string }>((resolve) => {
       const sock = getSocket();
       const timer = setTimeout(() => resolve({ success: false, error: 'timeout' }), 10_000);
-      sock.emit('resume_room', { roomId: s.roomId, secret: s.secret }, (r: { success: boolean; error?: string }) => {
+      sock.emit('resume_room', { roomId: s.roomId, secret: s.secret, pid: participantIdFor(s.roomId) }, (r: { success: boolean; error?: string }) => {
         clearTimeout(timer);
         resolve(r);
       });
     });
     if (!res.success) return;
     diag('seat.reseat', true, why);
-    if (channelHealthy()) return; // everything fine — the ack was the whole point
-    // Dead channel. Rebuild the peer so the partner's peer_joined trigger
-    // and our fresh ICE restart the link — UNLESS the peer is CONFIRMED
-    // gone (its grace elapsed / server confirmed the leave). Rebuilding
-    // then would flip the honest 'disconnected' state to 'connecting' and
-    // the header back to "Connected" for a dead room; the peer_joined
-    // handler rebuilds anyway when the partner actually returns.
-    if (sessionRef.current.connectionType !== 'disconnected') {
-      if (peerManagerRef.current) peerManagerRef.current.destroy();
-      const gen = ++pmGenerationRef.current;
-      void createPeerManager(s.roomId, s.secret, false).then(pm => {
-        if (gen !== pmGenerationRef.current) { pm.destroy(); return; } // superseded
-        peerManagerRef.current = pm;
-        setupPeerManager(pm);
-      });
-      setSession(prev => ({
-        ...prev,
-        connectionType: prev.connectionType === 'direct' || prev.connectionType === 'relay' || prev.connectionType === 'local' ? 'connecting' : prev.connectionType,
-      }));
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const startSeatKeepalive = useCallback(() => {
@@ -1273,7 +1257,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const onVis = () => {
       if (document.visibilityState !== 'visible') return;
       if (!sessionRef.current.roomId) return;
-      if (channelHealthy()) return;
       void reseatQuietly('visibility');
     };
     document.addEventListener('visibilitychange', onVis);
@@ -1433,7 +1416,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const res = await new Promise<{ success: boolean; error?: string; createdAt?: number; stayConnected?: boolean }>((resolve) => {
       const socket = getSocket();
       const timer = setTimeout(() => resolve({ success: false, error: 'timeout' }), 12000);
-      socket.emit('resume_room', { roomId: stay.roomId, secret: stay.secret }, (r: { success: boolean; error?: string; createdAt?: number; stayConnected?: boolean }) => {
+      socket.emit('resume_room', { roomId: stay.roomId, secret: stay.secret, pid: participantIdFor(stay.roomId) }, (r: { success: boolean; error?: string; createdAt?: number; stayConnected?: boolean }) => {
         clearTimeout(timer);
         resolve(r);
       });

@@ -16,21 +16,22 @@
  * original closures did.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { SessionState, ChatMessage } from '../../types';
-import { TransferCancelledError, hasSendProgress, chunkCountForSize, sendQueueDepth, clearTransferState } from '../webrtc';
+import { TransferCancelledError, TransferInterruptedError, hasSendProgress, chunkCountForSize, sendQueueDepth, clearTransferState } from '../webrtc';
 import type { PeerManager } from '../webrtc';
 import { diag } from '../diag';
 import { connMachine } from '../connectionState';
 import { speedTrackerFor, dropSpeedTracker } from '../speedEngine';
 import { beginTransferRecord, finishTransferRecord } from '../transferMetrics';
 import { productEvent } from '../telemetry';
-import { saveSendable, getSendable, deleteSendable, saveTransferState, deleteTransferState } from '../transferStore';
+import { saveSendable, getSendable, deleteSendable, saveTransferState, deleteTransferState, saveReceivedFile, getReceivedFile, deleteReceivedFile } from '../transferStore';
 import { sanitizeFilename } from '../utils';
 import { recordTransferBytes } from '../pairing';
 import { normalizePastedText } from '../textFidelity';
 import { sha256Hex } from './fileIntegrity';
+import { ReceivedFileIntegrity } from './receivedFileIntegrity';
 // Multi-device fan-out: one logical share → N independent per-recipient
 // transfers, scheduled through a bounded bulk-lane scheduler so a big send
 // never opens dozens of encryption pipelines at once (and text keeps its
@@ -42,6 +43,7 @@ import type { RecipientTransfer } from '../../types';
 type RecipientTransferPatch = RecipientTransfer;
 
 export interface MessageEngineDeps {
+  getRoomId: () => string | null;
   setSession: Dispatch<SetStateAction<SessionState>>;
   /** Live mirror of session.messages (fresh at all times). */
   getMessages: () => ChatMessage[];
@@ -160,6 +162,53 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
   // delivers files as ~45KB base64 chunks (to fit WS frame caps on both
   // transports); this buffer reassembles them before the bubble appears.
   const pushBuffersRef = useRef<Map<string, { name: string; mimeType: string; size: number; chunkCount: number; timestamp: number; chunks: string[]; filled: number }>>(new Map());
+  const runtimeGeneration = useRef(0);
+
+  const receivedIntegrityRef = useRef(new ReceivedFileIntegrity(
+    (message, checksum) => updateMessageAttachment(message.id, { checksum }),
+    async (message, expected, actual, blob) => {
+      const ok = actual === expected;
+      const roomId = deps.getRoomId();
+      const generation = runtimeGeneration.current;
+      if (ok && roomId) await saveReceivedFile(roomId, message.attachment!.id, expected, blob,
+        () => deps.getRoomId() === roomId && runtimeGeneration.current === generation && getMessages().some(m => m.id === message.id));
+      if (!ok && roomId) await deleteReceivedFile(roomId, message.attachment!.id);
+      if (deps.getRoomId() !== roomId || runtimeGeneration.current !== generation) return;
+      diag('transfer.checksum', ok, ok ? 'verified' : `mismatch expected ${expected.slice(0, 12)}… got ${actual.slice(0, 12)}…`);
+      if (!ok) finishTransferRecord(message.attachment!.id, 'received', 0, 'checksum-mismatch', { name: message.attachment?.name, kind: 'file', verified: false });
+      updateMessageAttachment(message.id, ok
+        ? { verified: true }
+        : { status: 'failed', note: 'checksum-mismatch', progress: 1, verified: false });
+    },
+  ));
+
+  const localRestores = useRef(new Map<string, Promise<boolean>>());
+  const restoreReceivedMessages = async (): Promise<Set<string>> => {
+    const roomId = deps.getRoomId();
+    const generation = runtimeGeneration.current;
+    const restored = new Set<string>();
+    if (!roomId) return restored;
+    await Promise.all(getMessages().map(async m => {
+      const a = m.attachment;
+      if (m.sender !== 'partner' || !a || a.url || a.status === 'cancelled' || a.note === 'checksum-mismatch') return;
+      const key = `${roomId}/${a.id}`;
+      let pending = localRestores.current.get(key);
+      if (!pending) {
+        pending = getReceivedFile(roomId, a.id, a.checksum, a.size).then(blob => {
+          if (!blob || deps.getRoomId() !== roomId || runtimeGeneration.current !== generation || localRestores.current.get(key) !== pending || !getMessages().some(item => item.id === m.id)) return false;
+          const url = URL.createObjectURL(blob);
+          updateMessageAttachment(m.id, { status: 'complete', progress: 1, verified: true, url, note: undefined });
+          return true;
+        });
+        localRestores.current.set(key, pending);
+      }
+      if (await pending) restored.add(m.id);
+    }));
+    return restored;
+  };
+  const roomId = deps.getRoomId();
+  const messages = getRenderMessages();
+  useEffect(() => { void restoreReceivedMessages(); }, [roomId, messages]);
 
   const updateMessageAttachment = (messageId: string, updates: Partial<NonNullable<ChatMessage['attachment']>>) => {
     setSession(s => {
@@ -176,6 +225,17 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         })
       };
     });
+  };
+
+  const markTransferInterrupted = (messageId: string) => {
+    setSession(s => ({
+      ...s,
+      messages: s.messages.map(m => {
+        if (m.id !== messageId || !m.attachment || m.attachment.status === 'cancelled' || m.attachment.status === 'complete') return m;
+        if (getPeer()?.isSendLoopActive(m.attachment.id)) return m;
+        return { ...m, attachment: { ...m.attachment, status: 'interrupted' } };
+      }),
+    }));
   };
 
   const handlePushMessage = (payload: unknown) => {
@@ -326,6 +386,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
             });
           }
           if (parsed.attachment) {
+            receivedIntegrityRef.current.metadata(parsed);
             // The chunk count comes from the SAME grid the sender uses
             // (chunkCountForSize) — a mismatch here would leave the receiver
             // waiting for chunks that never come or rejecting real ones.
@@ -410,9 +471,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       // metadata so previews, downloads and clipboard copy get the correct
       // type. Blob composition references the original bytes, so this stays
       // cheap even for large disk-backed (OPFS) files.
-      const srcMsg = getMessages().find(m => m.attachment?.id === transferId);
+      const srcMsg = receivedIntegrityRef.current.message(transferId)
+        ?? getMessages().find(m => m.attachment?.id === transferId);
       const mime = srcMsg?.attachment?.mimeType;
-      const checksum = srcMsg?.attachment?.checksum;
       const finalBlob = mime && blob.type !== mime ? new Blob([blob], { type: mime }) : blob;
       const url = URL.createObjectURL(finalBlob);
       setSession(s => ({
@@ -449,7 +510,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       lastSpeedReadings.current.delete(transferId);
       // The whole file arrived — only now confirm receipt (metadata alone
       // would be a lie if the transfer later failed).
-      const msg = getMessages().find(m => m.attachment?.id === transferId);
+      const msg = srcMsg;
       if (msg && msg.sender === 'partner') {
         pm.sendReceipt(msg.id);
         // The completed file card is on screen in the open room — confirm
@@ -458,47 +519,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         setTimeout(() => sendSeenWhenVisible(() => pm.sendSeen(msg.id)), 450);
       }
 
-      // Integrity: if the sender included a checksum, verify the bytes that
-      // actually arrived. The card stays usable (download works) while the
-      // background hash runs; a mismatch flips it to a clear failure with
-      // Retry instead of silently keeping corrupted data.
-      if (checksum && srcMsg) {
-        // updateMessageAttachment keys on the MESSAGE id — the transferId is
-        // the attachment id, so resolve the owning message first.
-        const msgId = srcMsg.id;
-        void sha256Hex(finalBlob)
-          .then((got) => {
-            const ok = got === checksum;
-            diag('transfer.checksum', ok, ok ? 'verified' : `mismatch expected ${checksum.slice(0, 12)}… got ${got.slice(0, 12)}…`);
-            if (!ok) finishTransferRecord(transferId, 'received', 0, 'checksum-mismatch', { name: srcMsg?.attachment?.name, kind: 'file', verified: false });
-            updateMessageAttachment(msgId, ok
-              ? { verified: true }
-              : { status: 'failed', note: 'checksum-mismatch', progress: 1, verified: false });
-          })
-          .catch(() => { /* hashing failed (quota?) — leave complete, unverified */ });
-      } else {
-        // The sender hashes in parallel with the transfer, so the checksum
-        // metadata can trail the file. Wait briefly for it before declaring
-        // the transfer unverifiable.
-        const msgId = srcMsg?.id;
-        setTimeout(() => {
-          const now = msgId ? getMessages().find(m => m.id === msgId)?.attachment : undefined;
-          if (now?.checksum) {
-            void sha256Hex(finalBlob)
-              .then((got) => {
-              const ok = got === now.checksum;
-              diag('transfer.checksum', ok, ok ? 'verified (late)' : `mismatch expected ${now.checksum.slice(0, 12)}… got ${got.slice(0, 12)}…`);
-              if (!ok) finishTransferRecord(transferId, 'received', 0, 'checksum-mismatch', { name: srcMsg?.attachment?.name, kind: 'file', verified: false });
-              updateMessageAttachment(msgId, ok
-                ? { verified: true }
-                : { status: 'failed', note: 'checksum-mismatch', progress: 1, verified: false });
-              })
-              .catch(() => { /* hashing failed — leave complete, unverified */ });
-          } else {
-            diag('transfer.checksum_skipped', true, `${transferId.slice(0, 8)} no checksum`);
-          }
-        }, 4000);
-      }
+      receivedIntegrityRef.current.complete(transferId, finalBlob);
     };
 
     // The peer confirmed one of our messages arrived.
@@ -542,10 +563,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     // the attachment like the metadata-borne checksum, and if the file already
     // finished unverified, verify immediately with the bytes we hold.
     pm.onFileHash = (transferId, sha256) => {
-      const srcMsg = getMessages().find(m => m.attachment?.id === transferId);
-      if (srcMsg) {
-        updateMessageAttachment(srcMsg.id, { checksum: sha256 });
-      }
+      receivedIntegrityRef.current.checksum(transferId, sha256);
     };
 
     // Transfer queue: the peer's queue freed a slot for this transfer —
@@ -573,7 +591,10 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
     };
   };
 
-  const handleChannelOpen = (pm: PeerManager) => {
+  const handleChannelOpen = async (pm: PeerManager) => {
+    const roomId = deps.getRoomId();
+    const restored = await restoreReceivedMessages();
+    if (deps.getRoomId() !== roomId || pm.isDestroyed()) return;
     // If a transfer was interrupted by the drop, resume it from the
     // position the peer actually received — never from zero.
     void resumeInterruptedTransfers();
@@ -589,7 +610,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       }
       // Restored files we received but no longer hold bytes for: ask the
       // peer to re-send them now that the channel is open.
-      if (m.sender === 'partner' && m.attachment?.status === 'restoring') {
+      if (m.sender === 'partner' && m.attachment?.status === 'restoring' && !restored.has(m.id)) {
         try { void pm.send(JSON.stringify({ kind: 'resend_request', id: m.id })); } catch { /* channel closed */ }
       }
     }
@@ -641,7 +662,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
           void deleteSendable(a.id);
           void deleteTransferState(a.id);
         } catch (e) {
-          if (!(e instanceof TransferCancelledError)) {
+          if (e instanceof TransferInterruptedError) {
+            markTransferInterrupted(m.id);
+          } else if (!(e instanceof TransferCancelledError)) {
             updateMessageAttachment(m.id, { status: 'failed' });
           }
         }
@@ -759,7 +782,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
             }
             setRecipientState(rid, { state: 'sent', progress: 1, completedAt: Date.now() });
           } catch (e) {
-            if (e instanceof TransferCancelledError) {
+            if (e instanceof TransferInterruptedError) {
+              setRecipientState(rid, { state: 'failed', error: 'interrupted', completedAt: Date.now(), retryable: true });
+            } else if (e instanceof TransferCancelledError) {
               setRecipientState(rid, { state: 'cancelled', completedAt: Date.now() });
             } else {
               setRecipientState(rid, { state: 'failed', error: (e as Error)?.message?.slice(0, 80), completedAt: Date.now(), retryable: true });
@@ -916,7 +941,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
         pendingFilesRef.current.delete(msg.id);
       } catch (e) {
         // A user cancel stops the loop cleanly — don't overwrite 'cancelled'.
-        if (!(e instanceof TransferCancelledError)) {
+        if (e instanceof TransferInterruptedError) {
+          markTransferInterrupted(msg.id);
+        } else if (!(e instanceof TransferCancelledError)) {
           updateMessageAttachment(msg.id, { status: 'failed' });
           finishTransferRecord(attachment.id, 'sent', 0, 'failed', { name: file.name, kind: 'file' });
           productEvent('product.transfer_failed');
@@ -999,7 +1026,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       await pm.resumeTransfer(JSON.stringify(partnerMsg), file, msg.attachment.id);
       updateMessageAttachment(messageId, { status: 'complete', progress: 1, completedAt: Date.now() });
     } catch (e) {
-      if (!(e instanceof TransferCancelledError)) {
+      if (e instanceof TransferInterruptedError) {
+        markTransferInterrupted(messageId);
+      } else if (!(e instanceof TransferCancelledError)) {
         try { await pm.send(JSON.stringify({ kind: 'resend_unavailable', id: messageId })); } catch { /* noop */ }
       }
     }
@@ -1036,7 +1065,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       await pm.resumeTransfer(JSON.stringify(partnerMsg), file, msg.attachment.id);
       updateMessageAttachment(messageId, { status: 'complete', progress: 1, completedAt: Date.now() });
     } catch (e) {
-      if (!(e instanceof TransferCancelledError)) {
+      if (e instanceof TransferInterruptedError) {
+        markTransferInterrupted(messageId);
+      } else if (!(e instanceof TransferCancelledError)) {
         updateMessageAttachment(messageId, { status: 'failed' });
       }
     }
@@ -1084,10 +1115,13 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
   }, []);
 
   const clearRuntimeState = useCallback(() => {
+    runtimeGeneration.current++;
     pendingFilesRef.current.clear();
     receivedIdsRef.current.clear();
     progressRef.current.clear();
     pushBuffersRef.current.clear();
+    receivedIntegrityRef.current.clear();
+    localRestores.current.clear();
   }, []);
 
   /**
@@ -1145,7 +1179,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
           if (file && myAttachment) await pm.sendFile(file, wireId);
           setRecipientState({ state: 'sent', progress: 1, completedAt: Date.now() });
         } catch (e) {
-          if (e instanceof TransferCancelledError) {
+          if (e instanceof TransferInterruptedError) {
+            setRecipientState({ state: 'failed', error: 'interrupted', completedAt: Date.now(), retryable: true });
+          } else if (e instanceof TransferCancelledError) {
             setRecipientState({ state: 'cancelled', completedAt: Date.now() });
           } else {
             setRecipientState({ state: 'failed', error: (e as Error)?.message?.slice(0, 80), completedAt: Date.now(), retryable: true });
@@ -1161,6 +1197,11 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
    *  keep. */
   const deleteLocalMessage = (messageId: string): void => {
     if (!messageId) return;
+    const message = getMessages().find(m => m.id === messageId);
+    const roomId = deps.getRoomId();
+    if (roomId && message?.attachment) void deleteReceivedFile(roomId, message.attachment.id);
+    if (roomId && message?.attachment) localRestores.current.delete(`${roomId}/${message.attachment.id}`);
+    if (message?.attachment?.url) URL.revokeObjectURL(message.attachment.url);
     setSession(s => ({ ...s, messages: s.messages.filter(m => m.id !== messageId) }));
   };
 

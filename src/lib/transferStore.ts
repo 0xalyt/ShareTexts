@@ -6,11 +6,13 @@
  * away the one thing a 1.8 GB resume requires. IndexedDB stores File objects
  * natively and survives refreshes, restarts, and crashes.
  *
- * Two small stores, one database (`sharetext-transfers`):
+ * Three stores, one database (`sharetext-transfers`):
  *   sendables  — transferId → { name, size, type, file, savedAt }
  *                (only for in-flight SENDS; deleted on completion/cancel)
  *   states     — transferId → { status, ackedChunks, totalChunks, updatedAt }
  *                (a durable mirror of the resume floor for both directions)
+ *   received   — [roomId, transferId] → verified bytes and checksum
+ *                (retained with this device's room history)
  *
  * Nothing here is ever uploaded anywhere; it is local-only durability.
  * Old records are swept: sendables older than 24h and states older than 7d
@@ -18,9 +20,20 @@
  */
 
 const DB_NAME = 'sharetext-transfers';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const SENDABLES = 'sendables';
 const STATES = 'states';
+const RECEIVED = 'received';
+const RECEIVED_BUFFER_LIMIT = 64 * 1024 * 1024; // In-memory receive threshold in webrtc.ts.
+
+interface ReceivedRecord {
+  roomId: string;
+  transferId: string;
+  checksum: string;
+  blob?: Blob;
+  bytes?: ArrayBuffer;
+  type?: string;
+}
 
 export interface SendableRecord {
   transferId: string;
@@ -46,12 +59,25 @@ function openDb(): Promise<IDBDatabase> {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
+    let blocked = false;
+    req.onblocked = () => {
+      blocked = true;
+      dbPromise = null;
+      reject(new Error('Transfer store upgrade blocked by another tab'));
+    };
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(SENDABLES)) db.createObjectStore(SENDABLES, { keyPath: 'transferId' });
       if (!db.objectStoreNames.contains(STATES)) db.createObjectStore(STATES, { keyPath: 'transferId' });
+      if (!db.objectStoreNames.contains(RECEIVED)) {
+        db.createObjectStore(RECEIVED, { keyPath: ['roomId', 'transferId'] }).createIndex('roomId', 'roomId');
+      }
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      if (blocked) { req.result.close(); return; }
+      req.result.onversionchange = () => { req.result.close(); dbPromise = null; };
+      resolve(req.result);
+    };
     req.onerror = () => reject(req.error);
   });
   return dbPromise;
@@ -61,7 +87,8 @@ function withStore<T>(store: string, mode: IDBTransactionMode, fn: (s: IDBObject
   return openDb().then(db => new Promise<T>((resolve, reject) => {
     const t = db.transaction(store, mode);
     const req = fn(t.objectStore(store));
-    req.onsuccess = () => resolve(req.result);
+    t.oncomplete = () => resolve(req.result);
+    t.onabort = () => reject(t.error);
     req.onerror = () => reject(req.error);
   }));
 }
@@ -86,6 +113,55 @@ export async function getSendable(transferId: string): Promise<File | null> {
 
 export async function deleteSendable(transferId: string): Promise<void> {
   try { await withStore(SENDABLES, 'readwrite', s => s.delete(transferId)); } catch { /* ignore */ }
+}
+
+export async function saveReceivedFile(roomId: string, transferId: string, checksum: string, blob: Blob, isCurrent = () => true): Promise<boolean> {
+  try {
+    await withStore(RECEIVED, 'readwrite', s => s.put({ roomId, transferId, checksum, blob } satisfies ReceivedRecord));
+    return true;
+  } catch (error) {
+    if (!['UnknownError', 'DataCloneError'].includes((error as DOMException)?.name) || blob.size > RECEIVED_BUFFER_LIMIT || !isCurrent()) return false;
+    try {
+      const bytes = await blob.arrayBuffer();
+      if (!isCurrent()) return false;
+      await withStore(RECEIVED, 'readwrite', s => s.put({ roomId, transferId, checksum, bytes, type: blob.type } satisfies ReceivedRecord));
+      return true;
+    } catch { return false; }
+  }
+}
+
+export async function getReceivedFile(roomId: string, transferId: string, checksum: string | undefined, size: number): Promise<Blob | null> {
+  try {
+    const rec = await withStore<ReceivedRecord | undefined>(RECEIVED, 'readonly', s => s.get([roomId, transferId]));
+    if (!rec?.checksum || (checksum !== undefined && rec.checksum !== checksum)) return null;
+    const blob = rec.blob ?? (rec.bytes ? new Blob([rec.bytes], { type: rec.type }) : null);
+    return blob?.size === size ? blob : null;
+  } catch { return null; }
+}
+
+export async function deleteReceivedFile(roomId: string, transferId: string): Promise<void> {
+  try { await withStore(RECEIVED, 'readwrite', s => s.delete([roomId, transferId])); } catch { /* best-effort */ }
+}
+
+/** Completed receive bytes live exactly as long as their local history. */
+export async function pruneReceivedFiles(roomId: string, retained: string[] = []): Promise<void> {
+  try {
+    const keep = new Set(retained);
+    const db = await openDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(RECEIVED, 'readwrite');
+      const cursor = tx.objectStore(RECEIVED).index('roomId').openCursor(IDBKeyRange.only(roomId));
+      cursor.onsuccess = () => {
+        const row = cursor.result;
+        if (!row) return;
+        if (!keep.has(row.value.transferId)) row.delete();
+        row.continue();
+      };
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error);
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch { /* best-effort */ }
 }
 
 /* ----------------------- both sides: the resume floor -------------------- */

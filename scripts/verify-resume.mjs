@@ -53,7 +53,7 @@ await sleep(1500);
 
 // Mid-flight: the IDB sendable must exist.
 const idbHas = await A.evaluate(async () => {
-  const db = await new Promise((res, rej) => { const r = indexedDB.open('sharetext-transfers', 1); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const db = await new Promise((res, rej) => { const r = indexedDB.open('sharetext-transfers'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
   const tx = db.transaction('sendables', 'readonly');
   const keys = await new Promise((res) => { const q = tx.objectStore('sendables').getAllKeys(); q.onsuccess = () => res(q.result); });
   return keys.length;
@@ -82,7 +82,7 @@ console.log('B received full file after A refresh:', bGot);
 // Sendable cleaned up after completion.
 await sleep(1500);
 const idbAfter = await A.evaluate(async () => {
-  const db = await new Promise((res, rej) => { const r = indexedDB.open('sharetext-transfers', 1); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const db = await new Promise((res, rej) => { const r = indexedDB.open('sharetext-transfers'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
   const tx = db.transaction('sendables', 'readonly');
   const keys = await new Promise((res) => { const q = tx.objectStore('sendables').getAllKeys(); q.onsuccess = () => res(q.result); });
   return keys.length;

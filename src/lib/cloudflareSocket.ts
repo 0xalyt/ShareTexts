@@ -456,14 +456,14 @@ export class CloudflareSocket implements SignalingSocket {
     }
   }
 
-  private async resumeRoom(payload: { roomId?: string; secret?: string } | undefined, cb?: (r: any) => void) {
+  private async resumeRoom(payload: { roomId?: string; secret?: string; reconnect?: boolean } | undefined, cb?: (r: any) => void) {
     try {
       await this.settleProbe();
       const roomId = payload?.roomId;
       const secret = payload?.secret;
       if (!roomId || !secret) return cb?.({ success: false, error: 'Session expired' });
       this.lastSecret = secret;
-      const res = await this.request(roomId, 'resume_room', { roomId, secret });
+      const res = await this.request(roomId, 'resume_room', { roomId, secret, ...(payload?.reconnect === true ? { reconnect: true } : {}) });
       cb?.(res);
     } catch {
       cb?.({ success: false, error: "Couldn't reach ShareTexts." });

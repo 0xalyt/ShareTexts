@@ -408,7 +408,15 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
       const out = await createSpace({ name: name.trim() || undefined, durationMs: duration, code: code || undefined });
       productEvent('product.space_created');
       if (remind && support === 'supported') {
-        await enableReminder(out.spaceId).catch(() => { /* countdown still works */ });
+        let timer: number | undefined;
+        try {
+          await Promise.race([
+            enableReminder(out.spaceId).catch(() => { /* countdown still works */ }),
+            new Promise<void>(resolve => { timer = window.setTimeout(resolve, 2500); }),
+          ]);
+        } finally {
+          window.clearTimeout(timer);
+        }
       }
       window.location.href = `/space/${out.spaceId}#k=${out.token}`;
     } catch (e) {
