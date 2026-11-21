@@ -3,6 +3,7 @@ import { CloudflareSocket } from './cloudflareSocket';
 import { devLog } from './devlog';
 import { diag } from './diag';
 import en from './messages/en';
+import { ciWorker } from './ciWorker';
 
 export { devLog };
 
@@ -35,7 +36,7 @@ const isProd = !import.meta.env.DEV;
 export const SIGNALING_WORKER = 'https://sharetext-signaling.alighttt.workers.dev';
 
 /** Same host, kept as a list because the probe walks candidates. */
-const CF_FALLBACKS = [SIGNALING_WORKER];
+const CF_FALLBACKS = ciWorker ? [ciWorker] : [SIGNALING_WORKER];
 
 /**
  * Fetch the CURRENT worker's /stats — a cheap, CORS-enabled, version-bearing
@@ -166,6 +167,7 @@ export function kickEndpointProbe(): void {
  * deployed builds never silently target localhost.
  */
 function resolveEndpoints(): { mode: 'cloudflare' | 'socketio'; url?: string } {
+  if (ciWorker) return { mode: 'cloudflare', url: ciWorker };
   const normalize = (v: string | undefined) => v?.replace(/\/+$/, '').trim();
   const cf = normalize(import.meta.env.VITE_SIGNALING_URL as string | undefined);
   const node = normalize(import.meta.env.VITE_SOCKET_URL as string | undefined);
