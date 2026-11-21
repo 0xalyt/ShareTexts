@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// The static About footer must agree with SiteFooter and the locale dictionaries.
+// Canonical reading pages must render SiteFooter, not a parallel implementation.
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import ts from 'typescript';
 
 function constant(file, name) {
@@ -33,32 +33,40 @@ const columns = constant('src/components/marketing/SiteFooter.tsx', 'COLUMNS').e
     }),
   };
 });
-const about = readFileSync('public/guides/about.html', 'utf8').match(/<footer\b[^>]*>([\s\S]*?)<\/footer>/)[1];
+const about = readFileSync('src/views/About.tsx', 'utf8');
+assert.ok(about.includes('<SiteFooter />'), 'About must render the actual shared footer');
+assert.ok(!about.includes('<footer'), 'About must not carry a parallel footer implementation');
+assert.ok(!existsSync('public/guides/about.html'), 'A static About would bypass the shared app footer');
+const rewrites = JSON.parse(readFileSync('vercel.json', 'utf8'));
+assert.equal(rewrites.rewrites.find(rule => rule.source === '/about')?.destination, '/seo/about.html');
+assert.equal(rewrites.redirects.find(rule => rule.source === '/guides/about.html')?.destination, '/about');
 const text = html => html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
-const actual = [...about.matchAll(/<nav\b[^>]*class="footer-col"[^>]*>([\s\S]*?)<\/nav>/g)].map(([, nav]) => ({
-  title: text(nav.match(/<h2>(.*?)<\/h2>/)[1]),
-  links: [...nav.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/g)].map(([, href, label]) => [href, text(label)]),
-}));
-assert.deepEqual(actual, columns, 'About and SiteFooter navigation differ');
-assert.equal(text(about.match(/class="footer-blurb">(.*?)<\/p>/)[1]), en['home.subtitle'], 'Footer blurbs differ');
+assert.ok(columns.every(column => column.title && column.links.every(([, label]) => label)), 'Footer navigation keys must resolve');
 const promise = ['footer.noApp', 'footer.noAccount', 'footer.devices'].map(key => en[key]).join(' · ');
-assert.ok(text(about).includes(`ShareTexts · ${promise}`), 'About footer promise differs');
 const shared = readFileSync('src/components/marketing/SiteFooter.tsx', 'utf8');
 assert.ok(shared.includes("t('footer.devices')"), 'SiteFooter must use the storage-neutral promise');
 assert.ok(shared.includes('<LanguageMenu inline'), 'Footer language control must use the viewport-safe sheet');
-assert.ok(text(about).includes(shared.match(/iPhone ·[^<\n]+/)[0].trim()), 'Supported-platform copy differs');
+const docs = readFileSync('src/views/Docs.tsx', 'utf8');
+assert.ok(docs.includes('<ReadingLanguageNote />') && about.includes('<ReadingLanguageNote />'), 'English-only pages must disclose their reading language');
+assert.ok(docs.includes('lang="en" dir="ltr" className="reading-layout docs-layout"'), 'The whole English guide, including its navigation, must be LTR');
+assert.ok(about.includes('lang="en" dir="ltr"'), 'The English About body must be LTR');
 
 const locales = constant('src/lib/messages/registry.ts', 'LANGS').elements.map(locale => locale.properties.find(property => property.name.text === 'code').initializer.text);
 for (const code of locales) {
   const file = `${code}.ts`;
   const locale = dictionary(`src/lib/messages/${file}`);
-  for (const key of ['footer.devices', 'home.subtitle', 'home.faq.a1', 'home.faq.a6', 'app.ended.sub', 'demo.s7']) {
+  for (const key of ['reading.englishOnly', 'footer.devices', 'home.subtitle', 'home.faq.a1', 'home.faq.a6', 'app.ended.sub', 'demo.s7']) {
     assert.ok(locale[key]?.trim(), `${file}: missing explicit audited copy for ${key}`);
   }
   assert.ok(!('footer.temporary' in locale), `${file}: obsolete storage promise`);
+  if (code === 'zh-Hant') {
+    for (const key of ['nav.docs', 'nav.about', 'nav.privacy', 'nav.terms', 'nav.guides', 'footer.useIt', 'footer.read', 'footer.legal', 'footer.open', 'footer.withCode', 'footer.devs', 'footer.report', 'footer.noApp', 'footer.noAccount', 'footer.followAria', 'footer.language']) {
+      assert.ok(locale[key], `zh-Hant: header/footer must not inherit Simplified copy for ${key}`);
+    }
+  }
 }
 for (const file of readdirSync('public/guides').filter(file => file.endsWith('.html'))) {
   const html = readFileSync(`public/guides/${file}`, 'utf8');
   assert.ok(text(html.match(/<footer\b[^>]*>([\s\S]*?)<\/footer>/)[1]).includes(`ShareTexts · ${promise}`), `${file}: stale footer promise`);
 }
-console.log('[verify-footer] About/shared copy and links match; all locale and guide promises audited');
+console.log('[verify-footer] About uses SiteFooter; English-only reading is explicit in every locale; guide promises audited');

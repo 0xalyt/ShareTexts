@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  'reading.englishOnly': "このページは現在、英語のみで提供しています。",
   'film.download': "動画をダウンロード",
   'film.from': "ひとつの画面から",
   'film.to': "もうひとつの画面へ。",
@@ -844,7 +845,7 @@ const ja: Dict = {
   "saved.showMore": "もっと見る",
   "saved.savedOn": "{date} に保存",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "違うブラウザでも。同じように受け渡し。",
+  "home.browser.heading": "すべての最新ブラウザで使えます",
   "home.browser.body": "同じブラウザでなくても大丈夫。両方でShareTextsを開くだけ。",
   "home.browser.open": "もう一方のデバイスで開く",
   "home.browser.qr": "サイトのQRを表示",
