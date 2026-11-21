@@ -204,9 +204,9 @@ try {
       const page = await ctx.newPage();
       if (resolveEngine().name === 'firefox') {
         // Firefox drops context-level color emulation on its first real
-        // navigation. Prime an inert response, then establish the OS before
+        // navigation. Prime plain text (not Firefox's JSON viewer), then establish the OS before
         // the first landing visit; no app/poster has been fetched yet.
-        await page.goto(new URL('/health', BASE).href, { waitUntil: 'domcontentloaded' });
+        await page.goto(new URL('/robots.txt', BASE).href, { waitUntil: 'domcontentloaded' });
         await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
       }
       const requests = [];
