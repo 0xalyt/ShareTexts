@@ -8,6 +8,9 @@ import { existsSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { abs, ensureDir, num, parseArgs, readJson, usage, writeJson } from "./lib.ts";
 
+// ids come from the captured page, so keep them to one safe path segment
+const safeName = (x: unknown) => String(x).replace(/[^A-Za-z0-9_-]/g, "_");
+
 const slug = (s: string) => s.replace(/\(([^)]*)\)/g, "$1").replace(/[^\w-]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48);
 const suffix = (n: number, k: number) => (n === 1 ? "" : n <= 4 ? "." + "xyzw"[k] : `[${k}]`);
 const r4 = (v: number) => +v.toPrecision(5);
@@ -67,7 +70,7 @@ export function writeGlArtifacts(out: string, d: any, t0: number, rate: number) 
   // shaders
   const shaderDir = ensureDir(join(dir, "shaders"));
   for (const p of d.programs) {
-    const base = progKey.get(p.id)!.replace(":", "-");
+    const base = safeName(progKey.get(p.id)!.replace(":", "-"));
     p.files = {};
     if (p.vs) { writeFileSync(join(shaderDir, base + ".vert"), p.vs); p.files.vs = `gl/shaders/${base}.vert`; }
     if (p.fs) { writeFileSync(join(shaderDir, base + ".frag"), p.fs); p.files.fs = `gl/shaders/${base}.frag`; }
@@ -75,14 +78,14 @@ export function writeGlArtifacts(out: string, d: any, t0: number, rate: number) 
   }
   for (const m of d.gpu?.modules ?? []) {
     if (!m.code) continue;
-    const f = `${m.id}${m.label ? "-" + slug(m.label) : ""}.wgsl`;
+    const f = `${safeName(m.id)}${m.label ? "-" + safeName(slug(m.label)) : ""}.wgsl`;
     writeFileSync(join(shaderDir, f), m.code);
     m.file = `gl/shaders/${f}`;
     delete m.code;
   }
   // buffer dumps and canvas textures
   for (const [id, dump] of Object.entries<any>(d.dumps ?? {})) {
-    const f = `${id}.${dump.type.replace(/Array$/, "")}.bin`;
+    const f = `${safeName(id)}.${safeName(String(dump.type).replace(/Array$/, ""))}.bin`;
     writeFileSync(join(ensureDir(join(dir, "buffers")), f), Buffer.from(dump.base64, "base64"));
     const b = d.buffers.find((x: any) => x.id === id);
     if (b) b.file = `gl/buffers/${f}`;
@@ -91,13 +94,14 @@ export function writeGlArtifacts(out: string, d: any, t0: number, rate: number) 
   for (const tx of d.textures) {
     const url: string | undefined = tx.src?.dataUrl;
     if (!url) continue;
-    writeFileSync(join(ensureDir(join(dir, "textures")), `${tx.id}.png`), Buffer.from(url.split(",")[1], "base64"));
-    tx.src.file = `gl/textures/${tx.id}.png`;
+    const tf = `${safeName(tx.id)}.png`;
+    writeFileSync(join(ensureDir(join(dir, "textures")), tf), Buffer.from(url.split(",")[1], "base64"));
+    tx.src.file = `gl/textures/${tf}`;
     delete tx.src.dataUrl;
   }
   // three.js scenes in three's own JSON format (ObjectLoader.parse() loads them back)
   if (d.three) for (const s of d.three.scenes) {
-    if (s._json) { writeFileSync(join(ensureDir(join(out, "three")), `scene-${s.index}.json`), s._json); s.file = `three/scene-${s.index}.json`; delete s._json; }
+    if (s._json) { const sf = `scene-${safeName(s.index)}.json`; writeFileSync(join(ensureDir(join(out, "three")), sf), s._json); s.file = `three/${sf}`; delete s._json; }
   }
 
   // ---------- channels ----------
