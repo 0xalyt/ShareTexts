@@ -1,4 +1,13 @@
 const en = {
+  'film.download': "Download film",
+  'film.from': "From one screen",
+  'film.to': "to the other.",
+  'film.title': "The ShareTexts launch film",
+  'film.label': "Made to move.",
+  'film.summary': "Open a room. Pair your devices. Send it across.",
+  'film.play': "Play film",
+  'film.pause': "Pause film",
+  'film.watch': "Watch the film",
   // ── app shell / end screens ────────────────────────────────────────
   'app.skip': 'Skip to main content',
   'app.404.title': 'This page does not exist.',

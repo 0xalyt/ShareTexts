@@ -20,8 +20,8 @@ const ok = (c, name) => { if (c) { pass++; console.log('  ✓', name); } else { 
 const hero = (page) => page.evaluate(() => {
   const nodes = [...document.querySelectorAll('[data-testid="hero-demo"]')];
   const vis = nodes.filter((n) => n.getBoundingClientRect().width > 0);
-  // Both slots mount the film; the off-screen copy is display:none, never plays,
-  // and reading it would make every playback check below look stalled.
+  // Only the active responsive slot mounts. Filter visibility as well so the
+  // gate also catches regressions to the responsive placement.
   const v = vis[0]?.querySelector('video') ?? null;
   return {
     states: nodes.map((n) => n.getAttribute('data-state')),
@@ -48,10 +48,11 @@ const browser = await launchBrowser();
     const ctx = await browser.newContext({ viewport: { width, height: 900 } });
     const p = await ctx.newPage();
     await p.goto(URL, { waitUntil: 'networkidle' });
+    await p.getByTestId('hero-demo').scrollIntoViewIfNeeded();
     await sleep(900);
     const h = await hero(p);
     ok(h.visCount === 1 && h.visState === 'film', `${width}px: exactly one visible hero, and it is the film (${h.states.join('/') || 'none'})`);
-    ok(h.src === '/film/sharetexts-hero-v3.mp4', `${width}px: the hero serves the film encode`);
+    ok(h.src === '/film/sharetexts-launch-v1.mp4', `${width}px: the hero serves the launch film encode`);
     await ctx.close();
   }
 }
@@ -75,9 +76,7 @@ const browser = await launchBrowser();
   const span = a.dur > 0 ? a.dur : 10;
   const advance = (b.t - a.t + span) % span;
   ok(a.paused === false && advance > 0.2, `the hero plays (t ${a.t}s → ${b.t}s across a ${span}s loop)`);
-  // The phone slot mounts the same film and is display:none at this width; a
-  // second playing copy would mean it is downloading and decoding the file for
-  // nobody.
+  // A second playing copy would mean decoding a film for nobody.
   ok(a.playing === 1, `only the visible copy plays (${a.playing} playing video(s))`);
   await ctx.close();
 }
@@ -125,6 +124,71 @@ const browser = await launchBrowser();
   ok(!(await p.evaluate(() => !!document.querySelector('[data-testid="demo-caption"]'))), 'no demo caption mounts on the landing');
   ok(!(await p.evaluate(() => !!document.querySelector('[data-testid="demo-rail"]'))), 'no demo rail mounts on the landing');
   ok(!(await p.evaluate(() => !!document.querySelector('[data-testid="demo-restart"]'))), 'no demo Restart mounts on the landing');
+  await ctx.close();
+}
+
+// ── F. Save-Data asks for deliberate playback, and export is downloadable ──
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
+  await ctx.addInitScript(() => Object.defineProperty(navigator, 'connection', {
+    value: Object.assign(new EventTarget(), { saveData: true }),
+  }));
+  const p = await ctx.newPage();
+  const mediaRequests = [];
+  p.on('request', request => { if (request.url().endsWith('.mp4')) mediaRequests.push(request.url()); });
+  await p.goto(URL, { waitUntil: 'networkidle' });
+  const film = p.getByTestId('hero-demo');
+  await film.scrollIntoViewIfNeeded();
+  await sleep(500);
+  ok(mediaRequests.length === 0 && await film.locator('video').getAttribute('src') === null, 'Save-Data makes no movie request before explicit play');
+  await film.getByRole('button', { name: 'Play film', exact: true }).click();
+  await p.waitForFunction(() => document.querySelector('[data-testid="hero-demo"] video').currentTime > 0.2);
+  ok((await hero(p)).paused === false, 'Save-Data still permits a deliberate play');
+  const pending = p.waitForEvent('download');
+  await film.getByRole('link', { name: 'Download film', exact: true }).click();
+  const download = await pending;
+  ok(await download.failure() === null && download.suggestedFilename() === 'ShareTexts-launch.mp4', 'the full film download completes');
+  await ctx.close();
+}
+
+// ── G. A failed request leaves the poster and deliberate full-film link ──
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const p = await ctx.newPage();
+  await p.route('**/film/sharetexts-launch-v1.mp4', route => route.abort());
+  await p.goto(URL, { waitUntil: 'networkidle' });
+  const film = p.getByTestId('hero-demo');
+  await film.scrollIntoViewIfNeeded();
+  await film.locator('.hero-film-fallback').waitFor();
+  ok(await film.locator('.hero-film-fallback').isVisible(), 'a failed movie request preserves the meaningful still');
+  ok(await film.getByRole('button').count() === 0 && await film.getByRole('link', { name: 'Watch the film' }).isVisible(), 'failure removes dead playback controls but retains the full-film link');
+  await ctx.close();
+}
+
+// ── H. Browser-blocked autoplay is recoverable, manual pause is durable ──
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await ctx.addInitScript(() => {
+    const original = HTMLMediaElement.prototype.play;
+    let blocked = false;
+    HTMLMediaElement.prototype.play = function () {
+      if (!blocked) { blocked = true; return Promise.reject(new DOMException('Autoplay blocked', 'NotAllowedError')); }
+      return original.call(this);
+    };
+  });
+  const p = await ctx.newPage();
+  await p.goto(URL, { waitUntil: 'networkidle' });
+  const film = p.getByTestId('hero-demo');
+  await film.scrollIntoViewIfNeeded();
+  await film.getByRole('button', { name: 'Play film', exact: true }).click();
+  await p.waitForFunction(() => document.querySelector('[data-testid="hero-demo"] video').currentTime > 0.2);
+  ok((await hero(p)).paused === false, 'a rejected autoplay can be retried from its play button');
+  await film.getByRole('button', { name: 'Pause film', exact: true }).click();
+  await p.mouse.wheel(0, 4000);
+  await sleep(500);
+  await film.scrollIntoViewIfNeeded();
+  await sleep(500);
+  ok((await hero(p)).paused === true, 'returning to the hero does not undo an explicit pause');
   await ctx.close();
 }
 

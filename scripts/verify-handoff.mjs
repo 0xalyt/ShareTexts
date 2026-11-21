@@ -7,7 +7,6 @@ import { launchBrowser, clickStable } from './lib.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const browser = await launchBrowser();
-const states = ['open', 'pair', 'text', 'file', 'save'];
 const check = (name, condition) => { assert.ok(condition, name); console.log(`PASS ${name}`); };
 const policy = (headers = {}) => new Promise((resolve, reject) => {
   const get = BASE.startsWith('https:') ? getHTTPS : getHTTP;
@@ -46,22 +45,22 @@ try {
         ));
       }
       await demo.scrollIntoViewIfNeeded();
-      const heights = [];
-      for (const [i, state] of states.entries()) {
-        await demo.locator('.handoff-steps button').nth(i).click();
-        assert.equal(await demo.getAttribute('data-state'), state);
-        assert.equal(await demo.locator('.handoff-copy > [aria-hidden="false"]').count(), 1);
-        heights.push((await demo.boundingBox()).height);
-        const facts = await demo.evaluate(el => {
-          const r = el.getBoundingClientRect();
-          return {
-            clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < r.left - 1 || br.right > r.right + 1 || br.width < 40 || br.height < 40; }),
-            overflow: document.documentElement.scrollWidth > window.innerWidth,
-          };
-        });
-        check(`${locale}/${width}/${state}: controls fit and remain tappable`, !facts.clipped && !facts.overflow);
-      }
-      check(`${locale}/${width}: no layout jump between captions`, Math.max(...heights) - Math.min(...heights) < 2);
+      // The five-step DOM illustration was deliberately replaced by an
+      // encoded launch film. Keep the geometry, reading-order and preference
+      // guarantees, but verify the actual media contract rather than steps.
+      assert.equal(await demo.getAttribute('data-state'), 'film');
+      const media = demo.locator('video');
+      check(`${locale}/${width}: reduced motion does not request the film`, await media.getAttribute('src') === null);
+      check(`${locale}/${width}: a meaningful still is available`, (await media.getAttribute('poster')).endsWith('-poster.jpg'));
+      check(`${locale}/${width}: the film has a localized text alternative`, (await demo.locator('figcaption p').innerText()).length > 12);
+      const facts = await demo.evaluate(el => {
+        const r = el.getBoundingClientRect();
+        return {
+          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < r.left - 1 || br.right > r.right + 1 || br.width < 48 || br.height < 48; }),
+          overflow: document.documentElement.scrollWidth > window.innerWidth,
+        };
+      });
+      check(`${locale}/${width}: film controls fit and remain tappable`, !facts.clipped && !facts.overflow);
       if (locale === 'en') {
         await page.evaluate(() => document.fonts.ready);
         const longestHeadingFits = await page.locator('h1').evaluate(el => {
@@ -77,7 +76,6 @@ try {
           return fits;
         });
         check(`${width}: the longest rotating headline stays inside its column`, longestHeadingFits);
-        await demo.locator('.handoff-steps button').nth(2).click();
         await page.locator('h1').evaluate(el => el.scrollIntoView({ block: 'center' }));
         await page.screenshot({ path: `audit/tmp/handoff-${width}.png`, fullPage: false });
         const later = page.locator('.landing-story-later');
@@ -185,12 +183,15 @@ try {
   const demo = page.getByTestId('hero-demo');
   await demo.scrollIntoViewIfNeeded();
   await page.waitForTimeout(3600);
-  check('reduced motion does not autoplay', await demo.getAttribute('data-state') === 'open');
-  await demo.getByRole('button', { name: 'Play demo', exact: true }).click();
-  await page.waitForFunction(() => document.querySelector('[data-testid="hero-demo"]')?.getAttribute('data-state') === 'pair');
-  await demo.getByRole('button', { name: 'Pause demo', exact: true }).click();
-  await page.waitForTimeout(3600);
-  check('manual play is available, and pause holds the story', await demo.getAttribute('data-state') === 'pair');
+  check('reduced motion does not autoplay', await demo.locator('video').evaluate(el => el.paused && !el.getAttribute('src')));
+  await demo.getByRole('button', { name: 'Play film', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('[data-testid="hero-demo"] video')?.currentTime > 0.2);
+  const filmHeight = (await demo.boundingBox()).height;
+  await demo.getByRole('button', { name: 'Pause film', exact: true }).click();
+  const pausedAt = await demo.locator('video').evaluate(el => el.currentTime);
+  await page.waitForTimeout(1200);
+  check('manual play is available, and pause holds the film', await demo.locator('video').evaluate((el, time) => el.paused && Math.abs(el.currentTime - time) < 0.1, pausedAt));
+  check('decoding the film causes no layout shift', Math.abs((await demo.boundingBox()).height - filmHeight) < 2);
 
   await page.keyboard.press('Control+k');
   await page.getByRole('combobox').fill('Device name');

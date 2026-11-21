@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const zh: Dict = {
+  'film.download': "下载影片",
+  'film.from': "从一个屏幕",
+  'film.to': "到另一个屏幕。",
+  'film.title': "ShareTexts 产品短片",
+  'film.label': "为分享而生。",
+  'film.summary': "打开房间。连接设备。直接发送。",
+  'film.play': "播放短片",
+  'film.pause': "暂停短片",
+  'film.watch': "观看短片",
   'home.browsers': '支持现代浏览器',
   'home.titleSuffix': '在你的设备之间。',
   'home.later.heading': '稍后回来取。',
