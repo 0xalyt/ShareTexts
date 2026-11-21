@@ -131,7 +131,7 @@
     <h1>Security Architecture</h1>
     <p class="subtitle">How ShareTexts protects your transfers — from pairing to encrypted transfer to completion.</p>
 
-    <div class="callout"><p><strong>Summary:</strong> All data between devices is encrypted using DTLS via WebRTC. Pairing uses TOTP-based codes. Files are verified with SHA-256 checksums. No data is stored on any server. Rooms expire automatically.</p></div>
+    <div class="callout"><p><strong>Summary:</strong> All data between devices is encrypted using DTLS via WebRTC. Pairing uses TOTP-based codes. Files are verified with SHA-256 checksums. Live-room content is not stored server-side. Temporary Spaces store content until closed or expired; saved items stay in your browser.</p></div>
 
     <h2>Encryption</h2>
     <div class="green-card">
@@ -139,7 +139,7 @@
     </div>
 
     <h3>How DTLS Works</h3>
-    <p>When two devices connect via WebRTC, they perform a DTLS handshake — the same type of key exchange used by HTTPS. After the handshake, all data flowing between the devices is encrypted with a unique session key. No one else — including ShareTexts's servers — can read the data in transit.</p>
+    <p>When two devices connect via WebRTC, they perform a DTLS handshake — the same type of key exchange used by HTTPS. After the handshake, all data flowing between the devices is encrypted with a unique session key. The service issues the room secret used by the application encryption layer, so this is not a zero-knowledge service. See the <a href="/privacy">privacy policy</a> for the complete model.</p>
 
     <h3>Key Properties</h3>
     <table>
@@ -172,7 +172,7 @@
       <li><strong>Temporary rooms</strong> — expire automatically after a set period</li>
       <li><strong>Limited peers</strong> — maximum 2 devices per room</li>
       <li><strong>Secret-based access</strong> — room secret is a 128-bit random value</li>
-      <li><strong>No persistence</strong> — rooms exist only in server memory, not on disk</li>
+      <li><strong>Separate storage lifetimes</strong> — live-room content is not stored server-side. Temporary Spaces store content until closed or expired; saved items stay in your browser</li>
       <li><strong>Rate limiting</strong> — creation and join attempts are rate-limited per IP</li>
     </ul>
 
@@ -185,28 +185,20 @@
       <li><strong>CORS allowlist</strong> — only configured frontend origins can connect</li>
     </ul>
 
-    <h2>What ShareTexts Cannot See</h2>
+    <h2>Service Visibility and Storage</h2>
     <ul>
-      <li>File contents (encrypted in transit)</li>
-      <li>Text messages (encrypted in transit)</li>
-      <li>Transfer metadata (not logged)</li>
-      <li>User identities (no accounts)</li>
-      <li>IP addresses after connection (not stored)</li>
+      <li>The service handles room state and connection metadata, including identifiers, IP addresses, sizes, and times.</li>
+      <li>The service issues the room secret. Encryption in transit is not a zero-knowledge guarantee.</li>
+      <li>Temporary Space content is stored server-side for 6 hours to 7 days, or until closed early.</li>
+      <li>Saved items remain in this browser until you remove them or clear site data.</li>
     </ul>
-
-    <h2>What ShareTexts Can See</h2>
-    <ul>
-      <li>That a room exists (room ID)</li>
-      <li>That two devices are connected (peer IDs)</li>
-      <li>Connection metadata (for signaling)</li>
-      <li>Aggregate metrics (anonymous counters)</li>
-    </ul>
+    <p>Read the <a href="/privacy">privacy policy</a> for the current storage and visibility model.</p>
 
     <h2>Known Limitations</h2>
     <ul>
       <li>Both devices must be online during transfer</li>
       <li>Relay fallback: if direct connection fails, data passes through a TURN relay (still encrypted)</li>
-      <li>Signaling server sees connection metadata (not content)</li>
+      <li>The service sees connection metadata and issues the room secret; this is not zero knowledge</li>
       <li>No protection against screenshot/screen recording on the receiving device</li>
       <li>No protection against a compromised browser</li>
     </ul>
@@ -259,7 +251,7 @@
       </nav>
     </div>
     <div class="footer-bottom">
-      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Nothing stored</p>
+      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Your devices</p>
       <a href="https://x.com/0xalyt" target="_blank" rel="noopener noreferrer" title="Maker: Garv — @0xalyt" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;min-height:32px"><img src="/brand/maker-garv.webp?v=2" alt="" width="24" height="24" loading="lazy" decoding="async" style="width:24px;height:24px;border-radius:999px;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 1px rgba(0,0,0,0.10)" /><span>@0xalyt</span></a>
     </div>
     <script>document.getElementById('st-year').textContent = new Date().getFullYear();</script>

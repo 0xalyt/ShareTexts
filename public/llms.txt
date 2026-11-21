@@ -2,9 +2,9 @@
 
 > ShareTexts is a free web app for moving text, links, photos, videos, and files between any two devices — phone to laptop, iPhone to Windows, Android to Mac — directly in the browser. No app, no account, no cable. Just open ShareTexts on both devices.
 
-Transfers run peer-to-peer over WebRTC: data moves encrypted between the two browsers and the server never sees file contents. Connect two ways: Nearby device discovery (turn Nearby on, on the device you want to send to, for 10 minutes — it then appears on devices on the same network) or, when it doesn't appear, a six-digit live code, a QR code, or a shareable link — those work over any internet connection. Rooms are temporary and close when you're done.
+Live-room transfers are encrypted in transit, directly when possible, with an encrypted relay fallback. The service issues the room secret, so this is not zero knowledge. Live-room content is not stored server-side. Connect two ways: Nearby device discovery (turn Nearby on, on the device you want to send to, for 10 minutes — it then appears on devices on the same network) or, when it doesn't appear, a six-digit live code, a QR code, or a shareable link — those work over any internet connection. Rooms are temporary and close when you're done.
 
-For sharing over hours or days with more than one other person, ShareTexts has **Temporary Spaces**: a shared shelf that lives 6 hours up to 7 days. The creator gets an 8-character space code (format K7QT-2M4X); anyone with the code joins at /space/join and can add text, links, photos, and files that everyone in the space sees. The code is discovery only — it carries no keys — and it stops working when the space closes.
+For sharing over hours or days with more than one other person, ShareTexts has **Temporary Spaces**: a shared shelf that stores text and links server-side for 6 hours up to 7 days, or until closed early. The creator gets an 8-character space code (format K7QT-2M4X); anyone with the code joins at /space/join and can add text and links that everyone in the space sees. The code is discovery only — it carries no keys — and it stops working when the space closes.
 
 ## How to use
 
@@ -21,10 +21,10 @@ Your other device appears in the Nearby list only when you turn Nearby on, on th
 No. ShareTexts runs entirely in the browser on any device with a modern browser: iPhone, iPad, Android, Windows, macOS, Linux, Chromebook.
 
 ### What can I send?
-Text, links, photos, videos, audio, documents — any file type. Links render as tappable cards. Transfers are encrypted in transit and never stored on a server.
+Text, links, photos, videos, audio, documents — any file type. Links render as tappable cards. Live-room transfers are encrypted in transit and live-room content is not stored server-side. Temporary Spaces store text and links until closed or expired; saved items stay in your browser.
 
 ### What is a Temporary Space and how does its code work?
-A Temporary Space is a shared shelf that lives 6 hours up to 7 days. The creator picks or generates an 8-character code (letters and digits, no 0, O, 1, I, L, 5, S or B to avoid lookalike confusion). Anyone with the code can join while the space is open and add or download content. When the space expires or is closed, the code is retired and the stored content is deleted.
+A Temporary Space is a shared shelf that stores text and links server-side for 6 hours up to 7 days, or until closed early. The creator picks or generates an 8-character code (letters and digits, no 0, O, 1, I, L, 5, S or B to avoid lookalike confusion). Anyone with the code can join while the space is open and add or download content. When the space expires or is closed, the code is retired and the stored content is deleted.
 
 ## Pages
 
@@ -32,7 +32,7 @@ A Temporary Space is a shared shelf that lives 6 hours up to 7 days. The creator
 - [Temporary Spaces](https://sharetexts.online/guides/temporary-spaces.html): the shared-shelf feature — create, 8-character code, join, expiry.
 - [Docs](https://sharetexts.online/docs): full documentation — pairing, transfers, privacy, developer API.
 - [How It Works](https://sharetexts.online/guides/how-it-works.html): the signaling + WebRTC architecture explained.
-- [Privacy](https://sharetexts.online/privacy): the privacy model — no accounts, no stored content.
+- [Privacy](https://sharetexts.online/privacy): the privacy model — live rooms, server-stored Temporary Spaces, browser-local saved items, and connection metadata.
 - [Security](https://sharetexts.online/guides/security.html): encryption and transport details.
 
 ## Facts
@@ -40,7 +40,7 @@ A Temporary Space is a shared shelf that lives 6 hours up to 7 days. The creator
 - Free, no sign-up; runs in any modern browser with WebRTC (Chrome, Safari, Firefox, Edge).
 - Works across platforms: iPhone ↔ Windows, Android ↔ Mac, iPhone ↔ Android, any combination.
 - Transfer types: text, links, photos, videos, audio, documents, any file. Files up to 1 TB stream to disk; quality and bytes are never altered. Links render as rich preview cards (server-side Open Graph fetch, SSRF-guarded).
-- Encrypted in transit via WebRTC (DTLS) with an additional AES-GCM layer; the signaling server relays connection metadata only and never sees content.
+- Encrypted in transit via WebRTC (DTLS) with an additional AES-GCM layer; the service issues the room secret, so this is not zero knowledge. Temporary Spaces store content server-side.
 - Nearby discovery shows a device only when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network; it is never a global user list.
 - Stay Connected keeps a room alive until you disconnect it yourself; rejoining is one tap from the landing page, and refreshes/network drops recover automatically.
 - Temporary Spaces: shared shelf, 6h–7d lifetime, 8-character join code (discovery only, no keys), self-deletes at expiry; create at /space/create, join at /space/join.

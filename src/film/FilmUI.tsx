@@ -459,7 +459,7 @@ function PhoneConnect({ press }: { press: number }) {
           <rect x="2.2" y="5.2" width="7.6" height="5.2" rx="1.3" />
           <path d="M4 5.2V3.6a2 2 0 0 1 4 0v1.6" />
         </svg>
-        Encrypted · nothing is kept
+        Encrypted in transit
       </p>
     </div>
   );

@@ -41,7 +41,7 @@ import {
  *   connecting the phone types the code in; the beam draws
  *   sending    the packet crosses — window to phone
  *   received   it lands, the chip ticks, the phone takes the hit
- *   done       the room closes; nothing is kept; the loop comes back round
+ *   done       the room closes; the loop comes back round
  *
  * Interaction: the stage tracks the pointer, tilting the two surfaces by
  * different amounts so the gap between them has depth, and the surfaces ride
@@ -1176,7 +1176,7 @@ function FileChip({
   );
 }
 
-/** The done beat: the room empties and dims — nothing is kept. A RESTING
+/** The done beat: the room empties and dims. A RESTING
  *  veil, not a whiteout: the room stays legible while the pill does the
  *  talking, and the loop reopens the machine from `open`. */
 function RoomClosedVeil({ closed }: { closed: boolean }) {

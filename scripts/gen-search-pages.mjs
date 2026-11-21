@@ -103,7 +103,7 @@ const PAGES = [
       ['Do I need iTunes on Windows?', 'No. iTunes is not used. The transfer happens between the two browsers.'],
       ['Do I need to install anything on the iPhone?', 'No. Safari is enough, and nothing is added to the home screen unless you choose to install it.'],
       ['Does it work away from home Wi-Fi?', 'Yes, if both devices have internet. The connection goes through the network each device is on, so a phone on mobile data can send to a PC on home broadband.'],
-      ['Where do the files go afterwards?', 'Downloads on the PC. Nothing is stored on a server after the transfer finishes, and a room closes when both tabs close.'],
+      ['Where do the files go afterwards?', 'Downloads on the PC. Live-room file content is not stored server-side. Temporary Spaces store text and links until they close or expire; saved items remain in your browser.'],
       ['Can I send a whole album at once?', 'Yes. Select several photos in the picker; they queue and arrive one after another.'],
     ],
     related: [
@@ -130,7 +130,7 @@ const PAGES = [
       ['Step by step', null],
       [
         'Why not just use a cloud drive',
-        'A cloud drive makes you upload, wait, then download. That is three steps and a copy that outlives the transfer. This is one connection and no stored copy: when both tabs close, the room is gone.',
+        'A cloud drive makes you upload, wait, then download. That is three steps and a copy that outlives the transfer. A live room sends file content without storing a server-side copy. Temporary Spaces separately store text and links for later; saved items stay in your browser.',
       ],
       [
         'Where the two platforms disagree',
@@ -182,7 +182,7 @@ const PAGES = [
       ],
       [
         'Privacy, plainly',
-        'Each transfer is encrypted in the browser and goes between the two devices, not through storage. Room codes are short-lived. This is not a claim that it is audited or certified — the protocol is open in the repository if you want to read it.',
+        'Live-room transfers are encrypted in transit, directly when possible, with an encrypted relay fallback. Live-room content is not stored server-side. Temporary Spaces separately store text and links until closed or expired; saved items stay in your browser. The service issues the room secret, so this is not zero knowledge. Room codes are short-lived. This is not a claim that it is audited or certified — the protocol is open in the repository if you want to read it.',
       ],
     ],
     compare: [
@@ -196,7 +196,7 @@ const PAGES = [
     faq: [
       ['Is this as fast as AirDrop?', 'No. AirDrop uses a direct local radio link. This uses the network both devices are on, so a large video takes longer.'],
       ['Does it need internet?', 'Yes. The two browsers need a route to each other, which today means both have a connection.'],
-      ['Is it private?', 'The transfer is encrypted between the two browsers and no copy is stored after it finishes. It has not been independently audited, and the code is public.'],
+      ['Is it private?', 'Live-room transfers are encrypted in transit. The service issues the room secret, so this is not zero knowledge. Live-room content is not stored server-side; Temporary Spaces store text and links until closed or expired. Saved items stay in your browser. It has not been independently audited, and the code is public.'],
       ['Can I send to more than one device?', 'A room connects one sender to one receiver at a time. Send to a second device by joining with the same code from that device.'],
       ['Does it work on the same Wi-Fi only?', 'No. Devices on different networks work too, as long as both have internet.'],
     ],

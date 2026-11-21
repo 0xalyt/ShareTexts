@@ -164,7 +164,7 @@ function shellBody({ overline, h1, subtitle, main, footerNote }) {
         <footer class="st-seo-footer">
           <div class="sf-brand">
             <span class="sf-name">${LOGO_SVG} ShareTexts</span>
-            <p class="sf-promise">Send text, links and files between your own devices. No app to install, no account, nothing kept after the room closes.</p>
+            <p class="sf-promise">Send text, links and files between your own devices. No app to install, no account. Live rooms for handoffs; Temporary Spaces store content for later. Saved items stay in your browser.</p>
             <p class="sf-status"><i aria-hidden="true"></i>iPhone · Android · Windows · macOS · Linux</p>
           </div>
           <div class="sf-grid">
@@ -245,7 +245,7 @@ function emit(route, { head, body, jsonLd = '' }) {
 // src/views/Docs.tsx (FAQSection); the JSON-LD mirrors exactly this text.
 // ---------------------------------------------------------------------------
 const DOCS_FAQS = [
-  ['What is ShareTexts?', 'ShareTexts is a temporary bridge between two devices. Move text, links, photos, videos, and files directly from one screen to another. No app, no account, nothing kept.'],
+  ['What is ShareTexts?', 'ShareTexts is a temporary bridge between two devices. Move text, links, photos, videos, and files directly from one screen to another. No app, no account. Live rooms for handoffs; Temporary Spaces store content for later. Saved items stay in your browser.'],
   ['How do devices discover each other?', 'There are four ways to connect: Nearby, the 6-digit code, the QR code, and the share link. For Nearby, turn it on on the device you want to send to, for 10 minutes — it then appears on devices on the same network. Tap it, the other device accepts, and the connection starts. The code, QR, and link work over any connection.'],
   ['Is nearby discovery private?', 'Yes. Your device appears only when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network. It disappears when the 10 minutes end or when you turn it off. Those devices see only a coarse label like "iPhone · Safari" — never your IP, accounts, or any permanent identifier. Devices already connected to a room are not listed, and this is never a global list of ShareTexts users.'],
   ['Is it free?', 'Yes. ShareTexts is completely free to use.'],
@@ -257,7 +257,7 @@ const DOCS_FAQS = [
   ['Is there a file size limit?', 'ShareTexts has been tested with large files. Actual limits depend on your browser, device memory, and network stability. For very large files, a stable connection is recommended.'],
   ['Does it work on mobile?', 'Yes. ShareTexts works in any modern mobile browser. No app download required.'],
   ['Can I transfer between iPhone and Android?', 'Yes. ShareTexts works across all platforms and devices with a modern browser.'],
-  ['What is a Temporary Space?', 'A Temporary Space is a shared shelf that lives for a set time — 6 hours up to 7 days. You create it, get an 8-character space code, and share that code instead of files. Anyone with the code can add text, links, photos, or files, and everyone in the space sees them. When the time is up, the space closes and the content is deleted.'],
+  ['What is a Temporary Space?', 'A Temporary Space is a shared shelf that lives for a set time — 6 hours up to 7 days. You create it, get an 8-character space code, and share that code instead of files. Anyone with the code can add text and links, and everyone in the space sees them. When the time is up, the space closes and the content is deleted.'],
   ['How do I join a Temporary Space with a code?', 'Open sharetexts.online/space/join, enter the 8-character code the creator gave you, and tap Join space. You can also paste a full space link — it carries the same access. Both the code and the link stop working when the space closes.'],
 ];
 
@@ -282,7 +282,7 @@ const docsMain = `
           <h2>What you can send</h2>
           <p>Text, links (they render as tappable preview cards), photos, videos, audio, documents — any file type, transferred as the original bytes without conversion.</p>
           <h2>Temporary Spaces: share over days, not just this minute</h2>
-          <p>For sharing beyond two live devices, create a <strong>Temporary Space</strong> — a shared shelf that lives 6 hours up to 7 days. You choose an 8-character space code (or generate one); whoever should join enters it at sharetexts.online/space/join. Everyone in the space adds text, links, photos, and files, and everyone sees them. The code only finds the space — it carries no keys — and when the space expires it is retired and the content is deleted.</p>
+          <p>For sharing beyond two live devices, create a <strong>Temporary Space</strong> — a shared shelf that lives 6 hours up to 7 days. You choose an 8-character space code (or generate one); whoever should join enters it at sharetexts.online/space/join. Everyone in the space adds text and links, and everyone sees them. The code only finds the space — it carries no keys — and when the space expires it is retired and the content is deleted.</p>
           <h2>Frequently asked questions</h2>
           ${docsFaqHtml}
           <h2>More reading</h2>

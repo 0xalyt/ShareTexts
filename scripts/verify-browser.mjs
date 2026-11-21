@@ -40,6 +40,7 @@ const GATES = [
   ['basics', 'verify-basics.mjs'],
   ['chaos', 'verify-chaos.mjs'],
   ['key-at-rest', 'verify-key-at-rest.mjs'],
+  ['hop', 'verify-hop.mjs'],
 ];
 
 const only = (() => {

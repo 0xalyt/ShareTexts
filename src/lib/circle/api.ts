@@ -240,6 +240,7 @@ export class CircleClient {
       // still be able to link.
       if (parsed.error === 'STALE' && typeof parsed.now === 'number' && round === 0) {
         this.skewMs = parsed.now - Date.now();
+        writeSkew(this.skewMs);
         continue;
       }
       throw new CircleApiError(parsed.error ?? `HTTP_${res.status}`, res.status);

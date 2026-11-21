@@ -137,7 +137,7 @@
           "name": "Is it private?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The transfer is encrypted between the two browsers and no copy is stored after it finishes. It has not been independently audited, and the code is public."
+            "text": "Live-room transfers are encrypted in transit. The service issues the room secret, so this is not zero knowledge. Live-room content is not stored server-side; Temporary Spaces store text and links until closed or expired. Saved items stay in your browser. It has not been independently audited, and the code is public."
           }
         },
         {
@@ -214,7 +214,7 @@
       <p>Both devices need an internet connection, where AirDrop can work offline over its own radio. The first transfer needs a code typed on the second device. A browser tab has to stay open, and iOS pauses a backgrounded tab.</p>
 
       <h2>Privacy, plainly</h2>
-      <p>Each transfer is encrypted in the browser and goes between the two devices, not through storage. Room codes are short-lived. This is not a claim that it is audited or certified — the protocol is open in the repository if you want to read it.</p>
+      <p>Live-room transfers are encrypted in transit, directly when possible, with an encrypted relay fallback. Live-room content is not stored server-side. Temporary Spaces separately store text and links until closed or expired; saved items stay in your browser. The service issues the room secret, so this is not zero knowledge. Room codes are short-lived. This is not a claim that it is audited or certified — the protocol is open in the repository if you want to read it.</p>
 
       <h2>Questions people ask</h2>
       <h3 style="font-size:16px; margin:20px 0 6px;">Is this as fast as AirDrop?</h3>
@@ -222,7 +222,7 @@
       <h3 style="font-size:16px; margin:20px 0 6px;">Does it need internet?</h3>
       <p>Yes. The two browsers need a route to each other, which today means both have a connection.</p>
       <h3 style="font-size:16px; margin:20px 0 6px;">Is it private?</h3>
-      <p>The transfer is encrypted between the two browsers and no copy is stored after it finishes. It has not been independently audited, and the code is public.</p>
+      <p>Live-room transfers are encrypted in transit. The service issues the room secret, so this is not zero knowledge. Live-room content is not stored server-side; Temporary Spaces store text and links until closed or expired. Saved items stay in your browser. It has not been independently audited, and the code is public.</p>
       <h3 style="font-size:16px; margin:20px 0 6px;">Can I send to more than one device?</h3>
       <p>A room connects one sender to one receiver at a time. Send to a second device by joining with the same code from that device.</p>
       <h3 style="font-size:16px; margin:20px 0 6px;">Does it work on the same Wi-Fi only?</h3>
@@ -278,7 +278,7 @@
       </nav>
     </div>
     <div class="footer-bottom">
-      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Nothing stored</p>
+      <p style="margin:0">© <span id="st-year">2026</span> ShareTexts · No app · No account · Your devices</p>
       <a href="https://x.com/0xalyt" target="_blank" rel="noopener noreferrer" title="Maker: Garv — @0xalyt" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit;min-height:32px"><img src="/brand/maker-garv.webp?v=2" alt="" width="24" height="24" loading="lazy" decoding="async" style="width:24px;height:24px;border-radius:999px;object-fit:cover;flex:0 0 auto;box-shadow:0 0 0 1px rgba(0,0,0,0.10)" /><span>@0xalyt</span></a>
     </div>
     <script>document.getElementById('st-year').textContent = new Date().getFullYear();</script>

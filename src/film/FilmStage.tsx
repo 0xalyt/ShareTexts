@@ -1052,7 +1052,7 @@ const CAPTIONS: { from: number; to: number; text: string }[] = [
   { from: 12.4, to: 15.4, text: 'Text.' },
   { from: 16.0, to: 19.0, text: 'Photos.' },
   { from: 19.9, to: 23.2, text: 'Files.' },
-  { from: 23.6, to: 26.1, text: 'Encrypted. Nothing is kept.' },
+  { from: 23.6, to: 26.1, text: 'Encrypted in transit.' },
 ];
 
 function Captions({ t }: { t: number }) {
@@ -1090,7 +1090,7 @@ const LAUNCH_CAPTIONS: { from: number; to: number; text: string }[] = [
   { from: 0.35, to: 2.1, text: 'Two devices. One page.' },
   { from: 2.55, to: 4.15, text: 'No app. No account. Just a page.' },
   { from: 7.7, to: 8.65, text: 'A photo, not a compressed thumbnail.' },
-  { from: 9.6, to: 12.15, text: 'Encrypted between the two. Nothing is kept.' },
+  { from: 9.6, to: 12.15, text: 'Encrypted in transit.' },
 ];
 
 function LaunchCaptions({ t }: { t: number }) {
