@@ -147,12 +147,30 @@ function defaultLabel(): string {
   return `${platform} · ${browser}`;
 }
 
+let identityMemo: Promise<DeviceIdentity> | null = null;
+
 /**
- * Load this browser's identity, creating it on first use. Idempotent and safe
- * to call concurrently: the second caller sees the first caller's record
- * because the write wins the store.
+ * Load this browser's identity, creating it on first use.
+ *
+ * One identity per browser profile, no matter how many callers ask at once.
+ * Two first-time callers used to each generate a key pair and each write it;
+ * the last write won the store while the first caller went on signing with
+ * keys nobody else would ever see again. Inside a tab the callers now share
+ * one promise, and across tabs a Web Lock makes the read-then-create atomic.
  */
-export async function ensureDeviceIdentity(): Promise<DeviceIdentity> {
+export function ensureDeviceIdentity(): Promise<DeviceIdentity> {
+  if (!identityMemo) {
+    const locks = (globalThis.navigator as Navigator | undefined)?.locks;
+    identityMemo = (locks ? locks.request('sharetext-device-identity', loadOrCreateIdentity) : loadOrCreateIdentity())
+      .catch((err) => {
+        identityMemo = null;
+        throw err;
+      });
+  }
+  return identityMemo;
+}
+
+async function loadOrCreateIdentity(): Promise<DeviceIdentity> {
   const existing = await readRecord();
   if (existing) {
     return {
@@ -194,4 +212,5 @@ export async function renameDevice(label: string): Promise<void> {
   const existing = await readRecord();
   if (!existing) return;
   await writeRecord({ ...existing, label: label.trim().slice(0, 40) });
+  identityMemo = null;
 }
