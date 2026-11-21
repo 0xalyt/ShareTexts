@@ -47,6 +47,7 @@ import binascii
 import ipaddress
 import json
 import os
+import socket
 import sys
 import time
 from datetime import datetime
@@ -215,12 +216,21 @@ def _validate_public_https_url(url):
         raise ValueError("Provider media URL used a local hostname")
 
     try:
-        ip = ipaddress.ip_address(hostname)
+        addresses = [ipaddress.ip_address(hostname)]
     except ValueError:
-        return
-    else:
-        if not ip.is_global:
-            raise ValueError("Provider media URL used a non-public address")
+        try:
+            addresses = [
+                ipaddress.ip_address(result[4][0])
+                for result in socket.getaddrinfo(
+                    hostname, parsed.port or 443, type=socket.SOCK_STREAM
+                )
+            ]
+        except socket.gaierror as exc:
+            raise ValueError("Provider media URL hostname could not be resolved") from exc
+    if not addresses or any(
+        not ip.is_global or ip.is_reserved or ip.is_multicast for ip in addresses
+    ):
+        raise ValueError("Provider media URL used a non-public address")
 
 
 def _json_request(
