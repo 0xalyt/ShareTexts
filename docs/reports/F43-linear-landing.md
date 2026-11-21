@@ -7,7 +7,7 @@ Heading → sharing actions → film at every width, not a desktop split. Gray b
 ## Files changed
 
 - `src/views/SingleScreenApp.tsx`: one hero/player placement in source order on phone and desktop.
-- `src/components/landing/landing-page.css`: centered desktop hierarchy, 60/72px heading, 64px desktop actions, larger landing brand presentation, full-width film, browser ticker, static reduced-motion layout.
+- `src/components/landing/landing-page.css`: centered desktop hierarchy, 60/64px heading, 64px desktop actions, larger landing brand presentation, full-width film, browser ticker, static reduced-motion layout.
 - `src/components/landing/BrowserCompatibility.tsx`: eight logo marks, accessible original set and two hidden repeats, pause/resume, offscreen/page-hidden suspension; copy/QR behavior retained.
 - `src/components/HeroLaunchFilm.tsx` and `src/components/landing/hero-film.css`: remove visible footer/links and unused styles, retain hidden description, 16:9 frame and playback hooks.
 - `src/lib/messages/*.ts`: browser heading localized in all eleven shipped dictionaries.
@@ -45,23 +45,36 @@ Heading → sharing actions → film at every width, not a desktop split. Gray b
 
 ## Current-main integration
 
+### Local-only CI and centered reference follow-up
+
+- Integrated main `3f35b03` / [PR #23](https://github.com/0xalyt/ShareTexts/pull/23), which runs sharing checks against a local Worker. Production signaling is blocked in this VM's hosts file; no live checks have been run during this follow-up.
+- Garv's new centered reference is reflected in heading → Send/Receive → framed film → secondary command input. The duplicate trust line is removed. Compatibility now contains only its centered heading and gray logo marquee; homepage copy/QR is an independent card after the product stories and before FAQ. Both responsive landing branches use that order.
+- The [centered-layout recording](https://app.devin.ai/sessions/519f23e8501a4602b8ad36b0399832ca?testRecording=6b155809-bc93-4314-a7a7-be65a52a7dac) passed functional checks but is superseded for visual approval: Paul rejected its white-on-white film field, first-viewport title card, and phone control overlap.
+- The player now has a flat oat-colored field in light mode and a warm charcoal field in dark mode. Its actual picture remains 16:9; the 48px playback target is in a separate control lane, never over a device. Desktop hero spacing is tighter; display text is 64px at 1440px while Send/Receive remain 64px tall. Changes: `HeroLaunchFilm.tsx`, `hero-film.css`, `landing-page.css`, `SingleScreenApp.tsx`, `BrowserCompatibility.tsx`, `LandingSections.tsx`, `verify-handoff.mjs`.
+- Phone device clipping is encoded in the old film's opening camera move, not responsive CSS: the source is 1440×810, the player uses `object-fit: contain`, and a direct source contact sheet shows the same cutoff (`audit/tmp/f43-source-film-timeline.jpg`). Film content remains with its owner; a complete-device replacement opening/poster is pending. No crop/zoom/filter workaround or edited film asset is included here.
+- Current framed-player TypeScript/build/bundle and Chromium handoff passed (`audit/tmp/f43-framed-build.log`, `f43-framed-bundle.log`, `f43-framed-handoff.log`); entry is 178.8KiB gzip. Production-bundle two-device text/link smoke passed with the local Worker (`f43-framed-smoke.log`). No transport code was authored here.
+- One concurrent layout run exhausted the local emulator's IP socket budget (`GET /ws` 429) after the handoff suite; restarting the emulator and running layout independently is the same reset used by CI. The independent final run passed desktop, sheets, no-flash, room-paint and basics (`audit/tmp/f43-framed-layout-final.log`); no gate or production limit was changed.
+- Fresh local production-build [framing retest](https://app.devin.ai/sessions/519f23e8501a4602b8ad36b0399832ca?testRecording=35f92b32-d95c-41ad-acb8-7821de215c19) passed the distinct light/dark backdrop, 48px playback target below the picture, click/Space pause/resume, 320/390px fit including Arabic RTL, movie-denied poster fallback, and reduced-motion no-movie-request behavior. Four unscrolled reduced-motion **poster previews**, not autoplay approval: `/home/ubuntu/screenshots/pr19-backdrop-desktop-light-poster.png`, `pr19-backdrop-desktop-dark-poster.png` (1440×900); `pr19-backdrop-phone-light-poster.png`, `pr19-backdrop-phone-dark-poster.png` (390×844). The desktop shows both device screens before scrolling, with the laptop base/control lane below the fold; phone poster shows both complete devices and the control.
+- Ordinary autoplay still reproduces the encoded cutoff in both themes at approximately 0.76s on the phone (`/home/ubuntu/screenshots/pr19-backdrop-phone-light-autoplay.png`, `pr19-backdrop-phone-dark-autoplay.png`). The source remains 16:9 and contained. This is explicitly an unresolved visual failure pending the film owner's approved replacement, not a passing final launch-film test.
+- Merge is explicitly held for the replacement film, matching 1440×900 and 390×844 light/dark screenshots, fresh hosted CI, and clean Devin Review. Live testing remains deferred by Paul.
+
 - Integrated main `bdfb21c` from [PR #20](https://github.com/0xalyt/ShareTexts/pull/20), including its browser diagnostics and bounded font/poster waits. Resolved the handoff harness by retaining both mounted-control waits and DOMContentLoaded navigation. Landing behavior and film assets are unchanged by this integration; Worker and sharing changes are inherited from main, not authored in this branch.
 - Integrated TypeScript, build and bundle verification passed (`audit/tmp/f43-integrated-build.log`, `audit/tmp/f43-integrated-bundle.log`). Integrated Chromium and WebKit handoff passed (`audit/tmp/f43-integrated-chromium.log`, `audit/tmp/f43-integrated-webkit.log`).
 - Integrated Firefox did not complete: one dev-server run timed out navigating to the landing, then a dev-server retry and a built-production-server run timed out on the inert `/health` priming visit after locale and partial theme checks. All use DOMContentLoaded. No assertion or timeout was weakened. Logs: `audit/tmp/f43-integrated-firefox.log`, `audit/tmp/f43-integrated-firefox-retry.log`, `audit/tmp/f43-integrated-firefox-production.log`.
 - New failure diagnostics show no console/page errors or pending requests at timeout. The first failure had a complete rendered app document despite Playwright reporting an about:blank page URL; the production failure remained on about:blank with no requests recorded. Cause is NOT VERIFIED. Repeated navigation failures and diagnostic paths were sent to the reliability owner as requested.
 
-## NOT VERIFIED / blockers
+## NOT VERIFIED / blockers (current)
 
-- Integrated Firefox handoff is not green; see current-main integration above. The earlier Firefox pass is not evidence that the integrated branch passes.
-- `npm run smoke:local` production sharing failed at room creation after 20s. Reliability traced the live Worker's `/ws` and `/stats` to HTTP 500 / Cloudflare 1101; missing CORS headers are a symptom. No transport changes are included here. Merge remains blocked until required checks pass.
+- Approved replacement film opening/poster and normal-autoplay visual approval are pending. Old film sources still contain the encoded close-up and title-only segment; the four reduced-motion poster previews do not clear this hold.
+- Hosted three-engine CI has not yet run on the local-Worker/framed-player follow-up. Earlier production-dependent failures are historical, not a reason to spend the live allowance or bypass the new gate.
 - Physical Android/iOS devices, native Safari and old-device frame pacing are not verified by desktop browser emulation.
-- Background-tab pause was not verified: the test browser did not enter `document.hidden` during tab switching/minimizing. Offscreen pause was verified; page-visibility listener is retained.
+- The latest framing run verified playback-button hover; marquee fine-pointer hover and background-tab pause remain unverified by UI testing. Offscreen/manual pause passed in the preceding marquee retest; both original hooks are retained. Save-Data was not independently exercised in the latest framing retest.
 - No claim of transport compatibility is inferred from the browser logos.
 
 ## Owner questions
 
-None. Reliability owns the Worker incident; recommendation is to keep this PR unmerged while required sharing checks are red.
+None. Keep the merge held while the visual request is incomplete; no production testing.
 
 ## Next
 
-Keep [PR #19](https://github.com/0xalyt/ShareTexts/pull/19) unmerged until Paul confirms the production Worker has recovered and the required sharing checks pass; then merge under Garv's instruction and confirm the live landing.
+Integrate the film owner's complete-device opening/poster, verify the framed composition in both themes, and send the four requested screenshots. Then finish the local gates and three-engine hosted CI; merge [PR #19](https://github.com/0xalyt/ShareTexts/pull/19) only when Paul’s visual hold is settled, every check is green, and Devin Review is clean. No live tests until authorized.

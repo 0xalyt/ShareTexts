@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
 import { PairingDetail, TransferDetail, SpaceDetail } from '../landing/ProductDetails';
-export { BrowserCompatibility } from '../landing/BrowserCompatibility';
+export { BrowserCompatibility, WebsiteHandoff } from '../landing/BrowserCompatibility';
 
 /* ---------------------------------------------------------------------------
  * LandingSections — the scroll tail of the front door.

@@ -20,11 +20,6 @@ export function BrowserCompatibility() {
   const viewport = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
   const [visible, setVisible] = useState(false);
-  const qrId = useId();
-  const qrTrigger = useRef<HTMLButtonElement>(null);
-  const [qrOpen, setQrOpen] = useState(false);
-  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
-  const address = window.location.origin;
   useEffect(() => {
     const element = viewport.current;
     if (!element) return;
@@ -42,29 +37,8 @@ export function BrowserCompatibility() {
       document.removeEventListener('visibilitychange', sync);
     };
   }, []);
-  useEffect(() => {
-    if (copyState !== 'copied') return;
-    const timer = window.setTimeout(() => setCopyState('idle'), 2400);
-    return () => window.clearTimeout(timer);
-  }, [copyState]);
-  const copyAddress = async () => {
-    try {
-      await navigator.clipboard.writeText(address);
-      setCopyState('copied');
-    } catch {
-      // Never claim a successful copy when permission was refused. The
-      // address remains selectable and the QR is a permission-free fallback.
-      setCopyState('error');
-    }
-  };
   return (
-    <section className="landing-browsers w-full" aria-labelledby="browsers-title" onKeyDown={event => {
-      if (event.key === 'Escape' && qrOpen) {
-        event.stopPropagation();
-        setQrOpen(false);
-        qrTrigger.current?.focus();
-      }
-    }}>
+    <section className="landing-browsers w-full" aria-labelledby="browsers-title">
       <div className="landing-browser-head">
         <h2 id="browsers-title">{t('home.browser.heading')}</h2>
         <button type="button" className="landing-quiet-button landing-marquee-toggle" data-testid="browser-marquee-toggle"
@@ -86,8 +60,42 @@ export function BrowserCompatibility() {
           ))}
         </div>
       </div>
-      <div className="landing-browser-utility">
-        <h3>{t('home.browser.open')}</h3>
+    </section>
+  );
+}
+
+/** The second-device tool is useful, but isn't browser compatibility copy. */
+export function WebsiteHandoff() {
+  const { t } = useI18n();
+  const titleId = useId();
+  const qrId = useId();
+  const qrTrigger = useRef<HTMLButtonElement>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const address = window.location.origin;
+  useEffect(() => {
+    if (copyState !== 'copied') return;
+    const timer = window.setTimeout(() => setCopyState('idle'), 2400);
+    return () => window.clearTimeout(timer);
+  }, [copyState]);
+  const copyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopyState('copied');
+    } catch {
+      // Keep the address selectable and QR available when copying is denied.
+      setCopyState('error');
+    }
+  };
+  return (
+    <aside className="landing-browser-utility" aria-labelledby={titleId} onKeyDown={event => {
+      if (event.key === 'Escape' && qrOpen) {
+        event.stopPropagation();
+        setQrOpen(false);
+        qrTrigger.current?.focus();
+      }
+    }}>
+        <h3 id={titleId}>{t('home.browser.open')}</h3>
         <div className="landing-site-address"><bdi dir="ltr">{window.location.host}</bdi></div>
         <div className="landing-browser-actions">
           <button type="button" className="landing-quiet-button" data-testid="landing-copy-address" onClick={copyAddress}>
@@ -107,7 +115,6 @@ export function BrowserCompatibility() {
             <p>{t('home.browser.qrHint')}</p>
           </>}
         </div>
-      </div>
-    </section>
+    </aside>
   );
 }

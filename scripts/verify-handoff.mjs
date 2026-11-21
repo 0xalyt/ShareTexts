@@ -89,12 +89,15 @@ try {
         await demo.locator('a').count() === 0);
       const facts = await demo.evaluate(el => {
         const r = el.getBoundingClientRect();
+        const picture = el.querySelector('.hero-film-picture').getBoundingClientRect();
         return {
-          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < r.left - 1 || br.right > r.right + 1 || br.width < 48 || br.height < 48; }),
+          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom || br.bottom > r.bottom + 1 || br.width < 48 || br.height < 48; }),
+          widescreen: Math.abs(picture.width / picture.height - 16 / 9) < .02,
+          backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
         };
       });
-      check(`${locale}/${width}: film controls fit and remain tappable`, !facts.clipped && !facts.overflow);
+      check(`${locale}/${width}: 16:9 film has its own backdrop and tappable controls below the picture`, facts.widescreen && facts.backdrop && !facts.clipped && !facts.overflow);
       const guidePair = page.getByTestId('landing-guide-pair');
       const guideSend = page.getByTestId('landing-guide-send');
       check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
@@ -124,20 +127,22 @@ try {
         });
       }));
       const browsers = page.locator('.landing-browsers');
+      const handoff = page.locator('.landing-browser-utility');
       const copyAddress = page.getByTestId('landing-copy-address');
       const defaultCopyLabel = await copyAddress.innerText();
       await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.__copiedWebsite = value; } } }));
       await copyAddress.click();
       await page.waitForFunction(() => Boolean(window.__copiedWebsite));
       check(`${locale}/${width}: copying the website uses the real origin without room credentials`, await page.evaluate(() => window.__copiedWebsite) === new URL(BASE).origin && await copyAddress.innerText() !== defaultCopyLabel);
-      const successFeedback = await browsers.getByRole('status').innerText();
+      const successFeedback = await handoff.getByRole('status').innerText();
       await page.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error('permission denied'); }; });
       await copyAddress.click();
-      check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await browsers.getByRole('status').innerText()).length > 12 && await browsers.getByRole('status').innerText() !== successFeedback);
+      check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await handoff.getByRole('status').innerText()).length > 12 && await handoff.getByRole('status').innerText() !== successFeedback);
       const websiteQr = page.getByTestId('landing-website-qr');
       const closedQrLabel = await websiteQr.innerText();
       await websiteQr.click();
-      await browsers.getByTestId('qr-art').waitFor();
+      await handoff.getByTestId('qr-art').waitFor();
+      check(`${locale}/${width}: browser band contains no second-device tool`, await browsers.getByRole('heading').count() === 1 && await browsers.locator('.landing-browser-utility').count() === 0);
       check(`${locale}/${width}: website QR has a Hide action and logo-only browser support stays inside the viewport`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('.landing-browser-list:not([aria-hidden]) img[alt]').count() === 8 && await browsers.evaluate(el => {
         const bounds = el.getBoundingClientRect();
         const logos = [...el.querySelectorAll('.landing-browser-list:first-child img')];
@@ -277,9 +282,10 @@ try {
   await shortPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const shortLayout = await shortPage.evaluate(() => {
     const send = document.querySelector('[data-testid="home-send"]').getBoundingClientRect();
-    const demo = document.querySelector('[data-testid="hero-demo"]').getBoundingClientRect();
+    const demo = document.querySelector('[data-testid="hero-demo"] .hero-film-picture').getBoundingClientRect();
+    const shortcut = document.querySelector('[data-testid="intent-input"]').getBoundingClientRect();
     const heading = document.querySelector('.landing-heading').getBoundingClientRect();
-    return heading.bottom <= send.top && send.bottom <= demo.top && send.top >= 0 && send.bottom <= innerHeight &&
+    return heading.bottom <= send.top && send.bottom <= demo.top && demo.bottom <= shortcut.top && send.top >= 0 && send.bottom <= innerHeight &&
       demo.left >= 0 && demo.right <= innerWidth && Math.abs(demo.width / demo.height - 16 / 9) < .02;
   });
   check('short laptop keeps actions in reach and the full-width film after the heading/actions', shortLayout);
