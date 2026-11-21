@@ -328,6 +328,7 @@ function AppContent() {
 
 function SkipLink() {
   const { t } = useI18n();
+  if (['/docs', '/privacy', '/terms'].includes(window.location.pathname)) return null;
   return (
     // Keyboard users jump past the hero to main content
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-azure-600 focus:text-white focus:rounded-lg focus:text-[16px] focus:font-semibold">

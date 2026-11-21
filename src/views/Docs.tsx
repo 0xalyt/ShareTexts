@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { ShareTextsLogo } from '../components/ShareTextsLogo';
+import React, { useState, useEffect, useRef } from 'react';
 import { PageHeader } from '../components/PageHeader';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { FaqSection } from '../components/marketing/FaqSection';
-import { DataFlow } from '../components/marketing/DataFlow';
-import { IsometricShareIllustration } from '../components/isometric/IsometricIllustrations';
 import { PlatformStrip } from '../components/marketing/PlatformStrip';
 import { SiteFooter } from '../components/marketing/SiteFooter';
 import { useI18n } from '../lib/i18n';
+import './reading-pages.css';
 // lucide icons under the local names this file already uses (all icons are
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
@@ -15,10 +12,8 @@ import {
   Share2, QrCode, Link as Link2, Shield, Zap,
   Monitor as Monitor, Smartphone, Terminal, Key, Clock,
   RefreshCw, CircleAlert as AlertCircle, Check, Lock,
-  ArrowLeft, Radio,
+  ArrowLeft, ArrowRight, ChevronDown, Radio,
 } from 'lucide-react';
-
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 type Section = 'overview' | 'transfer' | 'pairing' | 'nearby' | 'troubleshooting' | 'privacy' | 'devices' | 'faq' | 'developer' | 'api';
 
@@ -45,17 +40,32 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 function CodeBlock({ code, language = 'bash' }: { code: string; language?: string }) {
+  const [status, setStatus] = useState<'idle' | 'copied' | 'error'>('idle');
+  useEffect(() => {
+    if (status === 'idle') return;
+    const timer = window.setTimeout(() => setStatus('idle'), 2400);
+    return () => window.clearTimeout(timer);
+  }, [status]);
   return (
     <div className="relative rounded-[12px] bg-night-800 dark:bg-night-950 border border-white/[0.08] overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.08]">
         <span className="text-[12px] font-medium text-white/40">{language}</span>
         <button
-          onClick={() => navigator.clipboard.writeText(code)}
-          className="text-[12px] text-white/40 hover:text-white/80 transition-colors"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(code);
+              setStatus('copied');
+            } catch {
+              setStatus('error');
+            }
+          }}
+          aria-label={`Copy ${language} code`}
+          className="min-h-11 min-w-11 text-sm text-white/70 hover:text-white transition-colors"
         >
-          Copy
+          {status === 'copied' ? 'Copied' : status === 'error' ? 'Try again' : 'Copy'}
         </button>
       </div>
+      <span role="status" className="sr-only">{status === 'copied' ? 'Code copied to clipboard.' : status === 'error' ? 'Could not copy. Select the code and copy it manually.' : ''}</span>
       <pre className="p-4 overflow-x-auto overscroll-x-contain text-[13px] leading-relaxed text-white/70 font-mono">
         <code>{code}</code>
       </pre>
@@ -84,43 +94,26 @@ function OverviewSection() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">ShareTexts</h1>
+        <h1 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">A little guidance.<br />A lot less back and forth.</h1>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
-          Like AirDrop, but it works between any two devices, even an iPhone and a Windows PC. Send text, photos, or files from a browser. Nothing is kept once the room closes.
+          That link on your phone. The photo your laptop needs. Bring them across in the browser you already have. Start with a code, a QR scan, or a link.
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">        {[
-          { icon: <Zap className="w-5 h-5" />, title: 'Instant', desc: 'Direct device-to-device. No cloud.' },
-          { icon: <Shield className="w-5 h-5" />, title: 'Private', desc: 'Encrypted. Temporary. Gone when you close the tab.' },
-          { icon: <Monitor className="w-5 h-5" />, title: 'Universal', desc: 'Any browser, any device. No install.' },
-          { icon: <Lock className="w-5 h-5" />, title: 'Verified', desc: 'SHA-256 on every transfer. Bit-perfect.' },
-        ].map((f, i) => (
-          <div key={i} className="flex gap-3.5 p-4 rounded-[12px] st-card">
-            <div className="w-10 h-10 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center shrink-0 text-ember dark:text-azure-400">{f.icon}</div>
-            <div>
-              <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{f.title}</p>
-              <p className="text-[13px] text-apple-ink-muted dark:text-white/55 leading-snug">{f.desc}</p>
-            </div>
-          </div>
-        ))}
+      <div className="guide-start">
+        <div className="reading-eyebrow">Your first transfer</div>
+        <ol>
+          <li><span>01</span><div><h2>Open on both devices</h2><p>Visit ShareTexts on the device you have, and the one you need.</p></div></li>
+          <li><span>02</span><div><h2>Bring them together</h2><p>Choose Send on one, Receive on the other. Enter the six digits.</p></div></li>
+          <li><span>03</span><div><h2>Send something across</h2><p>Paste a link, type a note, or attach a file. Keep both tabs open.</p></div></li>
+        </ol>
+        <a className="reading-text-link" href="/#main-content">Open ShareTexts <ArrowRight size={16} aria-hidden /></a>
       </div>
-
-      {/* The flagship isometric view of the product's one spatial idea:
-          two devices, one desk, a direct wire, an object mid-flight. It
-          carries the "no clouds, no relays" story in geometry, before a
-          word of DataFlow is read. */}
-      <figure className="m-0" data-testid="docs-iso-share">
-        <IsometricShareIllustration
-          className="mx-auto w-full max-w-[520px]"
-          label="Isometric drawing: a laptop and a phone on one desk, a direct connection drawn between them, a file crossing it."
-        />
-      </figure>
-
-      {/* What actually happens to the bytes — the one misconception worth
-          correcting with a picture ("it goes through your servers"). */}
-      <DataFlow />
-
+      <div className="guide-shortcuts">
+        <a href="#pairing"><QrCode size={20} aria-hidden /><span><strong>Find your way to connect</strong><small>Codes, QR scans, and links</small></span><ArrowRight size={16} aria-hidden /></a>
+        <a href="#privacy"><Shield size={20} aria-hidden /><span><strong>Know what stays where</strong><small>Rooms, spaces, and saved items</small></span><ArrowRight size={16} aria-hidden /></a>
+        <a href="#troubleshooting"><RefreshCw size={20} aria-hidden /><span><strong>Get a transfer unstuck</strong><small>A few things worth checking</small></span><ArrowRight size={16} aria-hidden /></a>
+      </div>
       <PlatformStrip />
     </div>
   );
@@ -225,7 +218,7 @@ function NearbySection() {
         <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
           <p>Nearby discovery is <strong className="text-apple-ink dark:text-white">not a global device list</strong>. A device is only visible when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network; it disappears when those 10 minutes end or when you turn it off. Devices are not Bluetooth scans, and nothing is broadcast over your local network.</p>
           <p>Other devices only ever see a temporary label such as "Windows PC" or "iPhone". No IP addresses, account information, or permanent identifiers are shared. A device that is already connected to a room is not listed.</p>
-          <p>Discovery only identifies a candidate device. Selecting one sends an invitation, and the actual connection always uses the same secure end-to-end encrypted channel as code, QR, and link connections.</p>
+          <p>Discovery only identifies a candidate device. Selecting one sends an invitation, and the connection uses the same encryption in transit as code, QR, and link connections.</p>
         </div>
       </div>
 
@@ -253,7 +246,7 @@ function TroubleshootingSection() {  return (
         {[
           { problem: "Can't create a room", solution: "Check your internet connection. If the problem persists, the service may be temporarily unavailable. Try again in a moment." },
           { problem: 'Code expired', solution: 'The pairing code refreshes automatically. If the other device can\'t connect in time, create a new room to get a fresh code.' },
-          { problem: "Code doesn't work", solution: 'Make sure you\'re entering the correct 6-digit code from the other device. Codes are case-sensitive and must be entered exactly.' },
+          { problem: "Code doesn't work", solution: 'Enter the current 6-digit code shown on the other device. Check that you are using a different device or browser profile, not another tab in the same browser.' },
           { problem: 'QR code won\'t scan', solution: 'Make sure the camera has permission. If scanning still fails, type the 6-digit code manually instead.' },
           { problem: 'Connection dropped', solution: 'The other device may have closed their tab or lost internet. On the sending device, a new pairing code is available to reconnect.' },
           { problem: 'Transfer failed', solution: 'The connection was interrupted. Tap Retry to send again. The file was not marked as complete.' },
@@ -275,15 +268,15 @@ function PrivacySection() {
       <div>
         <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">Privacy & Security</h2>
         <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
-          Your data moves directly between devices. Nothing stored.
+          Different ways of sharing keep content in different places. Here is the distinction.
         </p>
       </div>
 
       <div className="space-y-3">
         {[
-          { icon: <Lock className="w-4 h-4" />, title: 'Encrypted end-to-end', desc: 'DTLS + app-level encryption. ShareTexts never sees your content.' },
-          { icon: <Shield className="w-4 h-4" />, title: 'No accounts, no history', desc: 'No sign-up, no cloud, no tracking. Close the tab, the room is gone.' },
-          { icon: <Clock className="w-4 h-4" />, title: 'Temporary rooms', desc: 'Rooms expire automatically. Nothing you share is ever stored on our servers.' },
+          { icon: <Lock className="w-4 h-4" />, title: 'Live rooms', desc: 'Transfers are encrypted in transit, directly when possible, with an encrypted relay fallback. The service issues the room secret, so this is not zero knowledge.' },
+          { icon: <Shield className="w-4 h-4" />, title: 'Saved items stay here', desc: 'Items you explicitly save stay in this browser until you remove them or clear site data. They are not synced to your other devices.' },
+          { icon: <Clock className="w-4 h-4" />, title: 'Temporary Spaces store for later', desc: 'Space content is stored server-side until the chosen expiry, from 6 hours to 7 days, or until the space closes early.' },
           { icon: <Check className="w-4 h-4" />, title: 'Verified transfers', desc: 'SHA-256 on every transfer. What you send is exactly what arrives.' },
         ].map((item, i) => (
           <div key={i} className="flex gap-3.5 p-4 rounded-[12px] st-card">
@@ -295,6 +288,7 @@ function PrivacySection() {
           </div>
         ))}
       </div>
+      <a href="/privacy" className="reading-text-link">Read the privacy policy <ArrowRight size={16} aria-hidden /></a>
     </div>
   );
 }
@@ -590,7 +584,7 @@ function FAQSection() {
   const faqs: { q: string; a: string }[] = [
     {
       q: 'What is ShareTexts?',
-      a: 'ShareTexts is a temporary bridge between two devices. Move text, links, photos, videos, and files directly from one screen to another. No app, no account, nothing kept.'
+      a: 'ShareTexts moves text, links, photos, videos, and files between devices in the browser. No app or account is required. Live rooms are temporary; Temporary Spaces hold content for their chosen lifetime, and items you save stay in your browser.'
     },
     {
       q: 'How do devices discover each other?',
@@ -606,7 +600,7 @@ function FAQSection() {
     },
     {
       q: 'Is it private?',
-      a: 'Yes. Transfers are encrypted between devices. ShareTexts does not store your files, text, or transfer history.'
+      a: 'Live room transfers are encrypted in transit, but the service issues the room secret and is not zero knowledge. Temporary Spaces store content server-side until they close or expire. Saved items remain in your browser. Read the privacy policy for the full distinction.'
     },
     {
       q: 'What if my internet drops mid-transfer?',
@@ -661,6 +655,8 @@ function sectionFromHash(): Section {
 export function Docs() {
   const { t } = useI18n();
   const [activeSection, setActiveSection] = useState<Section>(sectionFromHash);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const chapter = NAV_ITEMS.findIndex(item => item.id === activeSection);
 
   // Per-route document title — the home shell has its own static <title>.
   useEffect(() => {
@@ -672,32 +668,18 @@ export function Docs() {
   // Browser back/forward moves between sections, same as clicking.
   useEffect(() => {
     const onHash = () => {
+      if (window.location.hash === '#docs-content') return;
       const id = sectionFromHash();
       setActiveSection(id);
-      window.scrollTo({ top: 0, behavior: 'auto' });
-      requestAnimationFrame(() => {
-        document.querySelector(`[data-section-pill="${id}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      });
+      contentRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+      contentRef.current?.focus({ preventScroll: true });
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
   const showSection = (id: Section) => {
-    setActiveSection(id);
-    // Keep the URL honest: shareable section links, no history spam.
-    if (typeof window !== 'undefined' && window.location.hash !== `#${id}`) {
-      history.replaceState(null, '', `#${id}`);
-    }
-    // A new section means new reading context — start at the top. Smooth
-    // for pointer users; instant when reduced motion is requested.
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
-    // Keep the active mobile pill visible — without this it sits wherever
-    // the gesture left the strip, often half-clipped past the edge.
-    requestAnimationFrame(() => {
-      document.querySelector(`[data-section-pill="${id}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    });
+    window.location.hash = id;
   };
 
   const renderSection = () => {
@@ -716,7 +698,8 @@ export function Docs() {
   };
 
   return (
-    <div className="min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
+    <div className="reading-page min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
+      <a href="#docs-content" className="reading-skip">Skip to documentation</a>
       {/* Header — the shared PageHeader, so Docs, Legal and the 404 share one
           header instead of three hand-rolled near-copies. */}
       <PageHeader
@@ -728,80 +711,73 @@ export function Docs() {
         currentLabel={t('nav.docs')}
       />
 
-      <div className="max-w-6xl mx-auto px-6 py-8 flex gap-8">
+      <div className="reading-layout docs-layout">
         {/* Sidebar Navigation — desktop only */}
-        <nav className="hidden md:block w-48 shrink-0">
-          <div className="sticky top-24 space-y-4">
+        <nav className="reading-sidebar docs-sidebar" aria-label="Documentation chapters">
+          <div className="reading-sticky">
+            <a className="guide-wordmark" href="/docs">The guide<span>ShareTexts, explained.</span></a>
             {/* User Documentation */}
             <div>
-              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/60 dark:text-white/30">User Guide</p>
-              <div className="space-y-0.5">
+              <p className="reading-nav-label">The essentials</p>
+              <div className="reading-nav-items">
                 {NAV_ITEMS.filter(i => i.group === 'user').map((item) => (
-                  <button
+                  <a
                     key={item.id}
-                    onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.96] motion-reduce:active:scale-100 ${
-                      activeSection === item.id
-                        ? 'bg-ember/10 text-ember dark:bg-azure-400/10 dark:text-azure-400'
-                        : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'
-                    }`}
+                    href={`#${item.id}`}
+                    aria-current={activeSection === item.id ? 'page' : undefined}
+                    className="reading-nav-link"
                   >
                     {item.icon}
                     {item.label}
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
             {/* Developer Documentation */}
             <div>
-              <p className="px-3 mb-1.5 text-[12px] font-semibold uppercase tracking-wider text-apple-ink-muted/60 dark:text-white/30">Developer</p>
-              <div className="space-y-0.5">
+              <p className="reading-nav-label">Build with it</p>
+              <div className="reading-nav-items">
                 {NAV_ITEMS.filter(i => i.group === 'developer').map((item) => (
-                  <button
+                  <a
                     key={item.id}
-                    onClick={() => showSection(item.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 min-h-[44px] rounded-[8px] text-[16px] font-medium transition-colors active:scale-[0.96] motion-reduce:active:scale-100 ${
-                      activeSection === item.id
-                        ? 'bg-ember/10 text-ember dark:bg-azure-400/10 dark:text-azure-400'
-                        : 'text-apple-ink-muted dark:text-white/60 hover:bg-apple-parchment dark:hover:bg-apple-tile-1'
-                    }`}
+                    href={`#${item.id}`}
+                    aria-current={activeSection === item.id ? 'page' : undefined}
+                    className="reading-nav-link"
                   >
                     {item.icon}
                     {item.label}
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
+            <a href="/" className="reading-sidebar-home">Back to sharing <ArrowRight size={16} aria-hidden /></a>
           </div>
         </nav>
 
         {/* Main Content */}
         {/* Long-form content is English-only; lang="en" keeps a screen reader
             from reading it with the voice of the surrounding app language. */}
-        <main lang="en" className="flex-1 min-w-0 pb-20 md:pb-8">
-          {/* Mobile Navigation — horizontal scrollable pills at top of content.
-              The edge mask makes a cut-off pill read as "more this way",
-              not as a broken layout. */}
-          <div className="md:hidden st-edge-fade -mx-6 px-6 mb-6 overflow-x-auto overscroll-x-contain" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-            <div className="flex gap-2 min-w-max">
-              {NAV_ITEMS.map((item) => (
-                <button
-                  key={item.id}
-                  data-section-pill={item.id}
-                  onClick={() => showSection(item.id)}
-                  className={`flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${
-                    activeSection === item.id
-                      ? 'bg-ember text-white shadow-sm'
-                      : 'bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink-muted dark:text-white/60'
-                  }`}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              ))}
+        <main lang="en" className="docs-main">
+          {/* A native chapter picker keeps every topic reachable on phones. */}
+          <div className="guide-mobile-nav">
+            <label htmlFor="guide-chapter">Explore the guide</label>
+            <div>
+              <select id="guide-chapter" value={activeSection} onChange={event => showSection(event.target.value as Section)}>
+                <optgroup label="The essentials">{NAV_ITEMS.filter(item => item.group === 'user').map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>
+                <optgroup label="Build with it">{NAV_ITEMS.filter(item => item.group === 'developer').map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>
+              </select>
+              <ChevronDown size={16} aria-hidden />
             </div>
           </div>
-          {renderSection()}
+          <div id="docs-content" ref={contentRef} tabIndex={-1} className="docs-content">
+            {activeSection !== 'overview' && <h1 className="sr-only">{NAV_ITEMS[chapter].label}</h1>}
+            <p className="reading-eyebrow">Documentation <span aria-hidden>/</span> {String(chapter + 1).padStart(2, '0')}</p>
+            {renderSection()}
+          </div>
+          <nav className="guide-pagination" aria-label="Previous and next chapters">
+            {chapter > 0 ? <a href={`#${NAV_ITEMS[chapter - 1].id}`}><ArrowLeft size={16} aria-hidden /><span><small>Previous</small>{NAV_ITEMS[chapter - 1].label}</span></a> : <span />}
+            {chapter < NAV_ITEMS.length - 1 ? <a href={`#${NAV_ITEMS[chapter + 1].id}`}><span><small>Up next</small>{NAV_ITEMS[chapter + 1].label}</span><ArrowRight size={16} aria-hidden /></a> : <a href="/"><span><small>All set</small>Back to sharing</span><ArrowRight size={16} aria-hidden /></a>}
+          </nav>
         </main>
       </div>
 
