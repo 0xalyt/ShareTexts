@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { AlloSymbol } from '../AlloSymbol';
 import { cn } from '../../lib/utils';
 import { Pressable } from './Pressable';
 
@@ -69,10 +69,10 @@ export function ListRow({
       </span>
       {trailing ? <span className="shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/50">{trailing}</span> : null}
       {chevron ? (
-        <ChevronRight
+        <AlloSymbol
+          name="next"
+          size={14}
           className="h-4 w-4 shrink-0 text-apple-ink-muted/60 transition-colors duration-200 dark:text-white/30 motion-reduce:transition-none"
-          strokeWidth={1.8}
-          aria-hidden
         />
       ) : null}
     </Pressable>

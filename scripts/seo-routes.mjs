@@ -75,7 +75,8 @@ const SHELL_CSS = `
     <style>
       .st-seo { min-height: 100dvh; display: flex; flex-direction: column;
         background: #ffffff; color: #1d1d1f;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        font-family: 'Allo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-optical-sizing: auto; font-variation-settings: 'ROND' 0; }
       html.dark .st-seo { background: #181818; color: #e4e4e4; }
       .st-seo a { color: #d9560e; text-decoration: none; font-weight: 500; }
       html.dark .st-seo a { color: #ff8a3d; }

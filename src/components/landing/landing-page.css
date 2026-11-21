@@ -76,7 +76,7 @@ html[st-theme-vt]:has(.landing-header) {
    the two small, static edge filters soften the clipped marks. */
 .landing-browsers { min-width: 0; padding-block: 48px; border-block: 1px solid var(--color-apple-divider); }
 .landing-browser-head { position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; padding-inline: 48px; }
-.landing-browser-head h2 { max-width: 680px; font-size: 30px; line-height: 36px; letter-spacing: -.025em; font-weight: 600; text-align: center; text-wrap: balance; }
+.landing-browser-head h2 { max-width: 680px; font-size: 30px; line-height: 36px; letter-spacing: -.01em; font-weight: 600; text-align: center; text-wrap: balance; }
 .landing-marquee-toggle { position: absolute; inset-inline-end: 0; width: 44px; height: 44px; padding: 0; border-radius: 50%; }
 .landing-browser-marquee { position: relative; isolation: isolate; overflow: hidden; min-width: 0; margin-top: 24px; mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
 .landing-browser-marquee::before, .landing-browser-marquee::after { content: ''; position: absolute; z-index: 1; inset-block: 0; width: 24px; pointer-events: none; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -109,7 +109,7 @@ html[st-theme-vt]:has(.landing-header) {
 /* Two product moments, one continuous story. Type carries the hierarchy;
    the little application surfaces explain rather than decorate. */
 .landing-section-head { margin-bottom: 40px; }
-.landing-section-head h2 { max-width: 16ch; white-space: pre-line; font-size: var(--text-title); letter-spacing: -.035em; line-height: 1.1; }
+.landing-section-head h2 { max-width: 16ch; white-space: pre-line; font-size: var(--text-title); letter-spacing: -.012em; line-height: 1.1; }
 .landing-guide { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr); align-items: center; gap: 64px; }
 .landing-guide-steps { display: grid; gap: 12px; }
 .landing-guide-step { display: grid; grid-template-columns: 24px minmax(0,1fr); gap: 16px; width: 100%; min-height: 44px; padding: 20px; border: 1px solid transparent; border-radius: 16px; text-align: start; cursor: pointer; transition: transform var(--motion-micro) var(--ease-out); }
@@ -161,7 +161,7 @@ html[st-theme-vt]:has(.landing-header) {
 .landing-receipt-status svg { width: 12px; height: 12px; }
 .landing-story-later { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr); align-items: center; gap: 64px; margin-top: 64px; padding-top: 64px; border-top: 1px solid var(--color-apple-divider); }
 .landing-space-label { display: block; margin-bottom: 12px; color: var(--color-apple-ink-muted); font-size: 12px; font-weight: 500; }
-.landing-story-later-copy h3 { max-width: 15ch; font-size: 36px; line-height: 1.15; letter-spacing: -.035em; text-wrap: pretty; }
+.landing-story-later-copy h3 { max-width: 15ch; font-size: 36px; line-height: 1.15; letter-spacing: -.015em; text-wrap: pretty; }
 .landing-story-later-copy > p { margin-top: 16px; }
 .landing-story-later-copy > .landing-space-storage { padding-inline-start: 16px; border-inline-start: 2px solid var(--color-apple-divider); font-size: 13px; }
 .landing-story-later-art { min-width: 0; }
