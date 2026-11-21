@@ -605,6 +605,7 @@ const ja: Dict = {
   'space.cancel': 'キャンセル',
   'space.contentLabel': '共有コンテンツ',
   'space.empty': 'まだ何もありません',
+  'space.emptyAction': 'メモを書く',
   'space.emptyHint': '下からテキスト、リンク、写真、ファイルを追加できます。',
   'space.composerPlaceholder': '追加する — テキストやリンク…',
   'space.addFile': 'ファイル',

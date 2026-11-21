@@ -15,6 +15,7 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  'space.emptyAction': '寫一則筆記',
   'film.download': "下載影片",
   'film.from': "從一個螢幕",
   'film.to': "到另一個螢幕。",

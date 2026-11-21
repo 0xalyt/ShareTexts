@@ -605,6 +605,7 @@ const zh: Dict = {
   'space.cancel': '取消',
   'space.contentLabel': '共享内容',
   'space.empty': '这里还没有内容',
+  'space.emptyAction': '写一条笔记',
   'space.emptyHint': '在下方添加文字、链接、照片或任意文件。',
   'space.composerPlaceholder': '添加内容——文字、链接…',
   'space.addFile': '文件',

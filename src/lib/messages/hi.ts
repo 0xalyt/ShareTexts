@@ -605,6 +605,7 @@ const hi: Dict = {
   'space.cancel': 'रद्द करें',
   'space.contentLabel': 'साझा सामग्री',
   'space.empty': 'अभी यहाँ कुछ नहीं है',
+  'space.emptyAction': 'एक नोट लिखें',
   'space.emptyHint': 'नीचे टेक्स्ट, लिंक, तस्वीरें या कोई भी फ़ाइल जोड़ें।',
   'space.composerPlaceholder': 'कुछ जोड़ें — टेक्स्ट, लिंक…',
   'space.addFile': 'फ़ाइल',
