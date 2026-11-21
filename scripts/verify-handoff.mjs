@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { get as getHTTP } from 'node:http';
 import { get as getHTTPS } from 'node:https';
-import { launchBrowser, clickStable, resolveEngine, gotoPage } from './lib.mjs';
+import { launchBrowser, clickStable, resolveEngine } from './lib.mjs';
 import jsQR from 'jsqr';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 
@@ -66,11 +66,11 @@ try {
   const readingErrors = [];
   reader.on('pageerror', error => readingErrors.push(error.message));
   for (const path of ['/about', '/docs', '/privacy', '/terms']) {
-    await gotoPage(reader, `${BASE}${path}`);
+    await reader.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
     await reader.getByTestId('site-footer').waitFor();
     check(`${path}: reading needs no WebRTC`, await reader.locator('main h1').count() === 1 && (await reader.locator('main').innerText()).length > 100);
   }
-  await gotoPage(reader, BASE);
+  await reader.goto(BASE, { waitUntil: 'domcontentloaded' });
   await reader.getByRole('heading', { name: "Your browser can't make device-to-device connections", exact: true }).waitFor();
   check('unsupported transfer browsers still get an honest explanation', await reader.getByTestId('home-send').count() === 0);
   assert.deepEqual(readingErrors, [], 'reading without WebRTC has no runtime errors');
@@ -84,7 +84,7 @@ try {
       page.setDefaultTimeout(15_000);
       const errors = [];
       page.on('pageerror', e => errors.push(e.message));
-      await gotoPage(page, BASE);
+      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       if (width < 1024) {
@@ -237,12 +237,12 @@ try {
         // Firefox drops context-level color emulation on its first real
         // navigation. Prime plain text (not Firefox's JSON viewer), then establish the OS before
         // the first landing visit; no app/poster has been fetched yet.
-        await gotoPage(page, new URL('/robots.txt', BASE).href);
+        await page.goto(new URL('/robots.txt', BASE).href, { waitUntil: 'domcontentloaded' });
         await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
       }
       const requests = [];
       page.on('request', request => { if (/\/film\/.*-poster\./.test(request.url())) requests.push(request.url()); });
-      await gotoPage(page, BASE);
+      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       const inspect = () => page.evaluate(() => {
@@ -295,7 +295,7 @@ try {
 
   const laptop = await diagnostics.newContext({ viewport: { width: 1024, height: 700 }, reducedMotion: 'reduce' });
   const shortPage = await laptop.newPage();
-  await gotoPage(shortPage, BASE);
+  await shortPage.goto(BASE, { waitUntil: 'domcontentloaded' });
   await shortPage.getByTestId('hero-demo').waitFor();
   await shortPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const shortLayout = await shortPage.evaluate(() => {
@@ -313,7 +313,7 @@ try {
     const typing = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'no-preference' });
     await typing.addInitScript(value => localStorage.setItem('sharetext.theme', value), theme);
     const entry = await typing.newPage();
-    await gotoPage(entry, BASE);
+    await entry.goto(BASE, { waitUntil: 'domcontentloaded' });
     await entry.getByTestId('intent-input').waitFor();
     await entry.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     const input = entry.getByTestId('intent-input');
@@ -363,7 +363,7 @@ try {
     const dark = await diagnostics.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
     await dark.addInitScript(() => localStorage.setItem('sharetext.theme', 'dark'));
     const darkPage = await dark.newPage();
-    await gotoPage(darkPage, BASE);
+    await darkPage.goto(BASE, { waitUntil: 'domcontentloaded' });
     await darkPage.getByTestId('hero-demo').waitFor();
     await darkPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     check(`${width}: dark landing retains its theme without overflow`, await darkPage.evaluate(() =>
@@ -375,7 +375,7 @@ try {
 
   const ctx = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
-  await gotoPage(page, BASE);
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   const demo = page.getByTestId('hero-demo');
   await demo.scrollIntoViewIfNeeded();
   await page.waitForTimeout(3600);
@@ -427,7 +427,7 @@ try {
 
   const phone = await diagnostics.newContext({ viewport: { width: 320, height: 720 }, reducedMotion: 'reduce' });
   const p = await phone.newPage();
-  await gotoPage(p, BASE);
+  await p.goto(BASE, { waitUntil: 'domcontentloaded' });
   await p.getByTestId('home-receive').waitFor();
   await p.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const action = await p.getByTestId('home-receive').boundingBox();

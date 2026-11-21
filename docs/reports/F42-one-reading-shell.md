@@ -20,7 +20,7 @@ About copy lives once in `src/views/about-content.html`, imported by the React v
 
 Review caught the transfer capability gate blocking the newly app-rendered About when WebRTC is disabled. Reading routes now bypass that transfer-only gate, while the landing/transfer flow still explains unsupported browsers. The handoff regression suite reproduces the blocked About before the fix and checks all four reading routes plus the retained transfer gate in each CI browser engine.
 
-After integrating isolated-Worker CI, Firefox reproduced a first-navigation timeout locally despite a loaded document, healthy local signaling and no pending requests or runtime errors. `gotoPage` permits one Firefox-only retry if Playwright still reports `about:blank`; non-navigation errors, other engines, already-navigated pages and a second timeout still fail. Existing handoff assertions remain unchanged. A complete local Firefox handoff run and mocked retry-boundary checks pass. WebKit's separate queued-file failure has been handed to the reliability workstream; merge still requires every check to pass.
+Isolated-Worker CI exposed shared Firefox navigation and WebKit queued-file failures. Traces, a local Firefox reproduction and a bounded retry draft were handed to reliability; at the owner's request neither shared fix is included here. Integrate the reliability fix from main before the final full-green run.
 
 ## Evidence
 
