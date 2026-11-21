@@ -260,7 +260,7 @@ export function SendScreen({
 
       {/* ── QR ───────────────────────────────────────────────────────── */}
       {segment === 'qr' && (
-        <div>
+        <div className="st-send-qr">
           <QrPlate value={shareUrl} label={t('qr.art.label')} />
           <p className="mt-3 text-center text-[13px] text-apple-ink-muted dark:text-white/70">{t('send.qrCaption')}</p>
         </div>
@@ -295,7 +295,7 @@ export function SendScreen({
 
   return (
     <div className="st-task w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll flex flex-col">
+      <div className="st-send-content min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll flex flex-col">
       <h2 className="shrink-0 text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
         {t('send.title')}
       </h2>
@@ -303,7 +303,7 @@ export function SendScreen({
       {/* The code IS the screen, so it sits in the middle of the pane under
           the title. Flush to the top it left a tall empty band down to the
           waiting pill and the page read as two unrelated halves. */}
-      <div className="flex flex-1 flex-col justify-center py-6 [@media(max-height:520px)]:block [@media(max-height:520px)]:py-0">
+      <div className="st-send-methods flex flex-1 flex-col justify-center py-6 [@media(max-height:520px)]:block [@media(max-height:520px)]:py-0">
       <PairingGuide />
 
       {isCreating && !secret ? (

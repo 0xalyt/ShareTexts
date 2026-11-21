@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon,
   Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
-  X, XCircle,
+  Users, X, XCircle,
 } from 'lucide-react';
 import { LogoTraceLoader } from '../components/LogoTraceLoader';
 import { QrArt } from '../components/qr/QrArt';
@@ -902,8 +902,8 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             style={{ width: `${Math.min(100, Math.round(((nowMs - (snapshot.createdAt ?? snapshot.expiresAt - 24 * 3_600_000)) / Math.max(1, snapshot.expiresAt - (snapshot.createdAt ?? snapshot.expiresAt - 24 * 3_600_000))) * 100))}%` }}
           />
         )}
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-          <a href="/" aria-label={t('space.backHome')} className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08]">
+        <div className="st-space-header max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+          <a href="/" aria-label={t('space.backHome')} className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08]">
             <ArrowLeft className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
           </a>
           <div className="min-w-0 flex-1">
@@ -928,15 +928,21 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           )}
           {snapshot && (
             <span className="st-chip shrink-0 tabular-nums" data-testid="space-members">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-success shrink-0" aria-hidden />
-              {snapshot.memberCount === 1
-                ? t('space.memberCountOne')
-                : t('space.memberCount', { count: snapshot.memberCount })}
+              <span className="hidden min-[400px]:block w-1.5 h-1.5 rounded-full bg-status-success shrink-0" aria-hidden />
+              <span className="inline-flex min-[400px]:hidden items-center gap-1" aria-hidden>
+                <Users className="w-3.5 h-3.5" />{snapshot.memberCount}
+              </span>
+              <span className="sr-only min-[400px]:not-sr-only">
+                {snapshot.memberCount === 1
+                  ? t('space.memberCountOne')
+                  : t('space.memberCount', { count: snapshot.memberCount })}
+              </span>
             </span>
           )}
           <button
             onClick={() => setShareOpen(true)}
-            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform"
+            aria-label={t('space.share')}
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform"
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -945,9 +951,11 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           {canClose && (
             <button
               onClick={() => setCloseConfirm(true)}
-              className="shrink-0 min-h-[36px] px-3 rounded-full text-[13px] font-medium text-red-600/90 dark:text-red-400/90 hover:bg-red-500/[0.08]"
+              aria-label={t('space.closeNow')}
+              className="st-space-close shrink-0 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-3 rounded-full text-[13px] font-medium text-red-600/90 dark:text-red-400/90 hover:bg-red-500/[0.08]"
             >
-              {t('space.closeNow')}
+              <XCircle className="w-[18px] h-[18px] min-[400px]:hidden" aria-hidden />
+              <span className="hidden min-[400px]:inline">{t('space.closeNow')}</span>
             </button>
           )}
         </div>

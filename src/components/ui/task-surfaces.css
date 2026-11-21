@@ -64,6 +64,8 @@
 .st-task [data-testid='receive-join']:disabled { cursor: not-allowed; }
 .st-task [data-testid='receive-scan'] { border-radius: 16px; background: var(--task-surface); border-color: var(--task-line); }
 .st-task [data-testid='receive-scan']:disabled { opacity: .5; cursor: wait; }
+.st-task [data-testid='share-link'] { --morph-fill: var(--color-brand); color: #1d1d1f; text-shadow: none; }
+.st-task [data-testid='share-link'] .morph-btn__surface { box-shadow: var(--task-shadow); }
 .st-task-sheet .st-task-sheet-heading { display: flex; gap: 12px; align-items: center; min-width: 0; }
 .st-task-sheet .st-task-sheet-mark {
   display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0;
@@ -94,12 +96,28 @@
   .st-room-start { padding: 20px; }
   .st-space [data-testid='space-empty'] { padding: 24px; }
   .st-pair-guide { gap: 12px; }
+  .st-space-header { height: auto; min-height: 56px; padding-block: 8px; gap: 6px; }
+  .st-space-header [data-testid='space-members'] { padding-inline: 8px; }
 }
 @media (max-height: 620px) {
   .st-pair-guide { display: none; }
   .st-task-intro { margin-top: 6px; font-size: 13px; line-height: 1.4; }
   .st-task [data-testid='send-code-card'] { padding-block: 12px; }
   .st-task [data-testid='pairing-code'] { margin-block: 10px; }
+}
+/* Landscape uses the width it has instead of shrinking touch targets or
+   forcing the pairing action and QR below the pinned waiting state. */
+@media (min-width: 600px) and (max-height: 520px) {
+  .st-task[data-testid='send-screen'] { max-width: 720px; }
+  .st-send-content { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); grid-template-rows: auto auto; column-gap: 32px; align-content: center; }
+  .st-send-content > h2 { grid-column: 1; grid-row: 1; align-self: end; }
+  .st-send-content > .st-task-intro { grid-column: 1; grid-row: 2; align-self: start; }
+  .st-send-methods { grid-column: 2; grid-row: 1 / span 2; display: block; padding-block: 0; min-width: 0; }
+  .st-send-methods [data-testid='send-segments'] { margin-top: 0; }
+  .st-send-methods [data-testid='copy-code'], .st-send-methods [data-testid='new-code'], .st-send-methods [data-testid='share-link'] { min-height: 44px; }
+  .st-send-qr { display: flex; align-items: center; gap: 12px; }
+  .st-send-qr [data-testid='qr-plate'] { width: 160px; flex-shrink: 0; margin: 0; }
+  .st-send-qr > p { margin: 0; text-align: start; }
 }
 @media (prefers-reduced-motion: reduce) {
   .st-room-starters > button { transition: none; }
