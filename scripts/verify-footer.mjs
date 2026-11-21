@@ -45,6 +45,7 @@ const promise = ['footer.noApp', 'footer.noAccount', 'footer.devices'].map(key =
 assert.ok(text(about).includes(`ShareTexts · ${promise}`), 'About footer promise differs');
 const shared = readFileSync('src/components/marketing/SiteFooter.tsx', 'utf8');
 assert.ok(shared.includes("t('footer.devices')"), 'SiteFooter must use the storage-neutral promise');
+assert.ok(shared.includes('<LanguageMenu inline'), 'Footer language control must use the viewport-safe sheet');
 assert.ok(text(about).includes(shared.match(/iPhone ·[^<\n]+/)[0].trim()), 'Supported-platform copy differs');
 
 const locales = constant('src/lib/messages/registry.ts', 'LANGS').elements.map(locale => locale.properties.find(property => property.name.text === 'code').initializer.text);
