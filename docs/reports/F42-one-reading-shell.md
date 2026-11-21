@@ -18,6 +18,8 @@ About copy lives once in `src/views/about-content.html`, imported by the React v
 
 `verify-footer` requires the actual shared footer on About, the canonical routing/redirect, explicit locale notices and Traditional Chinese navigation overrides. Server CSP pin discovery now reads the surviving guides index rather than the deleted About HTML; no CSP policy is weakened.
 
+Review caught the transfer capability gate blocking the newly app-rendered About when WebRTC is disabled. Reading routes now bypass that transfer-only gate, while the landing/transfer flow still explains unsupported browsers. The handoff regression suite reproduces the blocked About before the fix and checks all four reading routes plus the retained transfer gate in each CI browser engine.
+
 ## Evidence
 
 - `npm run lint`, `npm run verify:claims` (23 claim fixtures), `node scripts/verify-locales.mjs`, `npm run build`, CSP pin check and `npm run verify:bundle` passed.

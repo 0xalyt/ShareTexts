@@ -130,6 +130,7 @@ function CapabilityGate({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [ok] = useState(() => {
     try {
+      if (['/docs', '/about', '/privacy', '/terms'].includes(window.location.pathname)) return true;
       const RTC = (window as unknown as { RTCPeerConnection?: unknown; webkitRTCPeerConnection?: unknown }).RTCPeerConnection
         ?? (window as unknown as { webkitRTCPeerConnection?: unknown }).webkitRTCPeerConnection;
       if (typeof RTC === 'undefined') return false;
