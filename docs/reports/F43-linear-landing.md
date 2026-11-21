@@ -34,7 +34,7 @@ Heading → sharing actions → film at every width, not a desktop split. Gray b
 - `npm run verify:bundle`: passed, entry 178.7KiB gzip, below 180KiB hard gate (above 177KiB working target).
 - `npm run verify:handoff` (Chromium): passed, including phone widths, locales, keyboard, QR decoding, clipboard failure, film play/pause, theme matrix and 1024px linear order.
 - `npm run verify:layout`: passed after teaching the phone gate to measure the contained marquee viewport. Log: `audit/tmp/f43-layout.log`.
-- Chromium final handoff: passed (`audit/tmp/f43-handoff-chromium-final.log`). Firefox passed after changing the inert `/health` priming visit from default load to DOMContentLoaded (`audit/tmp/f43-handoff-firefox-retry.log`). WebKit passed (`audit/tmp/f43-handoff-webkit.log`).
+- Before current-main integration, Chromium final handoff passed (`audit/tmp/f43-handoff-chromium-final.log`), Firefox passed after changing the inert `/health` priming visit from default load to DOMContentLoaded (`audit/tmp/f43-handoff-firefox-retry.log`), and WebKit passed (`audit/tmp/f43-handoff-webkit.log`). Current integrated Firefox status is blocked as recorded below.
 - Initial local UI testing caught a 240px uncovered lane at the desktop marquee boundary: one 896px group did not cover the 1136px viewport. Three sets, advancing exactly one-third, retain at least one full viewport after a cycle. Added a geometry regression. Fresh production-build UI retesting measured 0px uncovered and no position jump at the light and dark loop boundaries.
 - Final annotated [UI recording](https://app.devin.ai/sessions/519f23e8501a4602b8ad36b0399832ca?testRecording=159ea190-0c59-42f4-a370-f61264341e00): passed 1440px, 1024×700, 390px, 320px, Arabic RTL, dark mode, static reduced-motion logos, keyboard reading order and pause controls, copy/QR focus return, Expired/restored duration. Screenshots: `/home/ubuntu/screenshots/linear-fixed-desktop-hero.png`, `linear-fixed-dark-hero.png`, `linear-fixed-en-US-390-hero.png`, `linear-fixed-en-US-320-hero.png`, `linear-fixed-desktop-marquee-before-wrap.png`, `linear-fixed-ar-320-marquee.png`.
 - Pre-push bundle and layout hooks: passed without skips. [PR #19](https://github.com/0xalyt/ShareTexts/pull/19) is open and intentionally unmerged under Paul's explicit outage exception.
@@ -43,8 +43,16 @@ Heading → sharing actions → film at every width, not a desktop split. Gray b
 - Main post-merge [run](https://github.com/0xalyt/ShareTexts/actions/runs/44882504842): all three browser jobs stopped at the Composer geometry gate's pairing-code timeout during the Worker incident.
 - `git diff --check`: passed.
 
+## Current-main integration
+
+- Integrated main `bdfb21c` from [PR #20](https://github.com/0xalyt/ShareTexts/pull/20), including its browser diagnostics and bounded font/poster waits. Resolved the handoff harness by retaining both mounted-control waits and DOMContentLoaded navigation. Landing behavior and film assets are unchanged by this integration; Worker and sharing changes are inherited from main, not authored in this branch.
+- Integrated TypeScript, build and bundle verification passed (`audit/tmp/f43-integrated-build.log`, `audit/tmp/f43-integrated-bundle.log`). Integrated Chromium and WebKit handoff passed (`audit/tmp/f43-integrated-chromium.log`, `audit/tmp/f43-integrated-webkit.log`).
+- Integrated Firefox did not complete: one dev-server run timed out navigating to the landing, then a dev-server retry and a built-production-server run timed out on the inert `/health` priming visit after locale and partial theme checks. All use DOMContentLoaded. No assertion or timeout was weakened. Logs: `audit/tmp/f43-integrated-firefox.log`, `audit/tmp/f43-integrated-firefox-retry.log`, `audit/tmp/f43-integrated-firefox-production.log`.
+- New failure diagnostics show no console/page errors or pending requests at timeout. The first failure had a complete rendered app document despite Playwright reporting an about:blank page URL; the production failure remained on about:blank with no requests recorded. Cause is NOT VERIFIED. Repeated navigation failures and diagnostic paths were sent to the reliability owner as requested.
+
 ## NOT VERIFIED / blockers
 
+- Integrated Firefox handoff is not green; see current-main integration above. The earlier Firefox pass is not evidence that the integrated branch passes.
 - `npm run smoke:local` production sharing failed at room creation after 20s. Reliability traced the live Worker's `/ws` and `/stats` to HTTP 500 / Cloudflare 1101; missing CORS headers are a symptom. No transport changes are included here. Merge remains blocked until required checks pass.
 - Physical Android/iOS devices, native Safari and old-device frame pacing are not verified by desktop browser emulation.
 - Background-tab pause was not verified: the test browser did not enter `document.hidden` during tab switching/minimizing. Offscreen pause was verified; page-visibility listener is retained.
