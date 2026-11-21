@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const de: Dict = {
+  'reading.englishOnly': "Diese Seite ist derzeit nur auf Englisch verfügbar.",
   'film.download': "Film herunterladen",
   'film.from': "Von einem Bildschirm",
   'film.to': "zum anderen.",

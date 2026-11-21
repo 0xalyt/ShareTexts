@@ -1,3 +1,17 @@
+.reading-language-note {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 20px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-apple-ink-muted);
+}
+.dark .reading-language-note { color: rgb(255 255 255 / .6); }
+@media (min-width: 640px) { .reading-language-note { padding-inline: 24px; } }
+@media (min-width: 1024px) { .reading-language-note { padding-inline: 32px; } }
+@media (min-width: 1536px) { .reading-language-note { padding-inline: 48px; } }
+
 .reading-page {
   --reading-ink: var(--color-apple-ink);
   --reading-muted: var(--color-apple-ink-muted);

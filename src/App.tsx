@@ -23,6 +23,7 @@ import { OfflineBanner } from './components/AnnouncementBar';
 // separate routes, streamed in only when visited.
 import { SingleScreenApp } from './views/SingleScreenApp';
 const Docs = lazy(() => import('./views/Docs').then(m => ({ default: m.Docs })));
+const About = lazy(() => import('./views/About').then(m => ({ default: m.About })));
 const Legal = lazy(() => import('./views/Legal').then(m => ({ default: m.Legal })));
 const SpaceView = lazy(() => import('./views/SpaceView').then(m => ({ default: m.SpaceView })));
 
@@ -277,10 +278,9 @@ function AppContent() {
     return <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton /></SkeletonGate>}><Legal page="terms" /></Suspense>;
   }
 
-  // /about is NOT an app route: the server (dev parity with production and
-  // vercel.json) serves the static SEO guide at its canonical URL, so the
-  // app never mounts there. An in-app About component would be a second,
-  // unreachable copy of that page.
+  if (typeof window !== 'undefined' && window.location.pathname === '/about') {
+    return <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton /></SkeletonGate>}><About /></Suspense>;
+  }
 
   if (typeof window !== 'undefined' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/s/')) {
     // The 404 is a DESIGNED screen, not a dead end: brand, honest state,
@@ -328,7 +328,7 @@ function AppContent() {
 
 function SkipLink() {
   const { t } = useI18n();
-  if (['/docs', '/privacy', '/terms'].includes(window.location.pathname)) return null;
+  if (['/docs', '/about', '/privacy', '/terms'].includes(window.location.pathname)) return null;
   return (
     // Keyboard users jump past the hero to main content
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-azure-600 focus:text-white focus:rounded-lg focus:text-[16px] focus:font-semibold">

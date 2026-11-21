@@ -1,4 +1,5 @@
 const en = {
+  'reading.englishOnly': "This page is currently available in English only.",
   'film.download': "Download film",
   'film.from': "From one screen",
   'film.to': "to the other.",

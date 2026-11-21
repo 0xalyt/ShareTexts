@@ -15,6 +15,23 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  'reading.englishOnly': "此頁面目前僅提供英文版本。",
+  'nav.docs': '說明文件',
+  'nav.about': '關於',
+  'nav.privacy': '隱私',
+  'nav.terms': '條款',
+  'nav.guides': '指南',
+  'footer.useIt': '開始使用',
+  'footer.read': '閱讀',
+  'footer.legal': '法律資訊',
+  'footer.open': '開啟 ShareTexts',
+  'footer.withCode': '使用代碼分享',
+  'footer.devs': '開發者資訊',
+  'footer.report': '回報問題',
+  'footer.noApp': '無需安裝應用程式',
+  'footer.noAccount': '無需帳號',
+  'footer.followAria': '在 X 上關注',
+  'footer.language': '語言',
   'footer.devices': '你的裝置',
   'demo.s7': '用完後關閉房間。',
   'home.faq.a6': '即時房間在傳輸過程中加密。服務會簽發房間密鑰，因此並非零知識系統。臨時空間的文字和連結會儲存在伺服器上，直到空間關閉或到期。已儲存的項目保留在瀏覽器中。詳情請參閱隱私政策。',

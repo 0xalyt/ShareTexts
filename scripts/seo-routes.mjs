@@ -151,14 +151,14 @@ const SHELL_CSS = `
 
 const LOGO_SVG = `<img src="/brand/logo-glyph-orange.webp" alt="" width="26" height="26" style="display:block;flex-shrink:0" aria-hidden="true">`;
 
-function shellBody({ overline, h1, subtitle, main, footerNote }) {
+function shellBody({ overline, h1, subtitle, main, footerNote, intro = true }) {
   return `<div id="root">
       <div class="st-seo">
         <header class="st-seo-header"><a href="/" aria-label="ShareTexts home" style="display:flex;align-items:center;gap:8px;color:inherit">${LOGO_SVG}<span>ShareTexts</span></a></header>
         <main class="st-seo-main">
-          <p class="overline">${overline}</p>
+          ${intro ? `<p class="overline">${overline}</p>
           <h1>${h1}</h1>
-          <p class="subtitle">${subtitle}</p>
+          <p class="subtitle">${subtitle}</p>` : ''}
           ${main}
         </main>
         <footer class="st-seo-footer">
@@ -493,6 +493,19 @@ emit('404.html', {
     subtitle: "The page you are looking for doesn't exist — it may have moved, or the address may be wrong.",
     main: `<p>ShareTexts is a free browser app for moving text, links, photos, and files between your own devices — no app, no account. Start from <a href="/">the homepage</a>, or read <a href="/docs">the docs</a> to see how it works.</p>`,
   }),
+});
+
+emit('about.html', {
+  head: swapMeta(base, {
+    title: 'About ShareTexts — A small bridge between your devices',
+    description: 'Move text, links, photos, and files between your devices in the browser. Why ShareTexts exists, how it works, and what happens to your content.',
+    canonicalPath: '/about',
+  }),
+  body: shellBody({
+    intro: false,
+    main: readFileSync('src/views/about-content.html', 'utf8'),
+  }),
+  jsonLd: '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', '@type': 'AboutPage', name: 'About ShareTexts', url: 'https://sharetexts.online/about' }) + '</script>',
 });
 
 console.log('seo-routes: done');

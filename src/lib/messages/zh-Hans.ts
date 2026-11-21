@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const zh: Dict = {
+  'reading.englishOnly': "此页面目前仅提供英文版本。",
   'film.download': "下载影片",
   'film.from': "从一个屏幕",
   'film.to': "到另一个屏幕。",

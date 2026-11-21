@@ -36,9 +36,7 @@ out(chk.status === 0, 'pin-csp --check');
 // ── 2. the live policy ─────────────────────────────────────────────────────
 if (LIVE) {
   console.log(`[verify-csp] live policy on ${BASE}:`);
-  // /about is the rewrite that serves dist/guides/about.html — it hosts the
-  // second pin, so it must be fetched or "pin matches no script" can't be
-  // decided. The SEO shells host the same boot hash as /.
+  // Every canonical reading route hosts the same boot hash as /.
   const paths = ['/', '/about', '/docs', '/privacy', '/terms'];
   const livePins = new Map(); // pin -> pages shipping it
   let header = null;
