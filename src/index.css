@@ -1234,7 +1234,7 @@ html[st-theme-vt] {
    list can hold big file previews and long text; this is cheap virtualization
    without changing DOM structure). contain-intrinsic-size keeps the scrollbar
    honest. */
-.room-scroll > * > * {
+.room-scroll [class~="group/msg"] {
   content-visibility: auto;
   contain-intrinsic-size: auto 72px;
 }
