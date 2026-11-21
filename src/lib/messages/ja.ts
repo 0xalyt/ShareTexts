@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  'reading.englishOnly': "このページは現在、英語のみで提供しています。",
   'film.download': "動画をダウンロード",
   'film.from': "ひとつの画面から",
   'film.to': "もうひとつの画面へ。",

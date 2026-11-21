@@ -45,6 +45,37 @@ try {
   const directives = value => value.split(';').filter(s => s !== 'upgrade-insecure-requests').sort().join(';');
   check('loopback retains every other CSP directive', directives(local) === directives(external));
 
+  // Isolate capabilities from service-worker caching and the live worker's CORS.
+  const noRtc = await browser.newContext({ serviceWorkers: 'block' });
+  await noRtc.route('**/stats', route => route.fulfill({
+    json: { users: 0, roomsCreated: 0 },
+    headers: { 'access-control-allow-origin': '*' },
+  }));
+  await noRtc.route('**/api/event?*', route => route.fulfill({
+    status: 204,
+    headers: { 'access-control-allow-origin': '*' },
+  }));
+  await noRtc.addInitScript(() => {
+    for (const key of ['RTCPeerConnection', 'webkitRTCPeerConnection']) {
+      Object.defineProperty(window, key, { value: undefined, configurable: true });
+    }
+    localStorage.setItem('sharetext.locale', 'en');
+  });
+  const reader = await noRtc.newPage();
+  reader.setDefaultTimeout(10_000);
+  const readingErrors = [];
+  reader.on('pageerror', error => readingErrors.push(error.message));
+  for (const path of ['/about', '/docs', '/privacy', '/terms']) {
+    await reader.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
+    await reader.getByTestId('site-footer').waitFor();
+    check(`${path}: reading needs no WebRTC`, await reader.locator('main h1').count() === 1 && (await reader.locator('main').innerText()).length > 100);
+  }
+  await reader.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await reader.getByRole('heading', { name: "Your browser can't make device-to-device connections", exact: true }).waitFor();
+  check('unsupported transfer browsers still get an honest explanation', await reader.getByTestId('home-send').count() === 0);
+  assert.deepEqual(readingErrors, [], 'reading without WebRTC has no runtime errors');
+  await noRtc.close();
+
   for (const locale of ['en', 'es', 'ar']) {
     for (const width of [320, 360, 390, 1440]) {
       const ctx = await diagnostics.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });

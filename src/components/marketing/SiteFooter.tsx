@@ -64,6 +64,7 @@ export function SiteFooter({ className }: { className?: string }) {
   const year = new Date().getFullYear();
   return (
     <footer
+      data-testid="site-footer"
       className={cn(
         // Its own band, edge to edge: the tone change is the divider, so the
         // footer needs no border and no shadow on top of it.
