@@ -72,6 +72,21 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   'action.save': '儲存',
   'action.copy': '複製',
   'msg.copy': '複製',
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "瀏覽器不同。傳遞一樣簡單。",
+  "home.browser.body": "不需使用相同的瀏覽器。在兩台裝置上開啟 ShareTexts 即可。",
+  "home.browser.open": "在另一台裝置上開啟",
+  "home.browser.qr": "顯示網站 QR 碼",
+  "home.browser.qrHint": "掃碼開啟此頁面，然後使用房間代碼連線。",
+  "home.browser.copyFailed": "選取並複製網址，或掃描 QR 碼。",
+  "home.space.storage": "空間使用暫存伺服器儲存。請只與信任的人分享代碼。",
+  "home.space.preview": "互動式預覽。不會儲存任何內容。",
+  "home.space.open": "開放期間",
+  "home.space.closed": "到期之後",
+  "home.space.example": "週末計畫",
+  "home.space.note": "火車09:30出發。出發前喝杯咖啡？",
+  "home.browser.hideQr": "隱藏網站 QR 碼",
+
   // Hop — linked devices (My devices)
   "hop.title": "我的裝置",
   "hop.row.hint": "連結一次，隨時傳送",
