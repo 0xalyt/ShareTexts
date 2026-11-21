@@ -6,9 +6,9 @@ import './landing/hero-film.css';
 
 type Connection = EventTarget & { saveData?: boolean };
 const connection = () => (navigator as Navigator & { connection?: Connection }).connection;
-const MOVIE = '/film/sharetexts-launch-v1.mp4';
-const FULL_MOVIE = '/film/sharetexts-launch-v1-full.mp4';
-const POSTER = '/film/sharetexts-launch-v1-poster.jpg';
+const MOVIE = '/film/sharetexts-launch-v2.mp4';
+const FULL_MOVIE = '/film/sharetexts-launch-v2-full.mp4';
+const POSTER = '/film/sharetexts-launch-v2-poster.jpg';
 
 /** Pre-rendered film; no media request until visible. Motion/data preferences
  * require explicit play. Visibility pauses preserve the visitor's choice. */
@@ -77,15 +77,18 @@ export function HeroLaunchFilm({ className }: { className?: string }) {
           onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)}
           onError={() => { setFailed(true); setPlaying(false); }} />
         {failed && <img className="hero-film-fallback" src={POSTER} alt="" width="1440" height="810" />}
+        {!failed && <button className="hero-film-play" type="button" onClick={toggle} aria-label={t(playing ? 'film.pause' : 'film.play')} title={t(playing ? 'film.pause' : 'film.play')}>
+          {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+        </button>}
       </div>
       <figcaption className="hero-film-caption">
-        <div><span className="hero-film-eyebrow">{t('film.label')}</span><p id={summaryId}>{t('film.summary')}</p></div>
-        <div className="hero-film-actions"><a className="hero-film-download" href={FULL_MOVIE} download="ShareTexts-launch.mp4" aria-label={t('film.download')}><Download aria-hidden="true" /></a>
-        {!failed && <button className="hero-film-play" type="button" onClick={toggle} aria-label={t(playing ? 'film.pause' : 'film.play')}>
-          {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-        </button>}</div>
+        <span className="hero-film-eyebrow">{t('film.label')}</span>
+        <p id={summaryId} className="sr-only">{t('film.summary')}</p>
+        <div className="hero-film-actions">
+          <a className="hero-film-watch" href={FULL_MOVIE} target="_blank" rel="noreferrer">{t('film.watch')}<ArrowUpRight aria-hidden="true" /></a>
+          <a className="hero-film-download" href={FULL_MOVIE} download="ShareTexts-launch.mp4" aria-label={t('film.download')} title={t('film.download')}><Download aria-hidden="true" /></a>
+        </div>
       </figcaption>
-      <a className="hero-film-watch" href={FULL_MOVIE} target="_blank" rel="noreferrer">{t('film.watch')}<ArrowUpRight aria-hidden="true" /></a>
     </figure>
   );
 }

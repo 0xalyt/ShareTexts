@@ -52,7 +52,7 @@ const browser = await launchBrowser();
     await sleep(900);
     const h = await hero(p);
     ok(h.visCount === 1 && h.visState === 'film', `${width}px: exactly one visible hero, and it is the film (${h.states.join('/') || 'none'})`);
-    ok(h.src === '/film/sharetexts-launch-v1.mp4', `${width}px: the hero serves the launch film encode`);
+    ok(h.src === '/film/sharetexts-launch-v2.mp4', `${width}px: the hero serves the launch film encode`);
     await ctx.close();
   }
 }
@@ -155,7 +155,7 @@ const browser = await launchBrowser();
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage();
-  await p.route('**/film/sharetexts-launch-v1.mp4', route => route.abort());
+  await p.route('**/film/sharetexts-launch-v2.mp4', route => route.abort());
   await p.goto(URL, { waitUntil: 'networkidle' });
   const film = p.getByTestId('hero-demo');
   await film.scrollIntoViewIfNeeded();
