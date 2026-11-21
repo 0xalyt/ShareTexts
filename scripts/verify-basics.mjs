@@ -137,6 +137,13 @@ const phone = await page.evaluate(() => {
   const r = btn ? btn.getBoundingClientRect() : null;
   const overflow = [...main.querySelectorAll('*')].some((el) => {
     const b = el.getBoundingClientRect();
+    // A marquee has off-canvas copies by design. Check their clipping window
+    // rather than treating invisible, contained artwork as page overflow.
+    const marquee = el.closest('.landing-browser-marquee');
+    if (marquee && el !== marquee && getComputedStyle(marquee).overflowX === 'hidden') {
+      const clip = marquee.getBoundingClientRect();
+      if (clip.left >= 0 && clip.right <= innerWidth) return false;
+    }
     return b.width > 0 && (b.right > window.innerWidth + 1 || b.left < -1) && getComputedStyle(el).position !== 'fixed';
   });
   return {

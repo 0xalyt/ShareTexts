@@ -846,7 +846,7 @@ const de: Dict = {
   "saved.showMore": "Mehr anzeigen",
   "saved.savedOn": "Gespeichert am {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "Andere Browser. Gleiche Übergabe.",
+  "home.browser.heading": "Funktioniert in allen modernen Browsern",
   "home.browser.body": "Sie müssen nicht gleich sein. Öffne ShareTexts einfach auf beiden.",
   "home.browser.open": "Auf deinem anderen Gerät öffnen",
   "home.browser.qr": "Website-QR anzeigen",

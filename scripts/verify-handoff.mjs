@@ -114,15 +114,24 @@ try {
       check(`${locale}/${width}: exactly one high-priority preload matches the player poster`,
         Boolean(poster.displayed) && poster.preloads.length === 1 &&
         poster.preloads[0].href === poster.displayed && poster.preloads[0].priority === 'high');
-      check(`${locale}/${width}: the film has a localized text alternative`, (await demo.locator('figcaption p').innerText()).length > 12);
+      check(`${locale}/${width}: the film retains its hidden localized description without a visible footer`,
+        await media.getAttribute('aria-describedby') === await demo.locator('figcaption.sr-only').getAttribute('id') &&
+        (await demo.locator('figcaption.sr-only').innerText()).length > 12 &&
+        await demo.locator('a').count() === 0);
       const facts = await demo.evaluate(el => {
         const r = el.getBoundingClientRect();
+        const picture = el.querySelector('.hero-film-picture').getBoundingClientRect();
         return {
-          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < r.left - 1 || br.right > r.right + 1 || br.width < 48 || br.height < 48; }),
+          // Firefox rounds adjacent DOMRects independently at fractional aspect
+          // ratios (a measured 0.000015px overlap at 390px). Ignore only that
+          // sub-layout-unit noise; preserve the actual 44/48px target contract.
+          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom - .05 || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
+          widescreen: Math.abs(picture.width / picture.height - 16 / 9) < .02,
+          backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
         };
       });
-      check(`${locale}/${width}: film controls fit and remain tappable`, !facts.clipped && !facts.overflow);
+      check(`${locale}/${width}: 16:9 film has its own backdrop and tappable controls below the picture`, facts.widescreen && facts.backdrop && !facts.clipped && !facts.overflow);
       const guidePair = page.getByTestId('landing-guide-pair');
       const guideSend = page.getByTestId('landing-guide-send');
       check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
@@ -152,23 +161,28 @@ try {
         });
       }));
       const browsers = page.locator('.landing-browsers');
+      const handoff = page.locator('.landing-browser-utility');
       const copyAddress = page.getByTestId('landing-copy-address');
       const defaultCopyLabel = await copyAddress.innerText();
       await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.__copiedWebsite = value; } } }));
       await copyAddress.click();
       await page.waitForFunction(() => Boolean(window.__copiedWebsite));
       check(`${locale}/${width}: copying the website uses the real origin without room credentials`, await page.evaluate(() => window.__copiedWebsite) === new URL(BASE).origin && await copyAddress.innerText() !== defaultCopyLabel);
-      const successFeedback = await browsers.getByRole('status').innerText();
+      const successFeedback = await handoff.getByRole('status').innerText();
       await page.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error('permission denied'); }; });
       await copyAddress.click();
-      check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await browsers.getByRole('status').innerText()).length > 12 && await browsers.getByRole('status').innerText() !== successFeedback);
+      check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await handoff.getByRole('status').innerText()).length > 12 && await handoff.getByRole('status').innerText() !== successFeedback);
       const websiteQr = page.getByTestId('landing-website-qr');
       const closedQrLabel = await websiteQr.innerText();
       await websiteQr.click();
-      await browsers.getByTestId('qr-art').waitFor();
-      check(`${locale}/${width}: website QR disclosure has a Hide action and stays inside the viewport with six readable browser names`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('li').count() === 6 && await browsers.evaluate(el => {
+      await handoff.getByTestId('qr-art').waitFor();
+      check(`${locale}/${width}: browser band contains no second-device tool`, await browsers.getByRole('heading').count() === 1 && await browsers.locator('.landing-browser-utility').count() === 0);
+      check(`${locale}/${width}: website QR has a Hide action and logo-only browser support stays inside the viewport`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('.landing-browser-list:not([aria-hidden]) img[alt]').count() === 8 && await browsers.evaluate(el => {
         const bounds = el.getBoundingClientRect();
-        return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
+        const logos = [...el.querySelectorAll('.landing-browser-list:first-child img')];
+        return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
+          logos.every(img => img.complete && img.naturalWidth > 0 && img.alt && getComputedStyle(img).filter.includes('grayscale(1)')) &&
+          [...el.querySelectorAll('.landing-browser-list')].every(list => list.textContent.trim() === '');
       }));
       if (locale === 'en' && width === 320) check('website QR decodes to the homepage, not a fake room', await decodeWebsiteQr(page) === new URL(BASE).origin);
       await websiteQr.focus();
@@ -256,6 +270,7 @@ try {
       const name = `${width}px OS=${os} saved=${saved || 'system'}`;
       check(`${name}: OS precondition is real`, await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches) === (os === 'dark'));
       check(`${name}: the shown theme wins`, state.dark === (expected === 'dark'));
+      check(`${name}: poster theme marker matches without pinning a film version`, new URL(state.poster).pathname.includes('-dark') === state.dark);
       check(`${name}: exactly one matching high-priority poster`, state.preload === state.poster && state.priority === 'high');
       check(`${name}: no opposite poster requested at boot`, requests.length > 0 && requests.every(url => url === state.poster));
       const brightness = await page.evaluate(async () => {
@@ -283,9 +298,10 @@ try {
       }
       await demo.locator('.hero-film-play').click();
       await page.waitForFunction(() => Boolean(document.querySelector('[data-testid="hero-demo"] video').getAttribute('src')));
-      const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster, full: el.querySelector('.hero-film-watch').href }));
-      check(`${name}: movie, still and full export use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4') && assets.full === assets.poster.replace('-poster.jpg', '-full.mp4'));
-      for (const url of [assets.movie, assets.full]) {
+      const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster }));
+      check(`${name}: movie and still use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4'));
+      // Full exports remain downloadable assets, not landing controls.
+      for (const url of [assets.movie, assets.poster.replace('-poster.jpg', '-full.mp4')]) {
         const file = await page.request.get(url, { headers: { Range: 'bytes=0-63' } });
         check(`${name}: the encoded movie exists (${new URL(url).pathname})`, file.ok() && /video\/mp4/.test(file.headers()['content-type'] || ''));
       }
@@ -300,10 +316,13 @@ try {
   await shortPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const shortLayout = await shortPage.evaluate(() => {
     const send = document.querySelector('[data-testid="home-send"]').getBoundingClientRect();
-    const demo = document.querySelector('[data-testid="hero-demo"]').getBoundingClientRect();
-    return send.top >= 0 && send.bottom <= innerHeight && demo.top >= 0 && demo.bottom <= innerHeight;
+    const demo = document.querySelector('[data-testid="hero-demo"] .hero-film-picture').getBoundingClientRect();
+    const shortcut = document.querySelector('[data-testid="intent-input"]').getBoundingClientRect();
+    const heading = document.querySelector('.landing-heading').getBoundingClientRect();
+    return heading.bottom <= send.top && send.bottom <= demo.top && demo.bottom <= shortcut.top && send.top >= 0 && send.bottom <= innerHeight &&
+      demo.left >= 0 && demo.right <= innerWidth && Math.abs(demo.width / demo.height - 16 / 9) < .02;
   });
-  check('short laptop keeps sharing and the entire demo in the first viewport', shortLayout);
+  check('short laptop keeps actions in reach and the full-width film after the heading/actions', shortLayout);
   await shortPage.screenshot({ path: 'audit/tmp/landing-1024-700.png' });
   await laptop.close();
 
@@ -318,6 +337,11 @@ try {
     await entry.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     const input = entry.getByTestId('intent-input');
     const button = entry.getByTestId('intent-submit');
+    check(`${theme}: browser repeats cover the entire desktop lane at the loop boundary`, await entry.locator('.landing-browser-marquee').evaluate(lane => {
+      const track = lane.firstElementChild;
+      const cycle = track.firstElementChild.getBoundingClientRect().width;
+      return cycle > 0 && track.getBoundingClientRect().width - cycle >= lane.getBoundingClientRect().width;
+    }));
     for (const [value, label] of [['', 'Create room'], ['A note', 'Send this'], ['482716', 'Join room'], ['', 'Create room'], ['482', 'Send this'], ['482716', 'Join room'], ['', 'Create room']]) {
       await input.fill(value);
       for (const hover of [false, true]) {

@@ -845,7 +845,7 @@ const ar: Dict = {
   "saved.showMore": "عرض المزيد",
   "saved.savedOn": "حُفظ في {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "متصفحات مختلفة. والمشاركة نفسها.",
+  "home.browser.heading": "يعمل في جميع المتصفحات الحديثة",
   "home.browser.body": "لا يلزم استخدام المتصفح نفسه. افتح ShareTexts على الجهازين فحسب.",
   "home.browser.open": "افتحه على جهازك الآخر",
   "home.browser.qr": "إظهار رمز الموقع",

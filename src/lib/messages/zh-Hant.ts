@@ -90,7 +90,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   'action.copy': '複製',
   'msg.copy': '複製',
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "瀏覽器不同。傳遞一樣簡單。",
+  "home.browser.heading": "支援所有現代瀏覽器",
   "home.browser.body": "不需使用相同的瀏覽器。在兩台裝置上開啟 ShareTexts 即可。",
   "home.browser.open": "在另一台裝置上開啟",
   "home.browser.qr": "顯示網站 QR 碼",
