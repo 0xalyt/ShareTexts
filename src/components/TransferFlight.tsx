@@ -128,7 +128,7 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
         data-testid="transfer-line"
         className="fixed left-0 top-0 z-20 pointer-events-none"
         style={{ transformOrigin: lineOrigin, willChange: 'transform' }}
-        animate={{ transform: `translate3d(${lineBase}px, ${track.y + CHIP_H / 2 - 1}px, 0) scaleX(${p})` }}
+        animate={{ transform: `translate(${lineBase}px, ${track.y + CHIP_H / 2 - 1}px) scaleX(${p})` }}
         transition={{ duration: 0.25, ease: EASE_IN_OUT }}
       >
         <div className="h-px bg-ember/25 dark:bg-azure-400/25" style={{ width }} />
@@ -140,7 +140,7 @@ export function TransferFlight({ feedRef, progress, reverse, name, size }: Trans
         data-testid="transfer-flight"
         className="fixed left-0 top-0 z-30 pointer-events-none"
         style={{ willChange: 'transform' }}
-        animate={{ transform: `translate3d(${x - CHIP_W / 2}px, ${track.y - CHIP_H / 2}px, 0)` }}
+        animate={{ transform: `translate(${x - CHIP_W / 2}px, ${track.y - CHIP_H / 2}px)` }}
         transition={{ duration: 0.25, ease: EASE_IN_OUT }}
       >
         <motion.div

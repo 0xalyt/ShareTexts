@@ -37,6 +37,11 @@ export function loadStoredSession(): StoredSession | null {
   return null;
 }
 
+/** True when the stored room had already reached its other device. */
+export function storedRoomWasLinked(s: StoredSession | null): boolean {
+  return Boolean(s?.roomId && (s.partnerName || (s.messages?.length ?? 0) > 0));
+}
+
 export function saveStoredSession(s: StoredSession | null) {
   try {
     const previous = loadStoredSession();

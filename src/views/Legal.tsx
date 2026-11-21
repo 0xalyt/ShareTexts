@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
-import { ShareTextsLogo } from '../components/ShareTextsLogo';
+import React, { useEffect, useState } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { SiteFooter } from '../components/marketing/SiteFooter';
-import { ThemeToggle } from '../components/ThemeToggle';
 // Gravity UI icons aliased onto the names this file already uses (Cookie has
 // no Gravity equivalent — it stays on lucide).
-import { ArrowLeft, ShieldCheck, FileText, EyeOff, Server, Database } from 'lucide-react';
+import { ArrowRight, ShieldCheck, FileText, EyeOff, Server, Database } from 'lucide-react';
 import { Cookie } from 'lucide-react';
+import './reading-pages.css';
 
 /**
  * Legal — Privacy Policy and Terms of Use, one quiet page each.
@@ -24,16 +23,20 @@ import { Cookie } from 'lucide-react';
 
 type LegalPage = 'privacy' | 'terms';
 
+const PRIVACY_SECTIONS = ['The short version', 'What you do not need to provide', 'What the connection server sees', 'What stays on your device', 'Cookies and trackers', 'Changes to this policy'];
+const TERMS_SECTIONS = ['Using ShareTexts', 'Your content is yours', 'Acceptable use', 'Rooms are temporary', 'No warranty', 'Contact'];
+const sectionId = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <section className="pt-8 first:pt-0">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="w-7 h-7 rounded-[8px] bg-azure-600/10 dark:bg-azure-600/20 flex items-center justify-center shrink-0">
+    <section id={sectionId(title)} className="legal-section" aria-labelledby={`${sectionId(title)}-title`}>
+      <div className="legal-section-heading">
+        <span aria-hidden>
           {icon}
         </span>
-        <h2 className="st-h3 text-apple-ink dark:text-white">{title}</h2>
+        <h2 id={`${sectionId(title)}-title`}>{title}</h2>
       </div>
-      <div className="text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/60 space-y-3 [&_strong]:text-apple-ink dark:[&_strong]:text-white [&_a]:text-apple-blue dark:[&_a]:text-azure-400 [&_a:hover]:underline">
+      <div className="legal-section-copy">
         {children}
       </div>
     </section>
@@ -42,7 +45,7 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 
 function PrivacyContent() {
   return (
-    <div className="space-y-8">
+    <div className="legal-sections">
       <Section icon={<ShieldCheck className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="The short version">
         <p>
           ShareTexts moves text, photos, and files directly between <strong>your</strong> devices.
@@ -121,7 +124,7 @@ function PrivacyContent() {
 
 function TermsContent() {
   return (
-    <div className="space-y-8">
+    <div className="legal-sections">
       <Section icon={<ShieldCheck className="w-4 h-4 text-azure-600 dark:text-azure-400" />} title="Using ShareTexts">
         <p>
           ShareTexts is a free browser utility for moving content between devices you control.
@@ -176,6 +179,8 @@ function TermsContent() {
 export function Legal({ page }: { page: LegalPage }) {
   const isPrivacy = page === 'privacy';
   const title = isPrivacy ? 'Privacy Policy' : 'Terms of Use';
+  const sections = isPrivacy ? PRIVACY_SECTIONS : TERMS_SECTIONS;
+  const [active, setActive] = useState(sectionId(sections[0]));
 
   useEffect(() => {
     const previous = document.title;
@@ -183,8 +188,38 @@ export function Legal({ page }: { page: LegalPage }) {
     return () => { document.title = previous; };
   }, [title]);
 
+  useEffect(() => {
+    const elements = sections.map(title => document.getElementById(sectionId(title))).filter((element): element is HTMLElement => element !== null);
+    let frame = 0;
+    const updateActive = () => {
+      frame = 0;
+      let current = elements[0];
+      for (const element of elements) {
+        if (element.getBoundingClientRect().top <= 112) current = element;
+      }
+      if (window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+        current = elements[elements.length - 1];
+      }
+      if (current) setActive(current.id);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(updateActive);
+    };
+    const target = document.getElementById(window.location.hash.slice(1));
+    if (target) target.scrollIntoView({ block: 'start', behavior: 'instant' });
+    updateActive();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [sections]);
+
   return (
-    <div className="min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
+    <div className="reading-page min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
+      <a href="#legal-content" className="reading-skip">Skip to {isPrivacy ? 'privacy policy' : 'terms'}</a>
       {/* The shared PageHeader: Legal used to be the one screen with no way
           to Docs or About from its header. */}
       <PageHeader
@@ -197,28 +232,32 @@ export function Legal({ page }: { page: LegalPage }) {
 
       {/* Long-form content is English-only; lang="en" keeps a screen reader
           from reading it with the voice of the surrounding app language. */}
-      <div lang="en" className="max-w-2xl mx-auto px-6 py-10 sm:py-14">
-        <h1 className="st-display text-[34px] text-apple-ink dark:text-white mb-2">
-          {title}
-        </h1>
-        <p className="text-[16px] text-apple-ink-muted/80 dark:text-white/40 mb-9">
-          Last updated: November 2026
-        </p>
-        {isPrivacy ? <PrivacyContent /> : <TermsContent />}
-
-        <div className="mt-12 pt-6 border-t border-apple-divider/60 dark:border-white/[0.08] flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <p className="text-[13px] font-medium text-apple-ink-muted dark:text-white/50">
-            Read also our 
-            <a href={isPrivacy ? '/terms' : '/privacy'} className="text-apple-blue dark:text-azure-400 hover:underline">
-              {isPrivacy ? 'Terms of Use' : 'Privacy Policy'}
-            </a>
-            {' '}and the <a href="/docs" className="text-apple-blue dark:text-azure-400 hover:underline">documentation</a>.
-          </p>
-          <a href="/" className="inline-flex items-center min-h-[44px] text-[13px] font-semibold text-apple-blue dark:text-azure-400 hover:underline">
-            Back to ShareTexts
-          </a>
+      <main lang="en" id="legal-content">
+        <div className="legal-hero">
+          <p className="reading-eyebrow">ShareTexts <span aria-hidden>/</span> {isPrivacy ? 'Your privacy' : 'The ground rules'}</p>
+          <h1>{title}</h1>
+          <p>{isPrivacy ? 'Your content matters. Here is where it goes, what stays, and what the service can see.' : 'A simple tool, with a few clear ground rules. Here is what to know before you share.'}</p>
+          <div className="legal-meta"><span>Updated November 2026</span><span>Written in plain language</span></div>
         </div>
-      </div>
+        <div className="reading-layout legal-layout">
+          <nav className="reading-sidebar legal-sidebar" aria-label="On this page">
+            <div className="reading-sticky">
+              <p className="reading-nav-label">On this page</p>
+              <div className="reading-nav-items">
+                {sections.map((section, index) => <a key={section} href={`#${sectionId(section)}`} className="reading-nav-link" aria-current={active === sectionId(section) ? 'location' : undefined}><span aria-hidden>{String(index + 1).padStart(2, '0')}</span>{section}</a>)}
+              </div>
+              <a href={isPrivacy ? '/terms' : '/privacy'} className="reading-sidebar-home">{isPrivacy ? 'Terms of use' : 'Privacy policy'} <ArrowRight size={16} aria-hidden /></a>
+            </div>
+          </nav>
+          <article className="legal-article">
+            {isPrivacy ? <PrivacyContent /> : <TermsContent />}
+            <div className="legal-related">
+              <div><p>Questions about the details?</p><a href="/docs#privacy">Explore the privacy guide <ArrowRight size={16} aria-hidden /></a></div>
+              <a href={isPrivacy ? '/terms' : '/privacy'}>{isPrivacy ? 'Terms of use' : 'Privacy policy'} <ArrowRight size={16} aria-hidden /></a>
+            </div>
+          </article>
+        </div>
+      </main>
 
       {/* The same footer every long-form page carries. Privacy and Terms used to
           end in a one-line "read also" row and nothing else, so the two pages a

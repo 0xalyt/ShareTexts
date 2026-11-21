@@ -69,7 +69,7 @@ import { CommandBarChip } from '../components/CommandBarChip';
 // The palette is 6 KB gzip that exists only after a keystroke or a click.
 const CommandBar = lazy(() => import('../components/CommandBar').then(m => ({ default: m.CommandBar })));
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
-import { loadStoredSession } from '../lib/session/persistence';
+import { loadStoredSession, storedRoomWasLinked } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
 import { HeroLaunchFilm } from '../components/HeroLaunchFilm';
 import '../components/landing/landing-page.css';
@@ -180,6 +180,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     // until the channel reopens — no state argues with the initial one.
     const stored = loadStoredSession();
     if (!stored?.roomId) return 'idle';
+    // A room that already had its other device resumes AS the room: its
+    // messages are in storage and the reconnect banner tells the rest. The
+    // pairing screen here was a lie for a beat — a code nobody needs.
+    if (storedRoomWasLinked(stored)) return 'connected';
     return stored.isCreator ? 'sending' : 'connecting';
   });
   const [isCreating, setIsCreating] = useState(false);
@@ -405,8 +409,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // partnerConnecting (peer_recovered after a drop) is a RECONNECT, not a
   // first connect: the room stays up — ChatView's reconnect banner is the
   // right surface — instead of bouncing back to the connecting screen.
-  const everConnectedRoomRef = useRef<string | null>(null);
-  const everConnectedRef = useRef(false);
+  const resumedLinked = useRef<{ roomId: string | null; linked: boolean } | null>(null);
+  if (resumedLinked.current === null) {
+    const stored = loadStoredSession();
+    resumedLinked.current = { roomId: stored?.roomId ?? null, linked: storedRoomWasLinked(stored) };
+  }
+  const everConnectedRoomRef = useRef<string | null>(resumedLinked.current.linked ? resumedLinked.current.roomId : null);
+  const everConnectedRef = useRef(resumedLinked.current.linked);
   /* --- stuck-handshake honesty ------------------------------------------- */
   // A connecting screen that spins forever teaches users the app is broken.
   // Two thresholds, one message each: 15s "still trying, hang on" (with a
