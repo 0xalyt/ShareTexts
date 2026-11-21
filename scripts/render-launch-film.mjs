@@ -10,7 +10,12 @@ import { build } from 'vite';
 import path from 'node:path';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
-const OUT = path.resolve('film/out/launch-v2');
+const THEME = process.env.FILM_THEME === 'dark' ? 'dark' : 'light';
+const DARK = THEME === 'dark';
+const PASS = DARK ? 'launch-v3-dark' : 'launch-v2';
+const CUT = `sharetexts-${PASS}`;
+const OUT = path.resolve(`film/out/${PASS}`);
+const query = `mode=launch&theme=${THEME}`;
 const WEB = path.resolve('public/film');
 const FPS = 60;
 const DURATION = 12.7;
@@ -59,18 +64,18 @@ function soundtrack() {
 const browser = await chromium.launch({ channel: 'chrome', args: ['--enable-unsafe-swiftshader'] });
 let studioServer;
 try {
-  const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, locale: 'en-US', colorScheme: 'light' });
-  await context.addInitScript(() => { localStorage.setItem('sharetext.locale', 'en'); localStorage.setItem('sharetext.theme', 'light'); });
+  const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, locale: 'en-US', colorScheme: THEME });
+  await context.addInitScript(theme => { localStorage.setItem('sharetext.locale', 'en'); localStorage.setItem('sharetext.theme', theme); }, THEME);
   // Capture real React screen content independently from the hardware, at the
   // display's own aspect ratio. The same geometry maps its file icon into 3D,
   // so the packet departs and arrives at the actual UI, not a guessed point.
   const meta = {};
   for (const name of ['phone-sending', 'phone-complete', 'laptop-empty', 'laptop-complete']) {
     const phone = name.startsWith('phone');
-    const screen = await browser.newContext({ viewport: { width: phone ? 402 : 1512, height: phone ? 874 : 982 }, deviceScaleFactor: 2, colorScheme: 'light' });
-    await screen.addInitScript(() => { localStorage.setItem('sharetext.locale', 'en'); localStorage.setItem('sharetext.theme', 'light'); });
+    const screen = await browser.newContext({ viewport: { width: phone ? 402 : 1512, height: phone ? 874 : 982 }, deviceScaleFactor: 2, colorScheme: THEME });
+    await screen.addInitScript(theme => { localStorage.setItem('sharetext.locale', 'en'); localStorage.setItem('sharetext.theme', theme); }, THEME);
     const page = await screen.newPage();
-    await page.goto(`${BASE}/film.html?mode=launch&texture=${name}`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE}/film.html?${query}&texture=${name}`, { waitUntil: 'networkidle' });
     const element = page.locator('[data-film-texture]');
     await element.waitFor(); await page.evaluate(() => document.fonts.ready);
     await element.screenshot({ path: path.join(OUT, `screen-${name}.png`), animations: 'disabled' });
@@ -86,7 +91,7 @@ try {
   const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json', '.woff2': 'font/woff2' };
   studioServer = createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-    let file = pathname.startsWith('/film/out/launch-v2/') ? path.join(OUT, path.basename(pathname)) : path.join(site, pathname);
+    let file = pathname.startsWith(`/film/out/${PASS}/`) ? path.join(OUT, path.basename(pathname)) : path.join(site, pathname);
     if (!existsSync(file)) file = path.join(path.resolve('public'), pathname);
     if (!existsSync(file) || !statSync(file).isFile()) { response.writeHead(404).end(); return; }
     response.setHeader('Content-Type', mime[path.extname(file)] || 'application/octet-stream');
@@ -99,7 +104,7 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const initializationError = new Promise((_, reject) => page.on('pageerror', reject));
-  await page.goto(`${captureBase}/film.html?mode=launch`, { waitUntil: 'networkidle', timeout: 180000 });
+  await page.goto(`${captureBase}/film.html?${query}`, { waitUntil: 'networkidle', timeout: 180000 });
   await Promise.race([page.waitForFunction(() => typeof window.__film === 'function', null, { timeout: 180000 }), initializationError]);
   await page.evaluate(async () => {
     await document.fonts.ready;
@@ -113,7 +118,7 @@ try {
   for (const time of probes) await capture(time, `probe-${time}.jpg`);
   // A representative static composition, not a blank first frame or an ad card.
   await page.evaluate(() => window.__film(3.05));
-  await page.screenshot({ path: path.join(WEB, 'sharetexts-launch-v2-poster.jpg'), type: 'jpeg', quality: 91 });
+  await page.screenshot({ path: path.join(WEB, `${CUT}-poster.jpg`), type: 'jpeg', quality: 91 });
   if (mode === 'render') {
     for (let i = 0; i < Math.round(FPS * DURATION); i++) {
       await capture(i / FPS, `f${String(i).padStart(5, '0')}.jpg`);
@@ -125,8 +130,8 @@ if (mode === 'render') {
   const audio = soundtrack();
   const source = ['-framerate', String(FPS), '-i', path.join(OUT, 'f%05d.jpg')];
   const codec = ['-c:v', 'libx264', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_trc', 'bt709', '-color_primaries', 'bt709', '-color_range', 'tv', '-movflags', '+faststart'];
-  ffmpeg([...source, '-vf', 'scale=1440:810:out_color_matrix=bt709:out_range=tv', ...codec, '-crf', '23', '-an', path.join(WEB, 'sharetexts-launch-v2.mp4')]);
-  ffmpeg([...source, '-i', audio, '-vf', 'scale=1920:1080:out_color_matrix=bt709:out_range=tv', ...codec, '-crf', '19', '-c:a', 'aac', '-b:a', '160k', '-t', String(DURATION), path.join(WEB, 'sharetexts-launch-v2-full.mp4')]);
-  for (const file of ['sharetexts-launch-v2.mp4', 'sharetexts-launch-v2-full.mp4']) console.log(`${file}: ${(statSync(path.join(WEB, file)).size / 1024 / 1024).toFixed(2)} MiB`);
+  ffmpeg([...source, '-vf', 'scale=1440:810:out_color_matrix=bt709:out_range=tv', ...codec, '-crf', '23', '-an', path.join(WEB, `${CUT}.mp4`)]);
+  ffmpeg([...source, '-i', audio, '-vf', 'scale=1920:1080:out_color_matrix=bt709:out_range=tv', ...codec, '-crf', '19', '-c:a', 'aac', '-b:a', '160k', '-t', String(DURATION), path.join(WEB, `${CUT}-full.mp4`)]);
+  for (const file of [`${CUT}.mp4`, `${CUT}-full.mp4`]) console.log(`${file}: ${(statSync(path.join(WEB, file)).size / 1024 / 1024).toFixed(2)} MiB`);
 }
 console.log(`Studio ${mode} complete. Probes: ${OUT}`);
