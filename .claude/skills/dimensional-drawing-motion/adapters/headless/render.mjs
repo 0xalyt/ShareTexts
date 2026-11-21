@@ -73,6 +73,7 @@ if (o.still !== undefined) {
   process.exit(0);
 }
 
+mkdirSync(dirname(OUT), { recursive: true });
 const ffmpeg = spawn(o.ffmpeg || 'ffmpeg', [
   '-y', '-loglevel', 'error',
   '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
