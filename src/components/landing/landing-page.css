@@ -81,7 +81,7 @@ html[st-theme-vt]:has(.landing-header) {
 /* Compatibility has a job: remove the ecosystem objection and help the
    visitor open a second browser. No installation prompt or competing CTA. */
 .landing-browsers { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr); align-items: center; gap: 64px; padding-block: 48px; border-block: 1px solid var(--color-apple-divider); }
-.landing-browser-copy h2 { max-width: 22ch; font-size: 30px; line-height: 36px; letter-spacing: -.025em; font-weight: 600; text-wrap: pretty; }
+.landing-browser-copy h2 { max-width: 22ch; font-size: 30px; line-height: 36px; letter-spacing: -.01em; font-weight: 600; text-wrap: pretty; }
 .landing-browser-copy > p { max-width: 40ch; margin-top: 12px; color: var(--color-apple-ink-muted); font-size: var(--text-body); line-height: 1.6; text-wrap: pretty; }
 .landing-browser-list { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; margin-top: 24px; }
 .landing-browser-list li { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--color-apple-ink-muted); font-size: var(--text-meta); line-height: 1.4; white-space: nowrap; }
@@ -105,7 +105,7 @@ html[st-theme-vt]:has(.landing-header) {
 /* Two product moments, one continuous story. Type carries the hierarchy;
    the little application surfaces explain rather than decorate. */
 .landing-section-head { margin-bottom: 40px; }
-.landing-section-head h2 { max-width: 16ch; white-space: pre-line; font-size: var(--text-title); letter-spacing: -.035em; line-height: 1.1; }
+.landing-section-head h2 { max-width: 16ch; white-space: pre-line; font-size: var(--text-title); letter-spacing: -.012em; line-height: 1.1; }
 .landing-guide { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr); align-items: center; gap: 64px; }
 .landing-guide-steps { display: grid; gap: 12px; }
 .landing-guide-step { display: grid; grid-template-columns: 24px minmax(0,1fr); gap: 16px; width: 100%; min-height: 44px; padding: 20px; border: 1px solid transparent; border-radius: 16px; text-align: start; cursor: pointer; transition: transform var(--motion-micro) var(--ease-out); }
@@ -157,7 +157,7 @@ html[st-theme-vt]:has(.landing-header) {
 .landing-receipt-status svg { width: 12px; height: 12px; }
 .landing-story-later { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr); align-items: center; gap: 64px; margin-top: 64px; padding-top: 64px; border-top: 1px solid var(--color-apple-divider); }
 .landing-space-label { display: block; margin-bottom: 12px; color: var(--color-apple-ink-muted); font-size: 12px; font-weight: 500; }
-.landing-story-later-copy h3 { max-width: 15ch; font-size: 36px; line-height: 1.15; letter-spacing: -.035em; text-wrap: pretty; }
+.landing-story-later-copy h3 { max-width: 15ch; font-size: 36px; line-height: 1.15; letter-spacing: -.015em; text-wrap: pretty; }
 .landing-story-later-copy > p { margin-top: 16px; }
 .landing-story-later-copy > .landing-space-storage { padding-inline-start: 16px; border-inline-start: 2px solid var(--color-apple-divider); font-size: 13px; }
 .landing-story-later-art { min-width: 0; }

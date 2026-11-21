@@ -119,11 +119,8 @@
      Green = success/connected. Amber = waiting/warning. Red = error.
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-  /* One face for the whole product — brand, controls, and content share it.
-     Inter leads the stack so typography is consistent on every OS instead of
-     drifting to whatever the platform ships; the system faces follow as
-     fallbacks for the pre-paint frame and for any glyph Inter lacks. --font-display
-     is the same family (the old SF-Pro-Display-first split is retired). */
+  /* One face for the whole product: brand, controls, and content share Allo;
+     system faces cover first paint and scripts the font does not contain. */
   /* Allo leads on every platform. System fonts are local fallbacks only;
      Apple font files are never downloaded or bundled by this app. */
   --font-sans: "Allo", "Inter", "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -537,13 +534,13 @@
   h1, h2, h3 {
     font-family: var(--font-display);
     font-variation-settings: "ROND" 0, "opsz" 32;
-    letter-spacing: -0.028em;
+    letter-spacing: -0.012em;
     text-wrap: balance;
   }
-  h1 { letter-spacing: -0.03em; }
+  h1 { letter-spacing: -0.015em; }
   h4, h5, h6 {
     @apply font-semibold;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
   h1, h2, h3 { @apply font-semibold; }
   h1 { font-weight: 650; }
@@ -603,10 +600,12 @@
      open-spaced small text (opsz 11). Tracking tightens with size, never
      across the whole interface. Keep the established size ramp so this
      typography pass does not restructure screens owned by other work.
-     Every explicit axis tuple includes ROND so it cannot reset to 50. */
-  .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.03em; line-height: 1.06; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
-  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 620; letter-spacing: -0.028em; line-height: 1.12; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
-  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 24; }
+     Every explicit axis tuple includes ROND so it cannot reset to 50.
+     The optical Display drawing is already tightly fitted: modest tracking
+     keeps ss/ce ink separate in Chromium, Firefox and WebKit at 1:1. */
+  .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.015em; line-height: 1.06; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
+  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 620; letter-spacing: -0.012em; line-height: 1.12; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
+  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 24; }
   .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
   .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; }
   .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; }

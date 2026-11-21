@@ -141,12 +141,12 @@ export function ShuffleHeading({ className }: { className?: string }) {
   }, [lang]);
 
   if (lang !== 'en') {
-    return <h1 className={`landing-heading st-display whitespace-pre-line text-balance text-[clamp(32px,8.8vw,46px)] leading-[1.12] lg:text-[clamp(40px,4vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start ${className ?? ''}`}>{t('home.title')}</h1>;
+    return <h1 className={`landing-heading st-display whitespace-pre-line text-balance text-[clamp(32px,8.8vw,46px)] leading-[1.12] lg:text-[clamp(40px,4vw,56px)] text-apple-ink dark:text-white text-center lg:text-start ${className ?? ''}`}>{t('home.title')}</h1>;
   }
 
   return (
     <h1
-      className={`landing-heading st-display text-[clamp(32px,8.8vw,46px)] leading-[1.06] lg:text-[clamp(44px,4.05vw,56px)] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start ${className ?? ''}`}
+      className={`landing-heading st-display text-[clamp(32px,8.8vw,46px)] leading-[1.06] lg:text-[clamp(44px,4.05vw,56px)] text-apple-ink dark:text-white text-center lg:text-start ${className ?? ''}`}
     >
       <span className="sr-only">{t('home.title').replace(/\n/g, ' ')}</span>
       <span aria-hidden className="flex flex-col items-center lg:items-start">
@@ -190,7 +190,7 @@ export function ShuffleHeading({ className }: { className?: string }) {
             the first line, and `text-balance` keeps the wrap even (the line is
             longer than the column on a phone, so it will take two rows there —
             balanced rows, not a stub). */}
-        <span className="mt-[0.06em] text-[1em] font-[inherit] leading-[1.06] tracking-[-0.035em] text-apple-ink dark:text-white text-center lg:text-start text-balance">
+        <span className="mt-[0.06em] text-[1em] font-[inherit] leading-[1.06] text-apple-ink dark:text-white text-center lg:text-start text-balance">
           {t('home.titleSuffix')}
         </span>
       </span>
