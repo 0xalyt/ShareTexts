@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 const QrArt = lazy(() => import('../qr/QrArt').then(m => ({ default: m.QrArt })));
-import { Check, Copy, Link2, QrCode, Share2, WifiOff } from 'lucide-react';
+import { Copy, Link2, QrCode, Share2, WifiOff } from 'lucide-react';
+import { AlloSymbol } from '../AlloSymbol';
 import { Segmented } from '../ui/Segmented';
 import { generateTOTP, getTOTPRemainingSeconds } from '../../lib/totp';
 import { useI18n } from '../../lib/i18n';
@@ -250,7 +251,7 @@ export function SendScreen({
               className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[13px]"
               data-testid="copy-code"
             >
-              {justCopied ? <Check className="w-4 h-4 text-status-success" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />}
+              {justCopied ? <AlloSymbol name="check" size={16} className="text-status-success" /> : <Copy className="w-4 h-4" aria-hidden />}
               {justCopied ? t('create.copied') : t('create.copyCode')}
             </button>
           )}

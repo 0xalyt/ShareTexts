@@ -34,7 +34,7 @@
    the hit area only: no font-size is reduced anywhere to make room, and the
    layout around it does not shrink. */
 @media (pointer: coarse) {
-  :where(button, [role='button'], summary, [data-press]):has(svg) {
+  :where(button, [role='button'], summary, [data-press]):has(svg, .allo-symbol) {
     min-height: 44px;
     min-width: 44px;
   }
@@ -61,24 +61,19 @@
 }
 /* ── Allo (variable, self-hosted, OFL-1.1) ────────────────────────────────
    Allo is the product's face now: an interface typeface with an optical-size
-   axis, so 12 px labels and 40 px headlines are drawn for their size instead of
-   being one design scaled. This build ships the "Friendly" cut — roundness
-   fixed at its 50 default and roughly half the bytes of the full variable file
-   (229 KB against 442 KB), which matters on the Redmi this is tested on. The
-   full file adds only a width-of-corners axis on top; it is not worth 213 KB.
-   font-display: swap keeps the first paint instant; the size-adjusted fallback
-   below keeps that swap from moving anything. */
+   axis and a roundness axis. Use the full font: the Friendly build pins ROND
+   at 50 and cannot draw the crisp interface style. One cached file serves
+   text, display and symbols, with no icon-font request or external CDN.
+   Allo by Josh Puckett: https://allo.joshpuckett.me/ (OFL.txt alongside it).
+   Do not restrict this face to Latin unicode ranges: that silently excludes
+   Allo's checks, keyboard keys, navigation marks and warning symbol. */
 @font-face {
   font-family: "Allo";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
   font-optical-sizing: auto;
-  src: url("/fonts/AlloVariableFriendly.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
-    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
-    U+2000-206F, U+20A0-20AB, U+20AC, U+2113, U+2122, U+2190-21FF, U+2212, U+2215,
-    U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+  src: url("/fonts/AlloVariable.woff2") format("woff2");
 }
 /* Allo's true obliques (post.italicAngle -9°, not a browser shear). The
    editor has an italic action and the marketing copy uses it, so the old
@@ -129,13 +124,8 @@
      drifting to whatever the platform ships; the system faces follow as
      fallbacks for the pre-paint frame and for any glyph Inter lacks. --font-display
      is the same family (the old SF-Pro-Display-first split is retired). */
-  /* Inter leads the stack — but SF goes first on Apple, where it is the most
-     native face a web app can wear (§4, decision P1b). Order matters: Chrome
-     on Windows ALSO resolves `-apple-system`, so putting it first made every
-     non-Apple machine render Arial and never reach Inter (measured with
-     CSS.getPlatformFontsForNode, audit/p2/fonts.txt). The token therefore
-     lists Inter first, and `html.apple-type` — set only on a real Apple
-     platform by lib/device.ts — puts SF back in front. */
+  /* Allo leads on every platform. System fonts are local fallbacks only;
+     Apple font files are never downloaded or bundled by this app. */
   --font-sans: "Allo", "Inter", "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --font-display: "Allo", "Inter", "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -352,7 +342,7 @@
 }
 
 @layer base {
-  /* SF first, only where SF exists (see the token comment above). */
+  /* Preserve Allo on Apple devices, including the device capability class. */
   html.apple-type {
     --font-sans: "Allo", -apple-system, BlinkMacSystemFont, "Inter", "Inter Fallback", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-display: "Allo", -apple-system, BlinkMacSystemFont, "Inter", "Inter Fallback", "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -408,19 +398,14 @@
     @apply font-sans antialiased;
     font-size: 16px;
     line-height: 1.5;
-    letter-spacing: -0.008em;
+    letter-spacing: 0;
     font-kerning: normal;
-    /* Allo's axes, used on purpose. opsz follows the size, so a 12 px label is
-       drawn as text and a 40 px headline as display — one family, two
-       drawings, which is why the ramp reads calm at both ends. The features
-       are picked, not sprayed: ss02 is disambiguation (serifed I, tailed l,
-       footed 1, slashed zero) which matters for six-digit codes and room ids;
-       case raises punctuation beside capitals so "ShareTexts: Airdrop…"
-       stops looking nudged; calt is what turns a typed `->` into a real
-       arrow. Static Inter has neither, so this is new behaviour, not a
-       restyle of the same thing. */
+    /* Crisp text, not the round Friendly default. Only set ROND here: an
+       explicit opsz would stop automatic optical sizing for every child.
+       Keep disambiguation for codes, not prose; preserve typed punctuation. */
     font-optical-sizing: auto;
-    font-feature-settings: "ss02" 1, "case" 1, "calt" 1;
+    font-variation-settings: "ROND" 0;
+    font-feature-settings: "calt" 0;
     font-synthesis-weight: none;
     font-synthesis-style: none;
     font-variant-ligatures: common-ligatures contextual;
@@ -547,10 +532,11 @@
     --st-tone-chrome: #141414;
   }
 
-  /* Platform-native type carries the whole interface. Headings tighten with
-     size and balance their lines; body copy keeps a more relaxed rhythm. */
+  /* Allo Display is sharper and quieter than a scaled-up text drawing.
+     Balance authored headings; never rebalance editable text. */
   h1, h2, h3 {
     font-family: var(--font-display);
+    font-variation-settings: "ROND" 0, "opsz" 32;
     letter-spacing: -0.028em;
     text-wrap: balance;
   }
@@ -560,8 +546,8 @@
     letter-spacing: -0.02em;
   }
   h1, h2, h3 { @apply font-semibold; }
-  h1 { font-weight: 700; }
-  h2 { font-weight: 680; }
+  h1 { font-weight: 650; }
+  h2 { font-weight: 620; }
 
   :focus-visible {
     outline: 2px solid var(--color-ember);
@@ -580,56 +566,54 @@
   }
 }
 
+@layer components {
+  /* The slot is layout; the ink is type. Trim Allo's font box to its cap
+     height rather than adding fragile one-pixel vertical offsets. Older
+     engines ignore text-box and keep the centred line-box fallback.
+     Utilities may resize the slot, just as they do for a Lucide SVG. */
+  .allo-symbol {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: var(--allo-size, 1.25rem);
+    height: var(--allo-size, 1.25rem);
+    font-family: "Allo", "Segoe UI Symbol", sans-serif;
+    font-size: calc(var(--allo-size, 1rem) * 1.25);
+    font-weight: 500;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: 0;
+    font-variation-settings: "ROND" 0, "opsz" 20;
+    font-feature-settings: "calt" 0, "case" 0;
+    font-variant-emoji: text;
+    user-select: none;
+    pointer-events: none;
+    vertical-align: middle;
+  }
+  .allo-symbol > span { text-box: trim-both cap alphabetic; }
+}
+
 @layer utilities {
   .tnum {
     font-feature-settings: "tnum";
     font-variant-numeric: tabular-nums;
   }
 
-  /* ── Typography roles — the app's ONE ramp, on an OPTICAL-TRACKING
-     ladder. Every screen pulls from these instead of freestyle
-     text-[13.5px] decimals; sizes outside the ramp need a written reason.
-
-     The ladder mirrors how SF Pro itself is cut: letter-spacing OPENS as
-     type gets smaller and CLOSES as it gets larger. Small text sits in a
-     tight line-box, so it needs looser tracking to keep counters from
-     clotting; display text is already airy, so it tightens to pull a
-     headline into one solid object. This is the single detail that makes a
-     type scale read as "designed" rather than "default" — a flat -0.01em
-     everywhere is the AI-slop signature we are explicitly avoiding.
-
-     Phase 4 (implementation brief): display 56/64 −0.030em, h2 32, h3 22,
-     body 16–17, small 13, caption 12. No decimal sizes — one-offs map onto
-     this ladder; a size outside it needs a written reason.
-       display → -0.030em   (heroes carry their own clamp utility)
-       h2  32px → -0.028em   (page-section head)
-       h3  22px → -0.024em   (sub-section head)
-       title   16px → -0.018em   (UI headings close up)
-       body    16px → -0.010em   (the reading size; 17 = hero subhead step)
-       label   13px → +0.002em   (turns the corner: looser than body)
-       caption 12px → +0.008em
-       eyebrow 12px → +0.060em   (small quiet label, opened right up) ── */
-  /* Display ladder: the hero reaches 58px on a desktop, and steps down to a
-     38px phone size — a 56px headline on a 390px screen was four lines of
-     shouting. Leading tightens with the size (1.03 display, 1.1 h2) and the
-     tracking does too; below 20px nothing is tightened (DESIGN §1). */
-  /* Weight follows the same ladder: the bigger the type, the more it can
-     carry without looking swollen, so display sits at 700 and body never
-     exceeds 400. SF Display at 700 is a *narrower* stroke than SF Text at
-     700 — pinning tracking to size is what keeps the top of the ramp from
-     reading as merely "big and bold". */
-  /* Headlines sit on the display drawing (opsz 32) even when the clamp lands
-     under 32 px, and small type sits on the text drawing (opsz 11) — Allo's
-     axes are the whole reason the ramp is legible at both ends. */
-  .st-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.036em; line-height: 1.03; text-wrap: balance; font-variation-settings: "opsz" 32; }
-  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 680; letter-spacing: -0.033em; line-height: 1.1; text-wrap: balance; font-variation-settings: "opsz" 32; }
-  .st-h3      { font-size: 22px;   font-weight: 650; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; font-variation-settings: "opsz" 32; }
-  .st-title   { font-size: 16px;   font-weight: 620; letter-spacing: -0.019em; line-height: 1.25; }
+  /* Allo roles: restrained Display (opsz 32), readable automatic Text, and
+     open-spaced small text (opsz 11). Tracking tightens with size, never
+     across the whole interface. Keep the established size ramp so this
+     typography pass does not restructure screens owned by other work.
+     Every explicit axis tuple includes ROND so it cannot reset to 50. */
+  .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.03em; line-height: 1.06; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
+  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 620; letter-spacing: -0.028em; line-height: 1.12; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
+  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 24; }
+  .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
   .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; }
   .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; }
-  .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: -0.01em; line-height: 1.55; text-wrap: pretty; }
+  .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: 0; line-height: 1.55; text-wrap: pretty; }
   .st-support { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.45; }
-  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.35; font-variation-settings: "opsz" 11; }
+  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.4; font-variation-settings: "ROND" 0, "opsz" 11; }
+  .st-wordmark { font-variation-settings: "ROND" 20, "opsz" 32; font-feature-settings: "calt" 0; }
   /* Numbers get their own role because they are read differently: counts, sizes,
      timers and codes must not reflow when a digit changes. Tabular figures are
      the whole point of the role — a proportional 1 is narrower than a 6, and a

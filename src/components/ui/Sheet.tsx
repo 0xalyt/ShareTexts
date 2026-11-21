@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, animate, motion, useReducedMotion } from 'motion/react';
-import { X } from 'lucide-react';
+import { AlloSymbol } from '../AlloSymbol';
 import { useI18n } from '../../lib/i18n';
 import { useFocusTrap } from '../../lib/useFocusTrap';
 import { hapticTick } from '../../lib/haptics';
@@ -584,7 +584,7 @@ export function Sheet({
           data-sheet-no-drag
           className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
         >
-          <X className="w-4 h-4" />
+          <AlloSymbol name="close" size={16} />
         </button>
       )}
       {children}

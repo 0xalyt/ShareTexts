@@ -3,12 +3,12 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/AlloVariableFriendly.woff2') format('woff2');
+  src: url('/fonts/AlloVariable.woff2') format('woff2');
 }
-.about-page { font-family: Allo, -apple-system, BlinkMacSystemFont, sans-serif; font-optical-sizing: auto; font-feature-settings: 'ss02', 'case', 'calt'; }
-.about-apple .about-page { font-family: -apple-system, BlinkMacSystemFont, Allo, sans-serif; }
+.about-page { font-family: Allo, -apple-system, BlinkMacSystemFont, sans-serif; font-optical-sizing: auto; font-variation-settings: 'ROND' 0; font-feature-settings: 'calt' 0; }
+.about-apple .about-page { font-family: Allo, -apple-system, BlinkMacSystemFont, sans-serif; }
 .about-page :is(p, li) { text-wrap: pretty; }
-.about-page :is(h1, h2, h3) { text-wrap: balance; }
+.about-page :is(h1, h2, h3) { text-wrap: balance; font-variation-settings: 'ROND' 0, 'opsz' 32; }
 html.dark .about-page { --text-secondary: #a3a3a3; --text-muted: #a3a3a3; }
 @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .about-page { --text-secondary: #a3a3a3; --text-muted: #a3a3a3; } }
 .about-page .header { padding-inline: 24px; border-bottom-color: var(--border); }
