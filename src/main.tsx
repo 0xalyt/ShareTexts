@@ -7,6 +7,7 @@ import { prewarmSignaling, signalingHttpBaseForTelemetry } from './lib/socket';
 import { productEvent } from './lib/telemetry';
 import { initInstallCapture } from './lib/pwaInstall';
 import { applyGlassPreference, applyPlatformType } from './lib/device';
+import { initMotionIntent } from './lib/motionIntent';
 import { bootLocale, ensureLocale } from './lib/i18n';
 import './index.css';
 import './styles/apple-dna.css';
@@ -26,6 +27,7 @@ installDiagGlobal();
 applyGlassPreference();
 // SF first on Apple, Inter everywhere else (§2e) — decided before first paint.
 applyPlatformType();
+initMotionIntent();
 
 // ── Stale-chunk recovery (B31) ────────────────────────────────────────────
 // Every deploy replaces the hashed chunks. A tab that was opened before the

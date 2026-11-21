@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, ArrowRight, Monitor, Smartphone } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileText, Monitor, Smartphone } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 import './task-surfaces.css';
 
@@ -7,14 +7,20 @@ import './task-surfaces.css';
  * connected-state indicator; no green light until the connection is real. */
 export function PairingGuide({ receiving = false }: { receiving?: boolean }) {
   const { t } = useI18n();
+  const animateEntrance = React.useRef(document.documentElement.dataset.motionIntent === 'pointer').current;
   const Arrow = receiving ? ArrowLeft : ArrowRight;
   return (
-    <div className="st-pair-guide" aria-hidden="true">
+    <div className="st-pair-guide" data-receiving={receiving} data-motion-enter={animateEntrance} aria-hidden="true">
       <div className="st-pair-device">
         <span className="st-pair-tile"><Monitor strokeWidth={1.5} /></span>
         <span>{t('connect.thisDevice')}</span>
       </div>
-      <div className="st-pair-route"><span /><Arrow className="h-4 w-4 shrink-0" /><span /></div>
+      <div className="st-pair-route">
+        <span /><Arrow className="h-4 w-4 shrink-0" /><span />
+        {/* One explanatory handoff, not a connection/progress indicator.
+            The arrow remains when the paper settles; nothing loops. */}
+        <i className="st-pair-paper"><FileText strokeWidth={1.5} /></i>
+      </div>
       <div className="st-pair-device">
         <span className="st-pair-tile st-pair-tile-other"><Smartphone strokeWidth={1.5} /></span>
         <span>{t('connect.otherDevice')}</span>
