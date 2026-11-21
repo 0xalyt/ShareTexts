@@ -2,7 +2,7 @@
 
 ## Current landing: the white-studio launch film
 
-The landing now uses `LaunchFilm.tsx` (`film.html?mode=launch`), a new 12.7 s
+The landing uses `LaunchFilm.tsx` + `StudioScene.ts` (`film.html?mode=launch`), a 12.7 s
 sequence inspired by [Grok Bot — Action Button](https://serenatan.org/launchvideo/#video-27),
 inspected through Serena Launch MCP. This is an adaptation of the reference's
 motion language, **not a pixel-identical clone**: ShareTexts' two-device file
@@ -11,11 +11,31 @@ third-party logos, voice or audio are redistributed.
 
 | Time | Composition |
 | --- | --- |
-| 0–1.45 s | White studio; macro view of ShareTexts on a graphite phone. |
-| 1.45–3.35 s | Smooth perspective change; an orange file leaves the phone and crosses to the laptop. |
-| 3.35–5.7 s | Received state, then a settled two-device composition. |
-| 6–9.15 s | “From one screen / to the other.” with offset type entrances. |
-| 9.2–12.7 s | Official orange mark resolves into the ShareTexts lockup; white loop seam. |
+| 0–1.25 s | Macro phone; separate metal case, bevel, glass, lens and undistorted display. |
+| 1.25–3.72 s | One continuous camera dolly reveals the laptop; the file lifts from its actual screen position and arcs into the other display. |
+| 3.72–5.55 s | Both screens show receipt, with a settled two-device hold. |
+| 5.95–8.55 s | Masked “From one screen / to the other.” entrances. |
+| 8.65–11.9 s | Official orange mark resolves into the ShareTexts lockup. |
+| 11.9–12.7 s | Return to the identical opening camera and hardware pose, not a blank loop seam. |
+
+V2 replaces the flat CSS hardware with original 3D geometry, a procedural
+studio environment, physical materials, a keyboard/deck/hinge and soft shadows.
+Three.js and its types are pinned to **0.180.0**, an established September 2025
+release, as **devDependencies only**. `film.html` is not a production Vite entry;
+the website ships a video, not WebGL. Check `npm run verify:bundle` after building
+and confirm production JS has no `THREE.WebGLRenderer`/`PMREMGenerator` code.
+
+Craft references consulted for this revision: [device frames](https://www.ui-skills.com/skills/ibelick/device-frames)
+(separate screen/hardware, native ratios, restrained metal, no manufacturer marks),
+[Laws of UX](https://www.userinterface.wiki/laws-of-ux) (one lead, fewer playback
+choices, a 48 px target around the small control), [eases vs. springs](https://www.userinterface.wiki/to-spring-or-not-to-spring)
+and [animation principles](https://www.userinterface.wiki/12-principles-of-animation)
+(a predetermined film uses eases; anticipation, staging, arcs and causal receipt),
+[Detail](https://detail.design/detail/smart-corner-morph-animation) (continuous
+shape treatment), [word breaking](https://detail.design/detail/smarter-word-break)
+(let translated controls wrap), and [Preet Suthar](https://preetsuthar.me/)
+(restrained typography and resolved small details). Hardware is an unbranded
+approximation, not a claim of manufacturer-accurate industrial design.
 
 The device screens reuse `DemoScreen`, the existing localized product
 illustration. This is a demonstration, not a live transfer or speed benchmark.
@@ -24,9 +44,9 @@ is English. All player and source-film strings exist in every shipped locale.
 
 | Asset | Delivery |
 | --- | --- |
-| `public/film/sharetexts-launch-v1.mp4` | 1440×810, 30 fps, H.264, no audio; muted landing loop. |
-| `public/film/sharetexts-launch-v1-full.mp4` | 1920×1080, 30 fps, H.264/AAC; deliberate playback with original synthesized sound. |
-| `public/film/sharetexts-launch-v1-poster.jpg` | The settled pair at 5.35 s; reduced-motion and Save-Data default. |
+| `public/film/sharetexts-launch-v2.mp4` | 1440×810, 60 fps, H.264, no audio; muted landing loop. |
+| `public/film/sharetexts-launch-v2-full.mp4` | 1920×1080, 60 fps, H.264/AAC; deliberate playback with original synthesized sound. |
+| `public/film/sharetexts-launch-v2-poster.jpg` | The handoff at 3.05 s; reduced-motion and Save-Data default. |
 
 To reproduce, start `PORT=3010 npm run dev`, then run:
 
@@ -37,9 +57,16 @@ node scripts/render-launch-film.mjs render
 ```
 
 One deterministic clock (`window.__film(t)`) owns transforms, easing and
-transfer progress. Capture uses headless Chrome, 1080p screenshots and 30 fps.
+screen state. Capture uses headless Chrome, 1080p screenshots and 60 fps.
+The script builds an isolated authoring site under the ignored output folder
+and serves it on a temporary loopback port. Dev-server HMR cannot reload a
+partially captured sequence; the ordinary app build remains untouched.
+The script first captures `DemoScreen` textures at 402×874 and 1512×982 points,
+each at 2×, and records file-icon coordinates for the 3D handoff anchors. Device
+and screen aspect ratios are preserved. The macro shot intentionally crops the
+hardware; the settled pair is fully visible. No source screen content is stretched.
 Frames, probes and the original synthesized PCM soundtrack stay in ignored
-`film/out/launch-v1/`; only the delivery encodes and poster are committed.
+`film/out/launch-v2/`; only the delivery encodes and poster are committed.
 The sound bed and tactile tones are generated locally without samples or a
 third-party music license. The landing encode deliberately has no audio track.
 
@@ -47,6 +74,12 @@ third-party music license. The landing encode deliberately has no audio track.
 until visible, respects reduced motion and Save-Data, pauses off screen or in
 a hidden tab, remembers manual pause, and supports a manual autoplay fallback.
 An error leaves a meaningful still and the full-film link available.
+The inline pause/resume control has a 36 px visual disc and a 48 px hit target;
+full viewing and download are secondary actions below the frame.
+Dark mode keeps the film's white-studio art direction inside a matte charcoal
+cinema surround with soft light spill; no inversion alters product UI or brand color.
+The previous v1 assets remain for cached pages and existing links. New names avoid the
+seven-day `/film` asset cache serving the old cut after deployment.
 
 ## Archived desk-film rig
 
