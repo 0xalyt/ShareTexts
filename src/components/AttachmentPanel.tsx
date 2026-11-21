@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useIsPresent } from 'motion/react';
 import { Plus, Image as ImageIcon, File as FileIcon, Video as VideoIcon, Music, Type as TypeIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
@@ -55,6 +55,15 @@ interface AttachmentPanelProps {
   onFormatting?: () => void;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
 }
+
+// An exiting layer may still be visible, but must release pointer/focus input
+// immediately so the next press can reopen the picker during its exit.
+const PresenceLayer = React.forwardRef<HTMLDivElement, React.ComponentProps<typeof motion.div>>(
+  function PresenceLayer({ style, ...props }, ref) {
+    const present = useIsPresent();
+    return <motion.div {...props} ref={ref} inert={!present} style={{ ...style, pointerEvents: present ? style?.pointerEvents : 'none' }} />;
+  },
+);
 
 /**
  * The attachment menu — deliberately simple, and RELIABLE.
@@ -114,7 +123,7 @@ export function AttachmentPanel({ isOpen, onClose, onSelectType, onFormatting, b
       {/* Transparent backdrop — catches outside taps/clicks to close. */}
       <AnimatePresence custom={quiet}>
         {isOpen && (
-          <motion.div
+          <PresenceLayer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -131,7 +140,7 @@ export function AttachmentPanel({ isOpen, onClose, onSelectType, onFormatting, b
           open) keeps the row's stacking context above the backdrop. */}
       <AnimatePresence custom={quiet}>
         {isOpen && (
-          <motion.div
+          <PresenceLayer
             ref={menuRef}
             role="menu"
             aria-label={t('attach.add')}
@@ -191,7 +200,7 @@ export function AttachmentPanel({ isOpen, onClose, onSelectType, onFormatting, b
                 onClick={() => { onFormatting(); onClose(); }}
               />
             )}
-          </motion.div>
+          </PresenceLayer>
         )}
       </AnimatePresence>
     </>

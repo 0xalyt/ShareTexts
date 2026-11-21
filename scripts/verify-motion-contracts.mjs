@@ -218,6 +218,13 @@ try {
         assert.match(await menu.evaluate(el => getComputedStyle(el).transformOrigin), /^22px /);
         await page.getByRole('menuitem', { name: /files/i }).click();
         assert.equal(await page.locator('#selected').innerText(), 'file');
+        // Do not wait for the exit: a departing backdrop must release the
+        // actual hit target, or an immediate pointer reopen is swallowed.
+        const triggerBox = await trigger.boundingBox();
+        await page.mouse.click(triggerBox.x + triggerBox.width / 2, triggerBox.y + triggerBox.height / 2);
+        assert.equal(await trigger.getAttribute('aria-expanded'), 'true', 'Exiting picker swallowed immediate reopen');
+        await menu.waitFor();
+        await page.keyboard.press('Escape');
         await menu.waitFor({ state: 'detached' });
         await trigger.focus();
         await page.keyboard.press('Enter');
@@ -233,7 +240,7 @@ try {
         await page.keyboard.press('Escape');
         await menu.waitFor({ state: 'detached' });
         assert.deepEqual(errors, []);
-        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/keyboard return`);
+        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/immediate reopen/keyboard return`);
         await page.close();
       }
     } finally { await browser.close(); }
