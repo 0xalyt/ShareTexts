@@ -9,7 +9,7 @@ Read this before you change anything a person sees in ShareTexts. It is written 
 - **House rules already in the repo:** `docs/craft-rules.md`, `docs/redesign/motion-policy.md`, `HANDOFF-design-rebuild.md`, `docs/research/rea-sharetexts-reference-study.md`.
 
 ## What ShareTexts is
-Open a room on one device, pair another with a short code or QR, and send text, links, images, video and files across. No account. End-to-end encrypted. Temporary Spaces hold a shared board for a while and then expire. Users: someone moving a photo from phone to laptop, a student sending notes to a library PC, a team sharing a link in a meeting, a support agent getting a screenshot from a customer.
+Open a room on one device, pair another with a short code or QR, and send text, links, images, video and files across. No account. Rooms are encrypted in transit (not end-to-end; see `PROTOCOL.md`). Temporary Spaces keep a shared board on the server for up to 7 days and then expire. Users: someone moving a photo from phone to laptop, a student sending notes to a library PC, a team sharing a link in a meeting, a support agent getting a screenshot from a customer.
 
 The product is the moment the thing arrives on the other screen. Everything else is there to make that moment fast, certain and a little delightful.
 
@@ -23,7 +23,7 @@ Garv: "Good design is solving problems and making decisions feel obvious." And: 
 4. **Fix your spacing.** Use a 4px base with steps 4, 8, 12, 16, 24, 32, 48, 64, 96. Related things are closer than unrelated things (proximity). Section gaps are at least 2× element gaps. No one-off values like 13px or 22px.
 5. **Type.** Allo only, with its real oblique faces, optical sizes and symbols (https://allo.joshpuckett.me/). At most 3 sizes on a screen plus one display size. `text-wrap: balance` on headings, `pretty` on paragraphs, tabular numbers for codes, sizes and timers. Never synthesised italics (`font-synthesis-style: none`).
 6. **Colour.** Neutral first; colour only to mean something (primary action, success, error, the peer's device). OKLCH ramps. Dark mode is designed, not inverted (higher = lighter).
-7. **Copy.** Plain verbs, sentence case, one idea per line. No marketing filler ("Made to move", "Seamless", "Supercharge"). Run the `humanizer` skill on any new copy.
+7. **Copy.** Never claim more privacy than `PROTOCOL.md` allows: no "end-to-end encrypted", no "nothing is stored". Plain verbs, sentence case, one idea per line. No marketing filler ("Made to move", "Seamless", "Supercharge"). Run the `humanizer` skill on any new copy.
 
 ## The 19 principles Garv named, and where each one lives in ShareTexts
 Use a principle only where it removes doubt or adds feeling the user benefits from. Never add motion just to show it exists. Every principle must hold with reduced motion on (see "Animation-off parity").

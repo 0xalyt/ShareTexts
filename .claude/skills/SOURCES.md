@@ -36,7 +36,6 @@ SHAs identify the upstream clones reviewed; retained existing skills are not cla
 | impeccable | https://github.com/pbakaus/impeccable — `.claude/skills/impeccable` | Apache-2.0 | `b49177d32788f2dc585c42831d845dacf1ebed2c` |
 | improve-animations | https://github.com/emilkowalski/skills — `skills/improve-animations` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
 | landing-page-design | https://github.com/elayadesign/ai-design-skills — `skills/landing-page-design` | MIT | `456d9e0d3e2d84c748bb143c6ca3d90c45e16213` |
-| last30days | https://github.com/mvanhorn/last30days-skill — `skills/last30days` | MIT | `bb2f1ed2b9f6d07b90557c5eebd736b566533fec` |
 | learn-taste | https://github.com/emilkowalski/skills — `skills/learn-taste` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
 | make-interfaces-feel-better | https://github.com/jakubkrehel/make-interfaces-feel-better — `skills/make-interfaces-feel-better` | MIT | `6d9f2f1df10e8ce2ae1708598a73b0506fb98794` |
 | pick-ui-library | https://github.com/emilkowalski/skills — `skills/pick-ui-library` | MIT | `64eb3deb9a5fbfa041faf783e0bc3fd635872e9c` |
@@ -68,11 +67,6 @@ SHAs identify the upstream clones reviewed; retained existing skills are not cla
 
 Excluded `.git` and `node_modules` directories, files larger than 2,000,000 bytes, and video files. These are intentional omissions from otherwise complete copies.
 
-- `last30days/assets/aging-portrait.jpeg (2817207 bytes)`
-- `last30days/assets/claude-code-rap.mp3 (2354231 bytes)`
-- `last30days/assets/dog-as-human.png (2460679 bytes)`
-- `last30days/assets/dog-original.jpeg (4014063 bytes)`
-- `last30days/assets/swimmom-mockup.jpeg (2764821 bytes)`
 
 Unused taste-skill hero photographs removed (528,724 bytes total). These files were named only in `assets/layout/img/credits.json`, not loaded by the skill, its referenced documentation, scripts or demo pages. The upstream credits ledger and LICENSE are retained. Catalogued photographs, icon/demo assets and dynamically selected runtime fallback images remain because the skill uses them.
 
@@ -97,3 +91,8 @@ Unused taste-skill hero photographs removed (528,724 bytes total). These files w
 ## Manifest compatibility
 
 Upstream manifests are unchanged. Folders were renamed to match their frontmatter names: composition-patterns → vercel-composition-patterns, react-best-practices → vercel-react-best-practices, react-view-transitions → vercel-react-view-transitions, scrapling → scrapling-official, taste-skill → design-taste-frontend. The grilling and domain-modeling dependencies invoked by grill-with-docs are installed alongside it.
+
+
+## Removed after review
+
+- last30days: removed because it sends search queries (and, for person runs, names/emails) to third-party APIs and writes credentials to `~/.config` and the OS keychain. Install it per user if wanted: https://github.com/mvanhorn/last30days-skill

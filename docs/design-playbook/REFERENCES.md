@@ -40,7 +40,7 @@ Open the link before copying the idea. Prefer an existing library over hand-roll
 | Browser support checks | Can I use / Baseline | https://caniuse.com/, https://web.dev/baseline |
 
 ## Installed skills and when to load them
-All live in `.claude/skills/<name>/SKILL.md` (provenance and licences in `.claude/skills/SOURCES.md`). Load the skill, follow it, then come back to this playbook.
+All live in `.claude/skills/<name>/SKILL.md`. Some ask before installing tools (`reverse-engineer-anything` runs `npx -y rea-agents@latest`, `scrapling-official` pip-installs Scrapling, `design` image generation needs your own API key); only run those when you mean to (provenance and licences in `.claude/skills/SOURCES.md`). Load the skill, follow it, then come back to this playbook.
 
 | Task | Skills |
 |---|---|
@@ -55,9 +55,8 @@ All live in `.claude/skills/<name>/SKILL.md` (provenance and licences in `.claud
 | Planning | `grill-with-docs`, `grilling`, `domain-modeling`, `research`, `to-spec` |
 | Quality | `test-driven-development`, `systematic-debugging`, `verification-before-completion`, `webapp-testing`, `code-review`, `find-bugs`, `security-review`, `break-ui` |
 | Films, demos, diagrams | `stageshow`, `dimensional-drawing`, `dimensional-drawing-motion`, `diagram-design` |
-| What people say right now | `last30days` |
 
-Not installed, and why: `senlindesign/taste-skill` (no licence file), Graphify and Craft Anything (tools, not skills; install with their own CLIs if you want them: https://github.com/Graphify-Labs/graphify, https://github.com/storytold/craft-anything), Vidscribe (Apple Silicon only: https://github.com/SamuelZ12/vidscribe), Supabase skills (ShareTexts does not use Supabase). Uizze (http://uizze.com) and ThinkUI (http://thinkui.xyz) are websites, not repos; browse them for anti-slop examples.
+Not installed, and why: `senlindesign/taste-skill` (no licence file), Graphify and Craft Anything (tools, not skills; install with their own CLIs if you want them: https://github.com/Graphify-Labs/graphify, https://github.com/storytold/craft-anything), Vidscribe (Apple Silicon only: https://github.com/SamuelZ12/vidscribe), Supabase skills (ShareTexts does not use Supabase), Last30Days (sends queries and person lookups to third-party APIs and stores keys in your keychain; install it for yourself if you want it: https://github.com/mvanhorn/last30days-skill). Uizze (http://uizze.com) and ThinkUI (http://thinkui.xyz) are websites, not repos; browse them for anti-slop examples.
 
 ## Where things are in the code
 | Thing | File |
