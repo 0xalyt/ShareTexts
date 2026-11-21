@@ -47,6 +47,9 @@ Heading → sharing actions → film at every width, not a desktop split. Gray b
 
 ### Local-only CI and centered reference follow-up
 
+- Integrated current main `8f025b0`, including the design playbook and agent instructions. No additional runtime/UI changes from this integration.
+- Hosted Firefox on `b89e960` failed only the new geometry assertion at en/390. Local Firefox reproduced `picture.bottom=545.2833404541016` versus adjacent `button.top=545.2833251953125`: independent DOMRect rounding, a 0.0000153px difference, not a painted overlap. The assertion now tolerates .05px for this boundary only; the 44/48px target, 16:9, backdrop, containment and overflow checks remain. No production CSS changed. CI evidence: [failed job](https://github.com/0xalyt/ShareTexts/actions/runs/44889838681/job/136803075591), downloaded screenshot and trace in `audit/tmp/ci-44889838681-firefox/`.
+- Vercel's status is `Deployment rate limited — retry in 24 hours` (`api-deployments-free-per-day`, >100), not a build failure. Paul authorized merging with only that quota status red after every other check/Review and an integrated local build pass. No empty/retrigger push or deployment retry; merges are not claimed live while the cap remains.
 - Integrated current main `6ac4163`, including [Allo typography PR #16](https://github.com/0xalyt/ShareTexts/pull/16) and [shared motion PR #17](https://github.com/0xalyt/ShareTexts/pull/17). Retained the scrolling logo-only compatibility layout while applying the typography owner's new browser-heading tracking. Global type/motion changes remain inherited, not authored here.
 - Final [compact-phone UI retest](https://app.devin.ai/sessions/519f23e8501a4602b8ad36b0399832ca?testRecording=abb63f8a-3345-4d58-a166-abe287ba684f) passed on integrated `f93af35`: 320×844 and 390×844, light/dark, 44px target/28px disc, zero top gap, 12px side/bottom padding, no picture overlap or horizontal overflow. Pause/resume, Arabic RTL, keyboard reading order, and desktop1440 light/dark composition passed. The gray-logo marquee retained a continuous boundary without names or a gap. Screenshots sent: `/home/ubuntu/screenshots/pr19-compact-320-light-poster.png`, `pr19-compact-320-dark-poster.png`, `pr19-compact-390-light-poster.png`, `pr19-compact-390-dark-poster.png`. All are unscrolled reduced-motion poster views. The unchanged source's autoplay crop is deferred per Paul's direction, not represented as fixed.
 - Integrated `npx tsc --noEmit`, `npm run verify:bundle` (178.8KiB gzip), `npm run verify:motion` (normal/reduced), and local-Worker `npm run verify:handoff` passed after the Allo/motion merge and compact controls (`audit/tmp/f43-compact-handoff.log`). Fresh hosted checks remain required before merge.
@@ -69,15 +72,15 @@ Heading → sharing actions → film at every width, not a desktop split. Gray b
 ## NOT VERIFIED / blockers (current)
 
 - Old film sources still contain the encoded close-up and title-only segment. Paul explicitly deferred the replacement to the film owner and released that merge hold; the new film remains outside this PR's verification claim.
-- Hosted three-engine CI has not yet run on the local-Worker/framed-player follow-up. Earlier production-dependent failures are historical, not a reason to spend the live allowance or bypass the new gate.
+- Fresh hosted three-engine CI is required after the Firefox DOMRect assertion correction; Devin Review on `b89e960` found zero issues. Earlier production-dependent failures are historical, not a reason to spend the live allowance. Vercel deployment remains quota-limited under Paul's explicit exception above.
 - Physical Android/iOS devices, native Safari and old-device frame pacing are not verified by desktop browser emulation.
 - The latest framing run verified playback-button hover; marquee fine-pointer hover and background-tab pause remain unverified by UI testing. Offscreen/manual pause passed in the preceding marquee retest; both original hooks are retained. Save-Data was not independently exercised in the latest framing retest.
 - No claim of transport compatibility is inferred from the browser logos.
 
 ## Owner questions
 
-None. Paul approved the desktop composition and released the replacement-film hold; finish the requested compact-phone check and green CI. No production testing.
+None. Paul approved the desktop composition and released the replacement-film hold. The compact-phone screenshots were sent; finish green CI under the Vercel-only quota exception. No production testing.
 
 ## Next
 
-Verify the compact phone control lane at 320/390px in both themes and send the four screenshots. Integrate current main, finish the local gates and three-engine hosted CI; merge [PR #19](https://github.com/0xalyt/ShareTexts/pull/19) only with every check green and clean Devin Review. The film owner handles the source replacement separately. No live tests until authorized.
+Finish local Firefox verification and the integrated build, batch the assertion correction with current main, and finish hosted three-engine CI and clean Review. Merge [PR #19](https://github.com/0xalyt/ShareTexts/pull/19) only after every non-Vercel check is green; the sole permitted red status is the confirmed Vercel daily quota. The film owner handles the source replacement separately. No live tests until authorized; do not call this release live while deployment is capped.

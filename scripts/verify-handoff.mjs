@@ -91,7 +91,10 @@ try {
         const r = el.getBoundingClientRect();
         const picture = el.querySelector('.hero-film-picture').getBoundingClientRect();
         return {
-          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
+          // Firefox rounds adjacent DOMRects independently at fractional aspect
+          // ratios (a measured 0.000015px overlap at 390px). Ignore only that
+          // sub-layout-unit noise; preserve the actual 44/48px target contract.
+          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom - .05 || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
           widescreen: Math.abs(picture.width / picture.height - 16 / 9) < .02,
           backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
