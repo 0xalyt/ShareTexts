@@ -6,6 +6,9 @@ The shared footer and static About footer now use the same navigation, blurb,
 platform line and storage-neutral promise: “No app · No account · Your devices.”
 The footer language control reuses the existing viewport-safe language sheet,
 rather than opening a dropdown below the bottom of a 320px screen.
+At narrow widths the home-linked brand replaces the redundant back arrow,
+leaving the complete localized page label visible without an ellipsis. The
+theme glyph is 20px at the prescribed 1.5 stroke, inside its 44px touch target.
 
 The audit covers the app, all 11 locale dictionaries, Docs, static guides,
 search-page generators, SEO metadata, `llms.txt`, and legacy film source text.
