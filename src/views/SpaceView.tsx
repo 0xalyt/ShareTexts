@@ -12,6 +12,7 @@
  */
 
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import '../components/ui/task-surfaces.css';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -879,7 +880,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
 
   return (
     <div
-      className="min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans flex flex-col"
+      className="st-space min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans flex flex-col"
       onDragOver={e => { e.preventDefault(); if (e.dataTransfer.types.includes('Files')) setDragOver(true); }}
       onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false); }}
       onDrop={e => {
@@ -890,7 +891,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       }}
     >
       {/* ── header ── */}
-      <header className="shrink-0 sticky top-0 z-40 h-14 bg-apple-canvas dark:bg-night-900 border-b border-apple-divider/60 dark:border-white/[0.06]">
+      <header className="shrink-0 sticky top-0 z-40 bg-apple-canvas dark:bg-night-900 border-b border-apple-divider/60 dark:border-white/[0.06]">
         {/* Lifetime hairline — time actually spent of the promised window.
             Renders only once the shelf is genuinely running out (≥60% spent
             or the last hour); calm metadata before that, no fake urgency. */}
@@ -901,11 +902,11 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             style={{ width: `${Math.min(100, Math.round(((nowMs - (snapshot.createdAt ?? snapshot.expiresAt - 24 * 3_600_000)) / Math.max(1, snapshot.expiresAt - (snapshot.createdAt ?? snapshot.expiresAt - 24 * 3_600_000))) * 100))}%` }}
           />
         )}
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-          <a href="/" aria-label={t('space.backHome')} className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08]">
+        <div className="st-space-header max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+          <a href="/" aria-label={t('space.backHome')} className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08]">
             <ArrowLeft className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
           </a>
-          <div className="min-w-0 flex-1">
+          <div className="st-space-identity min-w-0 flex-1">
             <h1 className="text-[16px] font-semibold tracking-[-0.02em] text-apple-ink dark:text-white truncate leading-tight">{snapshot?.name || '…'}</h1>
             {snapshot && (
               <Countdown expiresAt={snapshot.expiresAt} now={nowMs} createdAt={snapshot.createdAt} />
@@ -935,7 +936,8 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           )}
           <button
             onClick={() => setShareOpen(true)}
-            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform"
+            aria-label={t('space.share')}
+            className="st-space-share shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full text-[13px] font-semibold active:scale-[0.96] transition-transform"
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -944,9 +946,11 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           {canClose && (
             <button
               onClick={() => setCloseConfirm(true)}
-              className="shrink-0 min-h-[36px] px-3 rounded-full text-[13px] font-medium text-red-600/90 dark:text-red-400/90 hover:bg-red-500/[0.08]"
+              aria-label={t('space.closeNow')}
+              className="st-space-close shrink-0 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-3 rounded-full text-[13px] font-medium text-red-600/90 dark:text-red-400/90 hover:bg-red-500/[0.08]"
             >
-              {t('space.closeNow')}
+              <XCircle className="w-[18px] h-[18px] min-[400px]:hidden" aria-hidden />
+              <span className="hidden min-[400px]:inline">{t('space.closeNow')}</span>
             </button>
           )}
         </div>
@@ -1023,16 +1027,14 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               <Inbox className="w-6 h-6" strokeWidth={2} />
             </span>
             <p className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.015em]">{t('space.empty')}</p>
-            <p className="mt-1.5 text-[16px] text-apple-ink-muted dark:text-white/55 max-w-[34ch] leading-relaxed">{t(canUploadFiles ? 'space.emptyHint' : 'space.textOnly')}</p>
+            {canUploadFiles && <p className="mt-1.5 text-[16px] text-apple-ink-muted dark:text-white/55 max-w-[34ch] leading-relaxed">{t('space.emptyHint')}</p>}
             {/* The drop affordance — the SAME surface the real shelf uses,
                 so “nothing here” and “something is here” never look like
                 two different products. */}
-            <div className="st-tile mt-6 w-full max-w-[420px] flex items-center justify-center gap-2.5 rounded-[12px] px-4 py-4 text-[13px] font-semibold text-apple-ink-muted dark:text-white/55">
-              <span className="st-glyph w-8 h-8 shrink-0" aria-hidden>
-                <Plus className="w-4 h-4" />
-              </span>
-              {t('space.composerPlaceholder')}
-            </div>
+            <button type="button" className="st-space-empty-action press" onClick={() => composerRef.current?.focus()} data-testid="space-empty-write">
+              <Plus className="w-4 h-4 shrink-0" aria-hidden />
+              {t('space.emptyAction')}
+            </button>
           </div>
         ) : (
           <ul className="space-y-2.5" aria-label={t('space.contentLabel')}>

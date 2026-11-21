@@ -7,6 +7,7 @@ import { useI18n } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 import { LogoTraceLoader } from '../LogoTraceLoader';
 import { MorphButton } from '../MorphButton';
+import { PairingGuide } from '../ui/PairingGuide';
 
 /**
  * SendScreen — the code hand-over (§18, P3).
@@ -259,7 +260,7 @@ export function SendScreen({
 
       {/* ── QR ───────────────────────────────────────────────────────── */}
       {segment === 'qr' && (
-        <div>
+        <div className="st-send-qr">
           <QrPlate value={shareUrl} label={t('qr.art.label')} />
           <p className="mt-3 text-center text-[13px] text-apple-ink-muted dark:text-white/70">{t('send.qrCaption')}</p>
         </div>
@@ -293,20 +294,17 @@ export function SendScreen({
   );
 
   return (
-    <div className="w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll flex flex-col">
+    <div className="st-task w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen">
+      <div className="st-send-content min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll flex flex-col">
       <h2 className="shrink-0 text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
         {t('send.title')}
       </h2>
+      <p className="st-task-intro">{t('send.subtitle')}</p>
       {/* The code IS the screen, so it sits in the middle of the pane under
           the title. Flush to the top it left a tall empty band down to the
           waiting pill and the page read as two unrelated halves. */}
-      <div className="flex flex-1 flex-col justify-center py-6 [@media(max-height:520px)]:block [@media(max-height:520px)]:py-0">
-      {/* No helper sentence here. This screen used to open with "Open
-          ShareTexts on your other device and tap Receive." — a tutorial line
-          above a control that already says what to do. The room is complete
-          without it: the code IS the instruction, and the three tabs are the
-          three ways to hand it over. Empty states state, they don't teach. */}
+      <div className="st-send-methods flex flex-1 flex-col justify-center py-6 [@media(max-height:520px)]:block [@media(max-height:520px)]:py-0">
+      <PairingGuide />
 
       {isCreating && !secret ? (
         <div className="flex flex-col items-center py-12" aria-live="polite">
@@ -366,12 +364,9 @@ export function SendScreen({
         data-testid="send-status"
       >
         <div className="flex items-center justify-center gap-2.5 rounded-full bg-white/72 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/12 px-4 min-h-[44px]">
-          <span aria-hidden className="relative flex w-2 h-2">
-            <span className="absolute inset-0 rounded-full bg-status-success animate-[st-live-dot_1.4s_ease-in-out_infinite]" />
-            <span className="relative w-2 h-2 rounded-full bg-status-success" />
-          </span>
+          <span aria-hidden className="st-task-status-dot" data-state={shownError ? 'offline' : 'waiting'} />
           <span className="text-[13px] font-medium text-apple-ink dark:text-white/85">
-            {partnerConnecting ? t('send.connecting') : t('send.waiting')}
+            {shownError ? shownError.text : partnerConnecting ? t('send.connecting') : t('send.waiting')}
           </span>
         </div>
       </div>

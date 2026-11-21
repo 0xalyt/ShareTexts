@@ -51,7 +51,9 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
   const status = connected
     ? route === 'relay'
       ? t('connect.throughShareTexts')
-      : t('connect.sameNetwork')
+      : route === 'local'
+        ? t('connect.sameNetwork')
+        : t('connect.linked')
     : t('connect.linking');
 
   return (

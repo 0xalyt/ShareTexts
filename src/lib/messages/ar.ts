@@ -605,6 +605,7 @@ const ar: Dict = {
   'space.cancel': 'إلغاء',
   'space.contentLabel': 'المحتوى المشترك',
   'space.empty': 'لا شيء هنا بعد',
+  'space.emptyAction': 'اكتب ملاحظة',
   'space.emptyHint': 'أضف نصًا أو روابط أو صورًا أو أي ملف أدناه.',
   'space.composerPlaceholder': 'أضف شيئًا — نصًا أو رابطًا…',
   'space.addFile': 'ملف',

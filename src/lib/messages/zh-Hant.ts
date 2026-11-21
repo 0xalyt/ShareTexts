@@ -15,6 +15,7 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  'space.emptyAction': '寫一則筆記',
   'footer.devices': '你的裝置',
   'demo.s7': '用完後關閉房間。',
   'home.faq.a6': '即時房間在傳輸過程中加密。服務會簽發房間密鑰，因此並非零知識系統。臨時空間的文字和連結會儲存在伺服器上，直到空間關閉或到期。已儲存的項目保留在瀏覽器中。詳情請參閱隱私政策。',
