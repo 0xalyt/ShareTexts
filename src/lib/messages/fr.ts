@@ -844,6 +844,21 @@ const fr: Dict = {
   "saved.view": "Voir",
   "saved.showMore": "Afficher plus",
   "saved.savedOn": "Enregistré le {date}",
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "Des navigateurs différents. Le même partage.",
+  "home.browser.body": "Pas besoin des mêmes navigateurs. Ouvrez simplement ShareTexts sur les deux.",
+  "home.browser.open": "Ouvrir sur votre autre appareil",
+  "home.browser.qr": "Afficher le QR du site",
+  "home.browser.qrHint": "Scannez pour ouvrir cette page. Connectez-vous ensuite avec un code de salle.",
+  "home.browser.copyFailed": "Sélectionnez et copiez l’adresse, ou scannez le QR.",
+  "home.space.storage": "Les espaces utilisent un stockage temporaire sur serveur. Ne partagez le code qu’avec des personnes de confiance.",
+  "home.space.preview": "Aperçu interactif. Rien n’est enregistré.",
+  "home.space.open": "Pendant l’ouverture",
+  "home.space.closed": "Après expiration",
+  "home.space.example": "Projets du week-end",
+  "home.space.note": "Train à 09:30. Un café avant de partir ?",
+  "home.browser.hideQr": "Masquer le QR du site",
+
   // Hop — linked devices (My devices)
   "hop.title": "Mes appareils",
   "hop.row.hint": "Associez une fois, envoyez quand vous voulez",
