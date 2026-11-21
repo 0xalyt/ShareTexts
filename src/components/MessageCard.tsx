@@ -29,7 +29,7 @@ import { EmojiReaction } from './spaceui/EmojiReaction';
 import { Emoji } from './Emoji';
 import { REACTIONS } from '../lib/emoji';
 import { AnnotatedHint } from './AnnotatedHint';
-import { FileTypeIcon } from './FileTypeIcon';
+import { TransferStamp } from './TransferStamp';
 import { DraggableImage } from './DraggableImage';
 import { cn, formatBytes, sanitizeFilename } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
@@ -854,7 +854,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               as the file row, never a broken or inline preview. */}
           {(a.type === 'file' || a.type === 'audio' || unsafePreview || lost || (a.type === 'image' && !unsafePreview && decodeFailed)) && (
             <div className="p-4 flex items-center gap-3.5 bg-apple-parchment/50 dark:bg-black/20">
-              <FileTypeIcon name={a.name} mimeType={a.mimeType} size={20} />
+              <TransferStamp name={a.name} mimeType={a.mimeType} complete={Boolean(complete)} />
               <div className="flex flex-col flex-1 truncate min-w-0">
                 <span className="text-[16px] font-semibold truncate text-apple-ink dark:text-white">{a.name}</span>
                 <span className="text-[12px] font-medium text-apple-ink-muted">
