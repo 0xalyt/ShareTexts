@@ -290,6 +290,7 @@ async function countMany(env: Env, counts: Record<string, number>) {
  *  flow (plus on close, alarm and destroy) instead of one Metrics request per
  *  relay frame. */
 const METRICS_FLUSH_MS = 10_000;
+const BUFFERED_METRICS = new Set(['relay.binary_messages', 'abuse.frames_dropped']);
 
 /**
  * Report this room's current seated-peer count to the Stats DO (best-effort,
@@ -595,9 +596,14 @@ export class Room extends DurableObject<Env> {
   private pendingMetrics = new Map<string, number>();
   private metricsFlushedAt = Date.now();
 
+  /** Per-frame counters are buffered (a hibernating room may drop the last
+   *  few seconds of them); everything else, including the lifetime
+   *  rooms.created count, goes out at once. */
   private async metric(name: string) {
     this.pendingMetrics.set(name, (this.pendingMetrics.get(name) ?? 0) + 1);
-    if (Date.now() - this.metricsFlushedAt >= METRICS_FLUSH_MS) await this.flushMetrics();
+    if (!BUFFERED_METRICS.has(name) || Date.now() - this.metricsFlushedAt >= METRICS_FLUSH_MS) {
+      await this.flushMetrics();
+    }
   }
 
   private async flushMetrics() {
