@@ -18,6 +18,17 @@
 .hero-film-watch:focus-visible, .hero-film-download:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; border-radius: 4px; }
 .dark .hero-film-eyebrow { color: var(--color-ember); }
 .dark .hero-film-watch, .dark .hero-film-download { color: #a1a1a6; }
+/* The white studio is the film's art direction, not an app surface. A matte
+   cinema surround and soft light spill make that distinction in dark mode. */
+.dark .hero-film {
+  padding: 9px 9px 0;
+  border: 1px solid #ffffff18;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #35353c, #222226 60%, #1c1c20);
+  box-shadow: 0 24px 64px #0005, 0 0 80px -24px #ffffff1f, inset 0 1px 0 #ffffff0d;
+}
+.dark .hero-film-picture { border-color: #ffffff40; border-radius: 15px; box-shadow: 0 8px 24px #0003; }
+.dark .hero-film-caption { padding: 3px 5px 0; }
 @media (hover: hover) and (pointer: fine) {
   .hero-film-play:hover::before { background: #1d1d1f; }
   .hero-film-watch:hover { color: var(--color-apple-ink); text-decoration: underline; text-underline-offset: 4px; }
