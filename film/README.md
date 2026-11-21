@@ -75,10 +75,10 @@ until visible, respects reduced motion and Save-Data, pauses off screen or in
 a hidden tab, remembers manual pause, and supports a manual autoplay fallback.
 An error leaves a meaningful still and the full-film link available.
 The inline pause/resume control has a 36 px visual disc and a 48 px hit target;
-full viewing and download are secondary actions below the frame. The previous
+full viewing and download are secondary actions below the frame.
 Dark mode keeps the film's white-studio art direction inside a matte charcoal
 cinema surround with soft light spill; no inversion alters product UI or brand color.
-v1 assets remain for cached pages and existing links. New names avoid the
+The previous v1 assets remain for cached pages and existing links. New names avoid the
 seven-day `/film` asset cache serving the old cut after deployment.
 
 ## Archived desk-film rig
