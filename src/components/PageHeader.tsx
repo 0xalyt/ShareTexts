@@ -61,7 +61,7 @@ export function PageHeader({
           </a>
           <BrandLockup compact />
         </div>
-        <div className="flex items-center gap-4 sm:gap-5 ml-auto">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-5 ml-auto">
           {children}
           {links.map((l) => (
             <a
@@ -75,12 +75,12 @@ export function PageHeader({
           {/* The current page reads as quiet text, not a link: it is where you
               already are. */}
           {currentLabel && (
-            <span aria-current="page" className="text-[13px] font-medium text-apple-ink/70 dark:text-white/70">
+            <span aria-current="page" className="min-w-0 truncate text-[13px] font-medium text-apple-ink/70 dark:text-white/70">
               {currentLabel}
             </span>
           )}
-          <span aria-hidden className="w-px h-5 bg-apple-divider dark:bg-white/10" />
-          <ThemeToggle />
+          <span aria-hidden className="h-5 w-px shrink-0 bg-apple-divider dark:bg-white/10" />
+          <span className="shrink-0"><ThemeToggle /></span>
         </div>
       </div>
     </header>
