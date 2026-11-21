@@ -6,7 +6,9 @@ import { beginTransferRecord, finishTransferRecord, recordTransferProgress, setC
 import { productEvent } from './telemetry';
 import type { ChunkEnvelope } from './protocol';
 import { setDataChannel } from './netStats';
-import { RelayBinaryAssembler, relayBinaryFrames, RELAY_PACKET_LIMIT } from './relayBinary';
+import type { RelayBinaryAssembler } from './relayBinary';
+
+const loadRelayCodec = () => import('./relayBinary');
 
 type SignalData = { type: 'offer' | 'answer'; sdp: string } | { type: 'candidate'; candidate: RTCIceCandidateInit };
 
@@ -246,6 +248,7 @@ export function getAckedPosition(transferId: string): number {
  * when a session resets so memory isn't held forever.
  */
 export function clearTransferState(transferId: string) {
+  completedReceives.delete(transferId);
   const p = partialReceives.get(transferId);
   // Only clean up disk sinks that never completed — a finished OPFS file's
   // blob URL may still be live for the user to download.
@@ -442,7 +445,7 @@ export class PeerManager {
   private destroyed = false;
   private peerRelayFragments: boolean | null = null;
   private relayCapabilityWaiters = new Set<() => void>();
-  private relayAssembly = new RelayBinaryAssembler();
+  private relayAssembly: RelayBinaryAssembler | null = null;
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private relayFallbackTimer: ReturnType<typeof setTimeout> | null = null;
   /** Bandwidth samples (bytes/sec) for adaptive PIPELINE DEPTH pacing.
@@ -1007,9 +1010,14 @@ export class PeerManager {
 
   /** Relay chunks addressed to THIS link (routed by participant id) — inert
    *  once destroyed. */
-  public acceptRelay = (data: string | ArrayBuffer) => {
+  public acceptRelay = async (data: string | ArrayBuffer) => {
     if (this.destroyed) return;
     if (data instanceof ArrayBuffer) {
+      if (!this.relayAssembly) {
+        const { RelayBinaryAssembler } = await loadRelayCodec();
+        if (this.destroyed) return;
+        this.relayAssembly ??= new RelayBinaryAssembler();
+      }
       const packet = this.relayAssembly.push(data);
       if (!packet) return;
       data = packet;
@@ -1018,13 +1026,10 @@ export class PeerManager {
   };
 
   private async sendRelayBinary(packet: ArrayBuffer): Promise<void> {
+    const { relayBinaryFrames, RELAY_PACKET_LIMIT, waitForRelayCapability } = await loadRelayCodec();
     if (packet.byteLength > RELAY_PACKET_LIMIT && this.peerRelayFragments === null) {
       void this.sendHello();
-      await new Promise<void>(resolve => {
-        const done = () => { clearTimeout(timer); this.relayCapabilityWaiters.delete(done); resolve(); };
-        const timer = setTimeout(done, 2000);
-        this.relayCapabilityWaiters.add(done);
-      });
+      await waitForRelayCapability(this.relayCapabilityWaiters);
     }
     if (this.destroyed) throw new TransferInterruptedError();
     const frames = this.peerRelayFragments ? relayBinaryFrames(packet) : [packet];
@@ -1901,7 +1906,7 @@ export class PeerManager {
   }
 
   public destroy() {
-    this.relayAssembly.clear();
+    this.relayAssembly?.clear();
     for (const done of this.relayCapabilityWaiters) done();
     this.destroyed = true;
     this.transferControllers.forEach(c => c.abort(new TransferInterruptedError()));

@@ -330,6 +330,23 @@ async function runRoomProtocol() {
   await sleep(25);
   check('unaddressed binary reaches both peers despite unrelated targeted signal', joiner.binary.length === binaryBefore[0] + 1 && third.binary.length === binaryBefore[1] + 1);
   check('legacy raw-binary consumer receives original bytes with new Worker', new Uint8Array(third.binary.at(-1))[21] === 98);
+  room.frameBuckets.clear();
+  const beforeTarget = [joiner.binary.length, third.binary.length];
+  const targeting = creator.send('relay_binary_target', { to: SECOND_PID });
+  check('binary target is attached synchronously and survives hibernation', creator.server.deserializeAttachment()?.relayTo === SECOND_PID);
+  await third.send('signal', { to: 'pid-creator-device-00000000', signal: { type: 'answer', sdp: 'v=0 interleaved' } });
+  await Promise.all([targeting, new Room(ctx, makeEnv()).webSocketMessage(creator.server, chunk.buffer)]);
+  check('binary target survives unrelated sender signaling; unselected peer receives no bytes', joiner.binary.length === beforeTarget[0] + 1 && third.binary.length === beforeTarget[1]);
+  await creator.send('relay_binary_target', { to: 'not-a-member' });
+  await room.webSocketMessage(creator.server, chunk.buffer);
+  check('unknown binary recipient fails closed', joiner.binary.length === beforeTarget[0] + 1 && third.binary.length === beforeTarget[1]);
+  const beforeText = [joiner.inbox.length, third.inbox.length];
+  await creator.send('relay_message', { to: SECOND_PID, data: 'enc:AAAA' });
+  check('targeted text reaches selected peer only', joiner.inbox.slice(beforeText[0]).some(m => m.event === 'relay_message') && !third.inbox.slice(beforeText[1]).some(m => m.event === 'relay_message'));
+  await creator.send('relay_message', { to: 'not-a-member', data: 'enc:AAAA' });
+  check('unknown text recipient fails closed', !third.inbox.slice(beforeText[1]).some(m => m.event === 'relay_message'));
+  await room.webSocketMessage(creator.server, chunk.buffer);
+  check('binary hint is one-shot; legacy broadcast still reaches all peers', joiner.binary.length === beforeTarget[0] + 2 && third.binary.length === beforeTarget[1] + 1);
   // A FORGED roster claim — reusing another device's pid — is just a seat
   // reclaim (the room secret gates every action): the roster must not grow.
   const fourth = await connect(room, roomId);

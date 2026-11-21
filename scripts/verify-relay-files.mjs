@@ -14,6 +14,7 @@ assert.ok(count === 2 || count === 3);
 const files = [1, 2, 3].map(number => ({ name: `relay-queue-${number}.bin`, mimeType: 'application/octet-stream', buffer: Buffer.alloc(600000 + number * 7919, number * 37) }));
 try {
   const pages = [];
+  const binaryReceived = Array(count).fill(0);
   let binarySent = 0;
   let maxBinaryBytes = 0;
   const observeBinary = payload => {
@@ -52,6 +53,7 @@ try {
       window.RTCPeerConnection = class { constructor() { throw new DOMException('Forced relay regression', 'NotSupportedError'); } };
     });
     const page = await context.newPage();
+    page.on('websocket', socket => socket.on('framereceived', ({ payload }) => { if (typeof payload !== 'string') binaryReceived[i]++; }));
     if (i === 0 && !process.env.WORKER_URL) page.on('websocket', socket => socket.on('framesent', ({ payload }) => observeBinary(payload)));
     pages.push(page);
     await gotoPage(page, i > 0 && process.env.RECEIVER_URL ? process.env.RECEIVER_URL : URL, { waitUntil: 'domcontentloaded' });
@@ -95,6 +97,28 @@ try {
       assert.deepEqual(await readFile(await download.path()), file.buffer);
       console.log(`PASS ${String.fromCharCode(66 + index)} ${file.name}: Verified, bytes match (${file.buffer.length})`);
     }
+  }
+  if (count === 3 && !process.env.WORKER_URL) {
+    const selectedId = await receivers[0].evaluate(() => Object.values(JSON.parse(localStorage.getItem('sharetext.deviceId') || '{}'))[0]);
+    assert.equal(typeof selectedId, 'string');
+    await sender.getByTestId('recipient-row').getByRole('button').first().click();
+    await sender.locator(`[data-participant-id="${selectedId}"]`).click();
+    await sender.getByRole('button', { name: 'Close', exact: true }).click();
+    const excludedBefore = binaryReceived[2];
+    const selectedFile = { name: 'relay-selected-only.bin', mimeType: 'application/octet-stream', buffer: Buffer.alloc(607919, 91) };
+    await sender.locator('input[multiple]:not([accept])').setInputFiles([selectedFile]);
+    await sender.getByText(selectedFile.name, { exact: true }).waitFor();
+    await sender.getByRole('button', { name: 'Send', exact: true }).click();
+    const row = receivers[0].locator('[class~="group/msg"]').filter({ has: receivers[0].getByText(selectedFile.name, { exact: true }) });
+    await row.getByText('Verified', { exact: true }).waitFor({ timeout: 30000 });
+    const downloading = receivers[0].waitForEvent('download');
+    await row.getByTestId('transfer-download').click();
+    const download = await downloading;
+    assert.equal(await download.failure(), null);
+    assert.deepEqual(await readFile(await download.path()), selectedFile.buffer);
+    assert.equal(await receivers[1].getByText(selectedFile.name, { exact: true }).count(), 0);
+    assert.equal(binaryReceived[2], excludedBefore, 'unselected member must receive no ciphertext');
+    console.log('PASS selected recipient: B verified byte-identical multi-chunk file; C received no metadata or binary');
   }
   assert.ok(binarySent >= files.length * receivers.length, 'forced relay must send binary chunks');
   assert.ok(maxBinaryBytes <= Number(process.env.MAX_BINARY_BYTES || 128 * 1024), `relay frame exceeds cap: ${maxBinaryBytes}`);

@@ -631,6 +631,20 @@ export class Room extends DurableObject<Env> {
 
   // Invoked by the runtime on inbound frames (public by contract).
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+    let binaryTarget: unknown;
+    let targetHint = false;
+    if (typeof message === 'string' && message.length <= SIGNAL_MAX) {
+      try {
+        const hint = JSON.parse(message);
+        if (hint?.v === PROTOCOL_VERSION && hint.event === 'relay_binary_target') {
+          targetHint = true;
+          ws.serializeAttachment({ relayTo: typeof hint.payload?.to === 'string' ? hint.payload.to : null });
+        }
+      } catch { /* handled below */ }
+    } else if (typeof message !== 'string') {
+      binaryTarget = ws.deserializeAttachment()?.relayTo;
+      ws.serializeAttachment(null);
+    }
     const cid = await this.cidOf(ws);
     if (!cid) return;
     await this.loadRoom();
@@ -640,10 +654,11 @@ export class Room extends DurableObject<Env> {
     // client may not flood frames. Two buckets: text/control frames are
     // individually tiny but can arrive at absurd rates; binary relay frames
     // are bulk but a legit transfer can burst hard, so its cap is generous.
-    if (!this.allowFrame(cid, typeof message === 'string')) {
+    if (!this.allowFrame(cid, typeof message === 'string' && !targetHint)) {
       await count(this.env, 'abuse.frames_dropped');
       return;
     }
+    if (targetHint) return;
 
     // Binary frames are relay data from a member (already encrypted client-side).
     if (typeof message !== 'string') {
@@ -652,10 +667,11 @@ export class Room extends DurableObject<Env> {
       await this.touch();
       await this.markTransferring();
       await count(this.env, 'relay.binary_messages');
-      // Raw chunks have no target. Copies are deduplicated by transfer/sequence.
       const r = this.room!;
+      const toPid = this.targetPid(r, binaryTarget);
+      if (binaryTarget !== undefined && !toPid) return;
       const from = r.participants.find((p) => p.cid === cid)?.pid ?? cid;
-      const targets = r.participants.filter((p) => p.cid !== cid);
+      const targets = r.participants.filter((p) => p.cid !== cid && (!toPid || p.pid === toPid));
       for (const t of targets) {
         const ws2 = this.openSocket(t.cid);
         if (ws2) {
@@ -1044,6 +1060,7 @@ export class Room extends DurableObject<Env> {
     const self = this.participantOf(cid);
     const r = this.room!;
     const targetPid = this.targetPid(r, payload?.to);
+    if (payload?.to !== undefined && !targetPid) return;
     if (targetPid) {
       this.sendToPid(r, targetPid, { type: 'event', event: 'relay_message', payload: { from: self?.pid ?? cid, data } });
     } else {

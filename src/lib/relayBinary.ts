@@ -4,6 +4,14 @@ const SLICE = 60 * 1024;
 const MAX_PACKET = 132 * 1024;
 export const RELAY_PACKET_LIMIT = 126 * 1024;
 
+export function waitForRelayCapability(waiters: Set<() => void>): Promise<void> {
+  return new Promise(resolve => {
+    const done = () => { clearTimeout(timer); waiters.delete(done); resolve(); };
+    const timer = setTimeout(done, 2000);
+    waiters.add(done);
+  });
+}
+
 export function relayBinaryFrames(packet: ArrayBuffer): ArrayBuffer[] {
   if (packet.byteLength <= RELAY_PACKET_LIMIT) return [packet];
   if (packet.byteLength > MAX_PACKET) throw new RangeError('Relay packet too large');

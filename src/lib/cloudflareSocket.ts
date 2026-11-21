@@ -505,15 +505,14 @@ export class CloudflareSocket implements SignalingSocket {
     }
   }
 
-  private async sendRelay(payload: { roomId?: string; data?: string | ArrayBuffer } | undefined) {
+  private async sendRelay(payload: { roomId?: string; to?: string; data?: string | ArrayBuffer } | undefined) {
     if (!payload?.roomId) return;
     try {
       const ws = await this.openRoom(payload.roomId);
       if (typeof payload.data === 'string') {
-        this.sendJson(ws, 'relay_message', { data: payload.data });
+        this.sendJson(ws, 'relay_message', { to: payload.to, data: payload.data });
       } else if (payload.data instanceof ArrayBuffer) {
-        // Binary frames are unambiguous relay data (encrypted chunks) — the
-        // DO forwards the raw frame to the peer without a header.
+        if (payload.to) this.sendJson(ws, 'relay_binary_target', { to: payload.to });
         ws.send(payload.data);
       }
     } catch {
