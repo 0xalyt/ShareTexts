@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { cn } from '../lib/utils';
 
 /**
@@ -128,7 +129,7 @@ export function NumberTicker({
   label,
   className,
 }: NumberTickerProps) {
-  const reduce = useReducedMotion();
+  const reduce = useMotionPreference();
 
   const formatted = useMemo(() => {
     if (typeof value === 'number' && Number.isFinite(value)) {
@@ -154,6 +155,7 @@ export function NumberTicker({
   const probeRef = useRef<HTMLSpanElement>(null);
   const [digitWidth, setDigitWidth] = useState(0);
   useLayoutEffect(() => {
+    if (reduce) return;
     const el = probeRef.current;
     if (!el) return;
     const read = () => setDigitWidth(el.getBoundingClientRect().width);
@@ -162,9 +164,21 @@ export function NumberTicker({
     const ro = new ResizeObserver(read);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [reduce]);
 
   const plain = label ?? `${prefix ?? ''}${formatted}${suffix ?? ''}`;
+  // MotionConfig jumps positional transforms to their targets, but does not
+  // remove the column's width/opacity stagger. Render real text instead:
+  // no rolling artwork, width measurement, or delayed digit entrances in the
+  // static path, including live preference changes while a room stays open.
+  if (reduce) {
+    return (
+      <span className={cn('num-ticker', className)}>
+        <span className="sr-only">{plain}</span>
+        <span aria-hidden>{prefix}{formatted}{suffix}</span>
+      </span>
+    );
+  }
   const digitCount = tokens.reduce((n, token) => n + (token.kind === 'digit' ? 1 : 0), 0);
   let seen = 0;
 
