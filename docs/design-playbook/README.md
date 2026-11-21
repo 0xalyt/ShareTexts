@@ -48,7 +48,7 @@ Use a principle only where it removes doubt or adds feeling the user benefits fr
 | Hick's law | More choices = slower decisions. | Landing: two choices (start / join). Attachment menu: the 3 common types first, rest behind "More" | Hiding the main action in a menu |
 | Von Restorff | The one different item is remembered. | One accent primary button per screen; new-message highlight | Multiple accent buttons on one screen |
 | Frequency of use | The more often a thing is used, the less it should animate and the closer it should be. | Sending text: instant, no flourish. Pairing for the first time: can be a moment | Long animations on send |
-| Peak-end rule | People judge an experience by its best moment and its end. | Design the peak (first file lands on the other device) and the end (leaving the room shows what was shared and that it is gone) | Spreading effort evenly |
+| Peak-end rule | People judge an experience by its best moment and its end. | Design the peak (first file lands on the other device) and the end (leaving the room shows what was shared and what happens to it next, worded as PROTOCOL.md allows) | Spreading effort evenly |
 
 Read the source material behind these: https://www.userinterface.wiki/ (laws and animation principles), https://lawsofux.com/, https://emilkowal.ski/ui/great-animations, https://www.nngroup.com/articles/animation-duration/, and the installed skills `animation-vocabulary`, `emil-design-eng`, `apple-design`, `choreograph`, `review-animations`.
 
