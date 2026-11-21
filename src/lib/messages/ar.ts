@@ -855,6 +855,7 @@ const ar: Dict = {
   "home.space.closed": "بعد انتهاء الصلاحية",
   "home.space.example": "خطط نهاية الأسبوع",
   "home.space.note": "القطار الساعة 09:30. ما رأيك بقهوة قبل الانطلاق؟",
+  "home.browser.hideQr": "إخفاء رمز الموقع",
 };
 
 export default ar;

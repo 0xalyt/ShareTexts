@@ -855,6 +855,7 @@ const zh: Dict = {
   "home.space.closed": "到期之后",
   "home.space.example": "周末计划",
   "home.space.note": "火车09:30出发。出发前喝杯咖啡？",
+  "home.browser.hideQr": "隐藏网站二维码",
 };
 
 export default zh;

@@ -130,9 +130,10 @@ try {
       await copyAddress.click();
       check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await browsers.getByRole('status').innerText()).length > 12 && await browsers.getByRole('status').innerText() !== successFeedback);
       const websiteQr = page.getByTestId('landing-website-qr');
+      const closedQrLabel = await websiteQr.innerText();
       await websiteQr.click();
       await browsers.getByTestId('qr-art').waitFor();
-      check(`${locale}/${width}: website QR disclosure stays inside the viewport with six readable browser names`, await websiteQr.getAttribute('aria-expanded') === 'true' && await browsers.locator('li').count() === 6 && await browsers.evaluate(el => {
+      check(`${locale}/${width}: website QR disclosure has a Hide action and stays inside the viewport with six readable browser names`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('li').count() === 6 && await browsers.evaluate(el => {
         const bounds = el.getBoundingClientRect();
         return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
       }));

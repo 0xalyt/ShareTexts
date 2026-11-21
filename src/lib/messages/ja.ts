@@ -855,6 +855,7 @@ const ja: Dict = {
   "home.space.closed": "期限が切れた後",
   "home.space.example": "週末の予定",
   "home.space.note": "電車は09:30。出発前にコーヒーでも？",
+  "home.browser.hideQr": "サイトのQRを隠す",
 };
 
 export default ja;

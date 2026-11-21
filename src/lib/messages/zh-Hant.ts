@@ -78,6 +78,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   "home.space.closed": "到期之後",
   "home.space.example": "週末計畫",
   "home.space.note": "火車09:30出發。出發前喝杯咖啡？",
+  "home.browser.hideQr": "隱藏網站 QR 碼",
 };
 
 export default zhHant;

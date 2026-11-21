@@ -2,8 +2,8 @@ import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
 import { Check, Copy, QrCode } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 
-// Only load the QR renderer after a visitor asks for it. This is the website
-// address, not a room invitation: opening it never creates or joins a room.
+// Mount the QR only on request. Other app screens can already have loaded
+// this shared chunk. This is the website address, not a room invitation.
 const WebsiteQr = lazy(() => import('../qr/QrArt').then(module => ({ default: module.QrArt })));
 
 const BROWSERS = [
@@ -62,7 +62,7 @@ export function BrowserCompatibility() {
             <span>{t(copyState === 'copied' ? 'space.copied' : 'space.copyLink')}</span>
           </button>
           <button ref={qrTrigger} type="button" className="landing-quiet-button" data-testid="landing-website-qr" aria-expanded={qrOpen} aria-controls={qrId} onClick={() => setQrOpen(value => !value)}>
-            <QrCode aria-hidden="true" /><span>{t('home.browser.qr')}</span>
+            <QrCode aria-hidden="true" /><span>{t(qrOpen ? 'home.browser.hideQr' : 'home.browser.qr')}</span>
           </button>
         </div>
         <p role="status" className="landing-browser-feedback">{copyState === 'copied' ? t('command.textCopied') : copyState === 'error' ? t('home.browser.copyFailed') : ''}</p>

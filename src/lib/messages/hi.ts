@@ -855,6 +855,7 @@ const hi: Dict = {
   "home.space.closed": "समय समाप्त होने पर",
   "home.space.example": "सप्ताहांत की योजना",
   "home.space.note": "ट्रेन 09:30 बजे है। निकलने से पहले कॉफ़ी?",
+  "home.browser.hideQr": "वेबसाइट का QR छिपाएँ",
 };
 
 export default hi;

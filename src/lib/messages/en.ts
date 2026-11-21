@@ -891,6 +891,7 @@ const en = {
   "home.space.closed": "After expiry",
   "home.space.example": "Weekend plans",
   "home.space.note": "Train at 09:30. Coffee before we go?",
+  "home.browser.hideQr": "Hide website QR",
 };
 
 export default en;

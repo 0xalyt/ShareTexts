@@ -75,6 +75,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   "home.space.closed": "Após expirar",
   "home.space.example": "Planos para o fim de semana",
   "home.space.note": "Comboio às 09:30. Um café antes de sair?",
+  "home.browser.hideQr": "Ocultar QR do site",
 };
 
 export default ptPT;

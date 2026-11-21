@@ -856,6 +856,7 @@ const de: Dict = {
   "home.space.closed": "Nach Ablauf",
   "home.space.example": "Wochenendpläne",
   "home.space.note": "Zug um 09:30 Uhr. Kaffee vor der Abfahrt?",
+  "home.browser.hideQr": "Website QR ausblenden",
 };
 
 export default de;
