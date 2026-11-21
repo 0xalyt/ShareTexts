@@ -28,3 +28,9 @@
 .studio-browser { position: relative; display: flex; align-items: center; gap: 9px; height: 46px; flex-shrink: 0; padding-inline: 20px; border-bottom: 1px solid #dedee2; background: #f7f7f9; }
 .studio-browser i { width: 11px; height: 11px; border-radius: 50%; background: #d5d5d8; }
 .studio-browser span { position: absolute; inset-inline: 30%; text-align: center; font-size: 15px; color: #6e6e73; }
+/* A separate photographic set, not an inversion or brightness filter. */
+.dark .launch-stage { background: #181818; color: #f5f5f7; }
+.dark .studio-texture, .dark .studio-texture .handoff-screen { background: #1f1f1f; color: #f5f5f7; }
+.dark .studio-browser { background: #272729; border-color: #ffffff14; }
+.dark .studio-browser i { background: #505055; }
+.dark .studio-browser span { color: #a1a1a6; }

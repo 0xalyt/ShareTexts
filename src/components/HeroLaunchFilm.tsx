@@ -1,21 +1,31 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowUpRight, Download, Pause, Play } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
-import { heroFilmAssets } from '../lib/heroFilmAssets';
+import { heroFilmAssets, heroFilmDarkAssets } from '../lib/heroFilmAssets';
 import './landing/hero-film.css';
 
 type Connection = EventTarget & { saveData?: boolean };
 const connection = () => (navigator as Navigator & { connection?: Connection }).connection;
-const { movie: MOVIE, fullMovie: FULL_MOVIE, poster: POSTER } = heroFilmAssets;
+// Observe what is actually painted, not a second independent theme choice.
+// This follows saved overrides, live OS changes and the app's theme switch.
+const darkTheme = () => document.documentElement.classList.contains('dark');
+const subscribeTheme = (notify: () => void) => {
+  const observer = new MutationObserver(notify);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  return () => observer.disconnect();
+};
 
 /** Pre-rendered film; no media request until visible. Motion/data preferences
  * require explicit play. Visibility pauses preserve the visitor's choice. */
 export function HeroLaunchFilm({ className }: { className?: string }) {
+  const dark = useSyncExternalStore(subscribeTheme, darkTheme, () => false);
+  const { movie: MOVIE, fullMovie: FULL_MOVIE, poster: POSTER } = dark ? heroFilmDarkAssets : heroFilmAssets;
   const { t } = useI18n();
   const summaryId = useId();
   const root = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  const phase = useRef(0);
   const [visible, setVisible] = useState(false);
   const [pageVisible, setPageVisible] = useState(() => !document.hidden);
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -50,12 +60,17 @@ export function HeroLaunchFilm({ className }: { className?: string }) {
   }, []);
 
   useEffect(() => { if (shouldPlay) setLoaded(true); }, [shouldPlay]);
+  useLayoutEffect(() => {
+    const previous = video.current;
+    return () => { if (previous) phase.current = previous.currentTime; };
+  }, [MOVIE]);
+  useEffect(() => { setFailed(false); setPlaying(false); }, [MOVIE]);
   useEffect(() => {
     const el = video.current;
     if (!el || !loaded || !shouldPlay) { el?.pause(); return; }
     void el.play().catch(() => setPlaying(false));
     return () => el.pause();
-  }, [loaded, shouldPlay]);
+  }, [loaded, shouldPlay, MOVIE]);
 
   const toggle = () => {
     if (playing) { setChoice('pause'); video.current?.pause(); }
@@ -70,10 +85,14 @@ export function HeroLaunchFilm({ className }: { className?: string }) {
   return (
     <figure ref={root} className={cn('hero-film', className)} data-testid="hero-demo" data-state="film" aria-label={t('film.title')}>
       <div className="hero-film-picture">
-        <video ref={video} src={loaded ? MOVIE : undefined} poster={POSTER}
-          muted loop playsInline preload="none" width="1440" height="810"
+        <video key={MOVIE} ref={video} src={loaded ? MOVIE : undefined} poster={POSTER}
+          muted loop playsInline preload={loaded ? 'metadata' : 'none'} width="1440" height="810"
           aria-label={t('film.title')} aria-describedby={summaryId}
           onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)}
+          onLoadedMetadata={event => {
+            const el = event.currentTarget;
+            if (phase.current > 0 && el.duration > 0) el.currentTime = phase.current % el.duration;
+          }}
           onError={() => { setFailed(true); setPlaying(false); }} />
         {failed && <img className="hero-film-fallback" src={POSTER} alt="" width="1440" height="810" />}
         {!failed && <button className="hero-film-play" type="button" onClick={toggle} aria-label={t(playing ? 'film.pause' : 'film.play')} title={t(playing ? 'film.pause' : 'film.play')}>

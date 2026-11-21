@@ -7,8 +7,8 @@
     <!-- Primary -->
     <title>ShareTexts: Airdrop for everyone</title>
     <meta name="description" content="Share files between devices and send text from phone to PC or Mac — no app, no account. Open ShareTexts in both browsers, connect, send. Rooms close and leave nothing on our servers." />
-    <!-- Vite injects the hero poster preload from heroFilmAssets, the same
-         source the player uses. Do not pin a second asset version here. -->
+    <!-- Vite supplies theme-specific posters from the player's asset source.
+         The existing theme bootstrap preloads only the one actually shown. -->
     <meta name="robots" content="index, follow" />
     <meta name="author" content="ShareTexts" />
     <meta name="application-name" content="ShareTexts" />
@@ -163,7 +163,26 @@
           document.documentElement.classList.toggle('dark', dark);
           var meta = document.querySelector('meta[name="theme-color"]');
           if (meta) meta.content = dark ? '#181818' : '#fbfbfd';
-        } catch (e) { /* storage unavailable — system default applies */ }
+        } catch (e) {
+          document.documentElement.classList.toggle('dark', matchMedia('(prefers-color-scheme: dark)').matches);
+        }
+        // Run before React, after resolving the saved theme. Static media
+        // preloads alone follow the OS and waste the opposite poster when a
+        // visitor saved an override. Metadata comes from heroFilmAssets.
+        try {
+          var film = document.querySelector('meta[name="hero-film-posters"]');
+          if (film) {
+            var picture = document.createElement('link');
+            picture.rel = 'preload'; picture.as = 'image';
+            picture.setAttribute('fetchpriority', 'high');
+            var syncFilmPoster = function () {
+              var poster = film.getAttribute(document.documentElement.classList.contains('dark') ? 'data-dark' : 'data-light');
+              if (picture.getAttribute('href') !== poster) picture.setAttribute('href', poster);
+            };
+            syncFilmPoster(); document.head.appendChild(picture);
+            new MutationObserver(syncFilmPoster).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+          }
+        } catch (e) { /* a preload must never block app boot */ }
         // A tab that reloads inside a linked room boots straight back into
         // it, so the placeholder must be room-shaped: a landing skeleton
         // there is a screen the user never asked for. Same test as
