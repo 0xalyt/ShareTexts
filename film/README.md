@@ -1,6 +1,6 @@
 # The hero film
 
-## Current landing: the white-studio launch film
+## Current landing: theme-matched studio films
 
 The landing uses `LaunchFilm.tsx` + `StudioScene.ts` (`film.html?mode=launch`), a 12.7 s
 sequence inspired by [Grok Bot — Action Button](https://serenatan.org/launchvideo/#video-27),
@@ -47,6 +47,9 @@ is English. All player and source-film strings exist in every shipped locale.
 | `public/film/sharetexts-launch-v2.mp4` | 1440×810, 60 fps, H.264, no audio; muted landing loop. |
 | `public/film/sharetexts-launch-v2-full.mp4` | 1920×1080, 60 fps, H.264/AAC; deliberate playback with original synthesized sound. |
 | `public/film/sharetexts-launch-v2-poster.jpg` | The handoff at 3.05 s; reduced-motion and Save-Data default. |
+| `public/film/sharetexts-launch-v3-dark.mp4` | The separately rendered charcoal studio, graphite hardware and actual dark product UI; 1440×810, 60 fps, muted. |
+| `public/film/sharetexts-launch-v3-dark-full.mp4` | Dark 1920×1080, 60 fps H.264/AAC full export with the original sound. |
+| `public/film/sharetexts-launch-v3-dark-poster.jpg` | The matching dark handoff still. |
 
 To reproduce, start `PORT=3010 npm run dev`, then run:
 
@@ -54,6 +57,8 @@ To reproduce, start `PORT=3010 npm run dev`, then run:
 npx playwright install chrome  # once; system ffmpeg is also required
 node scripts/render-launch-film.mjs probe
 node scripts/render-launch-film.mjs render
+FILM_THEME=dark node scripts/render-launch-film.mjs probe
+FILM_THEME=dark node scripts/render-launch-film.mjs render
 ```
 
 One deterministic clock (`window.__film(t)`) owns transforms, easing and
@@ -66,7 +71,7 @@ each at 2×, and records file-icon coordinates for the 3D handoff anchors. Devic
 and screen aspect ratios are preserved. The macro shot intentionally crops the
 hardware; the settled pair is fully visible. No source screen content is stretched.
 Frames, probes and the original synthesized PCM soundtrack stay in ignored
-`film/out/launch-v2/`; only the delivery encodes and poster are committed.
+`film/out/launch-v2/` and `film/out/launch-v3-dark/`; only delivery encodes and posters are committed.
 The sound bed and tactile tones are generated locally without samples or a
 third-party music license. The landing encode deliberately has no audio track.
 
@@ -76,8 +81,24 @@ a hidden tab, remembers manual pause, and supports a manual autoplay fallback.
 An error leaves a meaningful still and the full-film link available.
 The inline pause/resume control has a 36 px visual disc and a 48 px hit target;
 full viewing and download are secondary actions below the frame.
-Dark mode keeps the film's white-studio art direction inside a matte charcoal
-cinema surround with soft light spill; no inversion alters product UI or brand color.
+Dark mode is a genuinely separate set: a seamless `#181818` charcoal field,
+dark `DemoScreen` textures, graphite hardware, restrained cool edge lighting,
+warm orange bounce and a matte shadow catcher. Type and brand plates remain
+dark throughout; the loop returns to the identical dark opening pose. No CSS
+inversion, dimming or enclosing cinema box alters or disguises a white cut.
+The approved light v2 delivery files are unchanged.
+
+`src/lib/heroFilmAssets.ts` is the one source for each cut's three URLs. Vite
+supplies poster metadata to the existing before-paint theme bootstrap, which
+preloads exactly one image after resolving the saved choice. OS-only `media`
+preloads would fetch the wrong poster when a visitor saved an override. The
+player follows the actual root theme, including live changes; explicit pause,
+reduced motion and Save-Data remain independent. A theme swap remounts the
+native video so a decoded white frame cannot leak into the dark presentation,
+then restores the same playback phase instead of restarting the film.
+The CI handoff gate observes preload/player equality, opposite-OS saved
+choices, live OS changes, real poster corner luminance and matching shipped
+movie/full-export URLs on phone and desktop.
 The previous v1 assets remain for cached pages and existing links. New names avoid the
 seven-day `/film` asset cache serving the old cut after deployment.
 
@@ -229,15 +250,15 @@ close beats push far enough that the other device is properly out of frame.
 A shot where both are half cropped is the one composition that reads as an
 accident.
 
-## Where it is not finished
+## Archived desk-rig limitations
 
 - **Voiceover** is the OS speech engine (Microsoft David). It is a timings
   reference, not a performance: replace it, keep the windows, re-run `audio`
   then `encode`. The hero on the site is muted, so none of this is load
   bearing for the landing page.
-- **Materials** are CSS: gradients, one sheen per panel, contact shadows,
-  mirrored chassis, blur for depth. Convincing, but there is no ray-traced
-  reflection, refraction or true bokeh. Going further means a 3D render, which
-  this machine cannot do — and a 3D render would no longer be the real UI.
+- **Materials in this archived rig** are CSS: gradients, one sheen per panel,
+  contact shadows, mirrored chassis and blur. The current studio rig above
+  replaces them with real 3D geometry and physical materials while retaining
+  the product's UI as native-ratio display textures.
 - Artifacts (`film/frames`, `film/frames-loop`, `film/audio`, `film/out`) are
   gitignored. Only the rig, the scene, and the two web assets are versioned.
