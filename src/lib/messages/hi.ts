@@ -842,6 +842,21 @@ const hi: Dict = {
   "saved.view": "देखें",
   "saved.showMore": "और दिखाएँ",
   "saved.savedOn": "{date} को सहेजा गया",
+  // Landing: open a second browser and explore an expiring example.
+  "home.browser.heading": "ब्राउज़र अलग। भेजने का तरीका वही।",
+  "home.browser.body": "दोनों ब्राउज़र एक जैसे होना ज़रूरी नहीं। बस दोनों पर ShareTexts खोलें।",
+  "home.browser.open": "अपने दूसरे डिवाइस पर खोलें",
+  "home.browser.qr": "वेबसाइट का QR दिखाएँ",
+  "home.browser.qrHint": "इस पेज को खोलने के लिए स्कैन करें। फिर रूम कोड से जुड़ें।",
+  "home.browser.copyFailed": "पता चुनकर कॉपी करें, या QR स्कैन करें।",
+  "home.space.storage": "स्पेस में सर्वर पर अस्थायी स्टोरेज इस्तेमाल होता है। कोड केवल भरोसेमंद लोगों से साझा करें।",
+  "home.space.preview": "इंटरैक्टिव पूर्वावलोकन। कुछ भी सेव नहीं होता।",
+  "home.space.open": "खुला रहने पर",
+  "home.space.closed": "समय समाप्त होने पर",
+  "home.space.example": "सप्ताहांत की योजना",
+  "home.space.note": "ट्रेन 09:30 बजे है। निकलने से पहले कॉफ़ी?",
+  "home.browser.hideQr": "वेबसाइट का QR छिपाएँ",
+
   // Hop — linked devices (My devices)
   "hop.title": "मेरे डिवाइस",
   "hop.row.hint": "एक बार जोड़ें, कभी भी भेजें",
