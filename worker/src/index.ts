@@ -14,6 +14,17 @@ import { shardFor } from './shard';
  * Cached for a minute to keep the hot path off the DO.
  */
 let lobbySecretCache: { value: string; expires: number } | null = null;
+
+/** Rate-limit attempts this isolate has leased from the Registry, per
+ *  scope:ip. `exhausted` caches a Registry "no" until the window resets. */
+const rateLeases = new Map<string, { tokens: number; resetAt: number; exhausted: boolean }>();
+const RATE_LEASES_MAX = 10_000;
+
+/** /stats is an approximate public counter polled by every open landing
+ *  page; one Stats read is shared by every poll this isolate serves within
+ *  this window. */
+const STATS_CACHE_MS = 5_000;
+let statsCache: { at: number; payload: Record<string, unknown> } | null = null;
 async function lobbySecret(env: Env): Promise<string> {
   if (env.LOBBY_SALT) return env.LOBBY_SALT;
   if (lobbySecretCache && lobbySecretCache.expires > Date.now()) return lobbySecretCache.value;
@@ -404,29 +415,15 @@ export default {
       if (!(await rateLimited(env, 'stats', clientIp(request)))) {
         return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);
       }
-      // roomsCreated comes from the Metrics DO so the landing tracker can
-      // show "N rooms made".
-      const statsStub = env.STATS.get(env.STATS.idFromName('stats'));
-      const metricsStub = env.METRICS.get(env.METRICS.idFromName('metrics'));
-      const [statsRes, metricsRes] = await Promise.all([
-        statsStub.fetch(new Request('https://internal/stats')),
-        metricsStub.fetch(new Request('https://internal/metrics')).catch(() => null),
-      ]);
+      // The Stats DO also carries roomsCreated (cached from Metrics) so the
+      // landing tracker can show "N rooms made".
+      const now = Date.now();
+      if (statsCache && now - statsCache.at < STATS_CACHE_MS) return json(statsCache.payload, 200, cors);
+      const statsRes = await env.STATS.get(env.STATS.idFromName('stats')).fetch(new Request('https://internal/stats'));
       let payload: Record<string, unknown> = {};
       try { payload = await statsRes.json() as Record<string, unknown>; } catch { /* keep defaults */ }
-      let roomsCreated = 0;
-      if (metricsRes && metricsRes.ok) {
-        try {
-          const data = await metricsRes.json() as { totals?: Record<string, number>; lifetime_rooms_created?: number };
-          // Prefer the durable lifetime counter (never rolls off with the
-          // 48h metric buckets); fall back to the window total.
-          roomsCreated = Math.max(
-            data.lifetime_rooms_created ?? 0,
-            data.totals?.['rooms.created'] ?? 0,
-          );
-        } catch { /* roomsCreated stays 0 */ }
-      }
-      return json({ ...payload, roomsCreated }, statsRes.status, cors);
+      if (statsRes.ok) statsCache = { at: now, payload };
+      return json(payload, statsRes.status, cors);
     }
 
     return json({
@@ -529,19 +526,39 @@ function clientIp(request: Request): string {
 /** Bounded per-IP rate limit via the current-day Registry shard. Skipped when
  *  no real client IP is visible (local tests, non-CF origins) — the limits
  *  only protect real traffic, never break shared or IP-less environments.
- *  Documented limits live in registry.ts RATE_LIMITS. */
+ *  Documented limits live in registry.ts RATE_LIMITS.
+ *
+ *  The Registry stays the single counter, but hands this isolate a small
+ *  lease of attempts per call instead of one, and its "no" is remembered
+ *  until the window resets — so most requests skip the Durable Object hop
+ *  while the per-window total can never exceed the limit. */
 async function rateLimited(env: Env, scope: string, ip: string): Promise<boolean> {
   if (!ip || ip === 'unknown') return true;
+  const key = scope + ':' + ip;
+  const now = Date.now();
+  const held = rateLeases.get(key);
+  if (held && now < held.resetAt) {
+    if (held.tokens > 0) { held.tokens--; return true; }
+    if (held.exhausted) return false;
+  }
   const stub = env.REGISTRY.get(env.REGISTRY.idFromName('registry-' + dayKey()));
   const res = await stub.fetch(
-    new Request('https://internal/rate-check', {
+    new Request('https://internal/rate-lease', {
       method: 'POST',
       body: JSON.stringify({ ip, scope }),
     })
   );
   if (res.status !== 200) return false;
-  const out = (await res.json()) as { ok?: boolean };
-  return out.ok !== false;
+  const out = (await res.json()) as { granted?: number; resetAt?: number };
+  const granted = Math.max(0, Math.floor(Number(out.granted) || 0));
+  const resetAt = Number(out.resetAt) || now;
+  if (rateLeases.size >= RATE_LEASES_MAX) {
+    for (const [k, v] of rateLeases) if (now >= v.resetAt) rateLeases.delete(k);
+    // Dropping a live lease only forfeits attempts already counted.
+    if (rateLeases.size >= RATE_LEASES_MAX) rateLeases.clear();
+  }
+  rateLeases.set(key, { tokens: Math.max(0, granted - 1), resetAt, exhausted: granted === 0 });
+  return granted > 0;
 }
 
 /** Resolve a 6-digit code → roomId via the day-sharded Registry. */

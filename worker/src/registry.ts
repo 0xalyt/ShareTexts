@@ -66,6 +66,13 @@ const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = {
   stats: { limit: 240, windowMs: 60_000 },
 };
 
+/** A Worker isolate leases up to this share of an IP's per-window budget in
+ *  one Registry call and spends it locally (see rateLimited in index.ts).
+ *  Leases come out of the same counter, so an IP can never get more than
+ *  `limit` per window in total; a lease left unused in another isolate only
+ *  makes the limit stricter for that window. */
+const RATE_LEASE_DIVISOR = 5;
+
 export class Registry extends DurableObject<Env> {
   private rateBuckets = new Map<string, RateBucket>();
 
@@ -81,7 +88,10 @@ export class Registry extends DurableObject<Env> {
       return this.resolveShort(request);
     }
     if (url.pathname === '/rate-check' && request.method === 'POST') {
-      return this.rateCheck(request);
+      return this.rateCheck(request, false);
+    }
+    if (url.pathname === '/rate-lease' && request.method === 'POST') {
+      return this.rateCheck(request, true);
     }
     // ── Space-code index (F21) ────────────────────────────────────────
     // Runs on the dedicated singleton instance (idFromName('space-codes'));
@@ -101,8 +111,11 @@ export class Registry extends DurableObject<Env> {
     return json({ error: 'not found' }, 404);
   }
 
-  /** Bounded per-IP sliding window: returns ok=false once the limit is hit. */
-  private async rateCheck(request: Request): Promise<Response> {
+  /** Bounded per-IP fixed window. /rate-check takes one attempt and returns
+   *  ok=false once the limit is hit; /rate-lease takes up to
+   *  limit/RATE_LEASE_DIVISOR attempts at once and says how many it granted
+   *  (0 = limited) and when the window resets. */
+  private async rateCheck(request: Request, lease: boolean): Promise<Response> {
     let body: { ip?: string; scope?: string };
     try {
       body = (await request.json()) as typeof body;
@@ -114,14 +127,16 @@ export class Registry extends DurableObject<Env> {
     if (!cfg) return json({ error: 'bad request' }, 400);
     const key = body.scope + ':' + body.ip;
     const now = Date.now();
-    const bucket = this.rateBuckets.get(key);
+    let bucket = this.rateBuckets.get(key);
     if (!bucket || now - bucket.windowStart >= cfg.windowMs) {
-      this.rateBuckets.set(key, { count: 1, windowStart: now });
-      return json({ ok: true });
+      bucket = { count: 0, windowStart: now };
+      this.rateBuckets.set(key, bucket);
     }
-    if (bucket.count >= cfg.limit) return json({ ok: false });
-    bucket.count++;
-    return json({ ok: true });
+    const want = lease ? Math.max(1, Math.floor(cfg.limit / RATE_LEASE_DIVISOR)) : 1;
+    const granted = Math.max(0, Math.min(want, cfg.limit - bucket.count));
+    bucket.count += granted;
+    if (!lease) return json({ ok: granted > 0 });
+    return json({ ok: granted > 0, granted, resetAt: bucket.windowStart + cfg.windowMs });
   }
 
   private async register(request: Request): Promise<Response> {

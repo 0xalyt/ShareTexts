@@ -76,6 +76,16 @@ async function probeWorker(base: string, timeoutMs = 3500): Promise<{ users?: nu
  */
 let activeCfBase: string | null = null;
 let redirectPromise: Promise<void> | null = null;
+let bootStats: { data: { users?: number; roomsCreated?: number }; at: number } | null = null;
+
+/** The /stats body the boot probe just read from the selected worker, once
+ *  and only while fresh — the live tracker's first poll reuses it instead of
+ *  fetching /stats a second time on every page load. */
+export function takeBootStats(): { users?: number; roomsCreated?: number } | null {
+  const s = bootStats;
+  bootStats = null;
+  return s && Date.now() - s.at < 5_000 ? s.data : null;
+}
 
 async function selectBestCloudflareBase(): Promise<void> {
   if (mode !== 'cloudflare' || !url) return;
@@ -92,6 +102,8 @@ async function selectBestCloudflareBase(): Promise<void> {
     results = await Promise.all(candidates.map((b) => probeWorker(b)));
   }
   const idx = results.findIndex(r => r && typeof r.roomsCreated === 'number');
+  const won = results[Math.max(idx, 0)];
+  bootStats = won ? { data: won, at: Date.now() } : null;
   if (idx > 0) {
     activeCfBase = candidates[idx];
     console.warn('[ShareTexts] signaling worker redirect:', bakedBase, '→', activeCfBase);

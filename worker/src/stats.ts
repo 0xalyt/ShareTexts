@@ -14,7 +14,11 @@ import { json, type Env } from './types';
  * The number is deliberately approximate: it is best-effort per event, and a
  * crashed/evicted DO restarts from zero.
  */
+/** How long the Metrics lifetime rooms counter is reused for /stats. */
+const ROOMS_CREATED_TTL_MS = 30_000;
+
 export class Stats extends DurableObject<Env> {
+
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === '/event' && request.method === 'POST') {
@@ -39,9 +43,33 @@ export class Stats extends DurableObject<Env> {
         users,
         updated_at: new Date().toISOString(),
         note: 'approximate live count of seated devices',
+        roomsCreated: await this.roomsCreatedCount(),
       });
     }
     return json({ error: 'not found' }, 404);
+  }
+
+  /** Lifetime rooms created, read from the Metrics DO at most once per
+   *  ROOMS_CREATED_TTL_MS. Prefers the durable lifetime counter (never rolls
+   *  off with the 48h metric buckets); falls back to the window total. The
+   *  cached copy lives in storage because an idle object is evicted between
+   *  polls. */
+  private async roomsCreatedCount(): Promise<number> {
+    const now = Date.now();
+    const cached = await this.ctx.storage.get<{ value: number; at: number }>('roomsCreated');
+    if (cached && now - cached.at < ROOMS_CREATED_TTL_MS) return cached.value;
+    let value = cached?.value ?? 0;
+    try {
+      if (this.env.METRICS) {
+        const res = await this.env.METRICS.get(this.env.METRICS.idFromName('metrics')).fetch(new Request('https://internal/metrics'));
+        if (res.ok) {
+          const data = await res.json() as { totals?: Record<string, number>; lifetime_rooms_created?: number };
+          value = Math.max(data.lifetime_rooms_created ?? 0, data.totals?.['rooms.created'] ?? 0);
+        }
+      }
+    } catch { /* keep the last known value */ }
+    await this.ctx.storage.put('roomsCreated', { value, at: now });
+    return value;
   }
 
   private async event(request: Request): Promise<Response> {
