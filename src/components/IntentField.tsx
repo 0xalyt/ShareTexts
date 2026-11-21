@@ -180,7 +180,7 @@ export function IntentField({
           )}
         >
           <AlloSymbol name="right" size={16} className="sm:hidden" />
-          <span className="hidden sm:block">{label}</span>
+          <span data-intent-label className="hidden sm:block">{label}</span>
         </button>
       </div>
 
