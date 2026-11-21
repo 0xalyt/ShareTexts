@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
-import { Check, Copy, QrCode } from 'lucide-react';
+import { Check, Copy, Pause, Play, QrCode } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 
 // Mount the QR only on request. Other app screens can already have loaded
@@ -9,17 +9,39 @@ const WebsiteQr = lazy(() => import('../qr/QrArt').then(module => ({ default: mo
 const BROWSERS = [
   ['chrome', 'Chrome'], ['safari', 'Safari'], ['firefox', 'Firefox'],
   ['edge', 'Edge'], ['brave', 'Brave'], ['samsung-internet', 'Samsung Internet'],
+  ['opera', 'Opera'], ['vivaldi', 'Vivaldi'],
 ] as const;
 
-/** Answer the ecosystem objection, then help open the second browser. The
- * logos are compatibility labels, not endorsements or a decorative ticker. */
+/** Real browser marks, not endorsements. Repeated sets are visual only;
+ * reduced motion exposes one complete, stationary set of the same logos. */
 export function BrowserCompatibility() {
   const { t } = useI18n();
+  const trackId = useId();
+  const viewport = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(false);
   const qrId = useId();
   const qrTrigger = useRef<HTMLButtonElement>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const address = window.location.origin;
+  useEffect(() => {
+    const element = viewport.current;
+    if (!element) return;
+    let inView = true;
+    const sync = () => setVisible(inView && !document.hidden);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
+    });
+    if (observer) observer.observe(element);
+    else sync();
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, []);
   useEffect(() => {
     if (copyState !== 'copied') return;
     const timer = window.setTimeout(() => setCopyState('idle'), 2400);
@@ -43,15 +65,26 @@ export function BrowserCompatibility() {
         qrTrigger.current?.focus();
       }
     }}>
-      <div className="landing-browser-copy">
+      <div className="landing-browser-head">
         <h2 id="browsers-title">{t('home.browser.heading')}</h2>
-        <p>{t('home.browser.body')}</p>
-        <ul className="landing-browser-list" aria-label={t('home.browsers')}>
-          {BROWSERS.map(([slug, name]) => <li key={slug}>
-            <img src={`/browsers/${slug}.svg`} width="24" height="24" loading="lazy" decoding="async" alt="" />
-            <span>{name}</span>
-          </li>)}
-        </ul>
+        <button type="button" className="landing-quiet-button landing-marquee-toggle" data-testid="browser-marquee-toggle"
+          aria-label={t(paused ? 'action.resume' : 'action.pause')} title={t(paused ? 'action.resume' : 'action.pause')}
+          aria-controls={trackId} onClick={() => setPaused(value => !value)}>
+          {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+        </button>
+      </div>
+      <div ref={viewport} className="landing-browser-marquee" dir="ltr" data-running={visible && !paused}>
+        <div id={trackId} className="landing-browser-track">
+          {/* Three sets cover the widest lane even at the last loop frame:
+              two sets alone leave a gap when one set is narrower than it. */}
+          {[0, 1, 2].map(copy => (
+            <ul key={copy} className="landing-browser-list" aria-label={copy ? undefined : t('home.browsers')} aria-hidden={copy > 0 || undefined}>
+              {BROWSERS.map(([slug, name]) => <li key={slug}>
+                <img src={`/browsers/${slug}.svg`} width="48" height="48" loading="lazy" decoding="async" alt={copy ? '' : name} />
+              </li>)}
+            </ul>
+          ))}
+        </div>
       </div>
       <div className="landing-browser-utility">
         <h3>{t('home.browser.open')}</h3>

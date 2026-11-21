@@ -81,7 +81,10 @@ try {
       check(`${locale}/${width}: exactly one high-priority preload matches the player poster`,
         Boolean(poster.displayed) && poster.preloads.length === 1 &&
         poster.preloads[0].href === poster.displayed && poster.preloads[0].priority === 'high');
-      check(`${locale}/${width}: the film has a localized text alternative`, (await demo.locator('figcaption p').innerText()).length > 12);
+      check(`${locale}/${width}: the film retains its hidden localized description without a visible footer`,
+        await media.getAttribute('aria-describedby') === await demo.locator('figcaption.sr-only').getAttribute('id') &&
+        (await demo.locator('figcaption.sr-only').innerText()).length > 12 &&
+        await demo.locator('a').count() === 0);
       const facts = await demo.evaluate(el => {
         const r = el.getBoundingClientRect();
         return {
@@ -133,9 +136,12 @@ try {
       const closedQrLabel = await websiteQr.innerText();
       await websiteQr.click();
       await browsers.getByTestId('qr-art').waitFor();
-      check(`${locale}/${width}: website QR disclosure has a Hide action and stays inside the viewport with six readable browser names`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('li').count() === 6 && await browsers.evaluate(el => {
+      check(`${locale}/${width}: website QR has a Hide action and logo-only browser support stays inside the viewport`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('.landing-browser-list:not([aria-hidden]) img[alt]').count() === 8 && await browsers.evaluate(el => {
         const bounds = el.getBoundingClientRect();
-        return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
+        const logos = [...el.querySelectorAll('.landing-browser-list:first-child img')];
+        return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
+          logos.every(img => img.complete && img.naturalWidth > 0 && img.alt && getComputedStyle(img).filter.includes('grayscale(1)')) &&
+          [...el.querySelectorAll('.landing-browser-list')].every(list => list.textContent.trim() === '');
       }));
       if (locale === 'en' && width === 320) check('website QR decodes to the homepage, not a fake room', await decodeWebsiteQr(page) === new URL(BASE).origin);
       await websiteQr.focus();
@@ -204,12 +210,12 @@ try {
         // Firefox drops context-level color emulation on its first real
         // navigation. Prime an inert response, then establish the OS before
         // the first landing visit; no app/poster has been fetched yet.
-        await page.goto(new URL('/health', BASE).href);
+        await page.goto(new URL('/health', BASE).href, { waitUntil: 'domcontentloaded' });
         await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
       }
       const requests = [];
       page.on('request', request => { if (/\/film\/.*-poster\./.test(request.url())) requests.push(request.url()); });
-      await page.goto(BASE, { waitUntil: 'networkidle' });
+      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       const inspect = () => page.evaluate(() => {
@@ -223,6 +229,7 @@ try {
       const name = `${width}px OS=${os} saved=${saved || 'system'}`;
       check(`${name}: OS precondition is real`, await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches) === (os === 'dark'));
       check(`${name}: the shown theme wins`, state.dark === (expected === 'dark'));
+      check(`${name}: poster theme marker matches without pinning a film version`, new URL(state.poster).pathname.includes('-dark') === state.dark);
       check(`${name}: exactly one matching high-priority poster`, state.preload === state.poster && state.priority === 'high');
       check(`${name}: no opposite poster requested at boot`, requests.length > 0 && requests.every(url => url === state.poster));
       const brightness = await page.evaluate(async () => {
@@ -245,9 +252,10 @@ try {
       }
       await demo.locator('.hero-film-play').click();
       await page.waitForFunction(() => Boolean(document.querySelector('[data-testid="hero-demo"] video').getAttribute('src')));
-      const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster, full: el.querySelector('.hero-film-watch').href }));
-      check(`${name}: movie, still and full export use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4') && assets.full === assets.poster.replace('-poster.jpg', '-full.mp4'));
-      for (const url of [assets.movie, assets.full]) {
+      const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster }));
+      check(`${name}: movie and still use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4'));
+      // Full exports remain downloadable assets, not landing controls.
+      for (const url of [assets.movie, assets.poster.replace('-poster.jpg', '-full.mp4')]) {
         const file = await page.request.get(url, { headers: { Range: 'bytes=0-63' } });
         check(`${name}: the encoded movie exists (${new URL(url).pathname})`, file.ok() && /video\/mp4/.test(file.headers()['content-type'] || ''));
       }
@@ -257,14 +265,16 @@ try {
 
   const laptop = await browser.newContext({ viewport: { width: 1024, height: 700 }, reducedMotion: 'reduce' });
   const shortPage = await laptop.newPage();
-  await shortPage.goto(BASE);
+  await shortPage.goto(BASE, { waitUntil: 'domcontentloaded' });
   await shortPage.getByTestId('hero-demo').waitFor();
   const shortLayout = await shortPage.evaluate(() => {
     const send = document.querySelector('[data-testid="home-send"]').getBoundingClientRect();
     const demo = document.querySelector('[data-testid="hero-demo"]').getBoundingClientRect();
-    return send.top >= 0 && send.bottom <= innerHeight && demo.top >= 0 && demo.bottom <= innerHeight;
+    const heading = document.querySelector('.landing-heading').getBoundingClientRect();
+    return heading.bottom <= send.top && send.bottom <= demo.top && send.top >= 0 && send.bottom <= innerHeight &&
+      demo.left >= 0 && demo.right <= innerWidth && Math.abs(demo.width / demo.height - 16 / 9) < .02;
   });
-  check('short laptop keeps sharing and the entire demo in the first viewport', shortLayout);
+  check('short laptop keeps actions in reach and the full-width film after the heading/actions', shortLayout);
   await shortPage.screenshot({ path: 'audit/tmp/landing-1024-700.png' });
   await laptop.close();
 
@@ -274,9 +284,15 @@ try {
     const typing = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'no-preference' });
     await typing.addInitScript(value => localStorage.setItem('sharetext.theme', value), theme);
     const entry = await typing.newPage();
-    await entry.goto(BASE);
+    await entry.goto(BASE, { waitUntil: 'domcontentloaded' });
     const input = entry.getByTestId('intent-input');
     const button = entry.getByTestId('intent-submit');
+    await input.waitFor();
+    check(`${theme}: browser repeats cover the entire desktop lane at the loop boundary`, await entry.locator('.landing-browser-marquee').evaluate(lane => {
+      const track = lane.firstElementChild;
+      const cycle = track.firstElementChild.getBoundingClientRect().width;
+      return cycle > 0 && track.getBoundingClientRect().width - cycle >= lane.getBoundingClientRect().width;
+    }));
     for (const [value, label] of [['', 'Create room'], ['A note', 'Send this'], ['482716', 'Join room'], ['', 'Create room'], ['482', 'Send this'], ['482716', 'Join room'], ['', 'Create room']]) {
       await input.fill(value);
       for (const hover of [false, true]) {
@@ -322,7 +338,7 @@ try {
     const dark = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
     await dark.addInitScript(() => localStorage.setItem('sharetext.theme', 'dark'));
     const darkPage = await dark.newPage();
-    await darkPage.goto(BASE);
+    await darkPage.goto(BASE, { waitUntil: 'domcontentloaded' });
     await darkPage.getByTestId('hero-demo').waitFor();
     check(`${width}: dark landing retains its theme without overflow`, await darkPage.evaluate(() =>
       document.documentElement.classList.contains('dark') && document.documentElement.scrollWidth <= innerWidth
@@ -333,7 +349,7 @@ try {
 
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
-  await page.goto(BASE);
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   const demo = page.getByTestId('hero-demo');
   await demo.scrollIntoViewIfNeeded();
   await page.waitForTimeout(3600);
@@ -385,7 +401,7 @@ try {
 
   const phone = await browser.newContext({ viewport: { width: 320, height: 720 }, reducedMotion: 'reduce' });
   const p = await phone.newPage();
-  await p.goto(BASE);
+  await p.goto(BASE, { waitUntil: 'domcontentloaded' });
   const action = await p.getByTestId('home-receive').boundingBox();
   check('mobile sharing action is visible before scrolling', action && action.y + action.height <= 720);
   await p.getByTestId('home-send').focus();

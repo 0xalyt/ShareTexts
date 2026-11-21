@@ -844,7 +844,7 @@ const zh: Dict = {
   "saved.showMore": "显示更多",
   "saved.savedOn": "收藏于 {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "浏览器不同。传递一样简单。",
+  "home.browser.heading": "支持所有现代浏览器",
   "home.browser.body": "无需使用相同的浏览器。在两台设备上打开 ShareTexts 即可。",
   "home.browser.open": "在另一台设备上打开",
   "home.browser.qr": "显示网站二维码",

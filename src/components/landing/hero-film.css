@@ -7,17 +7,7 @@
 .hero-film-play::before { content: ''; position: absolute; inset: 6px; z-index: -1; border-radius: inherit; background: #28282be6; }
 .hero-film-play svg { width: 14px; height: 14px; fill: currentColor; }
 .hero-film-play:active svg { transform: scale(.92); }
-.hero-film-caption { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0 12px; padding-top: 4px; }
-.hero-film-eyebrow { color: var(--color-ember-ink); font-size: 12px; font-weight: 600; }
-.hero-film-actions { display: flex; align-items: center; gap: 4px; margin-inline-start: auto; }
-.hero-film-watch { display: flex; align-items: center; gap: 6px; width: fit-content; min-height: 48px; color: var(--color-apple-ink-muted); font-size: 12px; font-weight: 500; }
-.hero-film-watch svg { width: 14px; height: 14px; flex-shrink: 0; }
-.hero-film-download { display: grid; place-items: center; width: 44px; height: 48px; border-radius: 50%; color: var(--color-apple-ink-muted); }
-.hero-film-download svg { width: 15px; height: 15px; }
 .hero-film-play:focus-visible { outline: 2px solid #1d1d1f; outline-offset: -2px; }
-.hero-film-watch:focus-visible, .hero-film-download:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; border-radius: 4px; }
-.dark .hero-film-eyebrow { color: var(--color-ember); }
-.dark .hero-film-watch, .dark .hero-film-download { color: #a1a1a6; }
 /* The encoded dark studio already belongs to the page's charcoal field. No
    extra cinema box, inversion, brightness filter or luminous white canvas. */
 .dark .hero-film-picture { background: #181818; }
@@ -25,6 +15,4 @@
 .dark .hero-film-play:focus-visible { outline-color: #f5f5f7; }
 @media (hover: hover) and (pointer: fine) {
   .hero-film-play:hover::before { background: #1d1d1f; }
-  .hero-film-watch:hover { color: var(--color-apple-ink); text-decoration: underline; text-underline-offset: 4px; }
-  .dark .hero-film-watch:hover { color: #ededf2; }
 }

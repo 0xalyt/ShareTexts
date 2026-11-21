@@ -844,7 +844,7 @@ const hi: Dict = {
   "saved.showMore": "और दिखाएँ",
   "saved.savedOn": "{date} को सहेजा गया",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "ब्राउज़र अलग। भेजने का तरीका वही।",
+  "home.browser.heading": "सभी आधुनिक ब्राउज़र में काम करता है",
   "home.browser.body": "दोनों ब्राउज़र एक जैसे होना ज़रूरी नहीं। बस दोनों पर ShareTexts खोलें।",
   "home.browser.open": "अपने दूसरे डिवाइस पर खोलें",
   "home.browser.qr": "वेबसाइट का QR दिखाएँ",

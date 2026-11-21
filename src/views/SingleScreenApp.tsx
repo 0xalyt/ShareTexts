@@ -1147,7 +1147,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
-            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="landing-intro w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
+            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="landing-intro w-full max-w-[470px] lg:max-w-[1040px] mx-auto flex flex-col">
               {deadLink && (
                 <div
                   data-testid="dead-link"
@@ -1237,14 +1237,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   busy={isCreating || isJoining}
                 />
               </div>
-              {/* Keep the mobile story after the sharing actions in source
-                  order too: CSS order alone puts demo controls ahead of them
-                  for keyboard and screen-reader users. Mount only the active
-                  copy so there is one clock and one set of controls. */}
-              <div className="landing-mobile-demo st-hide-landscape order-7 lg:hidden flex justify-center">
-                <div className="w-full max-w-[560px]">
-                  {!isDesktopLayout && <HeroLaunchFilm />}
-                </div>
+              {/* One linear story at every width, including reading order:
+                  heading → sharing actions → film → secondary tools. */}
+              <div className="landing-hero-film st-hide-landscape order-7 w-full">
+                <HeroLaunchFilm />
               </div>
               {/* Stay Connected re-entry: the room this device promised to
                   keep alive is one tap away — history included. Only shown
@@ -2121,14 +2117,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             (caught by verify-autoconnect-trusted at 1100×800). */}
         <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1200px] shrink-0 flex-col px-6 lg:px-8 2xl:px-12">
           <div className="landing-hero-grid">
-            {/* Left: the words and the actions (headline → subline → live
-                tracker → Send/Receive → nearby discovery → the quiet tail). */}
+            {/* The heading, actions and full-width film share one column.
+                Keep the same source order as the phone, not a CSS reorder. */}
             <div className="w-full min-w-0">{idleHeroNode}</div>
-            {/* The launch film replaces the interactive illustration. Only
-                the active responsive placement mounts a video/player. */}
-            <div className="w-full max-w-[620px] mx-auto">
-              {isDesktopLayout && <HeroLaunchFilm />}
-            </div>
           </div>
           <BrowserCompatibility />
           <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
