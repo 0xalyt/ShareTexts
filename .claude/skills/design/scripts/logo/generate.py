@@ -186,7 +186,16 @@ class _SafeRedirectHandler(HTTPRedirectHandler):
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         _validate_public_https_url(newurl)
-        return super().redirect_request(req, fp, code, msg, headers, newurl)
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        source, target = urlparse(req.full_url), urlparse(newurl)
+        if redirected is not None and (
+            source.scheme, source.hostname, source.port or 443
+        ) != (target.scheme, target.hostname, target.port or 443):
+            for name in list(redirected.headers) + list(redirected.unredirected_hdrs):
+                header = name.lower().replace("_", "-")
+                if header in {"authorization", "proxy-authorization", "api-key", "apikey"} or header.endswith("-api-key"):
+                    redirected.remove_header(name)
+        return redirected
 
 
 def _validate_public_https_url(url):
@@ -230,7 +239,7 @@ def _json_request(
         data=body,
         method=method,
         headers={
-            api_key_header: auth_value,
+            **({api_key_header: auth_value} if api_key is not None else {}),
             "Accept": "application/json",
             "User-Agent": HTTP_USER_AGENT,
             **({"Content-Type": "application/json"} if body is not None else {}),
@@ -454,7 +463,7 @@ def _generate_with_muapi(prompt, output_path, aspect_ratio, api_key, model):
         time.sleep(MUAPI_POLL_INTERVAL)
         data = _json_request(
             result_url,
-            api_key,
+            api_key if urlparse(result_url).hostname == urlparse(MUAPI_API_BASE).hostname else None,
             api_key_header="x-api-key",
         )
 
