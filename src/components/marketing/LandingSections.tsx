@@ -70,11 +70,13 @@ export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
           </ol>
         </div>
         <figure id={`${guideId}-example`} className="landing-guide-frame">
-          {/* Explanation, not ambient motion: only pointer-selected examples
-              enter. Keyboard selection and reduced motion are instantaneous.
-              A fixed drawing area keeps the reader's place when switching. */}
-          <div key={step.key} className="landing-guide-example" data-animate={step.animate}>
-            {step.key === 'pair' ? <PairingDetail /> : <TransferDetail />}
+          {/* Explanation, not ambient motion: only pointer selection fades
+              between illustrations. Persistent layers let rapid selections
+              retarget from their current values instead of restarting.
+              Keyboard selection and reduced motion are instantaneous. */}
+          <div className="landing-guide-example" data-animate={step.animate}>
+            <div className="landing-guide-layer" data-active={step.key === 'pair'}><PairingDetail /></div>
+            <div className="landing-guide-layer" data-active={step.key === 'send'}><TransferDetail /></div>
           </div>
           <figcaption>
             <span id={`${guideId}-label`}>{t('demo.handoff.illustration')}</span>

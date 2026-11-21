@@ -100,12 +100,13 @@ html[st-theme-vt]:has(.landing-header) {
 .landing-guide-step strong { display: block; font-size: var(--text-heading); line-height: 1.25; font-weight: 600; letter-spacing: -.025em; }
 .landing-guide-body { display: block; max-width: 36ch; margin-top: 8px; color: var(--color-apple-ink-muted); font-size: var(--text-body); line-height: 1.6; text-wrap: pretty; }
 .landing-guide-frame { overflow: hidden; min-width: 0; margin: 0; border: 1px solid var(--color-apple-divider); border-radius: 24px; background: var(--color-apple-parchment); }
-.landing-guide-example { height: 320px; }
-.landing-guide-example[data-animate="true"] { animation: landing-guide-in var(--motion-normal) var(--ease-out) both; }
+.landing-guide-example { position: relative; height: 320px; }
+.landing-guide-layer { position: absolute; inset: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.landing-guide-layer[data-active="true"] { opacity: 1; transform: translateY(0); }
+.landing-guide-example[data-animate="true"] .landing-guide-layer { transition: opacity var(--motion-normal) var(--ease-out), transform var(--motion-normal) var(--ease-out); }
 .landing-guide-frame figcaption { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-top: 1px solid var(--color-apple-divider); background: var(--color-apple-canvas); color: var(--color-apple-ink-muted); font-size: var(--text-meta); line-height: 1.5; }
 .landing-guide-frame figcaption > span:last-child { flex-shrink: 0; font-variant-numeric: tabular-nums; }
 .landing-guide-example .landing-detail { border: 0; border-radius: 0; background: transparent; }
-@keyframes landing-guide-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .landing-story h3 { font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -.025em; }
 .landing-story p { max-width: 40ch; margin-top: 8px; font-size: 16px; line-height: 1.6; color: var(--color-apple-ink-muted); text-wrap: pretty; }
 .landing-detail { position: relative; display: grid; place-items: center; height: 100%; overflow: hidden; border: 1px solid var(--color-apple-divider); border-radius: 24px; background: var(--color-apple-parchment); }
@@ -220,5 +221,5 @@ html[st-theme-vt]:has(.landing-header) {
 }
 @media (prefers-reduced-motion:reduce) {
   .landing-text-action svg, .landing-intro .landing-actions .glossy-btn, .landing-guide-step { transition: none; }
-  .landing-guide-example[data-animate="true"] { animation: none; }
+  .landing-guide-example[data-animate="true"] .landing-guide-layer { transition: none; }
 }
