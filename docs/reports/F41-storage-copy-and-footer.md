@@ -51,5 +51,20 @@ Passed after integrating the latest main:
 - `npm run verify:layout`
 - `git diff --check`
 
-Recorded UI verification, CI and live confirmation are recorded below once
-complete. Generated audit screenshots are deliberately not committed.
+## Recorded browser checks
+
+[Final all-locale 320px recording](https://app.devin.ai/sessions/dda0462d4ad34518b63018a709ec3ae1?testRecording=68d99929-feb3-4add-af31-39db1a4a7d2a).
+
+All 22 Docs header states (11 locales, light/dark) passed at verified 320 CSS px:
+full page labels without ellipsis or clipping, no root overflow, 44px theme
+targets, settled 20px glyphs, and working theme changes. Footer language-sheet
+Escape/focus return and the Traditional Chinese three-mode FAQ also passed.
+
+Earlier focused runs verified Docs/About footer parity at 1440, 768, 390 and
+320px in both themes, Privacy/Terms shared footer, all 11 locale promises, static
+guide claims, all internal About footer links and About without JavaScript.
+The initial clipped language dropdown and duplicated label were replaced/fixed
+before the final approval. Generated audit screenshots are not committed.
+
+CI and production rollout are tracked on [PR #11](https://github.com/0xalyt/ShareTexts/pull/11).
+Native Safari/iOS and translation review by native speakers remain unverified.
