@@ -4,6 +4,7 @@ import { OtpInput } from '../spaceui/OtpInput';
 import { haptic } from '../../lib/haptics';
 import { useI18n } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
+import { PairingGuide } from '../ui/PairingGuide';
 
 /**
  * ReceiveScreen — the join side of the hand-over (§18, P3).
@@ -99,7 +100,7 @@ export function ReceiveScreen({
   return (
     <div
       ref={rootRef}
-      className="w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]"
+      className="st-task w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]"
       style={keyboard ? { paddingBottom: keyboard } : undefined}
       data-testid="receive-screen"
     >
@@ -107,9 +108,10 @@ export function ReceiveScreen({
         <h2 className="text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
           {t('receive.titleShort')}
         </h2>
-        <p className="mt-2 text-[16px] leading-snug text-apple-ink-muted dark:text-white/70 [@media(max-height:520px)]:mt-0.5 [@media(max-height:520px)]:text-[12px]">
+        <p className="st-task-intro">
           {t('receive.subtitle')}
         </p>
+        <PairingGuide receiving />
 
         {/* The cells sit on the canvas by themselves — no card around them. */}
         <div className="mt-8 [@media(max-height:520px)]:mt-3" ref={fieldRef}>
@@ -196,6 +198,7 @@ export function ReceiveScreen({
 
         <button
           onClick={onScan}
+          disabled={isJoining || accepted}
           className="press mt-4 w-full min-h-[48px] flex items-center justify-center gap-2 rounded-full bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 text-[16px] font-semibold text-apple-ink dark:text-white"
           data-testid="receive-scan"
         >

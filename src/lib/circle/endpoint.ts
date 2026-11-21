@@ -11,12 +11,22 @@
  * build refuses a localhost override, exactly like the socket does — shipping a
  * bundle that points at someone's laptop is a broken app, not a configuration.
  */
+import { ciWorker } from '../ciWorker';
+
 const envUrl = (import.meta.env?.VITE_SIGNALING_URL as string | undefined)?.trim();
 const isLocalhost = /\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(envUrl ?? '');
 
 export const CIRCLE_ORIGIN = (() => {
+  if (ciWorker) return ciWorker;
   const fallback = 'https://sharetext-signaling.alighttt.workers.dev';
   if (!envUrl) return fallback;
   if (isLocalhost && !import.meta.env.DEV) return fallback;
-  return envUrl.replace(/\/+$/, '');
+  const url = envUrl.replace(/\/+$/, '');
+  // Same rule as `resolveEndpoints()` in socket.ts: a production build talks
+  // to the canonical Worker only. The live host's dashboard still carried a
+  // retired worker's URL; rooms ignored it, the mailbox obeyed it, and every
+  // Circle call on sharetexts.online died at the CORS preflight of a Worker
+  // that has no /circle routes.
+  if (!import.meta.env.DEV && url !== fallback) return fallback;
+  return url;
 })();
