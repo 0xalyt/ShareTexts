@@ -20,7 +20,7 @@ export const ROOM_TTL = 5 * 60 * 60 * 1000;       // idle rooms expire after 5h 
 export const ROOM_EMPTY_TTL = 5 * 60 * 60 * 1000;  // rejoinable while within the 5h idle window
 const SIGNAL_MAX = 64 * 1024;                      // SDP offers/answers are a few KB
 const RELAY_TEXT_MAX = 512 * 1024;
-const RELAY_BIN_MAX = 128 * 1024;
+const RELAY_BIN_MAX = 132 * 1024;
 const PUSH_TEXT_MAX = 256 * 1024;                  // agent-push text cap
 const PUSH_FILE_MAX = 8 * 1024 * 1024;             // agent-push file cap (raw bytes)
 const PUSH_CHUNK = 45 * 1024;                      // raw bytes per base64 push chunk
@@ -314,14 +314,6 @@ export class Room extends DurableObject<Env> {
   private urlRoomId: string | null = null;
   /** Per-connection abuse buckets — in-memory only (see FrameBucket). */
   private frameBuckets = new Map<string, FrameBucket>();
-
-  /** The `to` participant id carried on the most recent TEXT frame — binary
-   *  relay chunks carry no envelope, so the addressing of the text frame that
-   *  preceded them (same sender, same turn) decides whether the binary data
-   *  is targeted or broadcast. In-memory, per-wake: worst case a wedged
-   *  binary stream temporarily fans out to all members, the same behavior
-   *  the pre-multi-device relay had. */
-  private lastBinaryTo: string | null = null;
 
   /** Sliding-window-per-fixed-bucket frame gate. Returns false when the
    *  connection exceeded its text or binary frame allowance for the current
@@ -639,6 +631,20 @@ export class Room extends DurableObject<Env> {
 
   // Invoked by the runtime on inbound frames (public by contract).
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+    let binaryTarget: unknown;
+    let targetHint = false;
+    if (typeof message === 'string' && message.length <= SIGNAL_MAX) {
+      try {
+        const hint = JSON.parse(message);
+        if (hint?.v === PROTOCOL_VERSION && hint.event === 'relay_binary_target') {
+          targetHint = true;
+          ws.serializeAttachment({ relayTo: typeof hint.payload?.to === 'string' ? hint.payload.to : null });
+        }
+      } catch { /* handled below */ }
+    } else if (typeof message !== 'string') {
+      binaryTarget = ws.deserializeAttachment()?.relayTo;
+      ws.serializeAttachment(null);
+    }
     const cid = await this.cidOf(ws);
     if (!cid) return;
     await this.loadRoom();
@@ -648,10 +654,11 @@ export class Room extends DurableObject<Env> {
     // client may not flood frames. Two buckets: text/control frames are
     // individually tiny but can arrive at absurd rates; binary relay frames
     // are bulk but a legit transfer can burst hard, so its cap is generous.
-    if (!this.allowFrame(cid, typeof message === 'string')) {
+    if (!this.allowFrame(cid, typeof message === 'string' && !targetHint)) {
       await count(this.env, 'abuse.frames_dropped');
       return;
     }
+    if (targetHint) return;
 
     // Binary frames are relay data from a member (already encrypted client-side).
     if (typeof message !== 'string') {
@@ -660,17 +667,17 @@ export class Room extends DurableObject<Env> {
       await this.touch();
       await this.markTransferring();
       await count(this.env, 'relay.binary_messages');
-      // Multi-device fan-out: targeted when the sender addressed one
-      // participant, to every other member otherwise (the 1-to-1 case is
-      // unchanged — two members, so "broadcast" reaches exactly the peer).
       const r = this.room!;
-      const toPid = this.targetPid(r, this.lastBinaryTo);
-      const targets = toPid
-        ? r.participants.filter((p) => p.pid === toPid)
-        : r.participants.filter((p) => p.cid !== cid);
+      const toPid = this.targetPid(r, binaryTarget);
+      if (binaryTarget !== undefined && !toPid) return;
+      const from = r.participants.find((p) => p.cid === cid)?.pid ?? cid;
+      const targets = r.participants.filter((p) => p.cid !== cid && (!toPid || p.pid === toPid));
       for (const t of targets) {
         const ws2 = this.openSocket(t.cid);
-        if (ws2) ws2.send(message);
+        if (ws2) {
+          ws2.send(JSON.stringify({ type: 'event', event: 'relay_binary', payload: { from } }));
+          ws2.send(message);
+        }
       }
       return;
     }
@@ -690,10 +697,6 @@ export class Room extends DurableObject<Env> {
     if (typeof msg.event !== 'string') {
       return this.ackErr(cid, msg.id, 'INVALID_MESSAGE', 'Unknown message type.');
     }
-    // Remember the addressing of text frames so a following binary relay
-    // chunk (envelope-less by design) inherits the same target.
-    this.lastBinaryTo = typeof msg.payload?.to === 'string' ? msg.payload.to : null;
-
     switch (msg.event) {
       case 'create_room':
         return this.handleCreate(cid, msg.id, msg.payload);
@@ -1057,6 +1060,7 @@ export class Room extends DurableObject<Env> {
     const self = this.participantOf(cid);
     const r = this.room!;
     const targetPid = this.targetPid(r, payload?.to);
+    if (payload?.to !== undefined && !targetPid) return;
     if (targetPid) {
       this.sendToPid(r, targetPid, { type: 'event', event: 'relay_message', payload: { from: self?.pid ?? cid, data } });
     } else {

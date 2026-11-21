@@ -13,6 +13,10 @@ export class FakeWebSocket {
   onclose: ((ev: { code: number; reason: string }) => void) | null = null;
   closedCode: number | null = null;
   closedReason: string | null = null;
+  private attachment: unknown = null;
+
+  serializeAttachment(value: unknown) { this.attachment = structuredClone(value); }
+  deserializeAttachment(): any { return structuredClone(this.attachment); }
 
   send(data: string | ArrayBuffer) {
     this.sent.push(data);
