@@ -1027,13 +1027,13 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               <Inbox className="w-6 h-6" strokeWidth={2} />
             </span>
             <p className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.015em]">{t('space.empty')}</p>
-            <p className="mt-1.5 text-[16px] text-apple-ink-muted dark:text-white/55 max-w-[34ch] leading-relaxed">{t(canUploadFiles ? 'space.emptyHint' : 'space.textOnly')}</p>
+            {canUploadFiles && <p className="mt-1.5 text-[16px] text-apple-ink-muted dark:text-white/55 max-w-[34ch] leading-relaxed">{t('space.emptyHint')}</p>}
             {/* The drop affordance — the SAME surface the real shelf uses,
                 so “nothing here” and “something is here” never look like
                 two different products. */}
             <button type="button" className="st-space-empty-action press" onClick={() => composerRef.current?.focus()} data-testid="space-empty-write">
               <Plus className="w-4 h-4 shrink-0" aria-hidden />
-              {t('space.composerPlaceholder')}
+              {t('space.emptyAction')}
             </button>
           </div>
         ) : (
