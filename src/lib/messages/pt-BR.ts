@@ -854,6 +854,7 @@ const pt: Dict = {
   "home.space.preview": "Prévia interativa. Nada é salvo.",
   "home.space.open": "Enquanto aberto",
   "home.space.closed": "Após expirar",
+  "home.space.expired": "Expirado",
   "home.space.example": "Planos para o fim de semana",
   "home.space.note": "Trem às 09:30. Um café antes de sair?",
   "home.browser.hideQr": "Ocultar QR do site",

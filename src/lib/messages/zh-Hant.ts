@@ -82,6 +82,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   "home.space.preview": "互動式預覽。不會儲存任何內容。",
   "home.space.open": "開放期間",
   "home.space.closed": "到期之後",
+  "home.space.expired": "已到期",
   "home.space.example": "週末計畫",
   "home.space.note": "火車09:30出發。出發前喝杯咖啡？",
   "home.browser.hideQr": "隱藏網站 QR 碼",

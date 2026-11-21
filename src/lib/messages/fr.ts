@@ -854,6 +854,7 @@ const fr: Dict = {
   "home.space.preview": "Aperçu interactif. Rien n’est enregistré.",
   "home.space.open": "Pendant l’ouverture",
   "home.space.closed": "Après expiration",
+  "home.space.expired": "Expiré",
   "home.space.example": "Projets du week-end",
   "home.space.note": "Train à 09:30. Un café avant de partir ?",
   "home.browser.hideQr": "Masquer le QR du site",

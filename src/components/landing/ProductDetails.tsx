@@ -48,7 +48,10 @@ export function SpaceDetail() {
     <div className="landing-space-window" data-open={preview.open} data-animate={preview.animate}>
       <div className="landing-space-window-header" aria-hidden="true">
         <span>{t('home.space.example')}</span>
-        <span><Clock3 />{t('space.retention')}</span>
+        <span><Clock3 /><span className="landing-space-preview-status">
+          <span data-active={preview.open}>{t('space.retention')}</span>
+          <span data-active={!preview.open}>{t('home.space.expired')}</span>
+        </span></span>
       </div>
       {/* Sample content is never uploaded. Both layers stay mounted so rapid
           reversals retarget the fade; keyboard and reduced-motion are instant. */}

@@ -853,6 +853,7 @@ const ja: Dict = {
   "home.space.preview": "操作できるプレビューです。何も保存されません。",
   "home.space.open": "開いている間",
   "home.space.closed": "期限が切れた後",
+  "home.space.expired": "期限切れ",
   "home.space.example": "週末の予定",
   "home.space.note": "電車は09:30。出発前にコーヒーでも？",
   "home.browser.hideQr": "サイトのQRを隠す",

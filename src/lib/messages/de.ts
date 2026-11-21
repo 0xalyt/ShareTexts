@@ -854,6 +854,7 @@ const de: Dict = {
   "home.space.preview": "Interaktive Vorschau. Nichts wird gespeichert.",
   "home.space.open": "Solange geöffnet",
   "home.space.closed": "Nach Ablauf",
+  "home.space.expired": "Abgelaufen",
   "home.space.example": "Wochenendpläne",
   "home.space.note": "Zug um 09:30 Uhr. Kaffee vor der Abfahrt?",
   "home.browser.hideQr": "Website QR ausblenden",
