@@ -34,13 +34,13 @@ The existing Send action remains the primary orange action. No typing into a pre
 
 ## Proof
 
-The release implementation is in `BrowserCompatibility.tsx:16–83`, `ProductDetails.tsx:44–76` and the Space block in `LandingSections.tsx`. The actual creation callback still comes from the unchanged parent. The shelf's only local state is `open`/`animate`; its sample layers are hidden from the accessibility tree, with labelled controls and a live status alternative.
+The release implementation is in `BrowserCompatibility.tsx:16–80`, `ProductDetails.tsx:43–72` and the Space block in `LandingSections.tsx`. The actual creation callback still comes from the unchanged parent. The shelf's only local state is `open`/`animate`; its sample layers are hidden from the accessibility tree, with labelled controls and a live status alternative.
 
 | Check | Result / evidence |
 | --- | --- |
 | `npx tsc --noEmit` after each implementation/integration commit | Passed. |
 | `npm run build` | Passed; `audit/tmp/landing-life-build.log`. |
-| `npm run verify:bundle` | Passed; entry 176.4 KB gzip against 180 KB budget, below the 177 KB working target; `audit/tmp/landing-life-bundle.log`. |
+| `npm run verify:bundle` | Passed; entry 176.5 KB gzip against 180 KB budget, below the 177 KB working target; `audit/tmp/landing-life-bundle.log`. |
 | `npm run smoke:local` | Passed production-server pairing, text, link and origin checks; `audit/tmp/landing-life-smoke.log`. |
 | `npm run verify:handoff` | Passed English, Spanish and Arabic at 320/360/390/1440px, plus existing guide, film, keyboard and settings regressions; `audit/tmp/landing-life-handoff.log`. |
 | QR pixels | Regression decodes the rendered 144px website QR to the current origin, not a fabricated room. |
@@ -48,6 +48,8 @@ The release implementation is in `BrowserCompatibility.tsx:16–83`, `ProductDet
 | `node scripts/verify-locales.mjs` | Existing main failure: German `home.live` is `Live`, identical to English and absent from the English-copy allow-list. Both values are unchanged on main and this branch. All newly added keys are translated and the full dictionaries typecheck. |
 
 The automated Space-CTA assertion now targets `landing-open-space` rather than an ambiguous button selector because the section gained two preview buttons. It still verifies that the real creation form opens; no assertion was removed.
+
+The first pre-push layout gate caught the new browser section's 24px desktop heading below the 30px minimum. The desktop rule is corrected to 32px on the existing 4px scale; the 24px phone treatment remains. The gate is unchanged. Final re-run output is kept in `audit/tmp/landing-life-push.log`.
 
 ## Recorded production-build UI verification
 

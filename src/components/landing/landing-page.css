@@ -81,7 +81,7 @@ html[st-theme-vt]:has(.landing-header) {
 /* Compatibility has a job: remove the ecosystem objection and help the
    visitor open a second browser. No installation prompt or competing CTA. */
 .landing-browsers { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr); align-items: center; gap: 64px; padding-block: 48px; border-block: 1px solid var(--color-apple-divider); }
-.landing-browser-copy h2 { max-width: 22ch; font-size: 24px; line-height: 1.2; letter-spacing: -.025em; font-weight: 600; text-wrap: pretty; }
+.landing-browser-copy h2 { max-width: 22ch; font-size: 32px; line-height: 1.2; letter-spacing: -.025em; font-weight: 600; text-wrap: pretty; }
 .landing-browser-copy > p { max-width: 40ch; margin-top: 12px; color: var(--color-apple-ink-muted); font-size: var(--text-body); line-height: 1.6; text-wrap: pretty; }
 .landing-browser-list { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; margin-top: 24px; }
 .landing-browser-list li { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--color-apple-ink-muted); font-size: var(--text-meta); line-height: 1.4; white-space: nowrap; }
