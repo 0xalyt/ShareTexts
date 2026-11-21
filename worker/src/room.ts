@@ -290,7 +290,7 @@ async function countMany(env: Env, counts: Record<string, number>) {
  *  flow (plus on close, alarm and destroy) instead of one Metrics request per
  *  relay frame. */
 const METRICS_FLUSH_MS = 10_000;
-const BUFFERED_METRICS = new Set(['relay.binary_messages', 'abuse.frames_dropped']);
+const BUFFERED_METRICS = new Set(['relay.text_messages', 'relay.binary_messages', 'abuse.frames_dropped']);
 
 /**
  * Report this room's current seated-peer count to the Stats DO (best-effort,
