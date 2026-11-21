@@ -69,11 +69,9 @@ jobs:
           tail -40 /tmp/sharetext-server.log
           exit 1
 
-      # This keyboard regression is independent of signaling/room creation.
-      # Use the normal local dev backend: WebKit exposes failing live stats
-      # requests as page errors, which must not masquerade as a focus crash.
+      # Exercise the built app with the in-job Worker, never production.
       - name: Nested overlay focus regression
-        run: BROWSER=${{ matrix.browsers }} node scripts/verify-browser.mjs overlay-focus
+        run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-overlay-focus.mjs
 
       # P7: the P4 composer incident, as a rectangle check. Text-level gates
       # cannot see a Send circle that walks 65px up a grown row.
