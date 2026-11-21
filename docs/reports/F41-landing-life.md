@@ -49,7 +49,7 @@ The release implementation is in `BrowserCompatibility.tsx:16–80`, `ProductDet
 
 The automated Space-CTA assertion now targets `landing-open-space` rather than an ambiguous button selector because the section gained two preview buttons. It still verifies that the real creation form opens; no assertion was removed.
 
-The first pre-push layout gate caught the new browser section's 24px desktop heading below the 30px minimum. The desktop rule is corrected to 32px on the existing 4px scale; the 24px phone treatment remains. The gate is unchanged. Final re-run output is kept in `audit/tmp/landing-life-push.log`.
+The first pre-push layout gate caught the new browser section's 24px desktop heading below the 30px minimum. The final type treatment uses the design skill's 30/36 desktop and 24/32 phone steps. The gate is unchanged. Final re-run output is kept in `audit/tmp/landing-life-push.log`.
 
 ## Recorded production-build UI verification
 
