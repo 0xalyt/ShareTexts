@@ -108,8 +108,8 @@
 .st-linked-seal > span { position: absolute; left: 21px; top: 6px; display: grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--color-status-success); color: white; }
 .st-linked-seal > span svg { width: 10px; height: 10px; }
 @media (prefers-reduced-motion: no-preference) {
-  [data-testid='connected-toast'][data-motion-enter='true'] .st-linked-seal > svg { animation: st-linked-close 180ms var(--ease-out) both; }
-  [data-testid='connected-toast'][data-motion-enter='true'] .st-linked-seal > span { animation: st-linked-mark 180ms 100ms var(--ease-out) both; }
+  [data-testid='connected-toast'][data-motion-enter='true'] .st-linked-seal > svg { animation: st-linked-close var(--st-dur-short) var(--ease-out) both; }
+  [data-testid='connected-toast'][data-motion-enter='true'] .st-linked-seal > span { animation: st-linked-mark var(--st-dur-short) calc(var(--st-stagger-step) * 5) var(--ease-out) both; }
   @keyframes st-linked-close { from { transform: translateX(var(--join-offset)); } to { transform: none; } }
   @keyframes st-linked-mark { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
   .st-room .st-send-button:active:not(:disabled):not(:focus-visible) { transform: scale(1.04, .94); }
@@ -118,6 +118,7 @@
   }
 }
 :root[data-motion-intent='keyboard'] .st-room .st-send-button { transform: none; transition: none; }
+:root[data-motion-intent='keyboard'] [data-testid='add-attachment'] > svg { transition: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .st-room .st-send-button, .st-room .st-send-button > svg { transform: none; transition: none; }
@@ -135,11 +136,11 @@
 @media (prefers-reduced-motion: no-preference) {
   .st-pair-guide { --handoff-direction: 1; }
   .st-pair-guide[data-receiving='true'] { --handoff-direction: -1; }
-  .st-pair-guide[data-motion-enter='true'] .st-pair-tile { animation: st-pair-place 180ms var(--ease-out) both; }
-  .st-pair-guide .st-pair-tile-other { animation-delay: 100ms; }
-  .st-pair-guide[data-receiving='true'] .st-pair-tile { animation-delay: 100ms; }
+  .st-pair-guide[data-motion-enter='true'] .st-pair-tile { animation: st-pair-place var(--st-dur-short) var(--ease-out) both; }
+  .st-pair-guide .st-pair-tile-other { animation-delay: calc(var(--st-stagger-step) * 5); }
+  .st-pair-guide[data-receiving='true'] .st-pair-tile { animation-delay: calc(var(--st-stagger-step) * 5); }
   .st-pair-guide[data-receiving='true'] .st-pair-tile-other { animation-delay: 0ms; }
-  .st-pair-guide[data-motion-enter='true'] .st-pair-paper { animation: st-pair-handoff 240ms 40ms var(--ease-in-out) both; }
+  .st-pair-guide[data-motion-enter='true'] .st-pair-paper { animation: st-pair-handoff var(--st-dur-medium) var(--ease-in-out) both; }
   @keyframes st-pair-place {
     from { opacity: .5; transform: translateY(4px) scale(.96); }
     to { opacity: 1; transform: none; }
@@ -154,10 +155,10 @@
 
   /* The workspace arrives as one thought. The destination is the lead;
      supporting words follow, not every button dancing independently. */
-  .st-room-start[data-motion-enter='true'] > * { animation: st-room-arrive 180ms var(--ease-out) both; }
-  .st-room-start > p:first-of-type { animation-delay: 40ms; }
-  .st-room-start > p:nth-of-type(2) { animation-delay: 70ms; }
-  .st-room-start > .st-room-starters { animation-delay: 100ms; }
+  .st-room-start[data-motion-enter='true'] > * { animation: st-room-arrive var(--st-dur-short) var(--ease-out) both; }
+  .st-room-start > p:first-of-type { animation-delay: calc(var(--st-stagger-step) * 2); }
+  .st-room-start > p:nth-of-type(2) { animation-delay: calc(var(--st-stagger-step) * 3); }
+  .st-room-start > .st-room-starters { animation-delay: calc(var(--st-stagger-step) * 5); }
   @keyframes st-room-arrive {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }

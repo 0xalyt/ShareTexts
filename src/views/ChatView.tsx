@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import '../components/ui/task-surfaces.css';
-import { DUR, EASE, SPRING } from '../lib/motion/tokens';
+import { DUR, EASE, SPRING, STAGGER_STEP } from '../lib/motion/tokens';
 import { useMotionPreference } from '../lib/useMotionPreference';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
@@ -1727,7 +1727,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   initial={quietMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: quietMotion ? 0 : 0.18, ease: EASE.out }}
+                  transition={{ duration: quietMotion ? 0 : DUR.short / 1000, ease: EASE.out }}
                   className="px-3 pt-5 origin-bottom overflow-hidden"
                 >
                   {/* pt-5 on the strip gives the corner-X room: the button
@@ -1742,8 +1742,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                           layout={quietMotion ? false : 'position'}
                           initial={quietMotion ? false : { opacity: 0, y: 8, scale: .96 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: quietMotion ? 0 : 8, scale: quietMotion ? 1 : .96, transition: quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, opacity: { duration: 0.12 }, delay: 0 } }}
-                          transition={quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, delay: Math.min(index, 3) * 0.02, opacity: { duration: 0.18, ease: EASE.out } }}
+                          exit={{ opacity: 0, y: quietMotion ? 0 : 8, scale: quietMotion ? 1 : .96, transition: quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, opacity: { duration: DUR.micro / 1000 }, delay: 0 } }}
+                          transition={quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, delay: Math.min(index, 3) * STAGGER_STEP / 1000, opacity: { duration: DUR.short / 1000, ease: EASE.out } }}
                           style={{ transformOrigin: 'left bottom' }}
                           data-testid="staged-attachment"
                           className="relative shrink-0"
