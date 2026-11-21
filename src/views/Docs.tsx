@@ -517,17 +517,17 @@ function SecuritySection() {
             Encrypted in the browser
           </h3>
           <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Transfer content is encrypted between devices. ShareTexts is designed for temporary handoffs, not permanent storage.
+            Live transfers are encrypted in transit. The service issues the room secret, so this is not zero knowledge. ShareTexts is designed for handoffs, not permanent storage.
           </p>
         </div>
 
         <div className="p-5 rounded-[16px] st-card">
           <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
             <Clock className="w-4 h-4 text-status-success" />
-            Nothing is kept
+            Different ways to keep things
           </h3>
           <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Rooms expire automatically. No accounts, no permanent history, no cloud storage.
+            Live rooms expire unless you enable Stay Connected. Temporary Spaces store content server-side for 6 hours to 7 days, or until closed early. Saved items stay in this browser until you remove them or clear site data.
           </p>
         </div>
 
@@ -553,23 +553,23 @@ function SecuritySection() {
       </div>
 
       <div className="p-5 rounded-[16px] st-tile">
-        <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">What ShareTexts does NOT store</h3>
+        <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">What each mode keeps</h3>
         <ul className="space-y-2 text-[16px] text-apple-ink-muted dark:text-white/60">
           <li className="flex items-start gap-2">
             <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            Your files or text content
+            Live-room content is not stored server-side
           </li>
           <li className="flex items-start gap-2">
             <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            Your account information (there are no accounts)
+            Temporary Space content is stored server-side until closed or expired
           </li>
           <li className="flex items-start gap-2">
             <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            Transfer history after the session ends
+            Saved items stay in this browser until removed or site data is cleared
           </li>
           <li className="flex items-start gap-2">
             <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            IP addresses for analytics
+            The service handles room state and connection metadata; no account is required
           </li>
         </ul>
       </div>
@@ -649,6 +649,7 @@ function sectionFromHash(): Section {
   // (or absent) falls back to the overview. Guards for SSR-safety.
   if (typeof window === 'undefined') return 'overview';
   const h = window.location.hash.replace('#', '');
+  if (h === 'security') return 'privacy';
   return (SECTION_IDS as string[]).includes(h) ? (h as Section) : 'overview';
 }
 

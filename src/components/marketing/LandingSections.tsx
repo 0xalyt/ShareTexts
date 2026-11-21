@@ -116,15 +116,13 @@ export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
 
 export function LandingFaq() {
   const { t } = useI18n();
-  /* Four, not seven. The last three answered questions nobody has before a
-   * first transfer (code lifetime, relay internals, Temporary Spaces) and are
-   * one click away in the docs. A landing FAQ is the objections that stop the
-   * tap, nothing else. */
+  // Include storage before the first transfer, not only in the docs.
   const items: QA[] = [
     { q: t('home.faq.q1'), a: t('home.faq.a1') },
     { q: t('home.faq.q2'), a: t('home.faq.a2') },
     { q: t('home.faq.q3'), a: t('home.faq.a3') },
     { q: t('home.faq.q4'), a: t('home.faq.a4') },
+    { q: t('home.faq.q6'), a: t('home.faq.a6') },
   ];
   return (
     <section aria-labelledby="faq-title" className="landing-faq w-full py-16">
