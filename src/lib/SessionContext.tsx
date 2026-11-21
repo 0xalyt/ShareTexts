@@ -296,7 +296,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // and closed tabs, making the room feel genuinely persistent.
   useEffect(() => {
     if (!session.roomId || !session.secret) return;
+    let pending = true;
     const persist = () => {
+      if (!pending) return;
+      pending = false;
       const session = sessionRef.current;
       if (!session.roomId || !session.secret) return;
       const payload: StoredSession = {
