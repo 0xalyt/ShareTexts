@@ -99,7 +99,7 @@ const securityOptions = {
         "ws:",
         "wss:",
         "https:",
-        ...(isProd ? [] : ["http://localhost:*", "ws://localhost:*"]),
+        ...(isProd ? (process.env.VITE_CI_LOCAL_WORKER === '1' && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(process.env.VITE_SIGNALING_URL || '') ? [process.env.VITE_SIGNALING_URL!] : []) : ["http://localhost:*", "ws://localhost:*"]),
       ],
       frameAncestors: ["'none'"],
     }
