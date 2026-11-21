@@ -20,6 +20,8 @@ About copy lives once in `src/views/about-content.html`, imported by the React v
 
 Review caught the transfer capability gate blocking the newly app-rendered About when WebRTC is disabled. Reading routes now bypass that transfer-only gate, while the landing/transfer flow still explains unsupported browsers. The handoff regression suite reproduces the blocked About before the fix and checks all four reading routes plus the retained transfer gate in each CI browser engine.
 
+After integrating isolated-Worker CI, Firefox reproduced a first-navigation timeout locally despite a loaded document, healthy local signaling and no pending requests or runtime errors. `gotoPage` permits one Firefox-only retry if Playwright still reports `about:blank`; non-navigation errors, other engines, already-navigated pages and a second timeout still fail. Existing handoff assertions remain unchanged. A complete local Firefox handoff run and mocked retry-boundary checks pass. WebKit's separate queued-file failure has been handed to the reliability workstream; merge still requires every check to pass.
+
 ## Evidence
 
 - `npm run lint`, `npm run verify:claims` (23 claim fixtures), `node scripts/verify-locales.mjs`, `npm run build`, CSP pin check and `npm run verify:bundle` passed.
@@ -31,8 +33,8 @@ Review caught the transfer capability gate blocking the newly app-rendered About
 
 ## Not verified
 
-Native Safari/iOS and native-speaker translation review. Full Docs translation remains unimplemented and is now disclosed; legal meaning and legal-page prose are unchanged. CI, merge and production confirmation are pending at report creation.
+Native Safari/iOS and native-speaker translation review. Full Docs translation remains unimplemented and is now disclosed; legal meaning and legal-page prose are unchanged. CI and merge are pending at report creation. Production Worker tests and live confirmation are deferred at the owner's request while its daily allowance is exhausted; follow-up checks use only a local Worker.
 
 ## Questions and next step
 
-No owner decision is required. Merge after CI and layout checks, then confirm the canonical About route, exact footer parity and language disclosure on production. Generated layout screenshots are excluded from the commit.
+No owner decision is required. Merge after full-green CI and clean review; confirm the canonical About route, exact footer parity and language disclosure on production only when the owner resumes live checks. Generated layout screenshots are excluded from the commit.

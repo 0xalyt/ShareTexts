@@ -73,6 +73,18 @@ export async function launchBrowser(extraArgs = []) {
 
 export const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+export async function gotoPage(page, url) {
+  try {
+    return await page.goto(url, { waitUntil: 'domcontentloaded' });
+  } catch (error) {
+    // Firefox can lose its first navigation event while the document loads.
+    // Retry only that initial blank-frame timeout; real app failures still fail.
+    if (resolveEngine().name !== 'firefox' || error.name !== 'TimeoutError' || page.url() !== 'about:blank') throw error;
+    console.warn(`Firefox missed its first navigation to ${url}; retrying once`);
+    return page.goto(url, { waitUntil: 'domcontentloaded' });
+  }
+}
+
 export async function readLiveCode(page) {
   // Scope to the pairing-code group and require a stable read: the digit
   // tiles animate code rotation (AnimatePresence popLayout briefly renders
