@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import '../components/ui/task-surfaces.css';
-import { DUR, EASE } from '../lib/motion/tokens';
+import { DUR, EASE, SPRING } from '../lib/motion/tokens';
 import { useMotionPreference } from '../lib/useMotionPreference';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
@@ -1740,10 +1740,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                         <motion.div
                           key={a.id}
                           layout={quietMotion ? false : 'position'}
-                          initial={quietMotion ? false : { opacity: 0, transform: 'translateY(8px) scale(.96)' }}
-                          animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
-                          exit={{ opacity: 0, transform: quietMotion ? 'none' : 'translateY(8px) scale(.96)', transition: { duration: quietMotion ? 0 : 0.12, delay: 0 } }}
-                          transition={{ duration: quietMotion ? 0 : 0.18, delay: quietMotion ? 0 : Math.min(index, 3) * 0.02, ease: EASE.out }}
+                          initial={quietMotion ? false : { opacity: 0, y: 8, scale: .96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: quietMotion ? 0 : 8, scale: quietMotion ? 1 : .96, transition: quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, opacity: { duration: 0.12 }, delay: 0 } }}
+                          transition={quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, delay: Math.min(index, 3) * 0.02, opacity: { duration: 0.18, ease: EASE.out } }}
                           style={{ transformOrigin: 'left bottom' }}
                           data-testid="staged-attachment"
                           className="relative shrink-0"

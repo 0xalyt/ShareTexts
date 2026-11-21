@@ -4,7 +4,7 @@ import { Plus, Image as ImageIcon, File as FileIcon, Video as VideoIcon, Music, 
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 import { useMotionPreference } from '../lib/useMotionPreference';
-import { DUR, EASE } from '../lib/motion/tokens';
+import { DUR, EASE, SPRING } from '../lib/motion/tokens';
 
 // Escape closes the menu; re-focuses the + button so keyboard users stay put.
 function useEscapeToClose(isOpen: boolean, onClose: () => void, triggerRef: React.RefObject<HTMLButtonElement | null>) {
@@ -149,13 +149,17 @@ export function AttachmentPanel({ isOpen, onClose, onSelectType, onFormatting, b
                 : (current + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
               items[next]?.focus({ preventScroll: true });
             }}
-            initial={quiet ? false : { opacity: 0, transform: 'translateY(6px) scale(.96)' }}
-            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+            initial={quiet ? false : { opacity: 0, y: 6, scale: .96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={(immediate: boolean) => ({
-              opacity: 0, transform: immediate ? 'none' : 'translateY(6px) scale(.96)',
-              transition: { duration: immediate ? 0 : DUR.micro / 1000 },
+              opacity: 0, y: immediate ? 0 : 6, scale: immediate ? 1 : .96,
+              transition: immediate ? { duration: 0 } : {
+                type: 'spring', ...SPRING.snap, opacity: { duration: DUR.micro / 1000 },
+              },
             })}
-            transition={{ duration: quiet ? 0 : DUR.short / 1000, ease: EASE.out }}
+            transition={quiet ? { duration: 0 } : {
+              type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000, ease: EASE.out },
+            }}
             style={{ transformOrigin: '22px calc(100% + 8px)' }}
             data-testid="attachment-panel"
             className="absolute bottom-[calc(100%+8px)] left-0 z-50 min-w-[210px] p-1.5 bg-white dark:bg-apple-tile-2 border border-black/[0.08] dark:border-white/[0.08] shadow-[0_12px_40px_-12px_rgba(0,0,0,0.28)] rounded-[16px] overflow-hidden"
