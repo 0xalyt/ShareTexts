@@ -69,6 +69,10 @@ jobs:
           tail -40 /tmp/sharetext-server.log
           exit 1
 
+      # Exercise the built app with the in-job Worker, never production.
+      - name: Nested overlay focus regression
+        run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-overlay-focus.mjs
+
       # P7: the P4 composer incident, as a rectangle check. Text-level gates
       # cannot see a Send circle that walks 65px up a grown row.
       - name: Verify local signaling in built app
