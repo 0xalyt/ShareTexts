@@ -89,6 +89,9 @@
 .st-space [data-testid='space-empty'] > p:nth-of-type(2) { color: var(--task-muted); }
 .st-space-empty-action { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 24px; padding: 10px 16px; border: 1px solid var(--task-line); border-radius: 12px; background: var(--task-soft); color: var(--task-accent); font-size: 13px; font-weight: 600; text-align: start; }
 .st-space [data-testid='space-item'] { background: var(--task-surface); border-color: var(--task-line); border-radius: 16px; box-shadow: var(--task-shadow); }
+.st-space-share { background: var(--task-inset); color: var(--task-muted); border: 1px solid var(--task-line); }
+.st-space [data-testid='space-send'] { background: var(--color-brand); color: #1d1d1f; border: 1px solid transparent; }
+.st-space [data-testid='space-send']:disabled { background: var(--task-inset); color: var(--task-muted); border-color: var(--task-line); opacity: 1; cursor: not-allowed; }
 @media (hover: hover) and (pointer: fine) {
   .st-room-starters > button:hover, .st-space-empty-action:hover { border-color: var(--task-accent); color: var(--task-accent); }
 }
@@ -96,8 +99,15 @@
   .st-room-start { padding: 20px; }
   .st-space [data-testid='space-empty'] { padding: 24px; }
   .st-pair-guide { gap: 12px; }
-  .st-space-header { height: auto; min-height: 56px; padding-block: 8px; gap: 6px; }
-  .st-space-header [data-testid='space-members'] { padding-inline: 8px; }
+  /* Identity and actions get separate rows; the title never has to compete
+     with four fixed-width controls for a few remaining characters. */
+  .st-space-header { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; height: auto; min-height: 56px; padding-block: 8px; gap: 8px; }
+  .st-space-header > a { grid-column: 1; grid-row: 1; }
+  .st-space-identity { grid-column: 2; grid-row: 1; }
+  .st-space-identity h1 { white-space: normal; overflow-wrap: anywhere; }
+  .st-space-header .st-space-close { grid-column: 3; grid-row: 1; }
+  .st-space-header [data-testid='space-members'] { grid-column: 1 / span 2; grid-row: 2; justify-self: start; }
+  .st-space-header .st-space-share { grid-column: 3; grid-row: 2; padding-inline: 0; }
 }
 @media (max-height: 620px) {
   .st-pair-guide { display: none; }

@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon,
   Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
-  Users, X, XCircle,
+  X, XCircle,
 } from 'lucide-react';
 import { LogoTraceLoader } from '../components/LogoTraceLoader';
 import { QrArt } from '../components/qr/QrArt';
@@ -906,7 +906,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           <a href="/" aria-label={t('space.backHome')} className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08]">
             <ArrowLeft className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
           </a>
-          <div className="min-w-0 flex-1">
+          <div className="st-space-identity min-w-0 flex-1">
             <h1 className="text-[16px] font-semibold tracking-[-0.02em] text-apple-ink dark:text-white truncate leading-tight">{snapshot?.name || '…'}</h1>
             {snapshot && (
               <Countdown expiresAt={snapshot.expiresAt} now={nowMs} createdAt={snapshot.createdAt} />
@@ -928,21 +928,16 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           )}
           {snapshot && (
             <span className="st-chip shrink-0 tabular-nums" data-testid="space-members">
-              <span className="hidden min-[400px]:block w-1.5 h-1.5 rounded-full bg-status-success shrink-0" aria-hidden />
-              <span className="inline-flex min-[400px]:hidden items-center gap-1" aria-hidden>
-                <Users className="w-3.5 h-3.5" />{snapshot.memberCount}
-              </span>
-              <span className="sr-only min-[400px]:not-sr-only">
-                {snapshot.memberCount === 1
-                  ? t('space.memberCountOne')
-                  : t('space.memberCount', { count: snapshot.memberCount })}
-              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-status-success shrink-0" aria-hidden />
+              {snapshot.memberCount === 1
+                ? t('space.memberCountOne')
+                : t('space.memberCount', { count: snapshot.memberCount })}
             </span>
           )}
           <button
             onClick={() => setShareOpen(true)}
             aria-label={t('space.share')}
-            className="shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform"
+            className="st-space-share shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full text-[13px] font-semibold active:scale-[0.96] transition-transform"
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5" />
