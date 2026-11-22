@@ -6,9 +6,10 @@
  * The card owns nothing about the transport: it renders `ChatMessage` state
  * and calls back into SessionContext for retry/cancel/send actions.
  */
-import { EASE } from '../lib/motion/tokens';
+import { EASE, SPRING } from '../lib/motion/tokens';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { useSession } from '../lib/SessionContext';
 import { formatSpeed, formatEta } from '../lib/speedEngine';
 import { renderRichText } from '../lib/richText';
@@ -371,6 +372,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
 
 export interface MessageCardProps {
   msg: ChatMessage;
+  arrival?: 'first-file' | 'file';
   isGroupStart?: boolean;
   isGroupEnd?: boolean;
   /** Selection mode (bencho selection list) — owned by ChatView. */
@@ -388,8 +390,11 @@ export interface MessageCardProps {
   showStateWord?: boolean;
 }
 
-export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart, showMeta = true, showStateWord = true }) => {
+export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart, showMeta = true, showStateWord = true }) => {
   const { t, lang } = useI18n();
+  const reducedMotion = useMotionPreference();
+  const savesPhotos = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const { retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, session, reactToMessage, deleteLocalMessage } = useSession();
   const isMe = msg.sender === 'me';
   const a = msg.attachment;
@@ -535,7 +540,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
   if (!a) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
         className={cn(
@@ -685,7 +690,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   aria-label={t('msg.copyMessage')}
                   title={t('msg.copy')}
                   className={cn(
-                    "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] -mr-[15px] rounded-full transition-motion active:scale-[0.96]",
+                    "st-message-utility flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] -mr-[15px] rounded-full transition-motion active:scale-[0.96]",
                     copied
                       ? "text-status-success"
                       : "text-apple-ink-muted hover:text-apple-ink dark:hover:text-white hover:bg-apple-divider/60 dark:hover:bg-apple-tile-3"
@@ -732,11 +737,9 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
   const settled = msg.sender === 'partner';
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6, scale: settled ? 1.015 : 1 }}
+      initial={arrival && !reducedMotion ? { opacity: 0, y: arrival === 'first-file' ? 16 : 6, scale: arrival === 'first-file' ? .985 : 1 } : false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={settled
-        ? { type: 'spring', stiffness: 380, damping: 26, mass: 0.9 }
-        : { type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
+      transition={{ type: 'spring', ...SPRING.sheet }}
       className={cn(
         "group/msg relative flex w-full items-center gap-2",
         isMe ? "flex-row-reverse justify-start" : "justify-start",
@@ -766,7 +769,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
       />
       {selectMode && <SelectionRing selected={selected} />}
       <div className={cn(
-        "flex flex-col gap-0 max-w-[calc(100%-3rem)] sm:max-w-[65%] w-full transition-shadow",
+        "st-file-bubble flex flex-col gap-0 max-w-[calc(100%-3rem)] sm:max-w-[65%] w-full transition-shadow",
         selected && "ring-2 ring-ember/60",
         isMe ? "items-end" : "items-start"
       )}>
@@ -964,7 +967,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             <div className="flex items-center gap-1 sm:gap-1.5 mt-2 flex-wrap">
               {complete && (
                 <>
-                  <ActionButton icon={saved ? <Check /> : <Download />} label={t('action.download')} active={saved} onClick={() => handleDownload(a.url!, a.name)} primary onBlue={isMe} testId="transfer-download" />
+                  <ActionButton icon={saved ? <Check /> : <Download />} label={saved ? t('action.downloadStarted') : savesPhotos && isImage && typeof navigator.share === 'function' ? t('action.savePhotos') : t('action.download')} active={saved} onClick={() => { if (savesPhotos && isImage && typeof navigator.share === 'function') void handleShare(); else handleDownload(a.url!, a.name); }} primary onBlue={isMe} testId="transfer-download" />
                   <div className="flex items-center gap-1 sm:gap-1.5">
                     {a.type === 'image' && (
                       <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} compact onBlue={isMe} testId="transfer-copy" />
@@ -1116,7 +1119,7 @@ function BookmarkButton({ msg }: { msg: ChatMessage }) {
         disabled={bm.busy}
         data-testid="save-item"
         className={cn(
-          "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.96]",
+          "st-message-utility flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.96]",
           bm.error
             ? "text-status-danger"
             : bm.saved

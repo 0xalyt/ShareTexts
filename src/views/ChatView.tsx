@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import '../components/ui/task-surfaces.css';
 import { DUR, EASE, SPRING, STAGGER_STEP } from '../lib/motion/tokens';
 import { useMotionPreference } from '../lib/useMotionPreference';
-import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
+import { SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
 import { useOverscroll } from '../lib/useOverscroll';
 import { PullToRefresh } from '../components/PullToRefresh';
@@ -27,9 +27,10 @@ import { ConfirmSheet } from '../components/ConfirmSheet';
 import { StayConnectedToggle, StayBadge } from '../components/StayConnectedToggle';
 import { Tooltip } from '../components/spaceui/tooltip';
 import { cn, formatBytes, sanitizeDeviceName } from '../lib/utils';
-import { hapticSuccess } from '../lib/haptics';
 import { Attachment } from '../types';
 import { MessageCard, pureLinkUrl } from '../components/MessageCard';
+import { RoomFileGroup } from '../components/RoomFileGroup';
+import { roomMessageGroups } from '../lib/roomMessageGroups';
 import { TypingGhostBubble } from '../components/TypingIndicator';
 import { createTypingSender, typingIndicatorEnabled, TYPING_TIMING } from '../lib/typing';
 import { DeviceLinkIllustration, PacketTrain } from '../components/DeviceLinkIllustration';
@@ -75,7 +76,6 @@ function dateKeyOf(ts: number): string {
 export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' } = {}) {
   const reducedMotion = useMotionPreference();
   const quietMotion = reducedMotion || document.documentElement.dataset.motionIntent === 'keyboard';
-  const entranceMotion = useRef(document.documentElement.dataset.motionIntent === 'pointer').current;
   const { t, lang } = useI18n();
   // Stable translator for effects: effects fire on session changes, not on
   // locale changes — routing through a ref means an announcement/toast that
@@ -234,7 +234,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // "Other device connected" toast — the alert both sides get when the
   // room opens, so the creator sees the joiner arrive even when the
   // handshake was too fast to catch on the pairing screen.
-  const [showConnected, setShowConnected] = useState(false);
+  const initialMessageIds = useRef(new Set(session.messages.map(m => m.id)));
+  const arrivalIds = useRef(new Set<string>());
+  const [arrivalPulse, setArrivalPulse] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Composer textarea — auto-grows as the user types (rows=1 + height sync),
   // capped at 30vh so long messages scroll instead of eating the screen.
@@ -403,14 +405,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     atBottomRef.current = nearBottom;
     if (nearBottom) setShowJump(false);
   };
-  // Haptic feedback — a light tap when a message leaves this device, a
-  // short double-tap when one arrives. Mobile-only, silently ignored
-  // anywhere the API doesn't exist.
-  const haptic = (pattern: number | number[]) => {
-    try {
-      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
-    } catch { /* unsupported */ }
-  };
   useEffect(() => {
     const prev = prevCountRef.current;
     const count = session.messages.length;
@@ -419,7 +413,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     const last = session.messages[count - 1];
     if (last?.sender === 'partner') {
       // The one receive moment that earns a pulse: something arrived.
-      haptic([10, 40, 12]);
+      if (!last.attachment) { hapticArrive(); setArrivalPulse(last.id); }
       if (!atBottomRef.current && !disconnected) setShowJump(true);
     }
     // (Own sends stay visually confirmed by the card appearing — no extra
@@ -445,12 +439,20 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // the file.") without any visual change.
   const lastMessage = session.messages[session.messages.length - 1];
   useEffect(() => {
+    const arrivals = session.messages.filter(message => message.sender === 'partner'
+      && message.attachment?.status === 'complete'
+      && !initialMessageIds.current.has(message.id) && !arrivalIds.current.has(message.id));
+    if (!arrivals.length) return;
+    arrivals.forEach(message => arrivalIds.current.add(message.id));
+    hapticArrive();
+    setArrivalPulse(arrivals[arrivals.length - 1].id);
+  }, [session.messages]);
+  useEffect(() => {
     if (!lastMessage || lastMessage.sender === 'me') return;
     const st = lastMessage.attachment?.status;
     const tr = tRef.current;
     if (st === 'complete') {
       // A real arrival — the transfer landed intact. One quiet tick.
-      hapticArrive();
       const type = lastMessage.attachment?.type;
       setAnnouncement(type === 'image' ? tr('chat.photoReceived') : type === 'video' ? tr('chat.videoReceived') : type === 'audio' ? tr('chat.audioReceived') : tr('chat.fileReceived', { name: lastMessage.attachment!.name }));
     } else if (st === 'failed') {
@@ -475,16 +477,13 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       setAnnouncement(tr('common.connected'));
       if (connectedToastRoomRef.current !== session.roomId) {
         connectedToastRoomRef.current = session.roomId;
-        setShowConnected(true);
         // The physical "someone's here" moment — fires once per room,
         // alongside the toast. No-op where vibrate doesn't exist.
-        hapticSuccess();
         // No cleanup-return here: connectionType keeps settling for a few
         // seconds after connect ('connecting' → 'local' → 'direct'), and an
         // effect cleanup would cancel the dismissal mid-flight — leaving the
         // toast stuck on screen. An uncancelled self-dismissal is correct:
         // it runs once per room, then the toast goes away on its own.
-        setTimeout(() => setShowConnected(false), 2800);
       }
     } else if (session.connectionType === 'connecting' && session.partnerConnected) {
       // Stall/calm window: the channel is re-negotiating (or waiting to).
@@ -1085,6 +1084,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           )}>
             {session.connectionType === 'connecting' && <span aria-hidden className="absolute inset-0 rounded-[12px] bg-status-warning/20 st-halo-ring" />}
             <PartnerDeviceIcon className="relative w-4 h-4" />
+            {arrivalPulse && !quietMotion && <span key={arrivalPulse} aria-hidden className="st-peer-arrival absolute inset-0 rounded-[12px] bg-ember/20" />}
           </span>
           {/* One line of truth: who is on the other side, and one word about
               the link. This bar used to stack three 12px lines — readiness
@@ -1261,28 +1261,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         </OverlaySheet>
       </div>
       </>)} {/* Connected toast — the "alert" when the other device arrives. */}
-      <AnimatePresence>
-        {showConnected && (
-          <motion.div
-            initial={quietMotion ? false : { opacity: 0, transform: 'translateY(-6px)' }}
-            animate={{ opacity: 1, transform: 'translateY(0px)' }}
-            exit={{ opacity: 0, transform: quietMotion ? 'none' : 'translateY(-6px)' }}
-            transition={{ duration: quietMotion ? 0 : DUR.short / 1000, ease: EASE.out }}
-            role="status"
-            data-testid="connected-toast"
-            data-motion-enter={entranceMotion}
-            style={{ maxWidth: 'calc(100% - 32px)' }}
-            className="absolute top-[76px] sm:top-[80px] left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float flex items-center gap-2 text-[13px] font-semibold whitespace-nowrap"
-          >
-            <span className="st-linked-seal" aria-hidden="true">
-              <Monitor /><Smartphone /><span><Check strokeWidth={3} /></span>
-            </span>
-            {/* The moment names the DEVICE: "Connected to iPhone" — a real
-                session with a real counterpart, never a generic ack. */}
-            <span className="truncate">{session.partnerName ? t('toast.connectedTo', { name: session.partnerName }) : t('toast.connected')}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
       {/* Disconnect banner */}
       <AnimatePresence>
         {disconnected && (
@@ -1419,7 +1397,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <div
               className={cn(
                 'flex-1 flex flex-col justify-center min-h-[40vh] py-6 transition-[padding] duration-300 ease-out',
-                showConnected && 'pt-[52px]'
               )}
             >
               {disconnected ? (
@@ -1433,15 +1410,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   </p>
                 </div>
               ) : (
-                <div className="st-room-start" data-motion-enter={entranceMotion} data-testid="room-empty">
-                  <span className="st-room-arrival-art" aria-hidden><SceneEmptyRoom size={64} className="text-apple-ink dark:text-white" /></span>
-                  <h2>
-                    {isMultiRoom ? t('chat.empty.title') : t('chat.empty.dest', { name: session.partnerName || t('chat.pairedDevice') })}
-                  </h2>
-                  <p>
-                    {t('chat.empty.body')}
-                  </p>
-                </div>
+                <div data-testid="room-empty" className="flex-1" />
               )}
             </div>
           ) : (
@@ -1451,7 +1420,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   it can never clip the first message. */}
               <div aria-hidden className="grow" />
               <AnimatePresence initial={false}>
-                {session.messages.map((msg, idx) => {
+                {roomMessageGroups(session.messages, isMultiRoom).map(group => (
+                  <RoomFileGroup key={group[0].msg.id} messages={group.map(item => item.msg)}>
+                  {group.map(({ msg, idx }) => {
                   const prev = idx > 0 ? session.messages[idx - 1] : undefined;
                   // §19 grouping: a run of messages from one sender is one
                   // block. A five-minute silence breaks the block even when
@@ -1476,6 +1447,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       )}
                       <MessageCard
                         msg={msg}
+                        arrival={msg.sender === 'partner' && msg.attachment && !initialMessageIds.current.has(msg.id)
+                          ? session.messages.find(m => m.sender === 'partner' && m.attachment)?.id === msg.id ? 'first-file' : 'file'
+                          : undefined}
                         showMeta={showMeta}
                         showStateWord={isLastOwn}
                         isGroupStart={idx === 0 || session.messages[idx - 1].sender !== msg.sender}
@@ -1501,6 +1475,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     </React.Fragment>
                   );
                 })}
+                  </RoomFileGroup>
+                ))}
                 <AnimatePresence>{peerTyping && <TypingGhostBubble align="left" />}</AnimatePresence>
               </AnimatePresence>
             </>

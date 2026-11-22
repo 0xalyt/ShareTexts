@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const hi: Dict = {
+  "send.registering": "सेटअप पूरा हो रहा है…",
+  "receive.paste": "कोड पेस्ट करें",
+  "receive.pasteHint": "दूसरे डिवाइस का छह अंकों वाला कोड टाइप या पेस्ट करें।",
+  "composer.to": "{name} को मैसेज करें",
+  "action.savePhotos": "Photos में सहेजें",
+  "action.downloadStarted": "डाउनलोड शुरू हुआ",
+  "batch.saveAll": "सभी सहेजें",
+  "batch.photos": "{count} फ़ोटो",
+  "batch.files": "{count} फ़ाइलें",
   "chat.empty.title": "शेयर करने के लिए तैयार",
   "space.showQr": "QR कोड दिखाएँ",
   "space.hideQr": "QR कोड छिपाएँ",

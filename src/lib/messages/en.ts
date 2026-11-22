@@ -1,4 +1,13 @@
 const en = {
+  "send.registering": "Finishing setup…",
+  "receive.paste": "Paste code",
+  "receive.pasteHint": "Type or paste the six-digit code from your other device.",
+  "composer.to": "Message {name}",
+  "action.savePhotos": "Save to Photos",
+  "action.downloadStarted": "Download started",
+  "batch.saveAll": "Save all",
+  "batch.photos": "{count} photos",
+  "batch.files": "{count} files",
   "chat.empty.title": "Ready to share",
   "space.showQr": "Show QR code",
   "space.hideQr": "Hide QR code",

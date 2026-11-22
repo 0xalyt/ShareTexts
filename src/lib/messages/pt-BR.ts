@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const pt: Dict = {
+  "send.registering": "Concluindo a configuração…",
+  "receive.paste": "Colar código",
+  "receive.pasteHint": "Digite ou cole o código de seis dígitos do outro dispositivo.",
+  "composer.to": "Mensagem para {name}",
+  "action.savePhotos": "Salvar em Fotos",
+  "action.downloadStarted": "Download iniciado",
+  "batch.saveAll": "Salvar tudo",
+  "batch.photos": "{count} fotos",
+  "batch.files": "{count} arquivos",
   "chat.empty.title": "Tudo pronto para compartilhar",
   "space.showQr": "Mostrar código QR",
   "space.hideQr": "Ocultar código QR",

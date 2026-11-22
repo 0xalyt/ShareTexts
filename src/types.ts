@@ -98,6 +98,8 @@ export interface ChatMessage {
 
 export interface SessionState {
   roomId: string | null;
+  /** Invitation shown while the server registers the room. Not a seated room. */
+  pendingRoomId?: string;
   secret: string | null; // For creator to generate TOTP
   /** Room creation time — anchors the 40s pairing-code window. */
   createdAt?: number;

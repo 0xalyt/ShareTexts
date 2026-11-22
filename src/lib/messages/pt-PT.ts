@@ -15,6 +15,15 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  "send.registering": "A concluir a configuração…",
+  "receive.paste": "Colar código",
+  "receive.pasteHint": "Escreva ou cole o código de seis dígitos do outro dispositivo.",
+  "composer.to": "Mensagem para {name}",
+  "action.savePhotos": "Guardar em Fotografias",
+  "action.downloadStarted": "Transferência iniciada",
+  "batch.saveAll": "Guardar tudo",
+  "batch.photos": "{count} fotografias",
+  "batch.files": "{count} ficheiros",
   "receive.note": "O código muda a cada 90 segundos. Se deixar de funcionar, use o código atual do outro dispositivo.",
   "qr.scan.typeCode": "Introduzir código",
   "chat.empty.dest": "Enviar para {name}",

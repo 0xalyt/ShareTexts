@@ -8,7 +8,7 @@ import { useI18n } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 import { LogoTraceLoader } from '../LogoTraceLoader';
 import { MorphButton } from '../MorphButton';
-import { PairingGuide } from '../ui/PairingGuide';
+import './pairing.css';
 
 /**
  * SendScreen — the code hand-over (§18, P3).
@@ -102,7 +102,7 @@ export function SendScreen({
     } catch {
       /* private mode */
     }
-    return 'code';
+    return window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches ? 'qr' : 'code';
   });
   const choose = useCallback((next: Segment) => {
     setSegment(next);
@@ -172,17 +172,18 @@ export function SendScreen({
       {/* ── Code ─────────────────────────────────────────────────────── */}
       {segment === 'code' && (
         <div>
-          <div
+          <button
+            type="button"
+            onClick={handleCopy}
+            disabled={!code || expired}
+            aria-label={justCopied ? t('create.copied') : t('create.copyCode')}
             className={cn(
-              'rounded-2xl bg-apple-parchment dark:bg-apple-tile-1 px-5 py-5 [@media(max-height:520px)]:py-2 [@media(max-height:520px)]:px-4',
+              'press w-full px-3 py-5 [@media(max-height:520px)]:py-2',
               'transition-opacity duration-200',
               expired && 'opacity-50',
             )}
             data-testid="send-code-card"
           >
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-apple-ink-muted dark:text-white/70">
-              {t('send.roomCode')}
-            </p>
             <div
               className="mt-2.5 flex items-baseline justify-center gap-x-5 select-all [@media(max-height:520px)]:mt-1"
               role="group"
@@ -197,8 +198,8 @@ export function SendScreen({
                     .map((d, i) => (
                       <span
                         key={`${start}-${i}-${d}`}
-                        aria-hidden
-                        className="font-bold st-code leading-none text-[44px] sm:text-[48px] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[30px]"
+                aria-hidden
+                        className="font-medium st-code leading-none text-[52px] sm:text-[64px] tracking-[-0.035em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[36px]"
                       >
                         {d}
                       </span>
@@ -218,9 +219,9 @@ export function SendScreen({
             {/* Lifecycle indicator: the same information the caption gives in
                 words, as a bar you can read without parsing "1:24". It drains
                 in real time against the code's actual 90 s window, so it can
-                never promise more life than the code has; it turns amber with
-                the caption does, at 15 s. Width, not scale — a scaling bar
-                would have soft ends and lie about its length. */}
+                never promise more life than the code has. The brand bar
+                scales without relaying out the code; only the caption warns
+                when time is short. */}
             <div
               className="mx-auto mt-2 h-[3px] w-[132px] overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/[0.10] [@media(max-height:520px)]:mt-1"
               role="presentation"
@@ -229,13 +230,16 @@ export function SendScreen({
             >
               <div
                 className={cn(
-                  'h-full rounded-full motion-reduce:transition-none transition-[width] duration-[250ms] ease-linear',
-                  expired || urgent ? 'bg-status-warning' : 'bg-status-success/80',
+                  'h-full rounded-full origin-left motion-reduce:transition-none transition-transform duration-[250ms] ease-linear bg-ember',
                 )}
-                style={{ width: `${Math.max(0, Math.min(100, (remaining / 90) * 100))}%` }}
+                style={{ transform: `scaleX(${Math.max(0, Math.min(1, remaining / 90))})` }}
               />
             </div>
-          </div>
+            <span data-testid="copy-code" className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/70">
+              {justCopied ? <AlloSymbol name="check" size={16} /> : <Copy className="h-4 w-4" aria-hidden />}
+              {justCopied ? t('create.copied') : t('create.copyCode')}
+            </span>
+          </button>
 
           {expired ? (
             <button
@@ -245,17 +249,7 @@ export function SendScreen({
             >
               {t('send.newCode')}
             </button>
-          ) : (
-            <button
-              onClick={handleCopy}
-              disabled={!code}
-              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:text-[13px]"
-              data-testid="copy-code"
-            >
-              {justCopied ? <AlloSymbol name="check" size={16} className="text-status-success" /> : <Copy className="w-4 h-4" aria-hidden />}
-              {justCopied ? t('create.copied') : t('create.copyCode')}
-            </button>
-          )}
+          ) : null}
         </div>
       )}
 
@@ -295,14 +289,13 @@ export function SendScreen({
   );
 
   return (
-    <div className="st-task w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen">
+    <div className="st-task w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen" aria-busy={isCreating}>
       <div className="st-pairing-content st-send-content min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
       <h2 className="shrink-0 text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
         {t('send.title')}
       </h2>
       <p className="st-task-intro">{t('send.subtitle')}</p>
       <div className="st-send-methods">
-      <PairingGuide />
 
       {isCreating && !secret ? (
         <div className="flex flex-col items-center py-12" aria-live="polite">
@@ -363,7 +356,7 @@ export function SendScreen({
         <div className="flex items-center justify-center gap-2.5 rounded-full bg-white/72 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/12 px-4 min-h-[44px]">
           <span aria-hidden className="st-task-status-dot" data-state={shownError ? 'offline' : 'waiting'} />
           <span className="text-[13px] font-medium text-apple-ink dark:text-white/85">
-            {shownError ? shownError.text : partnerConnecting ? t('send.connecting') : t('send.waiting')}
+            {shownError ? shownError.text : isCreating ? t('send.registering') : partnerConnecting ? t('send.connecting') : t('send.waiting')}
           </span>
         </div>
       </div>

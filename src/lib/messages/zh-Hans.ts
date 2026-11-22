@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const zh: Dict = {
+  "send.registering": "正在完成设置…",
+  "receive.paste": "粘贴代码",
+  "receive.pasteHint": "输入或粘贴另一台设备上的六位代码。",
+  "composer.to": "给{name}发消息",
+  "action.savePhotos": "存储到照片",
+  "action.downloadStarted": "下载已开始",
+  "batch.saveAll": "全部保存",
+  "batch.photos": "{count}张照片",
+  "batch.files": "{count}个文件",
   "chat.empty.title": "可以开始分享了",
   "space.showQr": "显示二维码",
   "space.hideQr": "隐藏二维码",

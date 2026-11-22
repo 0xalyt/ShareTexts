@@ -83,8 +83,11 @@ export function haptic(event: HapticEvent): void {
 /** Rising pulse — a device connected (the AirDrop moment). Once per room. */
 export const hapticSuccess = () => haptic('success');
 
-/** Quieter double-tick — a transfer arrived intact. */
-export const hapticArrive = () => haptic('success');
+/** A single quiet arrival tick, still respecting the user's preference. */
+export const hapticArrive = () => {
+  if (typeof window === 'undefined' || reducedMotion() || !prefEnabled('success')) return;
+  vibrate(10);
+};
 
 /** The shortest beat we can ask for — shared state changing under the eyes. */
 export const hapticTick = () => haptic('select');

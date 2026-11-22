@@ -18,6 +18,8 @@ import * as OTPAuth from 'otpauth';
 import { tsImport } from 'tsx/esm/api';
 
 const { encryptText, generateKey } = await tsImport('../src/lib/crypto.ts', import.meta.url);
+const { makeInvitation } = await tsImport('../src/lib/invitation.ts', import.meta.url);
+const { generateTOTP } = await tsImport('../src/lib/totp.ts', import.meta.url);
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -126,7 +128,7 @@ async function connect(room, roomId, forceCid) {
   return { client, server, inbox, binary, frames, send, waitFor, cid, close };
 }
 
-const codeFor = (secret, createdAt = 0) => new OTPAuth.TOTP({ issuer: 'ShareText', label: 'Session', algorithm: 'SHA1', digits: 6, period: 40, secret }).generate({ timestamp: Date.now() - createdAt });
+const codeFor = (secret, createdAt = 0) => new OTPAuth.TOTP({ issuer: 'ShareText', label: 'Session', algorithm: 'SHA1', digits: 6, period: 90, secret }).generate({ timestamp: Date.now() - createdAt });
 const roomState = (ctx) => ctx.storage.map.get('room')?.state ?? null;
 const assertState = (ctx, expected) => check(`state = ${expected}`, roomState(ctx) === expected, `got ${roomState(ctx)}`);
 
@@ -433,6 +435,32 @@ async function runRoomProtocol() {
   const lateRes = await late.send('join_with_code', { code });
   check('closed room rejects joins', lateRes.success === false, lateRes.error);
   late.close();
+}
+
+async function runInstantInvitation() {
+  const invitation = makeInvitation();
+  const ctx = new FakeCtx();
+  let registered;
+  const env = { REGISTRY: { idFromName: () => ({}), get: () => ({ fetch: async request => {
+    registered = await request.json();
+    return new Response(JSON.stringify({ ok: true }));
+  } }) } };
+  const room = new Room(ctx, env);
+  const creator = await connect(room, invitation.roomId);
+  const created = await creator.send('create_room', invitation);
+  check('client invitation preserves room, credential and code anchor', created.success && created.roomId === invitation.roomId && created.secret === invitation.secret && created.createdAt === invitation.createdAt);
+  check('invitation registers the same lookup credential and anchor', registered.roomId === invitation.roomId && registered.secret === invitation.secret && registered.createdAt === invitation.createdAt);
+  const retried = await creator.send('create_room', invitation);
+  check('lost-ack retry preserves the same participant, without a second seat', retried.success && retried.myParticipantId === invitation.pid && retried.roster.participants.length === 1);
+  const intruder = await connect(room, invitation.roomId);
+  const denied = await intruder.send('create_room', makeInvitation());
+  check('another invitation cannot overwrite a registered room', !denied.success && denied.code === 'ROOM_EXISTS');
+  const joiner = await connect(room, invitation.roomId);
+  const joined = await joiner.send('join_with_code', { code: generateTOTP(invitation.secret, invitation.createdAt), pid: uuid() });
+  check('the pre-rendered client code joins the registered Worker room', joined.success);
+  const malformed = await connect(new Room(new FakeCtx(), makeEnv()), uuid());
+  const fallback = await malformed.send('create_room', { secret: 'not-a-secret', createdAt: Date.now() + 600_000 });
+  check('malformed credential and far-future clock use server values', fallback.success && /^[A-Z2-7]{26}$/.test(fallback.secret) && Math.abs(fallback.createdAt - Date.now()) < 1000);
 }
 
 async function runRefreshCode() {
@@ -1306,6 +1334,7 @@ async function runLobbyDiscovery() {
 await runCorsPreflight();
 await runSpaceCors();
 await runRoomProtocol();
+await runInstantInvitation();
 await runRefreshCode();
 await runStayConnected();
 await runStayEmptySurvival();

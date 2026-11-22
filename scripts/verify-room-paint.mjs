@@ -23,7 +23,7 @@
  *   BASE_URL=http://localhost:3010 node scripts/verify-room-paint.mjs
  */
 import { readFileSync } from 'node:fs';
-import { launchBrowser, readLiveCode } from './lib.mjs';
+import { launchBrowser, readLiveCode, showPairingCode } from './lib.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const failures = [];
@@ -187,6 +187,7 @@ for (const [w, h] of [[1024, 768], [1440, 900]]) {
   const older = await context.newPage();
   await older.goto(BASE, { waitUntil: 'domcontentloaded' });
   await older.getByTestId('home-send').click();
+  await showPairingCode(older);
   await older.getByTestId('pairing-code').waitFor({ timeout: 45000 });
   await older.waitForTimeout(500);
   const firstRoom = await older.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')).roomId);
@@ -194,6 +195,7 @@ for (const [w, h] of [[1024, 768], [1440, 900]]) {
   const newer = await context.newPage();
   await newer.goto(BASE, { waitUntil: 'domcontentloaded' });
   await newer.getByTestId('home-send').click();
+  await showPairingCode(newer);
   await newer.getByTestId('pairing-code').waitFor({ timeout: 45000 });
   await newer.waitForTimeout(500);
   const currentRoom = await newer.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')).roomId);

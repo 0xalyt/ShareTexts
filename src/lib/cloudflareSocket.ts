@@ -174,7 +174,7 @@ export class CloudflareSocket implements SignalingSocket {
     const payload = args[0];
 
     if (event === 'create_room') {
-      void this.createRoom(cb);
+      void this.createRoom(payload, cb);
     } else if (event === 'join_with_code') {
       void this.joinWithCode(payload, cb);
     } else if (event === 'join_with_link') {
@@ -423,11 +423,11 @@ export class CloudflareSocket implements SignalingSocket {
     if (this.bootProbe) { try { await this.bootProbe; } catch { /* probe failure must not block commands */ } }
   }
 
-  private async createRoom(cb?: (r: any) => void) {
+  private async createRoom(payload?: { roomId?: string; secret?: string; createdAt?: number; pid?: string }, cb?: (r: any) => void) {
     try {
       await this.settleProbe();
-      const roomId = uuid();
-      const res = await this.request(roomId, 'create_room', undefined);
+      const roomId = payload?.roomId || uuid();
+      const res = await this.request(roomId, 'create_room', payload);
       if (res.success) this.lastSecret = res.secret;
       cb?.(res);
     } catch {

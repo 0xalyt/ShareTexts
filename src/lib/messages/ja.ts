@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  "send.registering": "準備を完了しています…",
+  "receive.paste": "コードを貼り付け",
+  "receive.pasteHint": "もう一方のデバイスの6桁のコードを入力するか貼り付けてください。",
+  "composer.to": "{name}にメッセージ",
+  "action.savePhotos": "写真に保存",
+  "action.downloadStarted": "ダウンロードを開始しました",
+  "batch.saveAll": "すべて保存",
+  "batch.photos": "写真{count}枚",
+  "batch.files": "ファイル{count}個",
   "chat.empty.title": "共有の準備ができました",
   "space.showQr": "QR コードを表示",
   "space.hideQr": "QR コードを隠す",

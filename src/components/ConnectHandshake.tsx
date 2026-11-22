@@ -52,7 +52,7 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
   const reduced = useMotionPreference();
   const immediate = reduced || !animateEntrance;
   const connected = phase === 'connected';
-  const separation = immediate || connected ? 0 : 6;
+  const separation = immediate || connected ? 0 : 12;
   const LocalIcon = localIcon === 'phone' ? Smartphone : Monitor;
   const PartnerIcon = localIcon === 'phone' ? Monitor : Smartphone;
 
@@ -73,7 +73,7 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
       data-motion-enter={animateEntrance}
     >
       <div className="relative flex items-center justify-center">
-        <DeviceCircle icon={LocalIcon} tone={connected ? 'settled' : 'linking'} offset={-separation} immediate={immediate} />
+        <DeviceCircle icon={LocalIcon} tone={connected ? 'settled' : 'linking'} offset={-separation} entrance={-12} immediate={immediate} />
 
         {/* The line. It draws from the left circle to the right one in 600 ms,
             then holds — and simply turns solid when the link is live. */}
@@ -101,7 +101,7 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
           />
         </svg>
 
-        <DeviceCircle icon={PartnerIcon} tone={connected ? 'settled' : 'waiting'} offset={separation} immediate={immediate} />
+        <DeviceCircle icon={PartnerIcon} tone={connected ? 'settled' : 'waiting'} offset={separation} entrance={12} immediate={immediate} />
 
         {/* The badge lands on the middle of the line, once. */}
         {connected && (
@@ -137,11 +137,11 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
   );
 }
 
-function DeviceCircle({ icon: Icon, tone, offset, immediate }: { icon: React.ComponentType<{ className?: string }>; tone: 'linking' | 'waiting' | 'settled'; offset: number; immediate: boolean }) {
+function DeviceCircle({ icon: Icon, tone, offset, entrance, immediate }: { icon: React.ComponentType<{ className?: string }>; tone: 'linking' | 'waiting' | 'settled'; offset: number; entrance: number; immediate: boolean }) {
   return (
     <motion.span
       aria-hidden="true"
-      initial={false}
+      initial={immediate ? false : { x: entrance }}
       animate={{ x: offset }}
       transition={immediate ? { duration: 0 } : { type: 'spring', ...SPRING.snap }}
       style={{ width: GLYPH_BOX, height: GLYPH_BOX }}

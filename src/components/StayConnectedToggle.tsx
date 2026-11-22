@@ -17,7 +17,7 @@ import { cn } from '../lib/utils';
  * until one device explicitly disconnects. The switch lives in the connection
  * details sheet (ChatView) and the desktop summary pane (SingleScreenApp).
  */
-export function StayConnectedToggle({ className }: { className?: string }) {
+export function StayConnectedToggle({ className, compact = false }: { className?: string; compact?: boolean }) {
   const { session, setStayConnected } = useSession();
   const { t } = useI18n();
   const on = session.stayConnected;
@@ -61,9 +61,9 @@ export function StayConnectedToggle({ className }: { className?: string }) {
         </span>
         <span className="flex flex-col min-w-0 leading-tight">
           <span className="st-label text-apple-ink dark:text-white">{t('stay.title')}</span>
-          <span className="mt-0.5 text-[12px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
+          {!compact && <span className="mt-0.5 text-[12px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
             {t('stay.hint')}
-          </span>
+          </span>}
         </span>
       </button>
       {/* THE standard switch — ThemeToggle's geometry, one silhouette app-wide.

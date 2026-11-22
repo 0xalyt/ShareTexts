@@ -3,8 +3,7 @@ import { AlertCircle, QrCode } from 'lucide-react';
 import { OtpInput } from '../spaceui/OtpInput';
 import { haptic } from '../../lib/haptics';
 import { useI18n } from '../../lib/i18n';
-import { cn } from '../../lib/utils';
-import { PairingGuide } from '../ui/PairingGuide';
+import '../send/pairing.css';
 
 /**
  * ReceiveScreen — the join side of the hand-over (§18, P3).
@@ -38,6 +37,7 @@ export function ReceiveScreen({
   const { t } = useI18n();
   const [code, setCode] = useState('');
   const [editingRetry, setEditingRetry] = useState(false);
+  const [pasteError, setPasteError] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // A new rejection retires the "already editing" flag, so the shake and the
@@ -111,7 +111,6 @@ export function ReceiveScreen({
         <p className="st-task-intro">
           {t('receive.subtitle')}
         </p>
-        <PairingGuide receiving />
 
         {/* The cells sit on the canvas by themselves — no card around them. */}
         <div className="mt-6 [@media(max-height:520px)]:mt-3" ref={fieldRef}>
@@ -176,22 +175,30 @@ export function ReceiveScreen({
         {/* One action, visible from the start, disabled until the code is
             whole — the field's own auto-submit is the fast path, this is the
             explicable one. While joining, the label stays in place. */}
-        <button
+        {error?.kind === 'offline' ? <button
           onClick={submit}
           disabled={!full || isJoining || accepted}
           aria-busy={isJoining || undefined}
-          className={cn(
-            'press w-full min-h-[52px] rounded-[16px] text-[17px] font-semibold transition-colors [@media(max-height:520px)]:min-h-[44px]',
-            // Disabled is a NEUTRAL fill, not a faded ember: white on 40% orange
-            // measured 3.21:1, and a grey button is unmistakably not tappable.
-            full && !isJoining
-              ? 'bg-[#f06413] text-white'
-              : 'bg-apple-parchment dark:bg-white/[0.10] text-apple-ink dark:text-white/70',
-          )}
+          className="press w-full min-h-[48px] rounded-[16px] bg-ember text-white disabled:opacity-50"
           data-testid="receive-join"
         >
-          {isJoining ? t('receive.joining') : t('receive.join')}
-        </button>
+          {isJoining ? t('receive.joining') : t('common.tryAgain')}
+        </button> : <button
+          type="button"
+          disabled={isJoining || accepted}
+          data-testid="receive-paste"
+          className="press w-full min-h-[48px] rounded-[16px] bg-ember text-white font-medium disabled:opacity-50"
+          onClick={async () => {
+            try {
+              const text = (await navigator.clipboard.readText()).replace(/[\s-]/g, '');
+              if (!/^\d{6}$/.test(text)) { setPasteError(true); return; }
+              setPasteError(false);
+              handleChange(text);
+              onComplete(text);
+            } catch { setPasteError(true); fieldRef.current?.querySelector('input')?.focus(); }
+          }}
+        >{isJoining ? t('receive.joining') : t('receive.paste')}</button>}
+        {pasteError && <p role="status" className="mt-2 text-[13px] text-apple-ink-muted dark:text-white/70">{t('receive.pasteHint')}</p>}
 
         <button
           onClick={onScan}
@@ -202,7 +209,6 @@ export function ReceiveScreen({
           <QrCode className="w-4 h-4 text-apple-ink-muted dark:text-white/70" aria-hidden /> {t('receive.scan')}
         </button>
 
-        <p className="mt-4 text-center text-[12px] text-apple-ink-muted dark:text-white/70 [text-wrap:balance]">{t('receive.note')}</p>
         {accepted && <p role="status" className="sr-only">{t('code.accepted')}</p>}
       </div>
     </div>

@@ -11,7 +11,7 @@
 //
 // Reuses scripts/lib.mjs (readLiveCode/waitForChat/launchBrowser) — those
 // carry the animation-settling logic the code reader needs.
-import { readLiveCode, waitForChat, sleep } from '../lib.mjs';
+import { readLiveCode, waitForChat, sleep, showPairingCode } from '../lib.mjs';
 
 export const IDS = {
   homeSend: 'home-send',
@@ -30,6 +30,7 @@ export async function createRoom(page, base) {
   if ((await page.getByTestId(IDS.pairingCode).count()) === 0) {
     await page.getByTestId(IDS.homeSend).click();
   }
+  await showPairingCode(page);
   await page.getByTestId(IDS.pairingCode).waitFor({ timeout: 20000 });
   const code = await readLiveCode(page);
   return { code };

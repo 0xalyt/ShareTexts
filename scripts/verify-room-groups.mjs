@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { tsImport } from 'tsx/esm/api';
+const { roomMessageGroups } = await tsImport('../src/lib/roomMessageGroups.ts', import.meta.url);
+const photo = (id, sender = 'partner', timestamp = 1000) => ({ id, sender, timestamp, text: '', attachment: { id, name: id, type: 'image', size: 1, status: 'complete', url: 'blob:test' } });
+const a = photo('a'), b = photo('b');
+assert.equal(roomMessageGroups([], false).length, 0);
+assert.deepEqual(roomMessageGroups([a, b], false).map(group => group.map(item => item.msg.id)), [['a', 'b']]);
+assert.equal(roomMessageGroups([a, photo('mine', 'me')], false).length, 2);
+assert.equal(roomMessageGroups([a, photo('later', 'partner', 61_001)], false).length, 2);
+assert.equal(roomMessageGroups([a, b], true).length, 2, 'different remote senders must never be collapsed in multi-device rooms');
+assert.equal(roomMessageGroups([a, { ...b, attachment: { ...b.attachment, recipients: {} } }], false).length, 2);
+assert.equal(roomMessageGroups([a, { id: 'text', sender: 'partner', timestamp: 1000, text: 'Hi' }, b], false).length, 3);
+assert.deepEqual(roomMessageGroups([a, b], false)[0].map(item => item.idx), [0, 1], 'timeline metadata keeps original message positions');
+console.log('PASS file grouping: sender, time, text boundaries, multi-device safety, original positions');
