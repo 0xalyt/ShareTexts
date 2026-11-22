@@ -202,9 +202,8 @@ function ItemCard({
             </span>
           </div>
         )}
-        <div className="mt-2.5 flex items-center gap-2.5 text-[12px] text-apple-ink-muted/80 dark:text-white/40">
-          <span className="truncate">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
-          <span className="flex-1" />
+        <div className="mt-2.5 flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 text-[12px] text-apple-ink-muted/80 dark:text-white/40">
+          <span className="basis-full min-w-0 [overflow-wrap:anywhere] sm:basis-auto sm:flex-1">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
           {item.kind === 'text' && (
             <button
               className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
@@ -404,7 +403,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
     setError(null);
     try {
       const { createSpace } = await import('../lib/space/api');
-      const out = await createSpace({ name: name.trim() || undefined, durationMs: duration, code: code || undefined });
+      const out = await createSpace({ name: name.trim() || t('space.defaultName'), durationMs: duration, code: code || undefined });
       productEvent('product.space_created');
       if (remind && support === 'supported') {
         let timer: number | undefined;

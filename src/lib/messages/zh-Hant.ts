@@ -15,6 +15,8 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  'space.defaultName': '共享空間',
+  'space.composerPlaceholder': '新增筆記…',
   'reading.englishOnly': "此頁面目前僅提供英文版本。",
   'nav.docs': '說明文件',
   'nav.about': '關於',
