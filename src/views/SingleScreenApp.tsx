@@ -119,11 +119,7 @@ import { useFocusTrap } from '../lib/useFocusTrap';
 const QRScanner = lazy(() => import('../components/QRScanner').then(m => ({ default: m.QRScanner })));
 const ChatView = lazy(() => import('./ChatView').then(m => ({ default: m.ChatView })));
 
-function discardComposerIntent() {
-  const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
-  delete w.__stHomeDropFiles;
-  delete w.__stPendingIntentText;
-}
+import { discardComposerIntent } from '../lib/composerIntent';
 type PanelMode = 'idle' | 'sending' | 'receiving' | 'connecting' | 'connected';
 const EASE = [0.22, 1, 0.36, 1] as const;
 

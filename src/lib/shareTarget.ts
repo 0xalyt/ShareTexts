@@ -1,14 +1,16 @@
 /** Short-lived, same-origin handoff from the installed app's share target.
  * Bytes never go to the signaling server. The service worker writes this
  * dedicated cache; the composer consumes it once, before the user sends. */
+import { composerIntentGeneration } from './composerIntent';
 const CACHE = 'sharetexts-share-inbox-v1';
 export interface SharedItems { text: string; files: File[] }
 const reads = new Map<string, Promise<SharedItems>>();
 
 /** Keep phone-only staging in this lazy module, off the landing's first load. */
 export async function stageSharedItems(id: string, isCurrent: () => boolean): Promise<boolean> {
+  const generation = composerIntentGeneration();
   const items = await takeSharedItems(id);
-  if (!isCurrent()) return false;
+  if (!isCurrent() || generation !== composerIntentGeneration()) return false;
   const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
   w.__stHomeDropFiles = items.files;
   w.__stPendingIntentText = items.text;
