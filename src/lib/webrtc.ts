@@ -77,6 +77,7 @@ const MAX_TRANSFER_SIZE = 1024 ** 4; // 1 TB max total
 const MAX_CHUNKS = Math.ceil(MAX_TRANSFER_SIZE / CHUNK_SIZE);
 const OFFER_RETRY_DELAY = 2500;
 const OFFER_RETRY_MAX = 3;
+const ICE_CONNECT_CEILING = 20_000;
 
 /**
  * Receive path threshold: files at or above this size stream to disk via OPFS
@@ -593,6 +594,7 @@ export class PeerManager {
     // If the peer never answers (lost signal, transient drop), tear down and
     // re-offer. Only the initiating side retries, so no SDP glare is created.
     let attempts = 0;
+    let attemptStartedAt = Date.now();
     this.retryTimer = setInterval(() => {
       if (this.destroyed || !this.peerId) {
         if (this.retryTimer) clearInterval(this.retryTimer);
@@ -602,6 +604,10 @@ export class PeerManager {
         if (this.retryTimer) clearInterval(this.retryTimer);
         return;
       }
+      const pc = this.pc;
+      if (pc?.remoteDescription && pc.connectionState !== 'failed' && pc.connectionState !== 'closed'
+          && pc.iceConnectionState !== 'failed' && pc.iceConnectionState !== 'closed'
+          && Date.now() - attemptStartedAt < ICE_CONNECT_CEILING) return;
       attempts++;
       if (attempts >= OFFER_RETRY_MAX) {
         if (this.retryTimer) clearInterval(this.retryTimer);
@@ -609,6 +615,7 @@ export class PeerManager {
       }
       this.teardownPeerConnection();
       this.startOfferCycleBody();
+      attemptStartedAt = Date.now();
     }, OFFER_RETRY_DELAY);
   }
 
@@ -624,14 +631,24 @@ export class PeerManager {
   }
 
   private teardownPeerConnection() {
-    if (this.pc) {
-      this.pc.onicecandidate = null;
-      this.pc.onconnectionstatechange = null;
-      this.pc.ondatachannel = null;
-      try { this.pc.close(); } catch { /* noop */ }
-    }
+    this.stopDisconnectStallWatch();
+    const pc = this.pc;
+    const channels = [this.dc, this.cc];
     this.pc = null;
     this.dc = null;
+    this.cc = null;
+    this.ccOpen = false;
+    if (pc) {
+      pc.onicecandidate = null;
+      pc.onconnectionstatechange = null;
+      pc.ondatachannel = null;
+    }
+    for (const channel of channels) {
+      if (!channel) continue;
+      channel.onopen = channel.onmessage = channel.onclose = null;
+      try { channel.close(); } catch { /* noop */ }
+    }
+    try { pc?.close(); } catch { /* noop */ }
   }
 
   public onNegotiating?: () => void;
@@ -688,7 +705,9 @@ export class PeerManager {
     }
 
     if (!this.pc) return;
+    const pc = this.pc;
     this.pc.onicecandidate = (event) => {
+      if (this.destroyed || this.pc !== pc) return;
       if (event.candidate && this.peerId) {
         getSocket().emit('signal', {
           roomId: this.roomId,
@@ -699,7 +718,7 @@ export class PeerManager {
     };
 
     this.pc.onconnectionstatechange = () => {
-      if (!this.pc) return;
+      if (this.destroyed || this.pc !== pc) return;
       const st = this.pc.connectionState;
       if (st === 'connected') {
         this.stopDisconnectStallWatch();
@@ -723,6 +742,7 @@ export class PeerManager {
     };
 
     this.pc.ondatachannel = (event) => {
+      if (this.destroyed || this.pc !== pc) return;
       if (event.channel.label === 'control') {
         // The answering side receives the control channel here.
         this.cc = event.channel;
@@ -773,6 +793,7 @@ export class PeerManager {
     // pointed at the current channel (re-created on renegotiation).
     setDataChannel(channel);
     channel.onopen = () => {
+      if (this.destroyed || this.dc !== channel) return;
       this.isRelayFallback = false;
       this.channelOpenedAt = Date.now();
       diag('webrtc.channel_open', true);
@@ -781,9 +802,11 @@ export class PeerManager {
       if (this.onOpen) this.onOpen();
     };
     channel.onmessage = (event) => {
+      if (this.destroyed || this.dc !== channel) return;
       void this.handleIncomingData(event.data);
     };
     channel.onclose = () => {
+      if (this.destroyed || this.dc !== channel) return;
       diag('webrtc.channel_closed', true);
       this.notOpenSince = Date.now();
       // If the PC didn't already record an ICE failure, a closed channel
@@ -810,14 +833,17 @@ export class PeerManager {
     channel.binaryType = 'arraybuffer';
     channel.bufferedAmountLowThreshold = 64 * 1024;
     channel.onopen = () => {
+      if (this.destroyed || this.cc !== channel) return;
       this.ccOpen = true;
       diag('webrtc.control_open', true);
     };
     channel.onmessage = (event) => {
+      if (this.destroyed || this.cc !== channel) return;
       if (typeof event.data !== 'string') return;
       void this.handleControlMessage(event.data);
     };
     channel.onclose = () => {
+      if (this.destroyed || this.cc !== channel) return;
       this.ccOpen = false;
     };
   }
@@ -1913,13 +1939,7 @@ export class PeerManager {
     this.transferControllers.clear();
     if (this.retryTimer) clearInterval(this.retryTimer);
     if (this.relayFallbackTimer) clearTimeout(this.relayFallbackTimer);
-    this.stopDisconnectStallWatch();
-    if (this.dc) {
-      try { this.dc.close(); } catch { /* noop */ }
-    }
-    if (this.pc) {
-      try { this.pc.close(); } catch { /* noop */ }
-    }
+    this.teardownPeerConnection();
     // Detach THIS link from the shared router only. Other links (multi-device
     // room) keep their dispatch entries; the socket listeners themselves are
     // installed once for the whole page.
