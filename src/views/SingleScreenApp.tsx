@@ -118,6 +118,12 @@ import { generateTOTP } from '../lib/totp';
 import { useFocusTrap } from '../lib/useFocusTrap';
 const QRScanner = lazy(() => import('../components/QRScanner').then(m => ({ default: m.QRScanner })));
 const ChatView = lazy(() => import('./ChatView').then(m => ({ default: m.ChatView })));
+
+function discardComposerIntent() {
+  const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+  delete w.__stHomeDropFiles;
+  delete w.__stPendingIntentText;
+}
 type PanelMode = 'idle' | 'sending' | 'receiving' | 'connecting' | 'connected';
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -646,6 +652,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       }
     } catch (e: unknown) {
       if (thisAttempt !== createAbortRef.current) return;
+      discardComposerIntent();
       setCreateError(friendlyConnectError(e));
       setPanelMode('idle');
     } finally {
@@ -874,9 +881,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   useEffect(() => {
     if (sharedArrivalStarted.current || (!sharedArrival.id && !sharedArrival.error)) return;
     sharedArrivalStarted.current = true;
+    const intakeAttempt = createAbortRef.current;
     window.history.replaceState(null, '', window.location.pathname);
     if (sharedArrival.error) { setCreateError({ text: t('shareTarget.failed'), icon: 'info' }); return; }
     void import('../lib/shareTarget').then(m => m.takeSharedItems(sharedArrival.id!)).then(items => {
+      // Reading Cache Storage may finish after the user has already backed
+      // out. Consumption still clears its bytes, but must not restart Send.
+      if (intakeAttempt !== createAbortRef.current) return;
       const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
       w.__stHomeDropFiles = items.files;
       w.__stPendingIntentText = items.text;
@@ -889,10 +900,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     }).catch(() => setCreateError({ text: t('shareTarget.failed'), icon: 'info' }));
   }, [sharedArrival, handleSend, session.roomId, t]);
 
-  const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
+  const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; discardComposerIntent(); if (homeDropTimer.current) clearTimeout(homeDropTimer.current); setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
     joinAbortRef.current++;
+    discardComposerIntent();
+    if (homeDropTimer.current) clearTimeout(homeDropTimer.current);
     // Release the creation latch with the attempt. createSession() can still
     // be in flight when the user cancels; the attempt's own `finally` only
     // runs when that promise settles, so until then the NEXT Send was
