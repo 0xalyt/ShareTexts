@@ -176,7 +176,7 @@ export function SendScreen({
             type="button"
             onClick={handleCopy}
             disabled={!code || expired}
-            aria-label={justCopied ? t('create.copied') : t('create.copyCode')}
+            aria-label={`${t('code.pairingAria')}: ${spokenCode}. ${justCopied ? t('create.copied') : t('create.copyCode')}`}
             className={cn(
               'press w-full px-3 py-5 [@media(max-height:520px)]:py-2',
               'transition-opacity duration-200',
