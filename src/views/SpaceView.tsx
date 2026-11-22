@@ -939,7 +939,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">{t('space.share')}</span>
+            <span className="hidden lg:inline">{t('action.share')}</span>
           </button>
           {canClose && (
             <button
