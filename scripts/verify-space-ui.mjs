@@ -73,15 +73,16 @@ try {
   ok('joiner sees the code chip too', (await B.page.locator('[data-testid="space-code-chip"]').textContent()).trim() === CODE_DASH);
 
   // joiner adds text; both devices should show it
-  await B.page.locator('textarea, [contenteditable="true"], input[type="text"]').last().fill('hello from device B');
-  await B.page.keyboard.press('Enter');
-  await A.page.waitForTimeout(1200);
+  await B.page.getByTestId('space-composer').fill('hello from device B');
+  await B.page.getByTestId('space-send').click();
+  await A.page.getByText('hello from device B', { exact: true }).waitFor({ timeout: 10000 });
   const onA = await A.page.getByText('hello from device B').count();
   ok('joiner text appears on the creator device', onA >= 1, `count=${onA}`);
 
   // The creator must moderate another device's item, not just their own.
   // A shared access token can add items but cannot grant creator privileges.
   const joinedItem = A.page.getByTestId('space-item').filter({ hasText: 'hello from device B' });
+  await joinedItem.hover();
   await joinedItem.getByRole('button', { name: 'Remove', exact: true }).click();
   const confirm = A.page.getByRole('dialog', { name: 'Remove this?', exact: true });
   await confirm.getByRole('button', { name: 'Cancel', exact: true }).click();
@@ -103,6 +104,7 @@ try {
   await B.page.getByTestId('space-composer').fill('participant-owned item');
   await B.page.getByTestId('space-send').click();
   const ownItem = B.page.getByTestId('space-item').filter({ hasText: 'participant-owned item' });
+  await ownItem.hover();
   await ownItem.getByRole('button', { name: 'Remove', exact: true }).click();
   const ownDeletion = B.page.waitForResponse(r => r.request().method() === 'DELETE'
     && new URL(r.url()).pathname.startsWith(`/space/${spaceId}/items/`));

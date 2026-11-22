@@ -101,10 +101,12 @@ try {
 
   await B.locator('[data-testid="saved-empty"]').waitFor({ timeout: 5000 });
   check('empty state shows for a fresh library', await B.locator('[data-testid="saved-empty"]').isVisible());
-  // Empty state carries the local-only promise in its own body copy; the
-  // footer's localNote only renders once items exist (checked later).
-  check('empty state states the local-only promise',
-    await B.getByText(/here on this device/i).first().isVisible().catch(() => false));
+  check('empty state is one line and one button, without another icon or explanation',
+    await B.getByTestId('saved-empty').locator('p').count() === 1 &&
+    await B.getByTestId('saved-empty').getByRole('button').count() === 1 &&
+    await B.getByTestId('saved-empty').locator('svg').count() === 0);
+  // Storage context matters once there is content; an empty library stays
+  // one line and one action. The populated local-only note is checked below.
 
   // Escape is handled by useFocusTrap on the CONTAINER, and focus moves
   // inside on a 50ms tick — so press it from within the dialog, like a
@@ -200,8 +202,8 @@ try {
   await B.locator('[data-testid="settings-open-saved"]').waitFor({ timeout: 5000 });
   const settingsLabel = (await B.locator('[data-testid="settings-open-saved"]').innerText().catch(() => '')) + ' ' +
     (await B.locator('[data-testid="settings-open-saved"]').locator('xpath=..').innerText().catch(() => ''));
-  check('settings row shows the live count (3 items)',
-    /3\s*items/i.test(settingsLabel), settingsLabel.replace(/\s+/g, ' ').slice(0, 120));
+  check('settings offers the Saved library',
+    /saved items/i.test(settingsLabel), settingsLabel.replace(/\s+/g, ' ').slice(0, 120));
   await B.locator('[data-testid="settings-open-saved"]').click();
   await B.locator('[data-testid="saved-overlay"]').waitFor({ timeout: 5000 });
   await sleep(300);
@@ -219,6 +221,11 @@ try {
     await rows.nth(1).innerText().catch(() => ''));
   await B.locator('[data-testid="saved-close"]').click();
   await B.locator('[data-testid="saved-overlay"]').waitFor({ state: 'detached', timeout: 3000 });
+
+  // Saved is nested above Settings. Closing it returns to its parent, not
+  // straight to the room; dismiss that layer before using the conversation.
+  await B.getByRole('dialog', { name: 'Settings', exact: true }).press('Escape');
+  await B.getByRole('dialog', { name: 'Settings', exact: true }).waitFor({ state: 'detached' });
 
   /* ── attachment: send an image, B bookmarks it ───────────────────── */
   tmpPng = 'scripts/tmp-saved-e2e.png';
@@ -275,6 +282,8 @@ try {
   check('all 4 rows survive reload', (await rows.count()) === 4, `rows=${await rows.count()}`);
   await B.locator('[data-testid="saved-close"]').click();
   await B.locator('[data-testid="saved-overlay"]').waitFor({ state: 'detached', timeout: 3000 });
+  await B.getByRole('dialog', { name: 'Settings', exact: true }).press('Escape');
+  await B.getByRole('dialog', { name: 'Settings', exact: true }).waitFor({ state: 'detached' });
 
   /* ── grow the library past the search threshold ─────────────────────
    * The search field is hidden until the list is longer than 8 (by
@@ -317,6 +326,8 @@ try {
   check('remove deletes exactly one row', (await rows.count()) === before - 1, `rows=${await rows.count()}`);
   await B.locator('[data-testid="saved-close"]').click();
   await B.locator('[data-testid="saved-overlay"]').waitFor({ state: 'detached', timeout: 3000 });
+  await B.getByRole('dialog', { name: 'Settings', exact: true }).press('Escape');
+  await B.getByRole('dialog', { name: 'Settings', exact: true }).waitFor({ state: 'detached' });
 
   /* ── A's library is its own (per-device, sender=me) ──────────────── */
   const aIdb = await A.evaluate(async () => {

@@ -17,7 +17,7 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { AnimatePresence, motion } from 'motion/react';
 import { MotionSurface } from '../components/ui/MotionSurface';
 import {
-  ArrowUp, ChevronDown, Clock, Copy, Download, File as FileIcon, FileText,
+  ArrowUp, ChevronDown, Clock, Copy, Download, File as FileIcon, FileText, MoreHorizontal,
   Image as ImageIcon, Link2, QrCode, Share2, Trash2, UploadCloud,
   XCircle,
 } from 'lucide-react';
@@ -88,6 +88,7 @@ function SpaceEmptyState({ canUploadFiles }: { canUploadFiles: boolean }) {
 function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: number; createdAt?: number }) {
   const { t, lang } = useI18n();
   const left = expiresAt - now;
+  const fraction = Math.max(0, Math.min(1, left / Math.max(1, expiresAt - (createdAt ?? expiresAt - 24 * HOUR))));
   const tier = urgencyTier(left);
   // Honest urgency: real elapsed share of the promised lifetime (or the last
   // hour) — never a decorative alarm while the shelf is barely used.
@@ -99,10 +100,66 @@ function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: numb
   if (left <= 0) return null;
   return (
     <span className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium tabular-nums ${color}`}>
-      <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden />
+      <svg className="w-3.5 h-3.5 shrink-0 -rotate-90" viewBox="0 0 20 20" aria-hidden>
+        <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="2" opacity=".2" />
+        <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="2" pathLength="1" strokeDasharray={`${fraction} 1`} strokeLinecap="round" />
+      </svg>
       <span className="truncate">{t('space.closesIn', { time: remainingShort(left) })}</span>
       <span className="hidden shrink-0 whitespace-nowrap sm:inline text-apple-ink-muted dark:text-white/65">· {closingTime(lang, expiresAt)}</span>
     </span>
+  );
+}
+
+/** Releasing, leaving, losing focus or scrolling cancels the hold. Assistive
+ * activation retains the explicit confirmation path instead of timing a click. */
+function HoldToDelete({ onDelete, onConfirm }: { onDelete(): void; onConfirm(): void }) {
+  const { t } = useI18n();
+  const [holding, setHolding] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancel = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    setHolding(false);
+  };
+  const start = () => {
+    if (timer.current) return;
+    setHolding(true);
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      setHolding(false);
+      onDelete();
+    }, 900);
+  };
+  useEffect(() => {
+    window.addEventListener('blur', cancel);
+    document.addEventListener('visibilitychange', cancel);
+    return () => {
+      window.removeEventListener('blur', cancel);
+      document.removeEventListener('visibilitychange', cancel);
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+  return (
+    <button type="button" data-testid="space-hold-delete" data-sheet-no-drag
+      className="relative flex min-h-[48px] w-full touch-none select-none items-center justify-center gap-2 overflow-hidden rounded-[12px] bg-status-danger/10 px-4 text-[15px] font-medium text-status-danger"
+      onPointerDown={e => { if (e.isPrimary && e.button === 0) start(); }}
+      onPointerMove={e => {
+        if (!timer.current || !e.isPrimary) return;
+        // Touch implicitly captures this pointer: leaving the button does
+        // not produce pointerleave, but captured movement keeps its coords.
+        const box = e.currentTarget.getBoundingClientRect();
+        if (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom) cancel();
+      }}
+      onPointerUp={cancel} onPointerLeave={cancel} onPointerCancel={cancel} onBlur={cancel}
+      onContextMenu={e => e.preventDefault()}
+      onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) start(); } else if (e.key === 'Escape') cancel(); }}
+      onKeyUp={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cancel(); } }}
+      onClick={e => { if (e.detail === 0) onConfirm(); }}
+    >
+      <span aria-hidden className="st-space-hold-progress absolute inset-0 origin-left bg-status-danger/15" style={{ transform: `scaleX(${holding ? 1 : 0})`, transition: holding ? 'transform 900ms linear' : 'none' }} />
+      <Trash2 className="relative h-4 w-4" aria-hidden />
+      <span className="relative">{t('space.holdToDelete')}</span>
+    </button>
   );
 }
 
@@ -128,6 +185,8 @@ function ItemCard({
 }) {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const isImage = item.kind === 'file' && PREVIEWABLE.test(item.mime);
   // 'loading' → shimmer in the preview slot; 'failed' → no preview block at
   // all (§21 — a failed preview is NOT an error, the file row still works).
@@ -157,9 +216,13 @@ function ItemCard({
 
   return (
     <div
-      className="group relative st-card overflow-hidden"
+      className="st-space-item relative st-card overflow-hidden"
       data-testid="space-item"
       data-kind={item.kind}
+      data-actions-open={actionsOpen || undefined}
+      onTouchStart={e => { const p = e.touches[0]; touchStart.current = p ? { x: p.clientX, y: p.clientY } : null; }}
+      onTouchEnd={e => { const p = e.changedTouches[0], start = touchStart.current; if (p && start && Math.abs(p.clientX - start.x) > 48 && Math.abs(p.clientY - start.y) < 24) setActionsOpen(true); touchStart.current = null; }}
+      onTouchCancel={() => { touchStart.current = null; }}
     >
       {isImage && preview !== 'failed' && (
         <button
@@ -214,8 +277,12 @@ function ItemCard({
           </div>
         )}
         <div className="mt-2.5 flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 text-[12px] text-apple-ink-muted dark:text-white/65">
-          <span className="basis-full min-w-0 [overflow-wrap:anywhere] sm:basis-auto sm:flex-1">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
-          {item.kind === 'text' && (
+          <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
+          <button type="button" className="st-space-item-more flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full hover:bg-black/[0.05] dark:hover:bg-white/[0.08]" aria-label={t('nav.more')} aria-expanded={actionsOpen} onClick={() => setActionsOpen(v => !v)}>
+            <MoreHorizontal className="h-4 w-4" aria-hidden />
+          </button>
+          <div className="st-space-item-actions flex items-center gap-1">
+          {(item.kind === 'text' || item.kind === 'link') && (
             <button
               className="inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
               onClick={() => { onCopy(item); setCopied(true); setTimeout(() => setCopied(false), 1600); }}
@@ -242,6 +309,7 @@ function ItemCard({
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}
+          </div>
         </div>
       </div>
     </div>
@@ -795,6 +863,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
   const [spaceCode, setSpaceCode] = useState<string | null>(() => localCode(spaceId));
   useEffect(() => { setSpaceCode(localCode(spaceId)); }, [spaceId]);
   const [shareOpen, setShareOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
   const [closeConfirm, setCloseConfirm] = useState(false);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -975,18 +1044,18 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             className="st-space-share shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full text-[13px] font-medium active:scale-[0.97] transition-transform"
             data-testid="space-share-btn"
           >
-            <Share2 className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">{t('action.share')}</span>
+            <Share2 className="w-3.5 h-3.5 shrink-0" />
+            <span>{t('action.share')}</span>
           </button>
           {canClose && (
             <button
-              onClick={() => setCloseConfirm(true)}
-              aria-label={t('space.closeNow')}
-              title={t('space.closeNow')}
-              className="st-space-close shrink-0 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-3 rounded-full text-[13px] font-medium text-red-600/90 dark:text-red-400/90 hover:bg-red-500/[0.08]"
+              onClick={() => setActionsOpen(true)}
+              aria-label={t('nav.more')}
+              aria-haspopup="dialog"
+              data-testid="space-actions"
+              className="st-space-more shrink-0 inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full text-apple-ink-muted dark:text-white/65 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             >
-              <XCircle className="w-[18px] h-[18px] lg:hidden" aria-hidden />
-              <span className="hidden lg:inline">{t('space.closeNow')}</span>
+              <MoreHorizontal className="w-[18px] h-[18px]" aria-hidden />
             </button>
           )}
         </div>
@@ -1149,16 +1218,6 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             <ArrowUp className="w-5 h-5" strokeWidth={2.4} />
           </button>
         </div>
-        {/* One honest line instead of an affordance that would 503. Sits in
-            the footer so it never competes with the items themselves. */}
-        {!canUploadFiles && (
-          <p
-            data-testid="space-text-only"
-            className="max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 pb-2 text-[12px] leading-snug text-apple-ink-muted dark:text-white/65"
-          >
-            {t('space.textOnly')}
-          </p>
-        )}
       </footer>
 
       {/* drop overlay */}
@@ -1172,6 +1231,14 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       )}
 
       <ShareSheet open={shareOpen} spaceId={spaceId} token={localToken} code={spaceCode} onClose={() => setShareOpen(false)} />
+      <OverlaySheet open={actionsOpen} onClose={() => setActionsOpen(false)} label={t('nav.more')} testId="space-actions-sheet" maxWidth={380}>
+        <h2 className="mb-2 pr-10 text-[17px] font-medium text-apple-ink dark:text-white">{snapshot?.name}</h2>
+        <p className="mb-5 text-[13px] text-apple-ink-muted dark:text-white/65">{t('space.closeConfirmBody')}</p>
+        {actionsOpen && <HoldToDelete
+          onDelete={() => { setActionsOpen(false); client.closeNow().catch(() => showNotice(t('space.errClose'))); }}
+          onConfirm={() => setCloseConfirm(true)}
+        />}
+      </OverlaySheet>
       <ConfirmSheet
         open={closeConfirm}
         title={t('space.closeConfirmTitle')}
@@ -1179,7 +1246,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         confirmLabel={t('space.closeConfirmCta')}
         cancelLabel={t('space.cancel')}
         onCancel={() => setCloseConfirm(false)}
-        onConfirm={() => { setCloseConfirm(false); client.closeNow().catch(() => showNotice(t('space.errClose'))); }}
+        onConfirm={() => { setCloseConfirm(false); setActionsOpen(false); client.closeNow().catch(() => showNotice(t('space.errClose'))); }}
       />
       <ConfirmSheet
         open={!!removeId}

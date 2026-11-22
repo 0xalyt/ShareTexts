@@ -15,6 +15,13 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  'space.title': "Espaços",
+  'space.entryTitle': "Espaços",
+  'space.createHeading': "Criar um espaço",
+  'space.defaultName': "Espaço",
+  'space.closeConfirmTitle': "Eliminar este espaço?",
+  'space.closeConfirmCta': "Eliminar espaço",
+  'space.holdToDelete': "Manter premido para eliminar",
   "home.title": "Envia o que quiseres para o teu outro dispositivo.",
   "home.moreWays": "Mais formas de partilhar",
   "home.proof.open.title": "Abre nos dois dispositivos",
@@ -48,7 +55,6 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   "space.showQr": "Mostrar código QR",
   "space.hideQr": "Ocultar código QR",
   'space.createSub': 'Um espaço partilhado para este dispositivo e os que convidar. Fecha-se automaticamente.',
-  'space.defaultName': 'Espaço partilhado',
   'space.empty': 'Comece com uma nota',
   'space.emptyTextHint': 'Ou cole uma ligação abaixo. Todos neste espaço podem adicionar conteúdo.',
   'space.composerPlaceholder': 'Adicionar nota…',
