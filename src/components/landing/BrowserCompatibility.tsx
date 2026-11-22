@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
-import { Check, Copy, QrCode } from 'lucide-react';
+import { Check, Copy, Pause, Play, QrCode } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 
 // Mount the QR only on request. Other app screens can already have loaded
@@ -9,12 +9,65 @@ const WebsiteQr = lazy(() => import('../qr/QrArt').then(module => ({ default: mo
 const BROWSERS = [
   ['chrome', 'Chrome'], ['safari', 'Safari'], ['firefox', 'Firefox'],
   ['edge', 'Edge'], ['brave', 'Brave'], ['samsung-internet', 'Samsung Internet'],
+  ['opera', 'Opera'], ['vivaldi', 'Vivaldi'],
 ] as const;
 
-/** Answer the ecosystem objection, then help open the second browser. The
- * logos are compatibility labels, not endorsements or a decorative ticker. */
+/** Real browser marks, not endorsements. Repeated sets are visual only;
+ * reduced motion exposes one complete, stationary set of the same logos. */
 export function BrowserCompatibility() {
   const { t } = useI18n();
+  const trackId = useId();
+  const viewport = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const element = viewport.current;
+    if (!element) return;
+    let inView = true;
+    const sync = () => setVisible(inView && !document.hidden);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
+    });
+    if (observer) observer.observe(element);
+    else sync();
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, []);
+  return (
+    <section className="landing-browsers w-full" aria-labelledby="browsers-title">
+      <div className="landing-browser-head">
+        <h2 id="browsers-title">{t('home.browser.heading')}</h2>
+        <button type="button" className="landing-quiet-button landing-marquee-toggle" data-testid="browser-marquee-toggle"
+          aria-label={t(paused ? 'action.resume' : 'action.pause')} title={t(paused ? 'action.resume' : 'action.pause')}
+          aria-controls={trackId} onClick={() => setPaused(value => !value)}>
+          {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+        </button>
+      </div>
+      <div ref={viewport} className="landing-browser-marquee" dir="ltr" data-running={visible && !paused}>
+        <div id={trackId} className="landing-browser-track">
+          {/* Three sets cover the widest lane even at the last loop frame:
+              two sets alone leave a gap when one set is narrower than it. */}
+          {[0, 1, 2].map(copy => (
+            <ul key={copy} className="landing-browser-list" aria-label={copy ? undefined : t('home.browsers')} aria-hidden={copy > 0 || undefined}>
+              {BROWSERS.map(([slug, name]) => <li key={slug}>
+                <img src={`/browsers/${slug}.svg`} width="48" height="48" loading="lazy" decoding="async" alt={copy ? '' : name} />
+              </li>)}
+            </ul>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The second-device tool is useful, but isn't browser compatibility copy. */
+export function WebsiteHandoff() {
+  const { t } = useI18n();
+  const titleId = useId();
   const qrId = useId();
   const qrTrigger = useRef<HTMLButtonElement>(null);
   const [qrOpen, setQrOpen] = useState(false);
@@ -30,31 +83,19 @@ export function BrowserCompatibility() {
       await navigator.clipboard.writeText(address);
       setCopyState('copied');
     } catch {
-      // Never claim a successful copy when permission was refused. The
-      // address remains selectable and the QR is a permission-free fallback.
+      // Keep the address selectable and QR available when copying is denied.
       setCopyState('error');
     }
   };
   return (
-    <section className="landing-browsers w-full" aria-labelledby="browsers-title" onKeyDown={event => {
+    <aside className="landing-browser-utility" aria-labelledby={titleId} onKeyDown={event => {
       if (event.key === 'Escape' && qrOpen) {
         event.stopPropagation();
         setQrOpen(false);
         qrTrigger.current?.focus();
       }
     }}>
-      <div className="landing-browser-copy">
-        <h2 id="browsers-title">{t('home.browser.heading')}</h2>
-        <p>{t('home.browser.body')}</p>
-        <ul className="landing-browser-list" aria-label={t('home.browsers')}>
-          {BROWSERS.map(([slug, name]) => <li key={slug}>
-            <img src={`/browsers/${slug}.svg`} width="24" height="24" loading="lazy" decoding="async" alt="" />
-            <span>{name}</span>
-          </li>)}
-        </ul>
-      </div>
-      <div className="landing-browser-utility">
-        <h3>{t('home.browser.open')}</h3>
+        <h3 id={titleId}>{t('home.browser.open')}</h3>
         <div className="landing-site-address"><bdi dir="ltr">{window.location.host}</bdi></div>
         <div className="landing-browser-actions">
           <button type="button" className="landing-quiet-button" data-testid="landing-copy-address" onClick={copyAddress}>
@@ -74,7 +115,6 @@ export function BrowserCompatibility() {
             <p>{t('home.browser.qrHint')}</p>
           </>}
         </div>
-      </div>
-    </section>
+    </aside>
   );
 }

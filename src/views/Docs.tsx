@@ -4,6 +4,7 @@ import { FaqSection } from '../components/marketing/FaqSection';
 import { PlatformStrip } from '../components/marketing/PlatformStrip';
 import { SiteFooter } from '../components/marketing/SiteFooter';
 import { useI18n } from '../lib/i18n';
+import { ReadingLanguageNote } from '../components/ReadingLanguageNote';
 import './reading-pages.css';
 // lucide icons under the local names this file already uses (all icons are
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
@@ -700,7 +701,7 @@ export function Docs() {
 
   return (
     <div className="reading-page min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
-      <a href="#docs-content" className="reading-skip">Skip to documentation</a>
+      <a href="#docs-content" lang="en" className="reading-skip">Skip to documentation</a>
       {/* Header — the shared PageHeader, so Docs, Legal and the 404 share one
           header instead of three hand-rolled near-copies. */}
       <PageHeader
@@ -712,7 +713,8 @@ export function Docs() {
         currentLabel={t('nav.docs')}
       />
 
-      <div className="reading-layout docs-layout">
+      <ReadingLanguageNote />
+      <div lang="en" dir="ltr" className="reading-layout docs-layout">
         {/* Sidebar Navigation — desktop only */}
         <nav className="reading-sidebar docs-sidebar" aria-label="Documentation chapters">
           <div className="reading-sticky">

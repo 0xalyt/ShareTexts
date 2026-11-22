@@ -74,7 +74,7 @@ import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/error
 import { HeroLaunchFilm } from '../components/HeroLaunchFilm';
 import '../components/landing/landing-page.css';
 import { XProfileLink } from '../components/XProfileLink';
-import { ThreeThings, LandingFaq, BrowserCompatibility } from '../components/marketing/LandingSections';
+import { ThreeThings, LandingFaq, BrowserCompatibility, WebsiteHandoff } from '../components/marketing/LandingSections';
 import { useSavedCount } from '../lib/savedItems';
 import { useOverscroll } from '../lib/useOverscroll';
 import { ConfirmSheet } from '../components/ConfirmSheet';
@@ -90,17 +90,15 @@ import { fmtNumber, fmtShortDate, localeOf } from '../lib/format';
 import { LanguageMenu } from '../components/LanguageMenu';
 import { InstallLink } from '../components/InstallLink';
 import { cn, shortCodeOf, sanitizeDeviceName, formatBytes } from '../lib/utils';
-// Icons: Gravity UI's set, aliased onto the local names this file already
-// uses — one import line changes, no JSX churn. The three it has no
-// equivalent for (a slashed wifi, a slashed server, an infinity glyph) stay
-// on lucide, which is exactly the rule the house style asks for.
+import { AlloSymbol } from '../components/AlloSymbol';
+// Allo supplies interface marks; Lucide supplies detailed pictograms.
 import {
-  LogOut, QrCode, Link as Link2, Copy, Check,
-  Smartphone, Monitor as Monitor, X as X, ArrowLeftRight as ArrowRightLeft,
-  ArrowLeft, Info, Pencil,
+  LogOut, QrCode, Link as Link2, Copy,
+  Smartphone, Monitor as Monitor, ArrowLeftRight as ArrowRightLeft,
+  Info, Pencil,
   RefreshCw as RotateCcw, Settings as SettingsIcon, Clock as Clock3,
-  Plus, ChevronRight, File as FileIcon, Bookmark, MoreHorizontal,
-  Search, Compass, ShieldCheck, FileText,
+  ChevronRight, File as FileIcon, Bookmark,
+  Compass, ShieldCheck, FileText,
 } from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages, MonitorSmartphone } from 'lucide-react';
 import { HOP } from '../lib/brand';
@@ -909,7 +907,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       <div aria-hidden className="h-[52px] w-full bg-gradient-to-b from-apple-canvas via-apple-canvas/80 to-transparent dark:from-night-950 dark:via-night-950/80" />
       <div className="absolute left-4 top-2 pointer-events-auto sm:left-6 lg:left-8">
         <GlassCircleButton label={t('cancel')} onClick={cancelTask} testId="task-back">
-          <ArrowLeft className="h-5 w-5" strokeWidth={1.8} aria-hidden />
+          <AlloSymbol name="left" size={20} />
         </GlassCircleButton>
       </div>
     </div>
@@ -1114,7 +1112,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     the same nominal size they read heavier than a round glyph
                     beside them and made the capsule look full. The tap target
                     stays 44px — only the drawing shrank. */}
-                <MoreHorizontal className="w-4 h-4" strokeWidth={1.75} aria-hidden />
+                <AlloSymbol name="more" size={18} />
               </IconButton3D>
               {panelMode !== 'connected' && (
                 <>
@@ -1147,7 +1145,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
             // only the swap-out fades. Never gate first paint on animation.
-            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="landing-intro w-full max-w-[470px] lg:max-w-[560px] mx-auto flex flex-col">
+            <motion.div key="idle" exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="landing-intro w-full max-w-[470px] lg:max-w-none mx-auto flex flex-col">
               {deadLink && (
                 <div
                   data-testid="dead-link"
@@ -1227,24 +1225,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   {t('home.receive')}
                 </GlossyButton>
               </div>
-              <p className="landing-trust order-5">
-                {t('footer.trust')}
-              </p>
+              {/* One linear story at every width, including reading order:
+                  heading → sharing actions → film → secondary tools. */}
+              <div className="landing-hero-film st-hide-landscape order-5 w-full">
+                <HeroLaunchFilm />
+              </div>
               <div className="landing-shortcut order-6 w-full">
                 <IntentField
                   onCreate={handleIntentCreate}
                   onJoin={handleIntentJoin}
                   busy={isCreating || isJoining}
                 />
-              </div>
-              {/* Keep the mobile story after the sharing actions in source
-                  order too: CSS order alone puts demo controls ahead of them
-                  for keyboard and screen-reader users. Mount only the active
-                  copy so there is one clock and one set of controls. */}
-              <div className="landing-mobile-demo st-hide-landscape order-7 lg:hidden flex justify-center">
-                <div className="w-full max-w-[560px]">
-                  {!isDesktopLayout && <HeroLaunchFilm />}
-                </div>
               </div>
               {/* Stay Connected re-entry: the room this device promised to
                   keep alive is one tap away — history included. Only shown
@@ -1486,7 +1477,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     (the room stays open); the joiner abandons and can enter a
                     fresh code. Never a trap. */}
                 <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[40px] rounded-full active:scale-[0.96] transition-colors">
-                  <X className="w-3.5 h-3.5" /> {t('cancel')}
+                  <AlloSymbol name="close" size={14} /> {t('cancel')}
                 </button>
               </div>
             </motion.div>
@@ -1552,7 +1543,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-semibold text-apple-ink dark:text-white">{session.autoAdjustedName}</span>{parts[1]}</>); })()}
                     </span>
                     <button onClick={() => setDismissedNameNotice(true)} aria-label={t('pair.dismiss')} className="shrink-0 min-w-[40px] min-h-[40px] -m-[12px] flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-                      <X className="w-3 h-3" />
+                      <AlloSymbol name="close" size={12} />
                     </button>
                   </div>
                 )}
@@ -2121,17 +2112,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             (caught by verify-autoconnect-trusted at 1100×800). */}
         <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1200px] shrink-0 flex-col px-6 lg:px-8 2xl:px-12">
           <div className="landing-hero-grid">
-            {/* Left: the words and the actions (headline → subline → live
-                tracker → Send/Receive → nearby discovery → the quiet tail). */}
+            {/* The heading, actions and full-width film share one column.
+                Keep the same source order as the phone, not a CSS reorder. */}
             <div className="w-full min-w-0">{idleHeroNode}</div>
-            {/* The launch film replaces the interactive illustration. Only
-                the active responsive placement mounts a video/player. */}
-            <div className="w-full max-w-[620px] mx-auto">
-              {isDesktopLayout && <HeroLaunchFilm />}
-            </div>
           </div>
           <BrowserCompatibility />
           <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
+          <WebsiteHandoff />
           <LandingFaq />
           {/* No repeat CTA down here. The hero already owns Send / Receive,
               and a second pair at the foot of the page made the same two
@@ -2246,6 +2233,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <div className="w-full">
                       <BrowserCompatibility />
                       <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
+                      <WebsiteHandoff />
                       <LandingFaq />
                     </div>
                   )}
@@ -2261,7 +2249,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         {showQRScan && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/50 dark:bg-black/70 flex items-center justify-center p-4" onClick={() => setShowQRScan(false)}>
             <motion.div ref={qrScanTrapRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ type: 'spring', bounce: 0, duration: 0.35 }} onClick={e => e.stopPropagation()} className="w-full max-w-[360px] bg-white dark:bg-surface-dark rounded-[24px] p-6 shadow-2xl relative" role="dialog" aria-modal="true" aria-label={t('receive.scan')}>
-              <button onClick={() => setShowQRScan(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors z-10" aria-label={t('common.close')}><X className="w-4 h-4" /></button>
+              <button onClick={() => setShowQRScan(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors z-10" aria-label={t('common.close')}><AlloSymbol name="close" size={16} /></button>
               <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
               <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.scan.title')}</h3>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/50 mb-4">{t('qr.scan.body')}</p>
@@ -2299,7 +2287,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* pt-14 reserves the top strip for the absolutely-positioned
                   close/Esc controls — instruction text can never run under
                   them again. */}
-              <button onClick={() => setShowQROverlay(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors" aria-label={t('common.close')}><X className="w-4 h-4" /></button>
+              <button onClick={() => setShowQROverlay(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors" aria-label={t('common.close')}><AlloSymbol name="close" size={16} /></button>
               <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
               <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.display.title')}</p>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/60 mb-4 leading-relaxed">
@@ -2319,7 +2307,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   data-testid="qr-copy"
                   className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-apple-parchment dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.96]"
                 >
-                  {copiedLink ? <Check className="w-4 h-4 text-status-success" /> : <Copy className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />}
+                  {copiedLink ? <AlloSymbol name="check" size={16} className="text-status-success" /> : <Copy className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />}
                   {copiedLink ? t('action.copied') : t('action.copy')}
                 </button>
                 <ShareMenu
@@ -2379,7 +2367,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               undifferentiated stack of eight. The split needs no words, so
               it survives every one of the nine locales unchanged. */}
           <ListRow title={t('nav.saved')} leading={<Bookmark className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setShowSaved(true); }} testId="more-saved" />
-          <ListRow title={t('nav.search')} leading={<Search className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => { setShowMore(false); setCmdOpen(true); }} testId="more-search" />
+          <ListRow title={t('nav.search')} leading={<AlloSymbol name="search" size={16} />} onClick={() => { setShowMore(false); setCmdOpen(true); }} testId="more-search" />
           {/* aria-current marks where you already are, so the menu answers
               "which page is this?" without a visual badge. */}
           <ListRow title={t('nav.docs')} href="/docs" current={here === '/docs'} leading={<BookOpen className="h-4 w-4" strokeWidth={1.6} aria-hidden />} />
@@ -2420,7 +2408,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <div className="mb-1 flex items-center justify-between gap-3 pr-9">
             <h2 id="space-sheet-title" className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('space.entryTitle')}</h2>
           </div>
-          <ListRow title={t('space.createCta')} subtitle={t('space.entryHint')} leading={<Plus className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => setSpaceSheet('create')} testId="space-sheet-create" />
+          <ListRow title={t('space.createCta')} subtitle={t('space.entryHint')} leading={<AlloSymbol name="plus" size={16} />} onClick={() => setSpaceSheet('create')} testId="space-sheet-create" />
           <ListRow title={t('space.joinTitle')} leading={<Link2 className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => setSpaceSheet('join')} testId="space-sheet-join" />
           {recent.map(r => (
             <ListRow

@@ -69,6 +69,9 @@ jobs:
           tail -40 /tmp/sharetext-server.log
           exit 1
 
+      - name: Motion and reduced-motion contracts
+        run: BROWSERS=${{ matrix.browsers }} node scripts/verify-motion-contracts.mjs
+
       # P7: the P4 composer incident, as a rectangle check. Text-level gates
       # cannot see a Send circle that walks 65px up a grown row.
       - name: Verify local signaling in built app
@@ -87,6 +90,9 @@ jobs:
         run: |
           node scripts/start-ci-worker.mjs --restart
           BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
+
+      - name: Three-device encrypted relay files
+        run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-relay-files.mjs
 
       - name: Screenshots (this engine)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs

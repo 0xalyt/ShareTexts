@@ -1,30 +1,29 @@
-.hero-film { width: 100%; min-width: 0; margin: 0; }
-.hero-film-picture { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 9; background: #fff; border-radius: 16px; border: 1px solid var(--color-apple-divider); }
+.hero-film { width: 100%; min-width: 0; margin: 0; padding: 12px; border-radius: 24px; background: #eae1d6; }
+.hero-film-picture { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 9; background: #fff; border-radius: 12px; border: 1px solid var(--color-apple-divider); box-shadow: var(--shadow-float); }
 .hero-film-picture video { display: block; width: 100%; height: 100%; object-fit: contain; }
 .hero-film-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-/* A small visual control, not a small target. Fitts's Law: 36px disc, 48px hit area. */
-.hero-film-play { position: absolute; z-index: 1; right: 8px; bottom: 8px; display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 50%; color: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hero-film-controls { display: flex; justify-content: flex-end; margin-top: 8px; min-height: 48px; }
+/* Separate paint from the target: 36/48px on desktop, 28/44px on phones. */
+.hero-film-play { position: relative; z-index: 1; display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 50%; color: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hero-film-play::before { content: ''; position: absolute; inset: 6px; z-index: -1; border-radius: inherit; background: #28282be6; }
 .hero-film-play svg { width: 14px; height: 14px; fill: currentColor; }
 .hero-film-play:active svg { transform: scale(.92); }
-.hero-film-caption { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0 12px; padding-top: 4px; }
-.hero-film-eyebrow { color: var(--color-ember-ink); font-size: 12px; font-weight: 600; }
-.hero-film-actions { display: flex; align-items: center; gap: 4px; margin-inline-start: auto; }
-.hero-film-watch { display: flex; align-items: center; gap: 6px; width: fit-content; min-height: 48px; color: var(--color-apple-ink-muted); font-size: 12px; font-weight: 500; }
-.hero-film-watch svg { width: 14px; height: 14px; flex-shrink: 0; }
-.hero-film-download { display: grid; place-items: center; width: 44px; height: 48px; border-radius: 50%; color: var(--color-apple-ink-muted); }
-.hero-film-download svg { width: 15px; height: 15px; }
 .hero-film-play:focus-visible { outline: 2px solid #1d1d1f; outline-offset: -2px; }
-.hero-film-watch:focus-visible, .hero-film-download:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; border-radius: 4px; }
-.dark .hero-film-eyebrow { color: var(--color-ember); }
-.dark .hero-film-watch, .dark .hero-film-download { color: #a1a1a6; }
-/* The encoded dark studio already belongs to the page's charcoal field. No
-   extra cinema box, inversion, brightness filter or luminous white canvas. */
+/* Warm, flat fields separate the actual media frame from the page in either
+   theme. Never recolor or crop the encoded film to manufacture a match. */
+.dark .hero-film { background: #302a24; }
 .dark .hero-film-picture { background: #181818; }
 .dark .hero-film-play::before { background: #313131; }
 .dark .hero-film-play:focus-visible { outline-color: #f5f5f7; }
 @media (hover: hover) and (pointer: fine) {
   .hero-film-play:hover::before { background: #1d1d1f; }
-  .hero-film-watch:hover { color: var(--color-apple-ink); text-decoration: underline; text-underline-offset: 4px; }
-  .dark .hero-film-watch:hover { color: #ededf2; }
+}
+@media (min-width:768px) {
+  .hero-film { padding: 32px; }
+  .hero-film-picture { border-radius: 16px; }
+}
+@media (max-width:767px) {
+  .hero-film-controls { margin-top: 0; min-height: 44px; }
+  .hero-film-play { width: 44px; height: 44px; }
+  .hero-film-play::before { inset: 8px; }
 }

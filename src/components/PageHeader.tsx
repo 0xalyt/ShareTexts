@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { AlloSymbol } from './AlloSymbol';
 import { BrandLockup } from './BrandLockup';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '../lib/utils';
@@ -57,7 +57,7 @@ export function PageHeader({
             className="hidden min-[375px]:flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 rounded-full text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
             aria-label={t('app.backHome')}
           >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+            <AlloSymbol name="left" className="w-4 h-4" />
           </a>
           <BrandLockup compact />
         </div>

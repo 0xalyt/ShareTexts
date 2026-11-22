@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { ArrowUpRight, Download, Pause, Play } from 'lucide-react';
+import { Pause, Play } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 import { heroFilmAssets, heroFilmDarkAssets } from '../lib/heroFilmAssets';
@@ -20,7 +20,7 @@ const subscribeTheme = (notify: () => void) => {
  * require explicit play. Visibility pauses preserve the visitor's choice. */
 export function HeroLaunchFilm({ className }: { className?: string }) {
   const dark = useSyncExternalStore(subscribeTheme, darkTheme, () => false);
-  const { movie: MOVIE, fullMovie: FULL_MOVIE, poster: POSTER } = dark ? heroFilmDarkAssets : heroFilmAssets;
+  const { movie: MOVIE, poster: POSTER } = dark ? heroFilmDarkAssets : heroFilmAssets;
   const { t } = useI18n();
   const summaryId = useId();
   const root = useRef<HTMLElement>(null);
@@ -95,17 +95,14 @@ export function HeroLaunchFilm({ className }: { className?: string }) {
           }}
           onError={() => { setFailed(true); setPlaying(false); }} />
         {failed && <img className="hero-film-fallback" src={POSTER} alt="" width="1440" height="810" />}
+      </div>
+      <div className="hero-film-controls">
         {!failed && <button className="hero-film-play" type="button" onClick={toggle} aria-label={t(playing ? 'film.pause' : 'film.play')} title={t(playing ? 'film.pause' : 'film.play')}>
           {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
         </button>}
       </div>
-      <figcaption className="hero-film-caption">
-        <span className="hero-film-eyebrow">{t('film.label')}</span>
-        <p id={summaryId} className="sr-only">{t('film.summary')}</p>
-        <div className="hero-film-actions">
-          <a className="hero-film-watch" href={FULL_MOVIE} target="_blank" rel="noreferrer">{t('film.watch')}<ArrowUpRight aria-hidden="true" /></a>
-          <a className="hero-film-download" href={FULL_MOVIE} download="ShareTexts-launch.mp4" aria-label={t('film.download')} title={t('film.download')}><Download aria-hidden="true" /></a>
-        </div>
+      <figcaption id={summaryId} className="sr-only">
+        {t('film.summary')}
       </figcaption>
     </figure>
   );
