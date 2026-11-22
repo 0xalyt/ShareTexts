@@ -155,6 +155,30 @@ async function labelsFromInbox(circleId: string): Promise<Map<string, string>> {
 }
 
 /**
+ * Two laptops of the same kind both call themselves "Linux PC". Number the
+ * repeats in the order the devices joined, so every device in the circle
+ * reaches the same names ("Linux PC", "Linux PC 2") without renaming anyone.
+ */
+function distinctLabels(members: Array<{ deviceId: string; label: string; joinedAt: number }>): Map<string, { label: string; raw: string }> {
+  const ordered = [...members].sort((a, b) => a.joinedAt - b.joinedAt || a.deviceId.localeCompare(b.deviceId));
+  const key = (l: string) => l.trim().toLocaleLowerCase();
+  const taken = new Set(ordered.map((m) => key(m.label)));
+  const used = new Set<string>();
+  const out = new Map<string, { label: string; raw: string }>();
+  for (const m of ordered) {
+    let label = m.label;
+    if (label && used.has(key(label))) {
+      let n = 2;
+      while (taken.has(key(`${m.label} ${n}`)) || used.has(key(`${m.label} ${n}`))) n += 1;
+      label = `${m.label} ${n}`;
+    }
+    if (label) used.add(key(label));
+    out.set(m.deviceId, { label, raw: m.label });
+  }
+  return out;
+}
+
+/**
  * Ask the mailbox who is in the circle and refresh the cached names. A device
  * that sees a new member introduces itself, so the newcomer learns every name
  * without anyone holding a directory.
@@ -174,10 +198,12 @@ export async function refreshDevices(): Promise<HopDevice[]> {
     const others = members.filter((m) => m.deviceId !== identity.deviceId);
     const known = new Set(devices.map((d) => d.deviceId));
     if (others.some((m) => !known.has(m.deviceId))) void hello(circleId).catch(() => {});
-    devices = others.map((m) => ({
-      deviceId: m.deviceId,
-      label: labels.get(m.deviceId) ?? devices.find((d) => d.deviceId === m.deviceId)?.label ?? '',
-    }));
+    labels.set(identity.deviceId, myLabel(identity));
+    const named = distinctLabels(members.map((m) => ({
+      ...m,
+      label: labels.get(m.deviceId) ?? devices.find((d) => d.deviceId === m.deviceId)?.raw ?? '',
+    })));
+    devices = others.map((m) => ({ deviceId: m.deviceId, ...named.get(m.deviceId)! }));
   } catch {
     // Offline: the last known list is still the truth as far as we know.
   }

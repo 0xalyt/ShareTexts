@@ -9,7 +9,10 @@ export const HOP_EVENT = 'sharetext:hop';
 
 export interface HopDevice {
   deviceId: string;
+  /** What to show: the device's own name, numbered when another device shares it. */
   label: string;
+  /** The name the device gave itself, kept so the numbering can be redone offline. */
+  raw?: string;
 }
 
 export interface HopCache {
