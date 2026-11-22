@@ -14,9 +14,8 @@
 import React, { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import '../components/ui/task-surfaces.css';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { MotionSurface } from '../components/ui/MotionSurface';
-import { DUR } from '../lib/motion/tokens';
 import {
   ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon, FileText,
   Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
