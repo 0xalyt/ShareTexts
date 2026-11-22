@@ -87,16 +87,19 @@ function Switch({ checked, onChange, label, testId }: { checked: boolean; onChan
   );
 }
 
-function Group({ title, children, testId }: { title: string; children: React.ReactNode; testId?: string }) {
+function Group({ title, children, testId, collapsible = false }: { title: string; children: React.ReactNode; testId?: string; collapsible?: boolean }) {
+  const Tag = collapsible ? 'details' : 'section';
+  const Heading = collapsible ? 'summary' : 'h4';
   return (
-    <section className="st-task-settings-group mt-5 first:mt-2" data-testid={testId}>
-      <h4 className="px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55">
+    <Tag className="st-task-settings-group group mt-5 first:mt-2" data-testid={testId}>
+      <Heading className={cn(collapsible && "flex cursor-pointer list-none min-h-[44px] items-center justify-between", "px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55")}>
         {title}
-      </h4>
+        {collapsible && <ChevronRight className="h-4 w-4 group-open:rotate-90" aria-hidden />}
+      </Heading>
       <div className="overflow-hidden rounded-[16px] bg-white/80 dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/10">
         {children}
       </div>
-    </section>
+    </Tag>
   );
 }
 
@@ -325,7 +328,7 @@ export function SettingsOverlay({
                   </Group>
 
                   {/* ── Feedback ───────────────────────────────────── */}
-                  <Group title={t('settings.feedback')} testId="settings-feedback">
+                  <Group title={t('settings.feedback')} testId="settings-feedback" collapsible>
                     <Row first as="div" className="justify-between">
                       <span className="flex flex-col">
                         <span>{t('settings.haptics')}</span>

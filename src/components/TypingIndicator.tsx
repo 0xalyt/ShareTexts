@@ -11,12 +11,13 @@
  * work: a small "typing…" is still an answer, a frozen animation is not.
  */
 import React from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { useI18n } from '../lib/i18n';
 
 /** Three dots in a 1.2 s wave, 80 ms apart. */
 export function TypingDots({ className = '' }: { className?: string }) {
-  const reduced = useReducedMotion();
+  const reduced = useMotionPreference();
   if (reduced) {
     return <span className={`text-[12px] font-medium text-apple-ink-muted dark:text-white/50 ${className}`}>···</span>;
   }
@@ -37,7 +38,7 @@ export function TypingDots({ className = '' }: { className?: string }) {
 /** The ghost bubble at the end of the thread. No text, no height when absent. */
 export function TypingGhostBubble({ align }: { align: 'left' | 'right' }) {
   const { t } = useI18n();
-  const reduced = useReducedMotion();
+  const reduced = useMotionPreference();
   return (
     <motion.div
       data-testid="typing-bubble"

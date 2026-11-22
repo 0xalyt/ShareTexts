@@ -149,8 +149,7 @@ html.dark .segmented {
   /* Movement, so ease-in-out: the thumb leaves and arrives, it does not
      decelerate into place like an entrance. */
   transition:
-    transform var(--st-t-thumb) var(--st-ease-move),
-    width var(--st-t-thumb) var(--st-ease-move);
+    transform var(--st-t-thumb) var(--st-ease-move);
   pointer-events: none;
 }
 html.dark .segmented-thumb {

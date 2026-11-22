@@ -14,7 +14,9 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import '../components/ui/task-surfaces.css';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { MotionSurface } from '../components/ui/MotionSurface';
+import { DUR } from '../lib/motion/tokens';
 import {
   ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon,
   Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
@@ -26,7 +28,6 @@ import { Bar } from '../components/SkeletonScreen';
 import { Inbox } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { FEATURE_SPACE_FILES } from '../lib/space/capabilities';
-import { fmtShortDate, fmtTime, fmtWeekdayTime } from '../lib/format';
 import { TactileButton } from '../components/TactileButton';
 import type { MsgKey } from '../lib/messages/types';
 import { OverlaySheet } from '../components/OverlaySheet';
@@ -142,12 +143,7 @@ function ItemCard({
   }, [isImage, spaceId, item.id]);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.18 }}
+    <div
       className="group relative st-card overflow-hidden"
       data-testid="space-item"
       data-kind={item.kind}
@@ -209,7 +205,7 @@ function ItemCard({
           <span className="flex-1" />
           {item.kind === 'text' && (
             <button
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
               onClick={() => { onCopy(item); setCopied(true); setTimeout(() => setCopied(false), 1600); }}
             >
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -218,7 +214,7 @@ function ItemCard({
           )}
           {item.kind === 'file' && (
             <button
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
               onClick={() => onDownload(item)}
             >
               <Download className="w-3.5 h-3.5" />
@@ -227,7 +223,7 @@ function ItemCard({
           )}
           {canRemove && (
             <button
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08] transition-colors"
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08] transition-colors"
               onClick={() => onRemove(item)}
               aria-label={t('space.remove')}
             >
@@ -236,7 +232,7 @@ function ItemCard({
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -297,7 +293,7 @@ function UploadRow({
             never shuffle sideways when an upload pauses. */}
         {(active || phase === 'paused') && (
           <button
-            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] text-[12px] font-medium transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] text-[12px] font-medium transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             onClick={() => (phase === 'paused' ? onResume(up.key) : onPause(up.key))}
             data-testid={phase === 'paused' ? 'space-upload-resume' : 'space-upload-pause'}
           >
@@ -312,7 +308,7 @@ function UploadRow({
         )}
         {(active || phase === 'paused') && (
           <button
-            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] text-[12px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08]"
+            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] text-[12px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08]"
             onClick={() => onCancel(up.key)}
           >
             <XCircle className="w-3.5 h-3.5" />
@@ -322,14 +318,14 @@ function UploadRow({
         {failed && (
           <>
             <button
-              className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] text-[12px] font-semibold text-azure-600 dark:text-azure-400 hover:bg-azure-500/[0.08]"
+              className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] text-[12px] font-semibold text-azure-600 dark:text-azure-400 hover:bg-azure-500/[0.08]"
               onClick={() => onRetry(up.key)}
               data-testid="space-upload-retry"
             >
               {t('space.retry')}
             </button>
             <button
-              className="shrink-0 rounded-full p-1.5 min-h-[28px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+              className="shrink-0 rounded-full p-1.5 min-h-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
               onClick={() => onDismiss(up.key)}
               aria-label={t('space.cancelUpload')}
             >
@@ -339,7 +335,7 @@ function UploadRow({
         )}
         {cancelled && (
           <button
-            className="shrink-0 rounded-full p-1.5 min-h-[28px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            className="shrink-0 rounded-full p-1.5 min-h-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             onClick={() => onDismiss(up.key)}
             aria-label={t('space.cancelUpload')}
           >
@@ -479,25 +475,28 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
             Keep the selected lifetime visible before the create action. */}
         <fieldset className="mt-5" data-testid="space-create-duration">
           <legend className="text-[13px] font-medium text-apple-ink dark:text-white/80">{t('space.durationLabel')}</legend>
-          <div className="mt-2 grid grid-cols-2 min-[440px]:grid-cols-4 gap-2">
+          <select
+            aria-label={t('space.durationLabel')}
+            name="space-duration"
+            value={duration}
+            onChange={e => setDuration(Number(e.target.value))}
+            className="mt-2 w-full min-h-[48px] rounded-[12px] border border-apple-divider bg-white px-3 text-[16px] text-apple-ink dark:border-white/10 dark:bg-surface-dark dark:text-white focus-visible:outline-2 focus-visible:outline-ember"
+          >
             {DURATIONS.map(d => (
-              <label key={d.ms} className="relative cursor-pointer">
-                <input type="radio" name="space-duration" value={d.ms} checked={duration === d.ms} onChange={() => setDuration(d.ms)} className="peer sr-only" />
-                <span className="rounded-[12px] px-1.5 py-2.5 min-h-[52px] flex flex-col items-center justify-center border border-apple-divider dark:border-white/10 text-apple-ink dark:text-white/80 peer-checked:bg-apple-ink peer-checked:text-white peer-checked:border-apple-ink dark:peer-checked:bg-white dark:peer-checked:text-night-900 dark:peer-checked:border-white peer-focus-visible:ring-2 peer-focus-visible:ring-ember peer-focus-visible:ring-offset-2 transition-colors">
-                  <span className="text-[13px] font-semibold tabular-nums leading-none">{new Intl.NumberFormat(lang, { style: 'unit', unit: d.ms >= 24 * HOUR ? 'day' : 'hour', unitDisplay: 'long' }).format(d.ms >= 24 * HOUR ? d.ms / (24 * HOUR) : d.ms / HOUR)}</span>
-                  <span className="mt-1 text-[12px] font-medium tabular-nums leading-snug text-center opacity-70">
-                    {(() => { const end = new Date(Date.now() + d.ms); return d.ms <= 24 * HOUR ? fmtTime(lang, end) : d.ms <= 72 * HOUR ? fmtWeekdayTime(lang, end) : fmtShortDate(lang, end); })()}
-                  </span>
-                </span>
-              </label>
+              <option key={d.ms} value={d.ms}>
+                {new Intl.NumberFormat(lang, { style: 'unit', unit: d.ms >= 24 * HOUR ? 'day' : 'hour', unitDisplay: 'long' }).format(d.ms >= 24 * HOUR ? d.ms / (24 * HOUR) : d.ms / HOUR)}
+              </option>
             ))}
-          </div>
+          </select>
+          <p className="mt-2 text-[13px] text-apple-ink-muted dark:text-white/60" aria-live="polite">
+            {t('space.closesIn', { time: remainingShort(duration) })} · {closingTime(lang, Date.now() + duration)}
+          </p>
           <p className="mt-2 text-[12px] text-apple-ink-muted dark:text-white/45">{t('space.durationMax')}</p>
         </fieldset>
 
         {/* Name and reminders are optional; the lifetime above is always visible. */}
         <details className="mt-4 group" data-testid="space-create-optional">
-          <summary className="cursor-pointer list-none min-h-[42px] rounded-[12px] inline-flex w-full items-center justify-center gap-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors">
+          <summary className="cursor-pointer list-none min-h-[44px] rounded-[12px] inline-flex w-full items-center justify-center gap-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors">
             <ChevronDown className="w-4 h-4 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
             {t('space.optionalLabel')}
           </summary>
@@ -741,7 +740,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               onFocus={e => e.currentTarget.select()}
               className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink-muted dark:text-white/70 font-mono truncate"
             />
-            <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[42px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform">
+            <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform">
               {copied === 'link' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               {copied === 'link' ? t('space.copied') : t('space.copyLink')}
             </button>
@@ -968,15 +967,16 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         )}
         <AnimatePresence>
           {notice && (
-            <motion.p
+            <MotionSurface
               role="alert"
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: DUR.micro / 1000 }}
               className="mb-3 text-[13px] font-medium text-red-600 dark:text-red-400"
             >
               {notice}
-            </motion.p>
+            </MotionSurface>
           )}
         </AnimatePresence>
         {/* Near expiry says exactly what happens next — calm and truthful,

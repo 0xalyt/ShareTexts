@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { motion } from 'motion/react';
+import { MotionSurface } from './ui/MotionSurface';
+import { DUR, SPRING } from '../lib/motion/tokens';
 import { Share2, Link as Link2, Copy, QrCode } from 'lucide-react';
 import { AlloSymbol } from './AlloSymbol';
 
@@ -177,7 +178,7 @@ export function ShareMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onPointerDown={() => setOpen(false)} aria-hidden />
-          <motion.div
+          <MotionSurface
             ref={panelRef}
             id={menuId}
             role="menu"
@@ -185,7 +186,7 @@ export function ShareMenu({
             style={{ transformOrigin: origin }}
             initial={{ opacity: 0, y: -4, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 460, damping: 30 }}
+            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
             className={cn(
               'absolute z-50 mt-2 w-[248px] p-3 rounded-[16px] border border-apple-divider/70 dark:border-white/10',
               'bg-white dark:bg-apple-tile-2 shadow-[0_18px_44px_-18px_rgba(0,0,0,0.45)]',
@@ -232,7 +233,7 @@ export function ShareMenu({
               role="menuitem"
               onClick={() => { void copy(url, 'link'); }}
               className={cn(
-                'mt-2 w-full min-h-[40px] flex items-center justify-center gap-2 rounded-[12px] border px-3 py-2',
+                'mt-2 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border px-3 py-2',
                 'text-[12px] font-semibold transition-colors active:scale-[0.96]',
                 done === 'link'
                   ? 'border-status-success/40 bg-status-success/10 text-status-success'
@@ -242,7 +243,7 @@ export function ShareMenu({
               {done === 'link' ? <AlloSymbol name="check" size={14} /> : <Link2 className="w-3.5 h-3.5" />}
               {done === 'link' ? t('action.copied') : t('space.copyLink')}
             </button>
-          </motion.div>
+          </MotionSurface>
         </>
       )}
     </div>

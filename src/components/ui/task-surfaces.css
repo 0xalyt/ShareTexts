@@ -1,3 +1,14 @@
+.st-discovery-wave { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion-intent='pointer'] .st-discovery[data-motion-entry='pointer'] .st-discovery-wave {
+    animation: st-discovery-wave var(--st-dur-medium) var(--st-ease-enter) both;
+  }
+}
+@keyframes st-discovery-wave {
+  from { opacity: .3; transform: scale(.65); }
+  to { opacity: 0; transform: scale(1); }
+}
+
 /* Task surfaces deliberately share the product's type, orange identity and
    motion tokens. Nothing here reaches the landing or reading pages. */
 .st-task, .st-task-sheet, .st-room, .st-space {

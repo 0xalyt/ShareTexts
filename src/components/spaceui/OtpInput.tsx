@@ -27,7 +27,8 @@
 // ---------------------------------------------------------------------------
 
 import React, { useEffect, useRef, useState, type ComponentProps } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useMotionPreference } from '../../lib/useMotionPreference';
 import { cn } from '../../lib/utils';
 
 const PATTERNS = {
@@ -179,7 +180,7 @@ export function OtpInput({
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   // the slot the user deliberately moved to, so a full code only changes on purpose
   const editingAt = useRef<number | null>(null);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useMotionPreference();
 
   // padded, not joined: joining would close a gap left by a mid-code backspace
   const slots =

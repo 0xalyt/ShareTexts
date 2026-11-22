@@ -6,7 +6,8 @@ import { AlloSymbol } from '../AlloSymbol';
 import { useI18n } from '../../lib/i18n';
 import { useFocusTrap } from '../../lib/useFocusTrap';
 import { hapticTick } from '../../lib/haptics';
-import { DUR, EASE, rubberBand, settleSeconds } from '../../lib/motion/tokens';
+import { DUR, EASE, SPRING, rubberBand, settleSeconds } from '../../lib/motion/tokens';
+import { MotionSurface } from './MotionSurface';
 import { cn } from '../../lib/utils';
 
 /**
@@ -151,6 +152,7 @@ export function Sheet({
 }: SheetProps) {
   const { t } = useI18n();
   const reduced = useMotionPreference();
+  const quiet = reduced || (typeof document !== 'undefined' && document.documentElement.dataset.motionIntent !== 'pointer');
   const trapRef = useFocusTrap(open);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -546,7 +548,7 @@ export function Sheet({
       animate={{ opacity: open ? 1 : 0 }}
       exit={{ opacity: 0 }}
       style={{ pointerEvents: open ? undefined : 'none' }}
-      transition={{ duration: DUR.short / 1000 }}
+      transition={{ duration: quiet ? 0 : DUR.short / 1000 }}
       onClick={open && dismissable ? onClose : undefined}
     />
   );
@@ -637,8 +639,8 @@ export function Sheet({
         {backdrop}
         <motion.div
           className="w-full flex justify-center sm:block"
-          animate={{ y: reduced || open ? 0 : '100%', opacity: open ? 1 : 0.4, scale: 1 }}
-          transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE.out }}
+          animate={{ y: open ? 0 : '100%', opacity: open ? 1 : 0.4, scale: 1 }}
+          transition={quiet ? { duration: 0 } : { type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
           style={{ visibility: open ? 'visible' : 'hidden', maxWidth }}
         >
           {panel(true)}
@@ -651,9 +653,9 @@ export function Sheet({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-6" style={{ zIndex: z }}>
+        <MotionSurface className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-6" style={{ zIndex: z }} initial={false}>
           {backdrop}
-          <motion.div
+          <MotionSurface
             className="w-full flex justify-center sm:block"
             initial={reduced
               ? { opacity: 0 }
@@ -662,12 +664,12 @@ export function Sheet({
             exit={reduced
               ? { opacity: 0 }
               : { y: desktop ? 8 : '100%', opacity: 0, scale: desktop ? 0.98 : 1 }}
-            transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE.out }}
+            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
             style={{ maxWidth, transformOrigin: desktop ? origin : 'bottom center' }}
           >
             {panel(false)}
-          </motion.div>
-        </div>
+          </MotionSurface>
+        </MotionSurface>
       )}
     </AnimatePresence>,
     typeof document !== 'undefined' ? document.body : null,

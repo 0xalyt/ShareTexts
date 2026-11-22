@@ -153,7 +153,7 @@ export function DevicePicker({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1.5 text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
+            className="rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
             aria-label={t('common.close')}
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -294,7 +294,7 @@ export function RecipientSummary({
       <button
         type="button"
         onClick={onOpen}
-        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 -my-2 min-h-[40px] text-xs font-medium text-neutral-700 transition-colors hover:bg-white dark:border-white/12 dark:bg-white/8 dark:text-neutral-200 dark:hover:bg-white/12"
+        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 -my-2 min-h-[44px] text-xs font-medium text-neutral-700 transition-colors hover:bg-white dark:border-white/12 dark:bg-white/8 dark:text-neutral-200 dark:hover:bg-white/12"
       >
         <Users className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
         {selected.length === 0
@@ -316,7 +316,7 @@ export function RecipientSummary({
             <button
               type="button"
               onClick={() => onRemove(id)}
-              className="rounded-full p-1.5 -m-1 hover:bg-black/10 dark:hover:bg-white/15"
+              className="rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center -my-1 hover:bg-black/10 dark:hover:bg-white/15"
               aria-label={t('picker.remove', { name: nameOf(id) })}
             >
               <X className="h-3 w-3" aria-hidden="true" />
@@ -328,7 +328,7 @@ export function RecipientSummary({
         <button
           type="button"
           onClick={onOpen}
-          className="rounded-full bg-[--ember]/12 px-3 -my-2 min-h-[40px] text-xs font-medium text-[--ember] dark:bg-[--ember]/20"
+          className="rounded-full bg-[--ember]/12 px-3 -my-2 min-h-[44px] text-xs font-medium text-[--ember] dark:bg-[--ember]/20"
         >
           {t('composer.moreDevices', { count: String(rest) })}
         </button>

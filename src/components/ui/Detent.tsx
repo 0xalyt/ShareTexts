@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useMotionPreference } from '../../lib/useMotionPreference';
 
 /**
  * The three Detent pieces, ported rather than installed.
@@ -64,7 +65,7 @@ export function HaloBands({
   const pointer = useRef<number | null>(null);
   const light = useRef<number[]>(BANDS.map(() => 50));
   const glows = useRef<Array<HTMLDivElement | null>>([]);
-  const reduce = useReducedMotion();
+  const reduce = useMotionPreference();
   const p = palettes[palette] ?? palettes[0];
 
   useEffect(() => {
@@ -221,7 +222,7 @@ export function Announcement({
   className?: string;
 }) {
   const [near, setNear] = useState(false);
-  const reduce = useReducedMotion();
+  const reduce = useMotionPreference();
   return (
     <div
       onPointerEnter={() => setNear(true)}
@@ -344,7 +345,7 @@ export function UploadFolder({
   open?: boolean;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useMotionPreference();
   return (
     <div className={className} aria-hidden>
       <div className="relative h-[104px] w-[132px]">

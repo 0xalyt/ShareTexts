@@ -1036,7 +1036,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           reach the page every single time. */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:inline-flex focus:min-h-[40px] focus:items-center focus:rounded-full focus:bg-apple-ink focus:px-4 focus:text-[13px] focus:font-semibold focus:text-white focus:outline-none dark:focus:bg-white dark:focus:text-apple-ink"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:inline-flex focus:min-h-[44px] focus:items-center focus:rounded-full focus:bg-apple-ink focus:px-4 focus:text-[13px] focus:font-semibold focus:text-white focus:outline-none dark:focus:bg-white dark:focus:text-apple-ink"
       >
         {t('app.skip')}
       </a>
@@ -1466,7 +1466,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {!longStuckConnecting && session.isCreator && (
                       <button
                         onClick={handleStuckRetry}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white min-h-[40px] active:scale-[0.96] transition-colors"
+                        className="flex min-h-[44px] items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white min-h-[44px] active:scale-[0.96] transition-colors"
                       >
                         <RotateCcw className="w-3.5 h-3.5" /> {t('common.tryAgain')}
                       </button>
@@ -1476,7 +1476,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* Escape hatch: the creator returns to their pairing screen
                     (the room stays open); the joiner abandons and can enter a
                     fresh code. Never a trap. */}
-                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[40px] rounded-full active:scale-[0.96] transition-colors">
+                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[44px] rounded-full active:scale-[0.96] transition-colors">
                   <AlloSymbol name="close" size={14} /> {t('cancel')}
                 </button>
               </div>
@@ -1542,7 +1542,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <span className="flex-1">
                       {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-semibold text-apple-ink dark:text-white">{session.autoAdjustedName}</span>{parts[1]}</>); })()}
                     </span>
-                    <button onClick={() => setDismissedNameNotice(true)} aria-label={t('pair.dismiss')} className="shrink-0 min-w-[40px] min-h-[40px] -m-[12px] flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                    <button onClick={() => setDismissedNameNotice(true)} aria-label={t('pair.dismiss')} className="shrink-0 min-w-[44px] min-h-[44px] -m-[12px] flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                       <AlloSymbol name="close" size={12} />
                     </button>
                   </div>

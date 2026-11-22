@@ -12,7 +12,9 @@ import * as engines from 'playwright';
 const fixture = `
 import React, { useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MotionConfig } from 'motion/react';
+import { MotionConfig, AnimatePresence } from 'motion/react';
+import { MotionSurface } from '/src/components/ui/MotionSurface';
+import { DUR, SPRING } from '/src/lib/motion/tokens';
 import { I18nProvider } from '/src/lib/i18n';
 import { NumberTicker } from '/src/components/NumberTicker';
 import { MorphButton } from '/src/components/MorphButton';
@@ -40,12 +42,15 @@ function Fixture() {
   const [connected, setConnected] = useState(false);
   const [menu, setMenu] = useState(false);
   const [selected, setSelected] = useState('');
+  const [surface, setSurface] = useState(false);
   const trigger = useRef(null);
   const feed = useRef(null);
   const resolve = useRef(null);
-  window.contracts = { setNumber, setProgress, setComplete, setConnected };
+  window.contracts = { setNumber, setProgress, setComplete, setConnected, setSurface };
   return <MotionConfig reducedMotion="user"><I18nProvider>
     <main style={{ padding: 16, width: 320 }}>
+      <button id="surface-open" onClick={() => setSurface(true)}>Open surface</button>
+      <AnimatePresence>{surface && <MotionSurface id="surface" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 14 }} transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}><button id="surface-close" onClick={() => setSurface(false)}>Close surface</button></MotionSurface>}</AnimatePresence>
       <span id="ticker"><NumberTicker value={number} /></span>
       <MorphButton label="Copy" doneLabel="Copied" loadingLabel="Copying" data-testid="morph"
         onPress={() => { setCalls(n => n + 1); return new Promise(done => { resolve.current = done; }); }} />
@@ -123,6 +128,30 @@ try {
           await page.evaluate(() => window.contracts.setNumber(103));
           await until(() => page.locator('#ticker > span > [aria-hidden]').innerText(), text => text === '103', 'Static digits must update');
         }
+
+        // Keyboard surfaces are immediate, and a later pointer never replays
+        // their entry. Every exiting surface releases focus and hit-testing.
+        await page.locator('#surface-open').focus();
+        await page.keyboard.press('Enter');
+        const surface = page.locator('#surface');
+        assert.equal(await surface.evaluate(el => getComputedStyle(el).opacity), '1');
+        assert.equal(await surface.getAttribute('data-motion-entry'), 'quiet');
+        await page.locator('#surface-close').hover();
+        assert.equal(await surface.evaluate(el => el.getAnimations().length), 0);
+        await page.locator('#surface-close').click();
+        await surface.waitFor({ state: 'detached' });
+        await page.locator('#surface-open').click();
+        await surface.waitFor();
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await until(() => surface.evaluate(el => getComputedStyle(el).opacity), opacity => opacity === '1', 'Mounted surface ignored live reduced motion');
+        await page.locator('#surface-close').click();
+        await until(() => surface.count(), count => count === 0, 'Quiet surface retained an exit delay');
+        await page.emulateMedia({ reducedMotion });
+        await page.locator('#surface-open').click();
+        await surface.waitFor();
+        await page.locator('#surface-close').click();
+        if (await surface.count()) assert.equal(await surface.evaluate(el => el.inert && getComputedStyle(el).pointerEvents === 'none'), true, 'Exiting surface still owns input');
+        await surface.waitFor({ state: 'detached' });
 
         // No synthetic 520ms loading hold; success must be interruptible.
         await page.locator('[data-testid="morph"]').click();

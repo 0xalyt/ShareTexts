@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '../lib/SessionContext';
 import { useTheme } from '../lib/theme';
 import { LANGS, useI18n } from '../lib/i18n';
 import { fmtTime, localeOf } from '../lib/format';
 import { NumberTicker } from './NumberTicker';
 import { cn, shortCodeOf } from '../lib/utils';
-import { DUR, SPRING } from '../lib/motion/tokens';
 import { AlloSymbol } from './AlloSymbol';
 import {
   Send, Download, QrCode, Link as Link2, Copy,
@@ -22,7 +20,6 @@ import { formatBytes } from '../lib/utils';
 import { connMachine } from '../lib/connectionState';
 import { getNetStats, describeRoute } from '../lib/netStats';
 import { useScrollFade } from '../lib/useScrollFade';
-import { useTriggerOrigin } from '../lib/useTriggerOrigin';
 
 /**
  * CommandBar — the app's whole surface, one ⌘K away.
@@ -87,10 +84,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
   const [subOpen, setSubOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  // Opened by ⌘K or by a header control: whichever element had focus is the
-  // point the palette unfolds from. No focus (first paint, programmatic
-  // open) falls back to the default centre origin.
-  const { panelRef: originPanelRef, origin: panelOrigin } = useTriggerOrigin(open);
+  // This frequent keyboard surface opens and closes without choreography.
   const prevFocusRef = useRef<HTMLElement | null>(null);
   const inRoom = !!session.roomId;
 
@@ -335,13 +329,9 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
   let flatIdx = -1;
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: DUR.micro / 1000 }} /* motion takes SECONDS; DUR is ms */
+        <div
           className="fixed inset-0 z-[80] bg-black/25 dark:bg-black/55 flex items-start justify-center pt-[10vh] sm:pt-[12vh] px-4"
           role="dialog"
           aria-modal="true"
@@ -349,16 +339,8 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
           // Backdrop click closes; clicks inside the panel stop propagation.
           onPointerDown={(e) => { if (e.target === e.currentTarget) close(); }}
         >
-          <motion.div
-            ref={(node) => {
-              panelRef.current = node;
-              originPanelRef.current = node;
-            }}
-            style={{ transformOrigin: panelOrigin }}
-            initial={{ opacity: 0, y: 12, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={SPRING.panel}
+          <div
+            ref={panelRef}
             className="w-full max-w-[560px] rounded-[24px] bg-apple-canvas dark:bg-surface-dark border border-apple-divider/60 dark:border-white/[0.08] shadow-sheet overflow-hidden"
             onPointerDown={(e) => e.stopPropagation()}
           >
@@ -463,10 +445,10 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                 </div>
               </>
             )}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }
 

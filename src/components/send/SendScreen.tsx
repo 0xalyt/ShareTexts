@@ -345,7 +345,7 @@ export function SendScreen({
                 <p className="text-[13px] leading-snug text-apple-ink dark:text-white/85">{shownError.text}</p>
                 <button
                   onClick={onRetry}
-                  className="press mt-2 min-h-[36px] text-[13px] font-semibold text-[#c2410c] dark:text-[#ffb340] underline underline-offset-2"
+                  className="press mt-2 min-h-[44px] text-[13px] font-semibold text-[#c2410c] dark:text-[#ffb340] underline underline-offset-2"
                   data-testid="send-retry"
                 >
                   {t('common.tryAgain')}

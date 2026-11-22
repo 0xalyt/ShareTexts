@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { MotionSurface } from './ui/MotionSurface';
+import { DUR, SPRING } from '../lib/motion/tokens';
 import { AlloSymbol } from './AlloSymbol';
 import { LANGS, useI18n } from '../lib/i18n';
 import { cn } from '../lib/utils';
@@ -135,7 +137,7 @@ export function LanguageMenu({
                 ROW,
                 variant === 'sheet'
                   ? 'min-h-[52px] px-1 border-b border-apple-divider/70 last:border-0 dark:border-white/[0.08] rounded-none'
-                  : 'py-2',
+                  : 'min-h-[44px] py-2',
                 active
                   ? 'bg-ember/[0.08] dark:bg-ember/[0.13] text-apple-ink dark:text-white font-semibold'
                   : hovered
@@ -260,22 +262,20 @@ export function LanguageMenu({
 
       <AnimatePresence>
         {open && (
-          <motion.ul
+          <MotionSurface
             ref={panelRef}
             style={{ transformOrigin: origin }}
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
-            role="listbox"
-            aria-label={t('lang.menu')}
+            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
             className={cn(
               'absolute top-[calc(100%+6px)] z-50 mt-1 w-44 rounded-[12px] bg-white dark:bg-surface-dark border border-apple-divider dark:border-apple-tile-3 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.22)] p-1.5 max-h-[min(60vh,calc(100dvh-96px))] overflow-y-auto overscroll-contain',
               align === 'right' ? 'right-0' : 'left-0',
             )}
           >
-            {options('dropdown')}
-          </motion.ul>
+            <ul role="listbox" aria-label={t('lang.menu')}>{options('dropdown')}</ul>
+          </MotionSurface>
         )}
       </AnimatePresence>
     </div>
