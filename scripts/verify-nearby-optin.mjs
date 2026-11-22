@@ -92,10 +92,7 @@ try {
   console.log('PASS Nearby re-opt-in: same open socket announces again and B reappears on A');
   const visibility = b.getByTestId('nearby-visibility-toggle');
   await b.clock.pauseAt(Date.now() + 100);
-  const tap = async () => {
-    const box = await visibility.boundingBox();
-    await b.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  };
+  const tap = () => visibility.click();
   await b.evaluate(key => {
     window.__visibilityChanges = [];
     for (const method of ['setItem', 'removeItem']) {
