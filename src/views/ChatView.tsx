@@ -1856,7 +1856,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         </form>
       </div>
       {/* Settings — theme, language, stay connected, reconnection. */}
-      <SettingsOverlay open={showSettings} onClose={() => setShowSettings(false)} onOpenSaved={() => { setShowSettings(false); setShowSaved(true); }} />
+      {/* Keep the parent sheet mounted so Saved can return focus to its
+          opener, just like Settings' other nested sheets. */}
+      <SettingsOverlay open={showSettings} onClose={() => setShowSettings(false)} onOpenSaved={() => setShowSaved(true)} />
       <React.Suspense fallback={null}>
         <SavedItemsOverlay open={showSaved} onClose={() => setShowSaved(false)} />
       </React.Suspense>
