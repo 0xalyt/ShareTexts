@@ -472,6 +472,7 @@ const en = {
   'action.copy': 'Copy',
   'action.share': 'Share',
   'action.save': 'Save',
+  'action.download': 'Download',
   'action.copied': 'Copied',
   'action.shared': 'Shared',
   'action.saved': 'Saved',

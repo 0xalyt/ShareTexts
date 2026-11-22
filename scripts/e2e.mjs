@@ -1,5 +1,5 @@
 // E2E: create → join → connect → send → receive → refresh-reconnect → large text → third-device rejection
-import { launchBrowser, URL, sleep, readLiveCode } from './lib.mjs';
+import { launchBrowser, URL, sleep, readLiveCode, gotoPage } from './lib.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 
@@ -90,7 +90,7 @@ async function main() {
   try {
 
   // --- Device A: create session ---
-  await A.goto(URL, { waitUntil: 'domcontentloaded' });
+  await gotoPage(A, URL, { waitUntil: 'domcontentloaded' });
   await A.getByTestId('home-send').waitFor();
   const createStarted = Date.now();
   await A.getByTestId('home-send').click();
@@ -108,7 +108,7 @@ async function main() {
   console.log('Live code:', code);
 
   // --- Device B: join ---
-  await B.goto(URL, { waitUntil: 'domcontentloaded' });
+  await gotoPage(B, URL, { waitUntil: 'domcontentloaded' });
   await B.getByTestId('home-receive').click();
   await B.getByTestId('join-code-input').locator('input').first().fill(code);
   await B.getByTestId('composer').first().waitFor({ timeout: 20000 });
@@ -234,7 +234,7 @@ async function main() {
   const B2 = await ctxB.newPage();
   observe('B2', B2);
   B2.on('pageerror', e => logs.push(`[B2:ERROR] ${e.message}`));
-  await B2.goto(URL, { waitUntil: 'domcontentloaded' });
+  await gotoPage(B2, URL, { waitUntil: 'domcontentloaded' });
   await sleep(6000);
   const b2Body = await B2.locator('body').innerText();
   const b2Composer = await B2.getByTestId('composer').count();
@@ -275,7 +275,7 @@ async function main() {
   const { secret, createdAt } = JSON.parse(stored);
   const freshCode = generateTOTP(secret, createdAt);
   console.log('Fresh code for third device test:', freshCode);
-  await C.goto(URL, { waitUntil: 'domcontentloaded' });
+  await gotoPage(C, URL, { waitUntil: 'domcontentloaded' });
   await C.getByTestId('home-receive').click();
   await C.getByTestId('join-code-input').locator('input').first().fill(freshCode);
   await sleep(4000);

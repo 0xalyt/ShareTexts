@@ -17,6 +17,12 @@ import React, { useEffect, useRef } from 'react';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+// Portalled dialogs are DOM siblings even when one opens from another.
+// Only the latest open trap may reclaim focus; otherwise the parent and
+// child synchronously focus each other until the browser's stack overflows.
+const activeTraps: HTMLElement[] = [];
+const topTrap = () => activeTraps[activeTraps.length - 1];
+
 /**
  * Only things a person can actually reach. `querySelectorAll` happily returns
  * the ✕ of a collapsed section, a control inside a hidden tab panel, or the
@@ -39,6 +45,11 @@ export function useFocusTrap(
   const containerRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const wasOpen = useRef(false);
+  const onCloseRef = useRef(onClose);
+
+  // An inline callback changing must not re-register an older trap above
+  // its child or restart its initial-focus timer.
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   // Open: remember the trigger. Close: give focus back to it.
   //
@@ -62,7 +73,10 @@ export function useFocusTrap(
     // Deferred one frame: the trigger can be inside a surface that is still
     // animating out, and focusing it mid-exit scrolls the page back.
     const raf = requestAnimationFrame(() => {
-      if (document.contains(trigger)) trigger.focus({ preventScroll: true });
+      const current = topTrap();
+      if (document.contains(trigger) && (!current || current.contains(trigger))) {
+        trigger.focus({ preventScroll: true });
+      }
     });
     return () => cancelAnimationFrame(raf);
   }, [isOpen]);
@@ -72,6 +86,8 @@ export function useFocusTrap(
     if (!isOpen || !containerRef.current) return;
 
     const container = containerRef.current;
+    activeTraps.push(container);
+    const isTopTrap = () => topTrap() === container;
 
     // Focus after a tick (allows DOM to settle). A surface can name where
     // focus belongs with [data-autofocus] — a confirmation wants its armed
@@ -81,6 +97,7 @@ export function useFocusTrap(
     // was "close this" and the first thing they saw was a focus ring around
     // it.
     const timer = setTimeout(() => {
+      if (!isTopTrap()) return;
       // Native autofocus may already have placed the caret in an editor.
       // Do not steal it (or trigger its blur-to-save) after the sheet opens.
       if (container.contains(document.activeElement)) return;
@@ -101,6 +118,7 @@ export function useFocusTrap(
 
     // Trap Tab
     const onKeyDown = (e: KeyboardEvent) => {
+      if (!isTopTrap()) return;
       if (e.key === 'Tab') {
         const focusable = focusablesIn(container);
         if (focusable.length === 0) {
@@ -126,19 +144,23 @@ export function useFocusTrap(
         }
       }
 
-      if (e.key === 'Escape' && onClose) {
+      if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        e.stopPropagation();
+        onCloseRef.current?.();
       }
     };
 
-    container.addEventListener('keydown', onKeyDown);
+    // Also handle Escape during the initial-focus delay, while the trigger
+    // can still have focus outside this portalled dialog.
+    document.addEventListener('keydown', onKeyDown);
 
     /* Focus can leave without a Tab: a programmatic .focus() elsewhere, a
        click on a surface the scrim does not cover, an assistive-tech jump.
        Pulling it back is the difference between a trap and a suggestion. The
        trigger is restored by the effect above, after this listener is gone. */
     const onFocusIn = (e: FocusEvent) => {
+      if (!isTopTrap()) return;
       const target = e.target as Node | null;
       if (target && container.contains(target)) return;
       const list = focusablesIn(container);
@@ -148,10 +170,12 @@ export function useFocusTrap(
 
     return () => {
       clearTimeout(timer);
-      container.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('focusin', onFocusIn);
+      const index = activeTraps.lastIndexOf(container);
+      if (index !== -1) activeTraps.splice(index, 1);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   return containerRef;
 }

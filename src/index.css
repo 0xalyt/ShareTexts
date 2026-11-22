@@ -1220,10 +1220,25 @@ html[st-theme-vt] {
    list can hold big file previews and long text; this is cheap virtualization
    without changing DOM structure). contain-intrinsic-size keeps the scrollbar
    honest. */
-.room-scroll > * > * {
+.room-scroll [class~="group/msg"] {
   content-visibility: auto;
   contain-intrinsic-size: auto 72px;
 }
+/* An open reaction palette crosses its row's paint box. Keep virtualization
+   for the rest of the thread, but never clip or hide focus inside this row. */
+.room-scroll > * > *:has([data-slot="emoji-reaction"] [aria-expanded="true"]) {
+  content-visibility: visible;
+  z-index: 10;
+}
+/* The custom group-hover variant above targets only .group, not named groups.
+   Keep this affordance discoverable on touch, and reveal it on its own row. */
+.message-reaction-trigger { opacity: .55; }
+@media (hover: hover) and (pointer: fine) {
+  .message-reaction-trigger { opacity: 0; }
+  [class~="group/msg"]:hover .message-reaction-trigger,
+  .message-reaction-trigger:focus-within { opacity: 1; }
+}
+.message-reaction-trigger:has([aria-expanded="true"]) { opacity: 1; }
 /* The LANDING's grid is the exception. content-visibility:auto carries paint
    containment, and containment made "main is scrollable" (the promise in the
    landing's own comment) a lie: overflow past the fold was clipped at the

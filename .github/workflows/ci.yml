@@ -69,6 +69,14 @@ jobs:
           tail -40 /tmp/sharetext-server.log
           exit 1
 
+      # Exercise the built app with the in-job Worker, never production.
+      - name: Nested overlay focus regression
+        run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-overlay-focus.mjs
+
+      - name: Keyboard and pointer reaction regression
+        if: matrix.browsers == 'chromium'
+        run: URL=http://localhost:3311 npm run test:reactions
+
       - name: Motion and reduced-motion contracts
         run: BROWSERS=${{ matrix.browsers }} node scripts/verify-motion-contracts.mjs
 
@@ -91,13 +99,25 @@ jobs:
           node scripts/start-ci-worker.mjs --restart
           BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
 
+      - name: Three-device encrypted relay files
+        run: |
+          node scripts/start-ci-worker.mjs --restart
+          BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-relay-files.mjs
+
       - name: Screenshots (this engine)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs
         continue-on-error: true
 
       - name: Worker diagnostics on failure
         if: failure()
-        run: cat audit/worker.log
+        run: |
+          if [ -f audit/worker.log ]; then cat audit/worker.log; fi
+          for log in "$HOME"/.config/.wrangler/logs/*.log; do
+            if [ -f "$log" ]; then
+              echo "--- $log ---"
+              cat "$log"
+            fi
+          done
 
       - name: Upload evidence
         if: always()
