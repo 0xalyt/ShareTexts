@@ -106,7 +106,7 @@ export function ConfirmSheet({
       onClose={onCancel}
       label={title}
       maxWidth={380}
-      z={90}
+      z={100}
       closeButton={false}
       scroll="none"
       testId="confirm-sheet"

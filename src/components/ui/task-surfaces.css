@@ -83,17 +83,9 @@
 .st-task [data-testid='share-link'] { --morph-fill: var(--color-brand); color: #1d1d1f; text-shadow: none; }
 .st-task [data-testid='share-link'] .morph-btn__surface { box-shadow: var(--task-shadow); }
 .st-task-sheet .st-task-sheet-heading { display: flex; gap: 12px; align-items: center; min-width: 0; }
-.st-task-sheet .st-task-sheet-mark {
-  display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0;
-  color: var(--task-accent); background: var(--task-soft); border: 1px solid var(--task-line); border-radius: 12px;
-}
-.st-task-sheet .st-task-sheet-title { font-size: 22px; font-weight: 650; letter-spacing: -.025em; line-height: 1.25; }
+.st-task-sheet .st-task-sheet-title { font-size: 22px; font-weight: 500; letter-spacing: -.02em; line-height: 1.25; text-wrap: balance; }
 .st-task-sheet .st-task-local-note { margin: 10px 0 2px; color: var(--task-muted); font-size: 12px; line-height: 1.5; max-width: 48ch; text-wrap: pretty; }
 .st-task-settings-group > div { background: var(--task-surface); border-color: var(--task-line); box-shadow: var(--task-shadow); }
-.st-task-sheet [data-testid='saved-empty'] { position: relative; padding-inline: 24px; }
-.st-task-sheet [data-testid='saved-empty'] > span:first-child { width: 56px; height: 56px; border-radius: 16px; background: var(--task-soft); color: var(--task-accent); border: 1px solid var(--task-line); box-shadow: var(--task-shadow); }
-.st-task-sheet [data-testid='saved-empty'] > p:first-of-type { font-size: 22px; letter-spacing: -.02em; }
-.st-task-sheet [data-testid='saved-empty'] > p:nth-of-type(2) { color: var(--task-muted); }
 .st-room-start { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 480px; margin-inline: auto; padding-block: 32px; text-align: center; }
 .st-room-start h2 { max-width: 24ch; margin-top: 24px; font-size: clamp(24px, 2.5vw, 32px); font-weight: 650; line-height: 1.2; letter-spacing: -.025em; color: var(--task-ink); overflow-wrap: anywhere; text-wrap: balance; }
 .st-room-start p { max-width: 34ch; margin-top: 12px; font-size: 15px; line-height: 1.5; color: var(--task-muted); text-wrap: pretty; }
@@ -111,7 +103,21 @@
   .st-space-empty-mark { display: none; }
 }
 .st-space [data-testid='space-item'] { background: var(--task-surface); border-color: var(--task-line); border-radius: 16px; box-shadow: var(--task-shadow); }
-.st-space-share { background: var(--task-inset); color: var(--task-muted); border: 1px solid var(--task-line); }
+.st-space-share { background: var(--color-brand); color: #1d1d1f; border: 1px solid transparent; }
+/* Notes stay quiet until intent. Fine pointers reveal on hover/focus;
+   touch has an explicit 44px More target as well as horizontal swipe. */
+.st-space-item-actions { display: none; }
+.st-space-item[data-actions-open] .st-space-item-actions { display: flex; }
+@media (prefers-reduced-motion: reduce) {
+  .st-space-hold-progress { transition: none !important; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .st-space-item-more { display: none; }
+  .st-space-item-actions { display: flex; opacity: 0; pointer-events: none; }
+  .st-space-item:hover .st-space-item-actions,
+  .st-space-item:focus-within .st-space-item-actions,
+  .st-space-item[data-actions-open] .st-space-item-actions { opacity: 1; pointer-events: auto; }
+}
 .st-space [data-testid='space-send'] { background: var(--color-brand); color: #1d1d1f; border: 1px solid transparent; }
 .st-space [data-testid='space-send']:disabled { background: var(--task-inset); color: var(--task-muted); border-color: var(--task-line); opacity: 1; cursor: not-allowed; }
 
@@ -198,9 +204,9 @@
   .st-space-header > a { grid-column: 1; grid-row: 1; }
   .st-space-identity { grid-column: 2 / span 2; grid-row: 1; }
   .st-space-identity h1 { white-space: normal; overflow-wrap: anywhere; }
-  .st-space-header .st-space-close { grid-column: 4; grid-row: 1; }
+  .st-space-header .st-space-more { grid-column: 4; grid-row: 1; }
   .st-space-header [data-testid='space-members'] { grid-column: 1 / span 3; grid-row: 2; justify-self: start; }
-  .st-space-header .st-space-share { grid-column: 4; grid-row: 2; padding-inline: 0; }
+  .st-space-header .st-space-share { grid-column: 4; grid-row: 2; padding-inline: 12px; }
 }
 @media (min-width: 640px) and (max-width: 1023px) {
   .st-space-header [data-testid='space-code-chip'] { grid-column: 1 / span 2; grid-row: 2; justify-self: start; }

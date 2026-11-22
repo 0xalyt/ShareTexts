@@ -168,7 +168,7 @@ await page.waitForTimeout(500);
 const focusBack = await page.evaluate(() => document.activeElement?.getAttribute('data-testid'));
 out('Escape closes and focus returns to the trigger', focusBack === 'header-more', String(focusBack));
 
-/* ── 6. reduced motion: no drag, no fling ────────────────────────────────── */
+/* ── 6. reduced motion keeps the dismissal gesture available ─────────────── */
 const calmCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 const calm = await calmCtx.newPage();
 await calm.goto(BASE, { waitUntil: 'domcontentloaded' });
@@ -177,7 +177,7 @@ await calm.waitForTimeout(500);
 await dragHandle(calm, 120, { steps: 8 });
 await calm.waitForTimeout(300);
 const calmY = await panelY(calm);
-out('reduced motion ignores the drag (nothing moves)', calmY === 0, `translateY=${calmY}px`);
+out('reduced motion completes the same dismiss gesture', calmY === null, `translateY=${calmY}px`);
 await calm.keyboard.press('Escape');
 await calm.waitForTimeout(400);
 out('reduced motion closes without a fling',

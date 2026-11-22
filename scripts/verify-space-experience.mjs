@@ -5,7 +5,7 @@
 //
 // Covers what the brief asks and verify-space-ui doesn't already own:
 //   create (generated code + advanced options collapsed) → collision
-//   feedback → share sheet order (code → QR → copy, real QR, copy state) →
+//   feedback → share sheet order (code → copy → optional QR, copy state) →
 //   2nd device joins → device roster + count → refresh → reopen from the
 //   landing (no token in the URL) → mobile viewport → dark theme → RTL →
 //   close (creator AND joiner see the closed screen) → invalid code with
@@ -73,7 +73,7 @@ try {
   ok('create lands in the space with the code in the header', chip0 === gen, chip0);
   ok('space is empty and honest about it', await A.page.locator('[data-testid="space-empty"]').isVisible());
 
-  // ── share sheet: CODE first, then QR → share → copy ──────────────────
+  // ── share sheet: CODE first, then copy → optional QR ─────────────────
   await A.page.locator('[data-testid="space-share-btn"]').click();
   await A.page.waitForSelector('[data-testid="space-share"]', { timeout: 10000 });
   const shareCode = (await A.page.locator('[data-testid="space-share-code"]').textContent()).trim();
@@ -84,10 +84,10 @@ try {
     const code = q('[data-testid="space-share-code"]'), qr = q('[data-testid="space-share-qr"]'), copy = q('[data-testid="space-share-copy-code"]');
     if (!code || !qr || !copy) return 'missing';
     const codeFirst = !!(code.compareDocumentPosition(qr) & Node.DOCUMENT_POSITION_FOLLOWING);
-    const qrFirst = !!(qr.compareDocumentPosition(copy) & Node.DOCUMENT_POSITION_FOLLOWING);
-    return codeFirst && qrFirst;
+    const copyFirst = !!(copy.compareDocumentPosition(qr) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return codeFirst && copyFirst;
   });
-  ok('share order: code → QR → copy', order === true, String(order));
+  ok('share order: code → copy → optional QR', order === true, String(order));
 
   await A.page.locator('[data-testid="space-share-qr"]').click();
   await A.page.waitForSelector('[data-testid="space-share"] svg[width="208"]', { timeout: 10000 }).catch(() => {});
@@ -148,7 +148,7 @@ try {
   await A.page.goto(URL + '/', { waitUntil: 'domcontentloaded' });
   await A.page.getByTestId('home-space').click();
   await A.page.waitForSelector('[data-testid="space-sheet"]', { timeout: 15000 });
-  const reopenBtn = A.page.locator('[data-testid="space-sheet"] button').filter({ hasText: spaceName }).first();
+  const reopenBtn = A.page.locator('[data-testid="space-sheet"] button').filter({ has: A.page.getByText(spaceName, { exact: true }) }).first();
   ok('landing offers the recent space', await reopenBtn.isVisible());
   await reopenBtn.click();
   await A.page.waitForURL(/\/space\/[0-9a-f-]{36}/, { timeout: 15000 });
@@ -206,10 +206,34 @@ try {
   ok('RTL: space view is dir=rtl lang=ar', rt.dir === 'rtl' && rt.lang === 'ar', `${rt.dir}/${rt.lang}`);
   ok('RTL: no sideways scroll', rt.overflowX === 0, `ox=${rt.overflowX}`);
 
-  // ── close: creator confirms, BOTH devices see the closed screen ──────
-  await A.page.getByRole('button', { name: /close now/i }).click();
-  await A.page.waitForSelector('text=/close this space/i', { timeout: 8000 });
-  await A.page.getByRole('button', { name: /close space/i }).click();
+  // Deletion is not a red close icon. A short press must be harmless; only
+  // a completed hold deletes, and both devices see the authoritative result.
+  await A.page.getByTestId('space-actions').click();
+  const hold = A.page.getByTestId('space-hold-delete');
+  await hold.click();
+  await A.page.waitForTimeout(1000);
+  ok('short delete press keeps the space open', await A.page.getByTestId('space-composer').isVisible());
+  await hold.focus();
+  await A.page.keyboard.down('Space');
+  await A.page.waitForTimeout(200);
+  await A.page.keyboard.up('Space');
+  await A.page.waitForTimeout(1000);
+  ok('released keyboard hold does not delete', await A.page.getByTestId('space-composer').isVisible());
+  // Assistive activation has no sustained press. Offer the explicit
+  // confirmation instead of leaving those users unable to delete.
+  await hold.evaluate(button => button.click());
+  const deleteConfirm = A.page.getByRole('dialog', { name: 'Delete this Space?', exact: true });
+  await deleteConfirm.waitFor();
+  ok('assistive activation has an explicit confirmation', await deleteConfirm.isVisible());
+  await deleteConfirm.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await deleteConfirm.waitFor({ state: 'detached' });
+  ok('cancelled assistive deletion keeps the Space', await A.page.getByTestId('space-composer').isVisible());
+  await A.page.getByTestId('space-actions').click();
+  const holdBox = await hold.boundingBox();
+  await A.page.mouse.move(holdBox.x + holdBox.width / 2, holdBox.y + holdBox.height / 2);
+  await A.page.mouse.down();
+  await A.page.waitForTimeout(1000);
+  await A.page.mouse.up();
   await A.page.waitForSelector('text=/this space is closed/i', { timeout: 15000 });
   ok('creator lands on the closed screen', true);
   const homeBtn = await A.page.getByRole('button', { name: /home|back|start/i }).first().isVisible().catch(() => false);
