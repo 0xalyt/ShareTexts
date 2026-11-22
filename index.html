@@ -209,16 +209,9 @@
   </head>
   <body>
     <div id="root">
-      <!-- Boot screen: ONE quiet mark, one hairline progress, one line of
-           text — the product holding your place while its code arrives.
-           The old shell drew a full faux landing page (headline, fake Send
-           buttons, a how-it-works list and ten FAQ answers) as grey bars, so
-           the first thing anyone saw was a wireframe of a website: slop.
-           A loader's only job is to say "coming, and it's ShareTexts".
-           The crawlable copy did not disappear with it — it moved into the
-           <noscript> block below, where it serves crawlers and no-JS
-           visitors without ever being shown to a browser that can run the
-           app. -->
+      <!-- Keep this document-only shell aligned with landing-page.css and
+           hero-film.css: header, centered intro, actions, film, shortcut.
+           It must hold the page before any JavaScript or app CSS arrives. -->
       <div id="loading-shell">
         <style>
           #loading-shell {
@@ -226,82 +219,124 @@
             display: block;
             background: #fbfbfd;
             font-family: var(--st-font-sans);
-            transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+            height: 100dvh;
+            overflow: hidden;
           }
           #loading-shell.fade-out { opacity: 0; }
           html.dark #loading-shell { background: #181818; }
-          /* SKELETON, not a splash. It draws the page that is about to
-             arrive — the same grid, the same column split, the same radii —
-             so hydration replaces blocks in place instead of swapping one
-             layout for another. Nothing here fetches an image: the first
-             paint costs zero network requests beyond the document itself.
-             Radii mirror the real components (film 10, buttons 14, field
-             pill) because a skeleton with made-up corners is a second design
-             the user has to un-see. */
+          #loading-shell *, #loading-shell *::after { box-sizing: border-box; }
+          /* Same 1200px frame and responsive gutters as the live landing. */
           #loading-shell .st-skel {
+            width: 100%;
+          }
+          #loading-shell .st-skel__header, #loading-shell .st-skel__main {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px 24px 56px;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 28px;
-            align-items: start;
+            padding-inline: 24px;
           }
-          @media (min-width: 1024px) {
-            #loading-shell .st-skel {
-              grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-              gap: 40px;
-              padding-top: 30px;
-            }
-          }
+          #loading-shell .st-skel__header { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 20px; }
+          #loading-shell .st-skel__brand, #loading-shell .st-skel__tools { display: flex; align-items: center; gap: 8px; }
+          #loading-shell .st-skel__main { padding-block: 32px 64px; }
+          #loading-shell .st-skel__intro { display: flex; flex-direction: column; align-items: center; max-width: 470px; margin-inline: auto; }
           #loading-shell .st-sk {
             position: relative;
             overflow: hidden;
             background: rgba(20, 16, 10, 0.075);
-            border-radius: 10px;
+            border-radius: 8px;
           }
           html.dark #loading-shell .st-sk { background: rgba(255, 255, 255, 0.08); }
-          #loading-shell .st-sk::after {
+          /* Only the film sweeps; text and controls stay quiet. */
+          #loading-shell .st-sk--picture::after {
             content: '';
             position: absolute;
             inset: 0;
             transform: translateX(-100%);
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-            animation: st-sk-shimmer 1.45s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            animation: st-sk-shimmer 1.45s cubic-bezier(0.4, 0, 0.6, 1) 3;
           }
           html.dark #loading-shell .st-sk::after {
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
           }
           @keyframes st-sk-shimmer { 100% { transform: translateX(100%); } }
-          #loading-shell .st-sk--pill { height: 28px; width: min(220px, 70%); border-radius: 999px; }
-          #loading-shell .st-sk--h1 { height: 32px; margin-top: 18px; }
-          #loading-shell .st-sk--line { height: 14px; margin-top: 12px; }
-          #loading-shell .st-sk--track { height: 12px; width: 150px; margin-top: 22px; border-radius: 999px; }
-          #loading-shell .st-sk--btn { height: 52px; border-radius: 14px; }
-          #loading-shell .st-sk--field { height: 52px; margin-top: 12px; border-radius: 999px; }
-          #loading-shell .st-sk--film { margin-top: 20px; border-radius: 10px; aspect-ratio: 16 / 9; }
-          #loading-shell .st-skel__btns { display: grid; gap: 12px; margin-top: 22px; grid-template-columns: 1fr; }
-          @media (min-width: 420px) {
-            #loading-shell .st-skel__btns { grid-template-columns: 1fr 1fr; }
+          #loading-shell .st-sk--mark { width: 36px; height: 36px; border-radius: 12px; }
+          #loading-shell .st-sk--wordmark { width: 92px; height: 20px; }
+          #loading-shell .st-sk--tools { width: 82px; height: 44px; border-radius: 999px; }
+          #loading-shell .st-sk--theme { width: 40px; height: 40px; border-radius: 50%; }
+          #loading-shell .st-skel__heading { width: 100%; max-width: 680px; display: flex; flex-direction: column; align-items: center; gap: .18em; font-size: clamp(32px, 8.8vw, 46px); }
+          #loading-shell .st-sk--h1 { height: .88em; width: 64%; }
+          #loading-shell .st-sk--h1:nth-child(2) { width: 92%; }
+          #loading-shell .st-sk--h1:nth-child(3) { width: 56%; }
+          #loading-shell .st-skel__lede { width: 100%; max-width: 520px; height: 56px; margin-top: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+          #loading-shell .st-sk--line { width: 90%; height: 12px; border-radius: 999px; }
+          #loading-shell .st-sk--line:last-child { width: 58%; }
+          #loading-shell .st-sk--btn { height: 56px; border-radius: 16px; }
+          #loading-shell .st-skel__btns { width: 100%; max-width: 480px; display: grid; gap: 12px; margin-top: 24px; grid-template-columns: 1fr 1fr; }
+          #loading-shell .st-skel__film { width: 100%; margin-block: 40px 8px; overflow: hidden; border-radius: 12px; }
+          #loading-shell .st-sk--picture { aspect-ratio: 4 / 3; border-radius: 0; }
+          #loading-shell .st-sk--play { height: 45px; margin-top: 1px; border-radius: 0; }
+          #loading-shell .st-sk--field { width: 100%; max-width: 480px; height: 56px; margin-top: 32px; border-radius: 16px; }
+          #loading-shell .st-sk--utility { width: 120px; height: 16px; margin-top: 24px; border-radius: 999px; }
+          @media (min-width: 640px) {
+            #loading-shell .st-skel__header { padding-inline: 24px; }
+            #loading-shell .st-sk--mark { width: 44px; height: 44px; }
+            #loading-shell .st-sk--wordmark { width: 120px; height: 24px; }
+            #loading-shell .st-sk--tools { width: 184px; }
+            #loading-shell .st-sk--picture { aspect-ratio: 16 / 9; }
           }
-          @media (min-width: 640px) { #loading-shell .st-sk--h1 { height: 42px; } }
-          /* The film is a column of its own on desktop and an inline block on
-             phones — exactly like the hero it is standing in for. */
-          #loading-shell .st-skel__film--inline { display: block; }
-          #loading-shell .st-skel__film--side { display: none; }
+          @media (min-width: 768px) {
+            #loading-shell .st-skel__film { border-radius: 16px; }
+            #loading-shell .st-sk--play { height: 49px; }
+          }
           @media (min-width: 1024px) {
-            #loading-shell .st-skel__film--inline { display: none; }
-            #loading-shell .st-skel__film--side { display: block; }
+            #loading-shell .st-skel__header, #loading-shell .st-skel__main { padding-inline: 32px; }
+            #loading-shell .st-skel__intro { max-width: none; }
+            #loading-shell .st-skel__heading { font-size: 60px; }
+            #loading-shell .st-sk--h1:first-child { width: 56%; }
+            #loading-shell .st-sk--h1:nth-child(3) { display: none; }
+            #loading-shell .st-skel__lede { height: 28px; }
+            #loading-shell .st-sk--line:last-child { display: none; }
+            #loading-shell .st-sk--btn { height: 64px; }
+            #loading-shell .st-skel__film { margin-top: 32px; }
+          }
+          @media (min-width: 1440px) {
+            #loading-shell .st-skel__heading { font-size: 64px; }
+          }
+          @media (min-width: 1536px) {
+            #loading-shell .st-skel__header, #loading-shell .st-skel__main { padding-inline: 48px; }
+          }
+          @media (min-width: 1024px) and (max-height: 800px) {
+            #loading-shell .st-skel__main { padding-top: 24px; }
+          }
+          @media (max-width: 359px) {
+            #loading-shell .st-skel__btns { margin-top: 20px; }
+            #loading-shell .st-skel__lede { height: 50px; }
+          }
+          @media (max-width: 767px) {
+            #loading-shell .st-skel__film { margin-bottom: 0; }
+            #loading-shell .st-sk--field { margin-top: 16px; }
+          }
+          @media (orientation: landscape) and (max-height: 500px) {
+            #loading-shell .st-skel__heading { font-size: 26px; }
+            #loading-shell .st-skel__film { display: none; }
           }
           #loading-shell .st-note {
-            margin: 14px 0 0;
+            position: fixed;
+            inset-inline: 16px;
+            bottom: max(16px, env(safe-area-inset-bottom));
+            width: fit-content;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            border: 1px solid rgba(20, 16, 10, 0.12);
+            border-radius: 16px;
+            background: #fbfbfd;
             font-size: 13px;
             font-weight: 500;
             line-height: 1.5;
             color: #6e6e73;
             letter-spacing: -0.01em;
           }
-          html.dark #loading-shell .st-note { color: rgba(255, 255, 255, 0.55); }
+          html.dark #loading-shell .st-note { color: #a1a1a6; background: #181818; border-color: rgba(255, 255, 255, 0.12); }
           @media (prefers-reduced-motion: reduce) {
             #loading-shell .st-sk::after { animation: none; opacity: 0; }
           }
@@ -321,31 +356,38 @@
         </style>
 
         <div class="st-skel" aria-hidden="true">
-          <div>
-            <div class="st-sk st-sk--pill"></div>
-            <div class="st-sk st-sk--h1" style="width: 92%"></div>
-            <div class="st-sk st-sk--h1" style="width: 74%; margin-top: 10px"></div>
-            <div class="st-skel__film--inline">
-              <div class="st-sk st-sk--film"></div>
+          <div class="st-skel__header">
+            <div class="st-skel__brand">
+              <div class="st-sk st-sk--mark"></div>
+              <div class="st-sk st-sk--wordmark"></div>
             </div>
-            <div class="st-sk st-sk--track"></div>
-            <div class="st-skel__btns">
-              <div class="st-sk st-sk--btn"></div>
-              <div class="st-sk st-sk--btn"></div>
+            <div class="st-skel__tools">
+              <div class="st-sk st-sk--tools"></div>
+              <div class="st-sk st-sk--theme"></div>
             </div>
-            <div class="st-sk st-sk--line" style="width: 86%; margin-top: 18px"></div>
-            <div class="st-sk st-sk--line" style="width: 64%"></div>
-            <div class="st-sk st-sk--field"></div>
-            <!-- The honest escalation (mirrors the in-app connecting screen):
-                 an 8s boot is NOT normal — say so instead of shimmering
-                 forever. Kept outside the aria-hidden skeleton so a slow
-                 boot still announces something to a screen reader. -->
-            <p id="st-boot-slow" style="display:none">
-              Still loading — your connection is slow. If this doesn't clear, check your network and refresh.
-            </p>
           </div>
-          <div class="st-skel__film--side">
-            <div class="st-sk st-sk--film" style="margin-top: 0"></div>
+          <div class="st-skel__main">
+            <div class="st-skel__intro">
+              <div class="st-skel__heading">
+                <div class="st-sk st-sk--h1"></div>
+                <div class="st-sk st-sk--h1"></div>
+                <div class="st-sk st-sk--h1"></div>
+              </div>
+              <div class="st-skel__lede">
+                <div class="st-sk st-sk--line"></div>
+                <div class="st-sk st-sk--line"></div>
+              </div>
+              <div class="st-skel__btns">
+                <div class="st-sk st-sk--btn"></div>
+                <div class="st-sk st-sk--btn"></div>
+              </div>
+              <div class="st-skel__film">
+                <div class="st-sk st-sk--picture"></div>
+                <div class="st-sk st-sk--play"></div>
+              </div>
+              <div class="st-sk st-sk--field"></div>
+              <div class="st-sk st-sk--utility"></div>
+            </div>
           </div>
         </div>
         <div class="st-skel-room" aria-hidden="true">
@@ -367,6 +409,11 @@
             <div class="st-sk" style="width: 44px; height: 44px; border-radius: 999px"></div>
           </div>
         </div>
+        <!-- Outside both decorative, aria-hidden layouts: this warning must
+             remain visible and announced on a slow landing OR room resume. -->
+        <p id="st-boot-slow" class="st-note" role="status" style="display:none">
+          Still loading — your connection is slow. If this doesn't clear, check your network and refresh.
+        </p>
       </div>
 
       <!-- Crawlable product copy, for crawlers and no-JS visitors only. The
