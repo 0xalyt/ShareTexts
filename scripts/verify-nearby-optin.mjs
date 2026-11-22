@@ -90,6 +90,69 @@ try {
   await until(() => count(1, 'presence_announce') === 3, 'opting back in must announce');
   await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).waitFor({ state: 'visible', timeout: 10_000 });
   console.log('PASS Nearby re-opt-in: same open socket announces again and B reappears on A');
+  const visibility = b.getByTestId('nearby-visibility-toggle');
+  await b.clock.pauseAt(Date.now() + 100);
+  const tap = async () => {
+    const box = await visibility.boundingBox();
+    await b.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  };
+  await b.evaluate(key => {
+    window.__visibilityChanges = [];
+    for (const method of ['setItem', 'removeItem']) {
+      const original = Storage.prototype[method];
+      Storage.prototype[method] = function (...args) {
+        const result = original.apply(this, args);
+        if (this === sessionStorage && args[0] === key) window.__visibilityChanges.push(method === 'setItem');
+        return result;
+      };
+    }
+  }, deadlineKey);
+  const assertVisibleOnce = async (action, label) => {
+    await b.clock.runFor(600);
+    await b.evaluate(() => { window.__visibilityChanges = []; });
+    const start = sent[1].length;
+    await action();
+    await b.clock.runFor(700);
+    await delay(700);
+    assert.deepEqual(await b.evaluate(() => window.__visibilityChanges), [false, true], `${label}: exactly one change per gesture`);
+    assert.equal(await visibility.getAttribute('aria-checked'), 'true', `${label}: ends visible`);
+    const events = sent[1].slice(start);
+    assert.equal(events.filter(event => event === 'presence_announce').length, 1, `${label}: exactly one re-announce`);
+    assert(!events.slice(events.indexOf('presence_announce') + 1).includes('presence_withdraw'), `${label}: no trailing withdrawal`);
+    await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).waitFor({ state: 'visible', timeout: 10_000 });
+    console.log(`PASS Nearby switch: ${label}; one change per gesture, visible and announced, no trailing withdraw`);
+  };
+  await assertVisibleOnce(async () => {
+    await tap();
+    await b.clock.runFor(60);
+    await tap();
+  }, 'rapid off/on clicks');
+  for (const key of ['Space', 'Enter']) {
+    await assertVisibleOnce(async () => {
+      await visibility.focus();
+      await b.keyboard.press(key);
+      await b.clock.runFor(60);
+      await tap();
+    }, `${key} then quick tap during animation`);
+  }
+  for (const dx of [-18, 18]) {
+    await b.clock.runFor(600);
+    await b.evaluate(() => { window.__visibilityChanges = []; });
+    const box = await visibility.boundingBox();
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await b.mouse.move(x, y);
+    await b.mouse.down();
+    await b.mouse.move(x + dx, y, { steps: 4 });
+    await b.mouse.up();
+    await b.clock.runFor(600);
+    await delay(600);
+    assert.equal(await visibility.getAttribute('aria-checked'), String(dx > 0), 'drag settles by midpoint');
+    assert.deepEqual(await b.evaluate(() => window.__visibilityChanges), [dx > 0], 'drag changes once; following click is suppressed');
+  }
+  console.log('PASS Nearby switch: drags settle off/on by position without a second click toggle');
+  await b.clock.resume();
+  const announcesBeforeExpiry = count(1, 'presence_announce');
   const beforeExpiry = count(1, 'presence_withdraw');
   const renewedDeadline = await b.evaluate(key => Number(sessionStorage.getItem(key)), deadlineKey);
   await b.clock.setFixedTime(renewedDeadline + 1000);
@@ -97,7 +160,7 @@ try {
   await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).waitFor({ state: 'hidden', timeout: 10_000 });
   assert.equal(await b.evaluate(key => sessionStorage.getItem(key), deadlineKey), null);
   await delay(1500);
-  assert.equal(count(1, 'presence_announce'), 3, 'expiry must not announce again');
+  assert.equal(count(1, 'presence_announce'), announcesBeforeExpiry, 'expiry must not announce again');
   assert.deepEqual(errors, []);
   console.log('PASS Nearby expiry: elapsed deadline withdraws and stays hidden; no page errors');
   await b.clock.setFixedTime(Date.now());
