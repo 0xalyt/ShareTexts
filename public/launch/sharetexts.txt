@@ -1,0 +1,21 @@
+ShareTexts
+Send text, links, photos and files between your devices.
+
+Open sharetexts.online on both devices. Choose Send on one, then use
+the code or QR on the other. No account or app download is needed.
+
+Live-room transfers are encrypted in transit, using a direct connection
+when available or an encrypted relay. The service issues room secrets;
+this is not a zero-knowledge system. Temporary Spaces store content
+until closed or expired, for up to seven days. Hop keeps encrypted
+items for linked devices for up to 30 days. Saved Items stay in the
+browser where you save them.
+
+Website: https://sharetexts.online/
+How it works: https://sharetexts.online/docs
+Release notes: https://sharetexts.online/changelog
+Privacy: https://sharetexts.online/privacy
+Feedback: https://x.com/0xalyt
+
+Public beta. Free to use. English launch interface.
+Share-sheet file intake depends on the installed browser and phone.

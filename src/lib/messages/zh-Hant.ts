@@ -15,6 +15,10 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  "nav.changelog": "最新動態",
+  "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
+  "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",
+  "chat.receivedFrom": "{item} 來自{name}。",
   'space.holdToDelete': '按住以刪除',
   "home.title": "把任何內容傳到你的另一台裝置。",
   "home.moreWays": "更多分享方式",

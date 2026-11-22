@@ -8,6 +8,7 @@ import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
 import { hasUsedApp } from '../lib/rating';
 import { ShareTextsLogo } from './ShareTextsLogo';
+import { COMPLETED_EVENT } from '../lib/completedItems';
 import {
   hasInstallPrompt,
   initInstallCapture,
@@ -81,7 +82,7 @@ export function InstallNudge() {
   useEffect(() => {
     initInstallCapture();
     noteVisit();
-    const forced = typeof window !== 'undefined' && /[?&]install=1/.test(window.location.search);
+    const forced = import.meta.env.DEV && /[?&]install=1/.test(window.location.search);
     let timer = 0;
     let retired = false;
 
@@ -127,7 +128,8 @@ export function InstallNudge() {
     // A device joined the room — the strongest "this app did something for
     // me" signal there is. Offer shortly after the room empties.
     const onRecent = () => arm(4000);
-    window.addEventListener('sharetext:recents', onRecent);
+    window.addEventListener(COMPLETED_EVENT, onRecent);
+    window.addEventListener('sharetext:installable', onRecent);
 
     // Coming back to the tab is a fresh moment; going into it is not.
     const onVisible = () => {
@@ -139,7 +141,8 @@ export function InstallNudge() {
     return () => {
       window.clearTimeout(timer);
       window.clearTimeout(retireRef.current);
-      window.removeEventListener('sharetext:recents', onRecent);
+      window.removeEventListener(COMPLETED_EVENT, onRecent);
+      window.removeEventListener('sharetext:installable', onRecent);
       document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);

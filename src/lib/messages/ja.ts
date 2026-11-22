@@ -3,6 +3,10 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  "nav.changelog": "新着情報",
+  "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
+  "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",
+  "chat.receivedFrom": "{item} 送信元：{name}。",
   "home.moreWays": "ほかの共有方法",
   "home.proof.open.title": "両方のデバイスで開く",
   "home.proof.open.body": "各デバイスでShareTextsを開きます。アプリもアカウントも不要です。",

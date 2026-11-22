@@ -3,6 +3,10 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ar: Dict = {
+  "nav.changelog": "الجديد",
+  "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
+  "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",
+  "chat.receivedFrom": "{item} من {name}.",
   "home.moreWays": "طرق أخرى للمشاركة",
   "home.proof.open.title": "افتح على الجهازين",
   "home.proof.open.body": "افتح ShareTexts على كل جهاز. دون تطبيق أو حساب.",

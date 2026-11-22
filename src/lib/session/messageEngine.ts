@@ -26,6 +26,7 @@ import { connMachine } from '../connectionState';
 import { speedTrackerFor, dropSpeedTracker } from '../speedEngine';
 import { beginTransferRecord, finishTransferRecord } from '../transferMetrics';
 import { productEvent } from '../telemetry';
+import { noteCompletedItem } from '../completedItems';
 import { saveSendable, getSendable, deleteSendable, saveTransferState, deleteTransferState, saveReceivedFile, getReceivedFile, deleteReceivedFile } from '../transferStore';
 import { sanitizeFilename } from '../utils';
 import { recordTransferBytes } from '../pairing';
@@ -357,8 +358,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
               : parsed.attachment ? { ...parsed, attachment: { ...parsed.attachment, name: sanitizeFilename(parsed.attachment.name || 'file') } } : parsed;
             setSession(s => ({
               ...s,
-              messages: [...s.messages, incoming]
+              messages: [...s.messages, { ...incoming, senderDeviceName: pm.remoteDisplayName || (roomRoster.size > 2 ? roomRoster.get(pm.boundId ?? '')?.name : undefined) }]
             }));
+            if (!parsed.attachment) noteCompletedItem(parsed.id, true, deps.getRoomId());
           } else if (parsed.attachment) {
             // A re-sent metadata for a message we already have (e.g. the
             // checksum arrives after the sender finished hashing). Merge the
@@ -505,6 +507,7 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
       finishTransferRecord(transferId, 'received', blob.size, 'ok', { name: srcMsg?.attachment?.name, kind: 'file' });
       productEvent('product.transfer_completed');
       productEvent('product.activation');
+      noteCompletedItem(srcMsg?.id ?? transferId, true, deps.getRoomId());
       void deleteTransferState(transferId);
       dropSpeedTracker(transferId);
       lastSpeedReadings.current.delete(transferId);
@@ -524,6 +527,9 @@ export function useMessageEngine(deps: MessageEngineDeps): MessageEngine {
 
     // The peer confirmed one of our messages arrived.
     pm.onReceipt = (messageId) => {
+      if (getMessages().some(message => message.id === messageId && message.sender === 'me')) {
+        noteCompletedItem(messageId, false, deps.getRoomId());
+      }
       setSession(s => ({
         ...s,
         messages: s.messages.map(m => m.id === messageId ? { ...m, delivered: true } : m)

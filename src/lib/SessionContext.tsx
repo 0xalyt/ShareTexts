@@ -24,9 +24,12 @@ import { useCryptoKeyCache } from './session/cryptoCache';
 import { useSeenReceipts } from './session/seenReceipts';
 import { useMessageEngine } from './session/messageEngine';
 import { useTransferWakeLock } from './session/wakeLock';
+import { discardComposerIntent } from './composerIntent';
 
 interface SessionContextValue {
   session: SessionState;
+  /** The saved room has not yet been accepted or rejected by the server. */
+  isRestoringSession: boolean;
   /** Creates a room; resolves with the fresh credentials once the server
    *  acknowledges (callers that don't need them may ignore the value). */
   createSession: () => Promise<{ roomId: string; secret: string }>;
@@ -102,6 +105,7 @@ export function useSession() {
 }
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const [isRestoringSession, setIsRestoringSession] = useState(() => !!loadStoredSession()?.roomId);
   const [session, setSession] = useState<SessionState>(() => {
     const stored = loadStoredSession();
     return {
@@ -782,6 +786,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           // again, and the room may still be alive on the server.
           diag('room.resume_offline', true, 'giving up for now, credential kept');
           setSession(s => ({ ...s, roomId: null, secret: null, isCreator: false }));
+          setIsRestoringSession(false);
         }
         return;
       }
@@ -815,6 +820,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           // Server is the source of truth for the Stay Connected badge.
           stayConnected: !!(res as { stayConnected?: boolean }).stayConnected
         }));
+        setIsRestoringSession(false);
         startSeatKeepalive();
         if (peerManagerRef.current) peerManagerRef.current.destroy();
         const liveOthers = roomRoster.otherEntries().filter(e => e.link !== 'offline');
@@ -855,6 +861,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         // Room is gone or we lost the credential — start clean.
         saveStoredSession(null);
         setSession(s => ({ ...s, roomId: null, secret: null, isCreator: false, closedReason: 'expired' }));
+        setIsRestoringSession(false);
       }
     };
     // Start the resume on the NEXT tick, not "whenever the browser is idle"
@@ -1350,6 +1357,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetSession = (reason?: string) => {
+    // Room-owned waiting shares must not survive Disconnect/room closure.
+    discardComposerIntent(sessionRef.current.roomId);
     // 1. Mark abandoned (must happen before room_closed echo can fire)
     if (reason) abandonedRef.current = false;
     resetRoomsBumpLatch(); // room gone — a new pairing may bump again
@@ -1537,7 +1546,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [peers, recipients]);
 
   return (
-    <SessionContext.Provider value={{ session: { ...session, peers, recipients }, createSession, joinWithCode, joinWithLink, joinWithShortCode, sendMessage, updateMessageAttachment, retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, setDeviceName, transferSpeedFor, requestReconnect, refreshCode, closeSession, leaveView, abandonSession, setStayConnected, registerRoomViewer, claimSeen, rejoinStayRoom, peers, selfParticipantId: selfPidRef.current, recipients, toggleRecipient, selectAllRecipients, clearRecipients, ensureLink, retryRecipient, cancelRecipient, reactToMessage, deleteLocalMessage, sendTyping, onTyping }}>
+    <SessionContext.Provider value={{ session: { ...session, peers, recipients }, isRestoringSession, createSession, joinWithCode, joinWithLink, joinWithShortCode, sendMessage, updateMessageAttachment, retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, setDeviceName, transferSpeedFor, requestReconnect, refreshCode, closeSession, leaveView, abandonSession, setStayConnected, registerRoomViewer, claimSeen, rejoinStayRoom, peers, selfParticipantId: selfPidRef.current, recipients, toggleRecipient, selectAllRecipients, clearRecipients, ensureLink, retryRecipient, cancelRecipient, reactToMessage, deleteLocalMessage, sendTyping, onTyping }}>
       {children}
     </SessionContext.Provider>
   );

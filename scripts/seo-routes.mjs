@@ -241,6 +241,11 @@ function emit(route, { head, body, jsonLd = '' }) {
   }
 }
 
+emit('changelog.html', {
+  head: swapMeta(base, { title: 'What’s new — ShareTexts', description: 'Small improvements to sharing between your devices. Read the latest ShareTexts release notes.', canonicalPath: '/changelog' }),
+  body: shellBody({ intro: false, main: readFileSync('src/views/changelog-content.html', 'utf8') }),
+});
+
 // ---------------------------------------------------------------------------
 // /docs — the strongest AEO surface. The FAQ below is copied VERBATIM from
 // src/views/Docs.tsx (FAQSection); the JSON-LD mirrors exactly this text.

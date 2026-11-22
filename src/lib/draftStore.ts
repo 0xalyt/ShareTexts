@@ -16,6 +16,8 @@ export interface DraftAttachment extends Attachment {
 export interface ComposerDraft {
   text: string;
   attachments: DraftAttachment[];
+  /** Shared batches waiting for attachment space, kept separate from this draft. */
+  pendingShares?: { text: string; files: File[] }[];
   updatedAt: number;
 }
 

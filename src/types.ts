@@ -69,6 +69,8 @@ export interface Attachment {
 export interface ChatMessage {
   id: string;
   sender: 'me' | 'partner';
+  /** Local roster attribution, never trusted from the incoming payload. */
+  senderDeviceName?: string;
   /** 'push' = arrived via the agent push API (script/AI agent), not typed on
    *  the partner device. Renders like an incoming message with a small
    *  "From your push link" tag instead of the partner's name. */

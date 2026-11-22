@@ -1,4 +1,8 @@
 const en = {
+  "nav.changelog": "What’s new",
+  "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
+  "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",
+  "chat.receivedFrom": "{item} From {name}.",
   "home.moreWays": "More ways to share",
   "home.proof.open.title": "Open on both devices",
   "home.proof.open.body": "Visit ShareTexts on each device. No app or account.",

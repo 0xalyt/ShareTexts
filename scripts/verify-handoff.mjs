@@ -81,6 +81,7 @@ try {
   assert.deepEqual(readingErrors, [], 'reading without WebRTC has no runtime errors');
   await noRtc.close();
 
+  const englishHeadlines = new Map();
   for (const locale of ['en', 'es', 'ar']) {
     for (const width of [320, 360, 390, 1440]) {
       const ctx = await diagnostics.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
@@ -190,6 +191,7 @@ try {
           [...el.querySelectorAll('.landing-browser-list')].every(list => list.textContent.trim() === '');
       }));
       if (locale === 'en') {
+        englishHeadlines.set(width, await page.locator('h1').textContent());
         await page.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
         check(`${width}: the complete headline is still, medium-weight and fits`, await page.locator('h1').evaluate(el => {
           const bounds = el.getBoundingClientRect();
@@ -214,7 +216,11 @@ try {
           await page.screenshot({ path: 'audit/tmp/landing-story-1440.png', fullPage: false });
         }
       } else {
-        check(`${locale}/${width}: headline is localized`, !(await page.locator('h1').innerText()).includes('Share'));
+        check(`${locale}/${width}: draft locale falls back to the reviewed English headline`,
+          await page.locator('h1').textContent() === englishHeadlines.get(width));
+        check(`${locale}/${width}: fallback has English language and writing direction`,
+          await page.locator('html').getAttribute('lang') === 'en' &&
+          await page.locator('html').getAttribute('dir') === 'ltr');
       }
       if (width >= 768) {
         const languagePopup = page.locator('.landing-nav button[aria-haspopup="listbox"]');
