@@ -6,6 +6,9 @@ import { beginTransferRecord, finishTransferRecord, recordTransferProgress, setC
 import { productEvent } from './telemetry';
 import type { ChunkEnvelope } from './protocol';
 import { setDataChannel } from './netStats';
+import type { RelayBinaryAssembler } from './relayBinary';
+
+const loadRelayCodec = () => import('./relayBinary');
 
 type SignalData = { type: 'offer' | 'answer'; sdp: string } | { type: 'candidate'; candidate: RTCIceCandidateInit };
 
@@ -190,6 +193,12 @@ interface PartialReceive {
   updatedAt: number;
 }
 const partialReceives = new Map<string, PartialReceive>();
+const completedReceives = new Set<string>();
+
+function rememberCompletedReceive(transferId: string) {
+  completedReceives.add(transferId);
+  if (completedReceives.size > 256) completedReceives.delete(completedReceives.values().next().value!);
+}
 
 // Chunks can race ahead of their metadata: metadata is a chunk-envelope text
 // message that decrypts asynchronously, so a fast 1-chunk file can have its
@@ -239,6 +248,7 @@ export function getAckedPosition(transferId: string): number {
  * when a session resets so memory isn't held forever.
  */
 export function clearTransferState(transferId: string) {
+  completedReceives.delete(transferId);
   const p = partialReceives.get(transferId);
   // Only clean up disk sinks that never completed — a finished OPFS file's
   // blob URL may still be live for the user to download.
@@ -255,6 +265,7 @@ export function clearAllTransferState() {
     if (p.opfs && p.received < p.total) void closeOpfsSink(p.opfs);
   }
   partialReceives.clear();
+  completedReceives.clear();
   sendProgress.clear();
   ackWaiters.clear();
   orphanChunks.clear();
@@ -432,6 +443,9 @@ export class PeerManager {
   private cryptoKey: CryptoKey | null = null;
   private cryptoPromise: Promise<CryptoKey>;
   private destroyed = false;
+  private peerRelayFragments: boolean | null = null;
+  private relayCapabilityWaiters = new Set<() => void>();
+  private relayAssembly: RelayBinaryAssembler | null = null;
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private relayFallbackTimer: ReturnType<typeof setTimeout> | null = null;
   /** Bandwidth samples (bytes/sec) for adaptive PIPELINE DEPTH pacing.
@@ -903,6 +917,9 @@ export class PeerManager {
         if (this.onDisconnectImmediate) this.onDisconnectImmediate();
         return;
       case 'hello':
+        if (this.peerRelayFragments === null) void this.sendHello();
+        this.peerRelayFragments = Array.isArray(inner.features) && inner.features.includes('relay-fragments-v1');
+        for (const done of this.relayCapabilityWaiters) done();
         if (typeof inner.name === 'string' && this.onHello) this.onHello(inner.name);
         if (this.onPeerCapabilities) {
           // Capability negotiation: intersect our features with the peer's so
@@ -993,10 +1010,31 @@ export class PeerManager {
 
   /** Relay chunks addressed to THIS link (routed by participant id) — inert
    *  once destroyed. */
-  public acceptRelay = (data: string | ArrayBuffer) => {
+  public acceptRelay = async (data: string | ArrayBuffer) => {
     if (this.destroyed) return;
+    if (data instanceof ArrayBuffer) {
+      if (!this.relayAssembly) {
+        const { RelayBinaryAssembler } = await loadRelayCodec();
+        if (this.destroyed) return;
+        this.relayAssembly ??= new RelayBinaryAssembler();
+      }
+      const packet = this.relayAssembly.push(data);
+      if (!packet) return;
+      data = packet;
+    }
     void this.handleIncomingData(data);
   };
+
+  private async sendRelayBinary(packet: ArrayBuffer): Promise<void> {
+    const { relayBinaryFrames, RELAY_PACKET_LIMIT, waitForRelayCapability } = await loadRelayCodec();
+    if (packet.byteLength > RELAY_PACKET_LIMIT && this.peerRelayFragments === null) {
+      void this.sendHello();
+      await waitForRelayCapability(this.relayCapabilityWaiters);
+    }
+    if (this.destroyed) throw new TransferInterruptedError();
+    const frames = this.peerRelayFragments ? relayBinaryFrames(packet) : [packet];
+    for (const data of frames) getSocket().emit('relay_message', { roomId: this.roomId, to: this.peerId, data });
+  }
 
   private setupSocketListeners() {
     // Register with the shared multi-device router instead of touching the
@@ -1027,6 +1065,7 @@ export class PeerManager {
             const peer = this.resolveRelayPeer?.();
             if (peer) this.attach(peer);
           }
+          void this.sendHello();
           if (this.peerId && this.onOpen) this.onOpen();
         }
       }
@@ -1034,6 +1073,7 @@ export class PeerManager {
   }
 
   public expectBinaryTransfer(transferId: string, totalChunks: number) {
+    if (completedReceives.has(transferId)) return;
     const existing = partialReceives.get(transferId);
     const totalBytes = totalChunks * CHUNK_SIZE;
     // Stream to disk for large files when the browser supports it; small files
@@ -1155,6 +1195,7 @@ export class PeerManager {
       const view = new DataView(data);
       const transferIdBytes = new Uint8Array(data, 0, 16);
       const transferId = bytesToUuid(transferIdBytes);
+      if (completedReceives.has(transferId)) return;
       const sequence = view.getUint32(16, true);
       const payload = data.slice(20);
 
@@ -1214,6 +1255,7 @@ export class PeerManager {
               // backing after a grace period so the browser's storage quota
               // isn't eaten by finished transfers.
               const file = await opfs.handle.getFile();
+              rememberCompletedReceive(transferId);
               transfer.updatedAt = Date.now();
               scheduleOpfsSweep(opfs);
               if (this.onFileComplete) this.onFileComplete(transferId, file);
@@ -1269,6 +1311,7 @@ export class PeerManager {
             }
             diag('transfer.received_complete', true, transferId.slice(0, 8));
             const blob = new Blob(transfer.chunks);
+            rememberCompletedReceive(transferId);
             partialReceives.delete(transferId);
             if (this.onFileComplete) {
               this.onFileComplete(transferId, blob);
@@ -1333,7 +1376,7 @@ export class PeerManager {
    * of guessing (the receiver simply never uses features the peer lacks).
    */
   public static readonly TRANSFER_PROTOCOL = 2;
-  private static readonly FEATURES = ['resume', 'hash', 'pause', 'control-channel'] as const;
+  private static readonly FEATURES = ['resume', 'hash', 'pause', 'control-channel', 'relay-fragments-v1'] as const;
 
   /**
    * Announce this device's name + capabilities (reads localStorage at send
@@ -1665,7 +1708,7 @@ export class PeerManager {
           setCurrentTransport('relay');
           if (this.onConnectionTypeChange) this.onConnectionTypeChange('relay');
           if (this.onTransportReady) { this.onTransportReady(); this.onTransportReady = null; }
-          getSocket().emit('relay_message', { roomId: this.roomId, to: this.peerId, data: entry.packet.buffer });
+          await this.sendRelayBinary(entry.packet.buffer as ArrayBuffer);
         }
 
         sendIdx++;
@@ -1863,6 +1906,8 @@ export class PeerManager {
   }
 
   public destroy() {
+    this.relayAssembly?.clear();
+    for (const done of this.relayCapabilityWaiters) done();
     this.destroyed = true;
     this.transferControllers.forEach(c => c.abort(new TransferInterruptedError()));
     this.transferControllers.clear();
