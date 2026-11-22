@@ -1198,14 +1198,14 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       }}
                       aria-label={t('pair.renameField')}
                       maxLength={32}
-                      className="w-full text-center text-[16px] sm:text-[12px] font-medium text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none"
+                      className="w-full min-h-[44px] text-center text-[16px] sm:text-[12px] font-medium text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none"
                     />
                   ) : (
                     <button
                       onClick={startEditName}
                       title={t('pair.renameTitle')}
                       aria-label={t('pair.renameAria', { name: session.deviceName })}
-                      className="group flex items-center gap-1 text-[12px] font-semibold text-apple-ink dark:text-white hover:text-apple-ink/80 max-w-full"
+                      className="group min-h-[44px] min-w-[44px] flex items-center justify-center gap-1 text-[12px] font-semibold text-apple-ink dark:text-white hover:text-apple-ink/80 max-w-full"
                     >
                       <span className="truncate max-w-[96px]">{session.deviceName}</span>
                       <Pencil className="w-2.5 h-2.5 opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
@@ -1773,7 +1773,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             </AnimatePresence>
             {/* Formatting row: it arrives when there is something to format
                 and leaves with the text, so the composer stays a single quiet
-                pill for the common case (type, send). Four 40px keys, each
+                pill for the common case (type, send). Four 44px keys, each
                 with its own accessible name; the same four glyphs the demo's
                 laptop screen shows, because it IS this editor. */}
             <AnimatePresence>
@@ -1803,7 +1803,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                           aria-label={label}
                           data-testid={`format-${kind}`}
                           onClick={() => applyFormatting(kind)}
-                          className="w-10 h-10 rounded-[12px] flex items-center justify-center text-apple-ink-muted dark:text-white/50 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+                          className="w-11 h-11 rounded-[12px] flex items-center justify-center text-apple-ink-muted dark:text-white/50 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                         >
                           {glyph}
                         </button>

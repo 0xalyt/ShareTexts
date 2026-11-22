@@ -1520,7 +1520,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     }}
                     aria-label={t('pair.renameField')}
                     maxLength={32}
-                    className="min-w-0 flex-1 text-[16px] font-semibold text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none px-0.5 py-1"
+                    className="min-w-0 flex-1 min-h-[44px] text-[16px] font-semibold text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none px-0.5 py-1"
                   />
                 ) : (
                   <button

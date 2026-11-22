@@ -65,7 +65,7 @@ export function RecipientStrip({
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+        className="flex w-full min-h-[44px] items-center justify-between gap-2 px-3 py-2 text-left"
         aria-expanded={open}
       >
         <span className={cn(
