@@ -4,7 +4,7 @@ export const STATUS = 'draft' as const;
 
 const fr: Dict = {
   "nav.changelog": "Nouveautés",
-  "shareTarget.failed": "Impossible d’ouvrir ce partage. Réessayez avec 20 fichiers maximum et moins de 100 Mo au total, ou choisissez les fichiers dans ShareTexts.",
+  "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "chat.receivedFrom": "{item} De {name}.",
   "chat.empty.title": "Tout est prêt pour partager",
   "space.showQr": "Afficher le code QR",

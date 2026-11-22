@@ -34,6 +34,9 @@ async function receiveShare(request) {
     const files = form.getAll('files').filter(f => f instanceof File && f.name);
     // Bound local staging. Larger files can still be picked in the app.
     if (files.length > 20 || files.reduce((n, f) => n + f.size, 0) > 100 * 1024 * 1024) throw new Error('Too large');
+    // The transfer protocol needs at least one chunk. Fail this handoff
+    // honestly instead of leaving the other device waiting forever.
+    if (files.some(file => file.size === 0)) throw new Error('Empty file');
     const text = [...new Set(['share_title', 'share_text', 'share_url'].map(k => form.get(k)).filter(v => typeof v === 'string' && v.trim()).map(v => v.trim()))].join('\n');
     if (!files.length && !text) throw new Error('Empty share');
     const writes = await Promise.allSettled(files.map((f, i) => cache.put(base + i, new Response(f))));

@@ -80,7 +80,7 @@ try {
   form.set('share_text', 'hello from the share sheet');
   form.set('share_url', 'https://example.com/');
   form.append('files', new File([new Uint8Array([0, 255, 7, 8])], 'photo.png', { type: 'image/png' }));
-  form.append('files', new File([''], 'empty.txt', { type: 'text/plain' }));
+  form.append('files', new File(['a note'], 'note.txt', { type: 'text/plain' }));
   const arrival = await share(form);
   assert.equal(arrival.status, 303);
   const id = new URL(arrival.headers.get('location')).searchParams.get('share_id');
@@ -92,7 +92,7 @@ try {
   assert.equal(items.files[0].name, 'photo.png');
   assert.equal(items.files[0].type, 'image/png');
   assert.deepEqual([...new Uint8Array(await items.files[0].arrayBuffer())], [0, 255, 7, 8]);
-  assert.equal(items.files[1].size, 0, 'empty files survive');
+  assert.equal(items.files[1].size, 6);
   assert.equal((await inbox.keys()).length, 0, 'consumption clears temporary bytes');
   await assert.rejects(product.takeSharedItems(id), /expired/, 'completed reads release their file references');
   await assert.rejects(product.takeSharedItems('../bad-id'));
@@ -106,6 +106,9 @@ try {
   for (let i = 0; i < 21; i++) excess.append('files', new File(['x'], `${i}.txt`));
   assert(new URL((await share(excess)).headers.get('location')).searchParams.has('share_error'));
   assert(new URL((await share(new FormData())).headers.get('location')).searchParams.has('share_error'));
+  const emptyFile = new FormData();
+  emptyFile.append('files', new File([], 'empty.txt', { type: 'text/plain' }));
+  assert(new URL((await share(emptyFile)).headers.get('location')).searchParams.has('share_error'), 'empty files must not enter a transfer that cannot complete');
   assert.equal((await inbox.keys()).length, 0, 'rejected shares leave no files behind');
   const originalPut = inbox.put.bind(inbox);
   inbox.put = async (key, response) => {

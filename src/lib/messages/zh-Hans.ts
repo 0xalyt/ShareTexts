@@ -4,7 +4,7 @@ export const STATUS = 'draft' as const;
 
 const zh: Dict = {
   "nav.changelog": "最新动态",
-  "shareTarget.failed": "无法打开分享内容。请重试，最多20个文件，总大小小于100 MB，或在ShareTexts中选择文件。",
+  "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "chat.receivedFrom": "{item} 来自{name}。",
   "chat.empty.title": "可以开始分享了",
   "space.showQr": "显示二维码",

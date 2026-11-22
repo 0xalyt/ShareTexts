@@ -1,6 +1,6 @@
 const en = {
   "nav.changelog": "What’s new",
-  "shareTarget.failed": "Couldn’t open that share. Try again with up to 20 files, under 100 MB in total, or choose the files in ShareTexts.",
+  "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "chat.receivedFrom": "{item} From {name}.",
   "chat.empty.title": "Ready to share",
   "space.showQr": "Show QR code",
