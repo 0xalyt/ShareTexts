@@ -1201,6 +1201,56 @@ async function runLobbyWithdrawal() {
   check('Lobby withdrawn socket close removes retained identity', !await ctx.storage.get('conn:' + withdrawn.cid));
 }
 
+async function runLobbyDiscovery() {
+  const registry = new Registry(new FakeCtx(), {});
+  const env = {
+    LOBBY_SALT: 'local-header-regression',
+    REGISTRY: { idFromName: name => name, get: () => registry },
+    LOBBY: { idFromName: name => name, get: id => ({ fetch: async () => new Response(JSON.stringify({ id })) }) },
+  };
+  const route = async headers => (await (await worker.fetch(new Request('https://worker.test/lobby', {
+    headers: { Upgrade: 'websocket', ...headers },
+  }), env)).json()).id;
+  const ipv4 = await route({ 'cf-connecting-ip': '203.0.113.71', 'user-agent': 'Chromium' });
+  check('Lobby router ignores browser UA on the same Cloudflare IP', (await route({ 'cf-connecting-ip': '203.0.113.71', 'user-agent': 'Firefox' })) === ipv4
+    && (await route({ 'cf-connecting-ip': '203.0.113.71', 'user-agent': 'WebKit' })) === ipv4);
+  check('Lobby router prefers Cloudflare IP over forwarded headers', (await route({ 'cf-connecting-ip': '203.0.113.71', 'x-forwarded-for': '198.51.100.71' })) === ipv4);
+  check('Lobby router groups forwarded and IPv4-mapped representations', (await route({ 'x-forwarded-for': '203.0.113.71, 10.0.0.1' })) === ipv4
+    && (await route({ 'cf-connecting-ip': '::ffff:203.0.113.71' })) === ipv4);
+  const ipv6 = await route({ 'cf-connecting-ip': '2001:db8:71:42::1' });
+  check('Lobby router groups IPv6 hosts in one /64', (await route({ 'cf-connecting-ip': '2001:db8:71:42::2' })) === ipv6);
+  check('Lobby router separates distinct IPv4, IPv6 /64 and dual-stack egress', ipv4 !== ipv6
+    && (await route({ 'cf-connecting-ip': '2001:db8:71:43::1' })) !== ipv6
+    && (await route({ 'cf-connecting-ip': '198.51.100.71' })) !== ipv4);
+  check('Lobby router uses local-dev only without IP headers', (await route({})) === 'lobby:local-dev');
+
+  const ctx = new FakeCtx();
+  const lobby = new Lobby(ctx, {});
+  const a = await connect(lobby, uuid());
+  const b = await connect(lobby, uuid());
+  for (const peer of [a, b]) {
+    await peer.send('presence_withdraw');
+    await peer.send('presence_withdraw');
+  }
+  const deviceA = uuid(), deviceB = uuid();
+  check('Lobby hidden A first opt-in is ACKed', (await a.send('presence_announce', { deviceId: deviceA, name: 'First visible' })).success);
+  await a.waitFor(frame => frame.event === 'presence_list' && frame.payload.devices.length === 1);
+  a.inbox.length = 0;
+  b.inbox.length = 0;
+  check('Lobby later B opt-in is ACKed', (await b.send('presence_announce', { deviceId: deviceB, name: 'Later visible' })).success);
+  const both = frame => frame.event === 'presence_list' && frame.payload.devices.length === 2;
+  check('Lobby later announce broadcasts both devices to existing A and newcomer B', !!await a.waitFor(both) && !!await b.waitFor(both));
+  const wake = new Lobby(ctx, {});
+  a.inbox.length = 0;
+  b.inbox.length = 0;
+  await wake.webSocketMessage(b.server, JSON.stringify({ v: 1, id: 'wake-announce', event: 'presence_announce', payload: { deviceId: deviceB, name: 'After wake' } }));
+  check('Lobby announce after reconstruction still broadcasts to both open sockets', !!await a.waitFor(both) && !!await b.waitFor(both));
+  for (const peer of [a, b]) {
+    peer.server.close();
+    await wake.webSocketClose(peer.server);
+  }
+}
+
 await runCorsPreflight();
 await runSpaceCors();
 await runRoomProtocol();
@@ -1221,6 +1271,7 @@ await runMetrics();
 await runSpace();
 await runSpaceHibernation();
 await runLobbyWithdrawal();
+await runLobbyDiscovery();
 
 rmSync(tmp, { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);

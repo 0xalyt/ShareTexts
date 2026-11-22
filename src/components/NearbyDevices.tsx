@@ -863,7 +863,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
           discovery sit exactly where a user wondering "why can't I see my
           device" will look. Rows, not cards — settings, not actions. */}
       <AnimatePresence>
-        {waiting && (
+        {idle && (
           <MotionSurface
             key="nearby-controls"
             initial={{ opacity: 0 }}
