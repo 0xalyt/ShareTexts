@@ -314,7 +314,7 @@ export async function deleteItem(spaceId: string, itemId: string): Promise<void>
   const base = spaceApiBase();
   const creds = localCreds(spaceId);
   if (!creds) throw new SpaceApiError(401, 'No access');
-  await jsonFetch(`${base}/space/${spaceId}/items/${itemId}`, { method: 'DELETE', token: creds.token });
+  await jsonFetch(`${base}/space/${spaceId}/items/${itemId}`, { method: 'DELETE', token: creds.manageKey || creds.token });
 }
 
 export async function closeSpace(spaceId: string): Promise<void> {

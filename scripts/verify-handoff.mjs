@@ -406,6 +406,30 @@ try {
   await demo.scrollIntoViewIfNeeded();
   await page.waitForTimeout(3600);
   check('reduced motion does not autoplay', await demo.locator('video').evaluate(el => el.paused && !el.getAttribute('src')));
+  // Reproduce a returning visitor's complete MP4 cache entry. WebKit asks for
+  // byte ranges after reading metadata; a cached 200 must not answer that seek.
+  // The local wrapper uses Vite (which does not auto-register the worker).
+  await page.evaluate(() => navigator.serviceWorker.register('/sw.js'));
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 15000 });
+  const range = await demo.locator('video').evaluate(async el => {
+    const movie = el.poster.replace(/-poster\.jpg$/, '.mp4');
+    const full = await fetch(movie);
+    if (!full.ok) throw new Error(`Film fixture returned ${full.status}`);
+    const expected = new Uint8Array(await full.clone().arrayBuffer()).slice(32, 64);
+    const fixture = 'film-range-regression';
+    try {
+      const cache = await caches.open(fixture);
+      await cache.put(movie, full);
+      const partial = await fetch(movie, { headers: { Range: 'bytes=32-63' } });
+      const bytes = new Uint8Array(await partial.arrayBuffer());
+      return {
+        status: partial.status, contentRange: partial.headers.get('content-range'),
+        matches: bytes.length === 32 && bytes.every((byte, i) => byte === expected[i]),
+      };
+    } finally { await caches.delete(fixture); }
+  });
+  check('cached films do not replace HTTP byte ranges with a whole 200 response',
+    range.status === 206 && /^bytes 32-63\/\d+$/.test(range.contentRange || '') && range.matches);
   await demo.getByRole('button', { name: 'Play film', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('[data-testid="hero-demo"] video')?.currentTime > 0.2);
   const filmHeight = (await demo.boundingBox()).height;
