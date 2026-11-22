@@ -444,11 +444,18 @@ try {
   const duration = page.getByTestId('space-create-duration');
   await duration.waitFor();
   check('expiry is visible without optional settings', await duration.isVisible() && !(await page.getByTestId('space-create-optional').getAttribute('open')));
-  const day = duration.locator('input[value="86400000"]');
-  check('default expiry is selected', await day.isChecked());
-  await day.focus();
-  await page.keyboard.press('ArrowRight');
-  check('expiry uses native keyboard radio navigation', !(await day.isChecked()));
+  const expiry = duration.getByRole('combobox');
+  check('default expiry is selected', await expiry.inputValue() === '86400000');
+  await expiry.focus();
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Enter');
+  check('expiry uses native keyboard selection', await expiry.inputValue() === '21600000');
+  const firstClosingTime = await duration.locator('[aria-live="polite"]').innerText();
+  await expiry.selectOption('604800000');
+  check('every lifetime remains available with its closing time',
+    await expiry.locator('option').count() === 7 &&
+    await expiry.inputValue() === '604800000' &&
+    await duration.locator('[aria-live="polite"]').innerText() !== firstClosingTime);
   await ctx.close();
 
   const phone = await diagnostics.newContext({ viewport: { width: 320, height: 720 }, reducedMotion: 'reduce' });
