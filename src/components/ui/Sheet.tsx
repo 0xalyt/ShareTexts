@@ -62,7 +62,7 @@ export type SheetProps = {
   keepMounted?: boolean;
   /** Disable the drag gesture (e.g. a sheet that is itself a keyboard form). */
   draggable?: boolean;
-  /** `false` for a destructive confirmation: Escape and the scrim do not dismiss it. */
+  /** Disable Escape and scrim dismissal when an explicit decision is required. */
   dismissable?: boolean;
   panelClassName?: string;
   children: React.ReactNode;
