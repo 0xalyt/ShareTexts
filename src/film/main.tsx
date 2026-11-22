@@ -4,6 +4,7 @@ import { I18nProvider } from '../lib/i18n';
 import { FilmStage } from './FilmStage';
 import { HeroCut } from './HeroCut';
 import { LaunchFilm } from './LaunchFilm';
+import { ReferenceFilm } from './ReferenceFilm';
 
 const root = document.getElementById('film-root');
 if (!root) throw new Error('film-root missing');
@@ -16,8 +17,9 @@ if (!root) throw new Error('film-root missing');
    devices, no lit desk, four movements. That is what the site's hero plays. */
 const hero = /(?:^|[?&])mode=hero(?:&|$)/.test(window.location.search);
 const launch = new URLSearchParams(window.location.search).get('mode') === 'launch';
+const reference = new URLSearchParams(window.location.search).get('mode') === 'reference';
 // Authoring uses an explicit palette, never the renderer machine's OS theme.
-if (launch) {
+if (launch || reference) {
   const dark = new URLSearchParams(location.search).get('theme') === 'dark';
   document.documentElement.classList.toggle('dark', dark);
   document.documentElement.style.background = dark ? '#181818' : '#fff';
@@ -25,5 +27,5 @@ if (launch) {
 }
 
 createRoot(root).render(
-  <I18nProvider>{launch ? <LaunchFilm /> : hero ? <HeroCut /> : <FilmStage />}</I18nProvider>,
+  <I18nProvider>{reference ? <ReferenceFilm /> : launch ? <LaunchFilm /> : hero ? <HeroCut /> : <FilmStage />}</I18nProvider>,
 );

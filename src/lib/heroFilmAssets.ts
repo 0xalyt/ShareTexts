@@ -2,21 +2,21 @@
 export const heroFilmPhoneMedia = '(max-width: 639px)';
 
 export const heroFilmAssets = {
-  movie: '/film/sharetexts-launch-v5-light.mp4',
-  fullMovie: '/film/sharetexts-launch-v5-light-full.mp4',
-  poster: '/film/sharetexts-launch-v5-light-poster.jpg',
+  movie: '/film/sharetexts-reference-v6-light.mp4',
+  fullMovie: '/film/sharetexts-reference-v6-light-full.mp4',
+  poster: '/film/sharetexts-reference-v6-light-poster.jpg',
   mobile: {
-    movie: '/film/sharetexts-launch-v5-light-mobile.mp4',
-    poster: '/film/sharetexts-launch-v5-light-mobile-poster.jpg',
+    movie: '/film/sharetexts-reference-v6-light-mobile.mp4',
+    poster: '/film/sharetexts-reference-v6-light-mobile-poster.jpg',
   },
 } as const;
 
 export const heroFilmDarkAssets = {
-  movie: '/film/sharetexts-launch-v5-dark.mp4',
-  fullMovie: '/film/sharetexts-launch-v5-dark-full.mp4',
-  poster: '/film/sharetexts-launch-v5-dark-poster.jpg',
+  movie: '/film/sharetexts-reference-v6-dark.mp4',
+  fullMovie: '/film/sharetexts-reference-v6-dark-full.mp4',
+  poster: '/film/sharetexts-reference-v6-dark-poster.jpg',
   mobile: {
-    movie: '/film/sharetexts-launch-v5-dark-mobile.mp4',
-    poster: '/film/sharetexts-launch-v5-dark-mobile-poster.jpg',
+    movie: '/film/sharetexts-reference-v6-dark-mobile.mp4',
+    poster: '/film/sharetexts-reference-v6-dark-mobile-poster.jpg',
   },
 } as const;
