@@ -38,6 +38,7 @@ import { OverlaySheet } from '../components/OverlaySheet';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { generateTOTP, getTOTPRemainingSeconds } from '../lib/totp';
 import { saveDraft, loadDraft, clearDraft, ComposerDraft } from '../lib/draftStore';
+import { composerIntentGeneration } from '../lib/composerIntent';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { hasOpenLayer } from '../lib/layers';
 import { useI18n } from '../lib/i18n';
@@ -157,8 +158,11 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.roomId]);
   useEffect(() => {
-    if (!draftReady) return;
+    if (!draftReady || !session.roomId) return;
+    const generation = composerIntentGeneration();
     const t = setTimeout(() => {
+      // Teardown can precede this effect's cleanup during an exit animation.
+      if (generation !== composerIntentGeneration()) return;
       const draft: ComposerDraft = { text: inputText, attachments, pendingShares, updatedAt: Date.now() };
       void saveDraft(session.roomId, draft);
     }, 250);

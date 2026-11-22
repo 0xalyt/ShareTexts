@@ -55,6 +55,27 @@ async function storedRoom(page) {
   await page.evaluate(stored => localStorage.setItem('sharetext.session.v1', JSON.stringify({ ...stored, partnerName: 'Other device' })), stored);
 }
 
+async function waitForDraft(page, roomId, predicate, message) {
+  let draft;
+  for (let attempt = 0; attempt < 60; attempt++) {
+    draft = await page.evaluate(async roomId => {
+      const db = await new Promise((resolve, reject) => {
+        const r = indexedDB.open('sharetext-drafts', 1);
+        r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error);
+      });
+      const result = await new Promise((resolve, reject) => {
+        const r = db.transaction('drafts').objectStore('drafts').get(`draft:${roomId}`);
+        r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error);
+      });
+      db.close();
+      return result;
+    }, roomId);
+    if (predicate(draft)) return;
+    await page.waitForTimeout(50);
+  }
+  assert.fail(message);
+}
+
 const cases = {
   async retry(page, context) {
     await context.addInitScript(() => {
@@ -134,11 +155,14 @@ const cases = {
     const id = await seed(page, { draftCount: 20, sharedCount: 1 });
     await gotoPage(page, `${BASE}/?share_id=${id}`);
     await page.getByTestId('error-message').waitFor({ timeout: 10000 });
+    const roomId = await page.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')).roomId);
+    await waitForDraft(page, roomId, draft => draft?.pendingShares?.[0]?.files?.length === 1, 'The waiting share should be persisted before closing');
     await page.keyboard.press('Escape');
     await page.getByRole('dialog').getByRole('button', { name: 'Disconnect', exact: true }).click();
     await page.waitForFunction(() => !JSON.parse(localStorage.getItem('sharetext.session.v1') || 'null')?.roomId);
     assert.equal(await page.evaluate(() => window.__stHomeDropFiles?.length || 0), 0, 'Disconnect cannot carry waiting files into another room');
     assert.equal(await page.evaluate(() => window.__stPendingIntentText || ''), '', 'The waiting caption is also discarded');
+    await waitForDraft(page, roomId, draft => !draft, 'Closing should delete the room draft and waiting share');
   },
   async lateDisconnect(page, context) {
     await storedRoom(page);

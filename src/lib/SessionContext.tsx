@@ -1358,7 +1358,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const resetSession = (reason?: string) => {
     // Room-owned waiting shares must not survive Disconnect/room closure.
-    discardComposerIntent();
+    discardComposerIntent(sessionRef.current.roomId);
     // 1. Mark abandoned (must happen before room_closed echo can fire)
     if (reason) abandonedRef.current = false;
     resetRoomsBumpLatch(); // room gone — a new pairing may bump again
