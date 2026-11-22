@@ -583,7 +583,7 @@ const es: Dict = {
   'space.reopen': 'Abrir',
   'space.createTitle': 'Nuevo espacio',
   'space.createHeading': 'Crea un espacio temporal',
-  'space.createSub': 'Una estantería compartida para este dispositivo y los que invites. Se cierra sola.',
+  'space.createSub': 'Un espacio compartido para este dispositivo y los que invites. Se cierra solo.',
   'space.nameLabel': 'Nombre (opcional)',
   'space.namePlaceholder': 'Planes de viaje, notas del proyecto…',
   'space.durationLabel': '¿Cuánto tiempo debe quedar abierto?',

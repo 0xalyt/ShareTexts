@@ -582,7 +582,7 @@ const hi: Dict = {
   'space.reopen': 'खोलें',
   'space.createTitle': 'नया स्पेस',
   'space.createHeading': 'अस्थायी स्पेस बनाएँ',
-  'space.createSub': 'इस डिवाइस और आमंत्रित डिवाइस के लिए एक साझा शेल्फ़। यह अपने आप बंद हो जाता है।',
+  'space.createSub': 'इस डिवाइस और आमंत्रित डिवाइस के लिए एक साझा स्पेस। यह अपने आप बंद हो जाता है।',
   'space.nameLabel': 'नाम (वैकल्पिक)',
   'space.namePlaceholder': 'यात्रा की तस्वीरें, प्रोजेक्ट फ़ाइलें…',
   'space.durationLabel': 'यह कितनी देर खुला रहे?',

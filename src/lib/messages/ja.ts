@@ -582,7 +582,7 @@ const ja: Dict = {
   'space.reopen': '開く',
   'space.createTitle': '新しいスペース',
   'space.createHeading': 'テンポラリースペースを作成',
-  'space.createSub': 'このデバイスと招待したデバイスで共有する棚。期限が来ると自動的に閉じます。',
+  'space.createSub': 'このデバイスと招待したデバイスで使う共有スペース。期限が来ると自動的に閉じます。',
   'space.nameLabel': '名前（省略可）',
   'space.namePlaceholder': '旅行の写真、プロジェクトのファイル…',
   'space.durationLabel': 'どのくらい開いておきますか？',

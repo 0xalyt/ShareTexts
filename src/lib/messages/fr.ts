@@ -583,7 +583,7 @@ const fr: Dict = {
   'space.reopen': 'Ouvrir',
   'space.createTitle': 'Nouvel espace',
   'space.createHeading': 'Créer un espace temporaire',
-  'space.createSub': 'Une étagère partagée pour cet appareil et ceux que vous invitez. Elle se ferme d’elle-même.',
+  'space.createSub': 'Un espace partagé pour cet appareil et ceux que vous invitez. Il se ferme automatiquement.',
   'space.nameLabel': 'Nom (facultatif)',
   'space.namePlaceholder': 'Photos de voyage, fichiers du projet…',
   'space.durationLabel': 'Combien de temps doit-il rester ouvert ?',

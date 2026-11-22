@@ -677,7 +677,7 @@ const en = {
   'space.reopen': 'Open',
   'space.createTitle': 'New space',
   'space.createHeading': 'Create a temporary space',
-  'space.createSub': 'A shared shelf for this device and the ones you invite. It closes itself.',
+  'space.createSub': 'A shared space for this device and the ones you invite. It closes itself.',
   'space.nameLabel': 'Name (optional)',
   'space.namePlaceholder': 'Trip plans, project notes…',
   'space.durationLabel': 'How long should it stay open?',

@@ -582,7 +582,7 @@ const ar: Dict = {
   'space.reopen': 'فتح',
   'space.createTitle': 'مساحة جديدة',
   'space.createHeading': 'إنشاء مساحة مؤقتة',
-  'space.createSub': 'رف مشترك لهذا الجهاز والأجهزة التي تدعوها. يُغلق من تلقاء نفسه.',
+  'space.createSub': 'مساحة مشتركة لهذا الجهاز والأجهزة التي تدعوها. تُغلق تلقائيًا.',
   'space.nameLabel': 'الاسم (اختياري)',
   'space.namePlaceholder': 'صور الرحلة، ملفات المشروع…',
   'space.durationLabel': 'كم يجب أن يبقى مفتوحًا؟',

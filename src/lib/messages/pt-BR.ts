@@ -583,7 +583,7 @@ const pt: Dict = {
   'space.reopen': 'Abrir',
   'space.createTitle': 'Novo espaço',
   'space.createHeading': 'Criar um espaço temporário',
-  'space.createSub': 'Uma prateleira partilhada para este dispositivo e os que convidar. Fecha-se sozinho.',
+  'space.createSub': 'Um espaço compartilhado para este dispositivo e os que você convidar. Ele fecha automaticamente.',
   'space.nameLabel': 'Nome (opcional)',
   'space.namePlaceholder': 'Fotos da viagem, ficheiros do projeto…',
   'space.durationLabel': 'Durante quanto tempo deve ficar aberto?',

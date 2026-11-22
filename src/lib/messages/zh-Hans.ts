@@ -582,7 +582,7 @@ const zh: Dict = {
   'space.reopen': '打开',
   'space.createTitle': '新空间',
   'space.createHeading': '创建临时空间',
-  'space.createSub': '给这台设备和受邀设备共用的架子。到期自动关闭。',
+  'space.createSub': '供这台设备和受邀设备共用的空间。到期自动关闭。',
   'space.nameLabel': '名称（可选）',
   'space.namePlaceholder': '旅行照片、项目文件…',
   'space.durationLabel': '要开放多久？',
