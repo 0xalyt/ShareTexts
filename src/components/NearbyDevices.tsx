@@ -136,6 +136,8 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
 
   const [devices, setDevices] = useState<NearbyDevice[]>([]);
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
   const [autoOn, setAutoOn] = useState<boolean>(() => isAutoConnectEnabled());
   /* --- the mutual-confirm detection overlay -------------------------------
      target: the device BOTH overlays are about (detected mode on the leader
@@ -522,21 +524,21 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
 
   /* --- the inviter side: accept carries fresh room credentials ------------ */
   useEffect(() => nearbyPresence.onInviteResult(result => {
-    setPhase(prev => {
-      if (prev.kind !== 'inviting') return prev;
-      if (result.accepted && result.roomId && result.secret) {
-        // Memory: the invitee accepted — record the pairing on this side too.
-        recordRecentDevice(prev.device.id, prev.device.name);
-        // Drop out of the lobby, then join via the EXISTING link path.
-        nearbyPresence.stop(getSocket());
-        void joinWithLink(result.roomId);
-        return { kind: 'connecting', device: prev.device };
-      }
-      // Declined or gone — the popup (if still open) says so, then closes.
+    const prev = phaseRef.current;
+    if (prev.kind !== 'inviting') return;
+    const next: Phase = result.accepted && result.roomId && result.secret
+      ? { kind: 'connecting', device: prev.device }
+      : { kind: 'error', text: t('nearby.declined') };
+    phaseRef.current = next;
+    setPhase(next);
+    if (next.kind === 'connecting' && result.roomId) {
+      recordRecentDevice(prev.device.id, prev.device.name);
+      nearbyPresence.stop(getSocket());
+      void joinWithLink(result.roomId);
+    } else {
       setOverlayBusy(false);
       setOverlayTarget(null);
-      return { kind: 'error', text: t('nearby.declined') };
-    });
+    }
   }), [joinWithLink, t]);
 
   // The existing flow takes over once peerConnecting/partnerConnected fire;
