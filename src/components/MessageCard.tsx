@@ -137,7 +137,7 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
   if (disabled && entries.length === 0) return null;
   return (
     <div className={cn(
-      'flex items-center gap-1 flex-wrap',
+      'st-message-reactions flex items-center gap-1 flex-wrap',
       // A reaction-free message needs no footer row. Keep its accessible
       // picker beside the bubble, in the opposite-side gutter, rather than
       // reserving 46px below a trigger that is invisible until hover.
@@ -1187,7 +1187,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
         "flex max-w-full shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
       compact ? "justify-center w-11 sm:w-auto sm:px-3" : "px-1.5 sm:px-3",
         active
-          ? "bg-status-success/15 text-status-success shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
+          ? "bg-status-success/15 text-status-success-ink dark:text-status-success-ink-dark shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
           : primary
             ? "bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-[0_0_0_1px_rgba(0,0,0,0.10),0_1px_1px_rgba(0,0,0,0.12),0_2px_3px_rgba(0,0,0,0.10),inset_0_1px_1px_rgba(255,255,255,0.22),inset_0_-2px_3px_rgba(0,0,0,0.28)] active:shadow-[0_0_0_1px_rgba(0,0,0,0.10),inset_0_2px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_1px_1px_rgba(0,0,0,0.20),inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-2px_3px_rgba(0,0,0,0.10)] dark:active:shadow-[0_0_0_1px_rgba(255,255,255,0.14),inset_0_2px_4px_rgba(0,0,0,0.18)]"
             : "bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_1px_1px_rgba(0,0,0,0.10),0_2px_3px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.65),inset_0_-2px_3px_rgba(0,0,0,0.06)] active:bg-apple-divider dark:active:bg-apple-tile-3 active:shadow-[0_0_0_1px_rgba(0,0,0,0.06),inset_0_1px_2px_rgba(0,0,0,0.10)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_1px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.08),inset_0_-2px_3px_rgba(0,0,0,0.22)] dark:active:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_2px_rgba(0,0,0,0.3)]",
