@@ -831,7 +831,7 @@ const zh: Dict = {
   "nav.saved": "收藏项",
   "saved.title": "收藏项",
   "saved.emptyTitle": "还没有保存任何内容。",
-  "saved.emptyBody": "点按消息上的书签，即可在这里保留文字、链接、照片或文件。",
+  "saved.emptyBody": "点按消息上的书签，即可将它保存在这里。",
   "saved.emptyCta": "知道了",
   "saved.save": "收藏",
   "saved.remove": "从收藏中移除",

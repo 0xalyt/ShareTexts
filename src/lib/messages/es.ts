@@ -832,7 +832,7 @@ const es: Dict = {
   "nav.saved": "Elementos guardados",
   "saved.title": "Elementos guardados",
   "saved.emptyTitle": "Todavía no hay nada guardado.",
-  "saved.emptyBody": "Toca el marcador de un mensaje para guardar aquí un texto, enlace, foto o archivo.",
+  "saved.emptyBody": "Toca el marcador de un mensaje para guardarlo aquí.",
   "saved.emptyCta": "Entendido",
   "saved.save": "Guardar elemento",
   "saved.remove": "Quitar de guardados",

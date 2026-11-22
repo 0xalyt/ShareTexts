@@ -832,7 +832,7 @@ const de: Dict = {
   "nav.saved": "Gespeicherte Elemente",
   "saved.title": "Gespeicherte Elemente",
   "saved.emptyTitle": "Noch nichts gespeichert.",
-  "saved.emptyBody": "Tippe bei einer Nachricht auf das Lesezeichen, um Text, Link, Foto oder Datei hier zu behalten.",
+  "saved.emptyBody": "Tippe auf das Lesezeichen einer Nachricht, um sie hier zu behalten.",
   "saved.emptyCta": "Verstanden",
   "saved.save": "Element speichern",
   "saved.remove": "Aus Gespeicherten entfernen",

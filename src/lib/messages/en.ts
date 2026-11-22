@@ -867,7 +867,7 @@ const en = {
   "nav.saved": "Saved items",
   "saved.title": "Saved items",
   "saved.emptyTitle": "Nothing saved yet.",
-  "saved.emptyBody": "Tap the bookmark on a message to keep a text, link, photo or file here.",
+  "saved.emptyBody": "Tap the bookmark on a message to keep it here.",
   "saved.emptyCta": "Got it",
   "saved.save": "Save item",
   "saved.remove": "Remove from saved",

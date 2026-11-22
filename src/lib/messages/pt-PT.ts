@@ -49,7 +49,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   "chat.empty.dest": "Enviar para {name}",
   "chat.empty.body": "Escreva uma nota, cole uma ligação ou adicione um ficheiro abaixo.",
   "chat.empty.title": "Tudo pronto para partilhar",
-  "saved.emptyBody": "Toque no marcador de uma mensagem para guardar aqui um texto, ligação, fotografia ou ficheiro.",
+  "saved.emptyBody": "Toque no marcador de uma mensagem para a guardar aqui.",
   "saved.emptyCta": "Percebi",
   "details.relay": "Ligado através do servidor.",
   "nearby.hint": "Abra o ShareTexts e ative o Nearby no outro dispositivo.",
