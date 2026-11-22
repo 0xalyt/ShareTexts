@@ -253,7 +253,7 @@ export function DevicePicker({
           <button
             type="button"
             onClick={onSelectAll}
-            className="rounded-full px-3 py-1.5 text-xs font-medium text-[--ember] hover:bg-[--ember]/10"
+            className="min-h-[44px] min-w-[44px] rounded-full px-3 py-1.5 text-xs font-medium text-[--ember] hover:bg-[--ember]/10"
           >
             {t('picker.selectAll', { count: String(selectable.length) })}
           </button>
@@ -261,7 +261,7 @@ export function DevicePicker({
             <button
               type="button"
               onClick={onClear}
-              className="rounded-full px-3 py-1.5 text-xs font-medium text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
+              className="min-h-[44px] min-w-[44px] rounded-full px-3 py-1.5 text-xs font-medium text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
             >
               {t('picker.clear')}
             </button>
