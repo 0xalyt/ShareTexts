@@ -35,31 +35,41 @@ export class Metrics extends DurableObject<Env> {
   }
 
   private async event(request: Request): Promise<Response> {
-    let body: { name?: unknown };
+    // One event ({ name }) or a batch ({ counts: { name: n } }) — rooms
+    // buffer their counters and flush them in one request.
+    let body: { name?: unknown; counts?: unknown };
     try {
       body = (await request.json()) as typeof body;
     } catch {
       return json({ error: 'bad request' }, 400);
     }
-    const name = body?.name;
-    if (typeof name !== 'string' || !/^[a-z0-9_.:-]{1,80}$/.test(name)) {
-      return json({ error: 'bad request' }, 400);
+    const incoming: [string, number][] = typeof body?.name === 'string'
+      ? [[body.name, 1]]
+      : body?.counts && typeof body.counts === 'object'
+        ? Object.entries(body.counts as Record<string, unknown>) as [string, number][]
+        : [];
+    if (!incoming.length || incoming.length > 64) return json({ error: 'bad request' }, 400);
+    for (const [name, n] of incoming) {
+      if (!/^[a-z0-9_.:-]{1,80}$/.test(name) || !Number.isInteger(n) || n < 1 || n > 1_000_000) {
+        return json({ error: 'bad request' }, 400);
+      }
     }
     const bucket = Math.floor(Date.now() / BUCKET_MS);
     const key = 'h:' + bucket;
     const counts = (await this.ctx.storage.get<Record<string, number>>(key)) ?? {};
-    counts[name] = (counts[name] ?? 0) + 1;
+    for (const [name, n] of incoming) counts[name] = (counts[name] ?? 0) + n;
     await this.ctx.storage.put(key, counts);
+    const roomsCreated = incoming.find(([name]) => name === 'rooms.created')?.[1] ?? 0;
 
     // Lifetime counters for metrics that must never roll off with the 48h
     // buckets (currently: total rooms ever created). Guarded to the known
     // name so nothing unbounded can grow here.
-    if (name === 'rooms.created') {
+    if (roomsCreated > 0) {
       // Counted, not floored. An invented minimum is a number we cannot
       // prove, and a public counter that starts at a fiction is the one
       // thing this product cannot afford to be caught doing.
       const lifetime = (await this.ctx.storage.get<number>(LIFETIME_ROOMS_KEY)) ?? 0;
-      await this.ctx.storage.put(LIFETIME_ROOMS_KEY, lifetime + 1);
+      await this.ctx.storage.put(LIFETIME_ROOMS_KEY, lifetime + roomsCreated);
     }
 
     // Opportunistic trim: drop buckets older than the retention window.

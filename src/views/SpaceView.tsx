@@ -11,21 +11,22 @@
  * fail tells the user honestly (inline notice), never silently.
  */
 
-import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import '../components/ui/task-surfaces.css';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { AnimatePresence } from 'motion/react';
 import { MotionSurface } from '../components/ui/MotionSurface';
 import { DUR } from '../lib/motion/tokens';
 import {
-  ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon,
+  ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon, FileText,
   Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
   X, XCircle,
 } from 'lucide-react';
 import { LogoTraceLoader } from '../components/LogoTraceLoader';
 import { QrArt } from '../components/qr/QrArt';
 import { Bar } from '../components/SkeletonScreen';
-import { Inbox } from 'lucide-react';
+import { useMotionPreference } from '../lib/useMotionPreference';
+import { DUR, fade } from '../lib/motion/tokens';
 import { useI18n } from '../lib/i18n';
 import { FEATURE_SPACE_FILES } from '../lib/space/capabilities';
 import { TactileButton } from '../components/TactileButton';
@@ -69,6 +70,25 @@ function isUrlLike(s: string): boolean {
 }
 
 // ── small atoms ───────────────────────────────────────────────────────────
+
+function SpaceEmptyState({ canUploadFiles }: { canUploadFiles: boolean }) {
+  const { t } = useI18n();
+  const reduceMotion = useMotionPreference();
+  return (
+    <section className="st-space-empty" data-testid="space-empty" aria-labelledby="space-empty-title">
+      {/* A single state arrival, not an idle loop. The words are immediate. */}
+      <motion.span className="st-space-empty-mark" aria-hidden
+        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }} transition={fade(DUR.medium)}>
+        <FileText className="w-10 h-10" strokeWidth={1.5} />
+      </motion.span>
+      <div className="st-space-empty-copy">
+        <h2 id="space-empty-title">{t('space.empty')}</h2>
+        <p id="space-empty-hint">{t(canUploadFiles ? 'space.emptyHint' : 'space.emptyTextHint')}</p>
+      </div>
+    </section>
+  );
+}
 
 function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: number; createdAt?: number }) {
   const { t, lang } = useI18n();
@@ -795,11 +815,14 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
 
   // Composer grows with its content (single line → a few), capped so the
   // header never scrolls away.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = composerRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+    // scrollHeight includes padding, not borders. Omitting these two pixels
+    // makes even one line scroll in Chromium's border-box textarea.
+    const borders = el.offsetHeight - el.clientHeight;
+    el.style.height = `${Math.min(el.scrollHeight + borders, 128)}px`;
   }, [composer]);
 
   // Paste anything anywhere: text/link/image/file (the universal model §25).
@@ -874,6 +897,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
   }
 
   const loadingFirst = !snapshot && conn === 'connecting';
+  const isEmpty = !loadingFirst && items.length === 0 && uploads.length === 0;
 
   return (
     <div
@@ -1011,31 +1035,8 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               <SkeletonScreen variant="space" />
             </SkeletonGate>
           </div>
-        ) : items.length === 0 && uploads.length === 0 ? (
-          /* The empty shelf is a REAL surface, not a card floating in a
-             void: it fills the column, states the promise once, and hands
-             the user the two things they can do about it — write something,
-             or drop a file. Same tonal grammar as the items that will land
-             here, so the first arrival lands on something that already
-             looks like home. */
-          <div
-            className="st-card flex-1 overflow-hidden flex flex-col items-center justify-center text-center px-6 py-12 sm:py-16 gap-1"
-            data-testid="space-empty"
-            style={{ minHeight: 'min(52vh, 460px)' }}
-          >
-            <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-[24px] st-glyph st-glyph-ember" aria-hidden>
-              <Inbox className="w-6 h-6" strokeWidth={2} />
-            </span>
-            <p className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.015em]">{t('space.empty')}</p>
-            {canUploadFiles && <p className="mt-1.5 text-[16px] text-apple-ink-muted dark:text-white/55 max-w-[34ch] leading-relaxed">{t('space.emptyHint')}</p>}
-            {/* The drop affordance — the SAME surface the real shelf uses,
-                so “nothing here” and “something is here” never look like
-                two different products. */}
-            <button type="button" className="st-space-empty-action press" onClick={() => composerRef.current?.focus()} data-testid="space-empty-write">
-              <Plus className="w-4 h-4 shrink-0" aria-hidden />
-              {t('space.emptyAction')}
-            </button>
-          </div>
+        ) : isEmpty ? (
+          <SpaceEmptyState canUploadFiles={canUploadFiles} />
         ) : (
           <ul className="space-y-2.5" aria-label={t('space.contentLabel')}>
             <AnimatePresence initial={false}>
@@ -1073,7 +1074,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       </main>
 
       {/* ── composer ── */}
-      <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas dark:bg-night-900 border-t border-apple-divider/50 dark:border-white/[0.06]">
+      <footer className={`shrink-0 ${isEmpty ? 'relative' : 'sticky bottom-0'} z-40 bg-apple-canvas dark:bg-night-900 border-t border-apple-divider/50 dark:border-white/[0.06]`}>
         <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
           {canUploadFiles && (
             <>
@@ -1108,8 +1109,10 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               }
             }}
             rows={1}
+            aria-label={t('space.composerPlaceholder')}
+            aria-describedby={isEmpty ? 'space-empty-hint' : undefined}
             placeholder={t('space.composerPlaceholder')}
-            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[24px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25 placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
+            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 overflow-x-hidden rounded-[24px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25 placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
             data-testid="space-composer"
           />
           {/* Composer share is a convenience duplicate of the header share —

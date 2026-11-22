@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { signalingHttpBase, endpointSelectionSettled } from './socket';
+import { signalingHttpBase, endpointSelectionSettled, takeBootStats } from './socket';
 
 /**
  * Room-connected hook — a module-level registry so ANY component can react
@@ -42,13 +42,21 @@ let bumpLatchReset: (() => void) | null = null;
  * data channel opens) — once per connected session, reset when the session
  * is abandoned. Server truth wins on the next /stats poll.
  */
-export function useLiveStats(pollMs = 10_000): { devices: number | null; roomsCreated: number | null } {
+export function useLiveStats(pollMs = 30_000): { devices: number | null; roomsCreated: number | null } {
   const [devices, setDevices] = useState<number | null>(null);
   const [roomsCreated, setRoomsCreated] = useState<number | null>(null);
   // Server-truth and the local optimistic bump travel separately: display =
   // max(server, local) so a slow fetch never drags the number backwards.
   const [localBump, setLocalBump] = useState(0);
   const serverRef = useRef<number | null>(null);
+
+  const apply = useCallback((data: { users?: unknown; roomsCreated?: unknown } | null) => {
+    if (typeof data?.users === 'number') setDevices(data.users);
+    if (typeof data?.roomsCreated === 'number') {
+      serverRef.current = data.roomsCreated;
+      setRoomsCreated(data.roomsCreated);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const base = signalingHttpBase();
@@ -61,15 +69,11 @@ export function useLiveStats(pollMs = 10_000): { devices: number | null; roomsCr
     try {
       const res = await fetch(base + '/stats', { cache: 'no-store', credentials: 'omit', signal: controller.signal });
       if (!res.ok) return;
-      const data = await res.json();
-      if (typeof data?.users === 'number') setDevices(data.users);
-      if (typeof data?.roomsCreated === 'number') {
-        serverRef.current = data.roomsCreated;
-        setRoomsCreated(data.roomsCreated);
-      }
+      apply(await res.json());
     } catch { /* offline — keep last known values quietly */ }
     finally { clearTimeout(timer); }
-  }, []);
+  }, [apply]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +91,11 @@ export function useLiveStats(pollMs = 10_000): { devices: number | null; roomsCr
       if (cancelled || document.visibilityState === 'hidden') return;
       await load();
     };
-    void boot.then(tick);
+    void boot.then(() => {
+      const probed = takeBootStats();
+      if (probed && !cancelled) apply(probed);
+      else void tick();
+    });
     const timer = setInterval(tick, pollMs);
     // Returning to the tab (e.g. after finishing a room) refreshes at once,
     // so the tracker shows the room just created without waiting a full
@@ -95,7 +103,7 @@ export function useLiveStats(pollMs = 10_000): { devices: number | null; roomsCr
     const onVisible = () => { if (document.visibilityState === 'visible') void tick(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { cancelled = true; clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
-  }, [pollMs, load]);
+  }, [pollMs, load, apply]);
 
   // The optimistic bump now fires on a REAL two-device connection (the data
   // channel opening), not on room creation — matching the server-side honest

@@ -95,10 +95,18 @@
 .st-room-starters > button { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--task-line); background: var(--task-inset); font-size: 13px; font-weight: 600; color: var(--task-muted); transition: transform var(--st-dur-micro, 120ms) var(--ease-out); }
 .st-room-starters > button:active { transform: scale(.97); }
 .st-room [data-testid='composer']::placeholder, .st-space [data-testid='space-composer']::placeholder { color: var(--task-muted); opacity: 1; }
-.st-space [data-testid='space-empty'] { align-items: flex-start; text-align: start; border-radius: 24px; background: var(--task-surface); border: 1px solid var(--task-line); box-shadow: var(--task-shadow); padding: 32px; }
-.st-space [data-testid='space-empty'] > p:first-of-type { font-size: 22px; line-height: 1.25; text-wrap: balance; }
-.st-space [data-testid='space-empty'] > p:nth-of-type(2) { color: var(--task-muted); }
-.st-space-empty-action { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 24px; padding: 10px 16px; border: 1px solid var(--task-line); border-radius: 12px; background: var(--task-soft); color: var(--task-accent); font-size: 13px; font-weight: 600; text-align: start; }
+/* A finite, unboxed guide on the real canvas. The composer is the action;
+   don't surround a second Write button with a screen-sized empty card. */
+.st-space-empty { display: flex; flex-direction: column; align-items: center; gap: 24px; width: 100%; max-width: 448px; margin: auto; padding-block: 32px; text-align: center; }
+.st-space-empty-mark { display: grid; place-items: center; width: 64px; height: 64px; color: var(--task-accent); }
+.st-space-empty-copy h2 { margin: 0; font-size: clamp(24px, 2.5vw, 32px); font-weight: 650; line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; }
+.st-space-empty-copy p { max-width: 34ch; margin: 12px auto 0; font-size: 16px; line-height: 1.5; color: var(--task-muted); text-wrap: pretty; }
+/* At high zoom/short heights, spend the available space on words and input,
+   not the decorative mark. The empty footer stays in flow, never over copy. */
+@media (max-height: 560px) {
+  .st-space-empty { padding-block: 0; }
+  .st-space-empty-mark { display: none; }
+}
 .st-space [data-testid='space-item'] { background: var(--task-surface); border-color: var(--task-line); border-radius: 16px; box-shadow: var(--task-shadow); }
 .st-space-share { background: var(--task-inset); color: var(--task-muted); border: 1px solid var(--task-line); }
 .st-space [data-testid='space-send'] { background: var(--color-brand); color: #1d1d1f; border: 1px solid transparent; }
@@ -177,11 +185,10 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .st-room-starters > button:hover, .st-space-empty-action:hover { border-color: var(--task-accent); color: var(--task-accent); }
+  .st-room-starters > button:hover { border-color: var(--task-accent); color: var(--task-accent); }
 }
 @media (max-width: 400px) {
   .st-room-start { padding: 20px; }
-  .st-space [data-testid='space-empty'] { padding: 24px; }
   .st-pair-guide { gap: 12px; }
 }
 /* Below the full desktop budget, use the phone's two-row hierarchy rather
