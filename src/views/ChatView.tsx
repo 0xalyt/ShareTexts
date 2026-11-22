@@ -1039,9 +1039,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           type="button"
           data-testid="connection-details"
           onPointerDown={() => setShowConnectionDetails(!showConnectionDetails)}
+          onClick={(e) => { if (e.detail === 0) setShowConnectionDetails(value => !value); }}
           aria-expanded={showConnectionDetails}
           aria-label={t('details.aria')}
-          className="flex items-center gap-2 min-w-0 max-w-full rounded-full px-1.5 py-1 -ml-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+          className="flex min-h-11 items-center gap-2 min-w-0 max-w-full rounded-full px-1.5 py-1 -ml-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
         >
           {/* Phones show only the PARTNER — the other device is the room's
               identity, and two truncated names + icons cannot share 375px
@@ -1088,13 +1089,13 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               seat read "4 devices / 1 connecting / Connected": three
               statements, two of them contradicting each other, in space for
               one. The count still exists, but as the same single suffix. */}
-          <span className="flex items-center gap-1.5 min-w-0">
+          <span className="flex flex-1 items-center gap-1.5 min-w-0">
             <motion.span
               key={session.partnerName || 'paired'}
               initial={session.partnerName ? { opacity: 0, y: 3 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 flex-1 max-w-[52vw] sm:max-w-[190px]"
+              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 shrink-0 max-w-[calc(100%_-_1rem)] sm:max-w-[190px]"
             >
               {others.length > 1
                 ? t('room.deviceCount', { count: String(others.length + 1) })
@@ -1110,11 +1111,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <span
               data-testid="room-device-count"
               className={cn(
-                // The state word never shrinks or breaks: at 320px the name
-                // yields first (an ellipsis on a device name is readable,
-                // "Disconne…" is not). Multi-device counts can truncate.
-                'text-[12px] font-medium',
-                others.length > 1 ? 'truncate min-w-0' : 'shrink-0 whitespace-nowrap',
+                // Keep the peer's identity readable before the secondary
+                // link status. Its complete wording remains in details.
+                'text-[12px] font-medium truncate min-w-0',
                 headerHealthy
                   ? 'text-apple-ink-muted dark:text-white/45'
                   : 'text-status-warning-ink dark:text-status-warning-ink-dark'
@@ -1162,7 +1161,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             data-testid="end-session"
             onClick={() => setConfirmDisconnect(true)}
             aria-label={t('common.disconnectAria')}
-            className="flex items-center gap-1.5 rounded-full font-semibold min-h-[40px] px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
+            className="flex min-w-11 min-h-11 items-center justify-center gap-1.5 rounded-full font-semibold px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
           >
             <DisconnectGlyph size={16} />
             <span className="hidden sm:inline">{t('common.disconnect')}</span>
@@ -1850,7 +1849,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 placeholder={(textareaRef.current?.clientWidth ?? 400) < 300 ? t('composer.placeholderShort') : t('composer.placeholder')}
                 aria-label={t('composer.aria')}
                 title={t('composer.title')}
-                className="flex-1 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim"
+                className="flex-1 min-w-0 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
               />
               <button
                 type="button"
