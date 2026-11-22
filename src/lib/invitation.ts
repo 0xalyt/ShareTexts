@@ -14,3 +14,17 @@ export function makeInvitation() {
   if (bits) secret += alphabet[(value << (5 - bits)) & 31];
   return { roomId: crypto.randomUUID(), secret, createdAt: Date.now(), pid: crypto.randomUUID() };
 }
+
+/** A displayed invitation may beat registration. Retry only missing rooms,
+ * never refusals such as room-full or a wrong credential, with a firm bound. */
+export async function waitForInvitation<T>(lookup: () => Promise<T>, pending: (value: T) => boolean): Promise<T> {
+  let value = await lookup();
+  for (const delay of [500, 1000, 1500, 2000, 2500, 3000]) {
+    if (!pending(value)) break;
+    await new Promise(resolve => setTimeout(resolve, delay));
+    // Recheck cancellation after the delay, before another network operation.
+    if (!pending(value)) break;
+    value = await lookup();
+  }
+  return value;
+}

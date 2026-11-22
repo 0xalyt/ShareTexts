@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { SessionState, ChatMessage, ConnectionType, PeerDevice } from '../types';
-import { makeInvitation } from './invitation';
+import { makeInvitation, waitForInvitation } from './invitation';
 import { getSocket, devLog, resolveShortCode, refreshCode as refreshCodeRPC } from './socket';
 import { emitRoomConnected, resetRoomsBumpLatch } from './useLiveStats';
 import { PeerManager, clearAllTransferState, getPartialInfo } from './webrtc';
@@ -1004,14 +1004,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     throw lastError instanceof Error ? lastError : new ConnectError('UNKNOWN');
   };
   const joinWithCode = async (code: string) => {
+    const generation = creationGeneration.current;
     productEvent('product.first_interaction');
     productEvent('product.method_code');
     const requestId = crypto.randomUUID();
     roomCreateDiagStart(requestId, 'join');
     await ensureSocketConnected();
-    const joinOnce = async (): Promise<{ success: boolean; error?: string }> => {
+    const joinOnce = async (): Promise<{ success: boolean; error?: string; code?: string }> => {
     await ensureSocketConnected();
-    return new Promise<{ success: boolean; error?: string }>((resolve) => {
+    return new Promise<{ success: boolean; error?: string; code?: string }>((resolve) => {
       const timeout = setTimeout(() => {
         roomCreateDiagEnd(requestId, 'failure', 'SIGNALING_TIMEOUT', 'join timed out');
         // Kick the transport like createRoomOnce does — the next attempt
@@ -1024,6 +1025,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       // setupJoiner persists it under the real room.
       getSocket().emit('join_with_code', { code, pid: crypto.randomUUID() }, (res: { success: boolean; roomId?: string; secret?: string; createdAt?: number; error?: string; code?: string; myParticipantId?: string; roster?: { participants?: unknown[]; seq?: number } }) => {
         clearTimeout(timeout);
+        if (generation !== creationGeneration.current) return resolve({ success: false });
         diag('room.join', !!res.success, res.success ? 'ok' : (res.code || res.error || 'unknown'));
         if (res.success) {
           roomCreateDiagEnd(requestId, 'success');
@@ -1042,7 +1044,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   let lastJoin: { success: boolean; error?: string } = { success: false };
   for (let attempt = 1; attempt <= MAX_JOIN_ATTEMPTS; attempt++) {
     try {
-      lastJoin = await joinOnce();
+      lastJoin = await waitForInvitation(joinOnce, result => generation === creationGeneration.current && result.code === 'INVITATION_PENDING');
     } catch (e) {
       const reason = describeConnectFailure(e);
       if ((reason === 'TIMEOUT' || reason === 'UNREACHABLE' || reason === 'UNKNOWN') && attempt < MAX_JOIN_ATTEMPTS) {
@@ -1095,10 +1097,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
    * and tells the other peer to connect — same flow as any other join.
    */
   const joinWithShortCode = async (code: string) => {
+    const generation = creationGeneration.current;
     productEvent('product.method_link'); // /s/<code> short links resolve here
     await ensureSocketConnected();
     diag('link.join_sent', true);
-    let res = await resolveShortCode(code);
+    let res = await waitForInvitation(() => resolveShortCode(code), result => generation === creationGeneration.current && 'reason' in result && result.reason === 'not_found');
+    if (generation !== creationGeneration.current) return { success: false };
     // A phone that just woke up has no route yet. One retry turns "we could not
     // ask" into a room, instead of telling the person their link is dead when
     // it is fine — the sentence a slow mobile connection used to produce.
@@ -1118,6 +1122,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             : "Couldn't reach the room.",
       };
     }
+    if (generation !== creationGeneration.current) return { success: false };
     diag('link.resolved', true);
     const joined = await joinWithLink(res.roomId);
     diag('link.joined', !!joined.success, joined.success ? 'ok' : 'refused');

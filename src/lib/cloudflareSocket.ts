@@ -446,7 +446,7 @@ export class CloudflareSocket implements SignalingSocket {
         body: JSON.stringify({ code }),
       });
       if (!res.ok) {
-        return cb?.({ success: false, error: 'Invalid or expired code' });
+        return cb?.({ success: false, code: res.status === 404 ? 'INVITATION_PENDING' : 'INVALID_CODE', error: 'Invalid or expired code' });
       }
       const found = (await res.json()) as { roomId?: string };
       if (!found.roomId) return cb?.({ success: false, error: 'Invalid or expired code' });
