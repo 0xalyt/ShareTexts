@@ -11,9 +11,9 @@ import { shardFor } from './shard';
 /**
  * The salt for today's shard. Owner-set LOBBY_SALT wins; otherwise a random
  * salt generated once inside the Stats DO (so it survives isolate restarts).
- * Cached for a minute to keep the hot path off the DO.
+ * Cached for the isolate lifetime to keep the hot path off the DO.
  */
-let lobbySecretCache: { value: string; expires: number } | null = null;
+let lobbySecretCache: string | null = null;
 
 /** Rate-limit attempts this isolate has leased from the Registry, per
  *  scope:ip. `exhausted` caches a Registry "no" until the window resets. */
@@ -25,21 +25,28 @@ const RATE_LEASES_MAX = 10_000;
  *  this window. */
 const STATS_CACHE_MS = 5_000;
 let statsCache: { at: number; payload: Record<string, unknown> } | null = null;
-async function lobbySecret(env: Env): Promise<string> {
+async function lobbySecret(env: Env): Promise<string | null> {
   if (env.LOBBY_SALT) return env.LOBBY_SALT;
-  if (lobbySecretCache && lobbySecretCache.expires > Date.now()) return lobbySecretCache.value;
+  if (lobbySecretCache) return lobbySecretCache;
   try {
     const res = await env.STATS.get(env.STATS.idFromName('stats')).fetch(
       new Request('https://stats.internal/lobby-salt'),
     );
-    const body = (await res.json()) as { salt?: string };
-    if (body.salt) {
-      lobbySecretCache = { value: body.salt, expires: Date.now() + 60_000 };
-      return body.salt;
+    if (!res.ok) {
+      console.error(`Lobby salt unavailable: Stats returned HTTP ${res.status}`);
+      return null;
     }
-  } catch { /* fall through to the ephemeral salt below */ }
-  // Last resort: still sharded, just not stable across isolate restarts.
-  return 'sharetext-lobby-fallback';
+    const body = (await res.json()) as { salt?: unknown } | null;
+    if (typeof body?.salt !== 'string' || !body.salt.trim()) {
+      console.error('Lobby salt unavailable: Stats returned a missing or invalid salt');
+      return null;
+    }
+    lobbySecretCache = body.salt;
+    return body.salt;
+  } catch {
+    console.error('Lobby salt unavailable: Stats lookup failed');
+    return null;
+  }
 }
 import { json, dayKey, type Env } from './types';
 
@@ -196,7 +203,9 @@ export default {
       }
       // One Lobby per NETWORK, not one per planet. The IP never leaves this
       // function: it is hashed into a shard id and dropped.
-      const shard = await shardFor(clientIp(request), await lobbySecret(env));
+      const secret = await lobbySecret(env);
+      if (!secret) return json({ error: 'Nearby is temporarily unavailable. Try again shortly.' }, 503, cors);
+      const shard = await shardFor(clientIp(request), secret);
       const id = env.LOBBY.idFromName('lobby:' + shard);
       return env.LOBBY.get(id).fetch(request);
     }

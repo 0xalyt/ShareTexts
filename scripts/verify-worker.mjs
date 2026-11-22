@@ -1201,6 +1201,58 @@ async function runLobbyWithdrawal() {
   check('Lobby withdrawn socket close removes retained identity', !await ctx.storage.get('conn:' + withdrawn.cid));
 }
 
+async function runLobbySaltRouting() {
+  const failures = {
+    exception: () => { throw new Error('private upstream diagnostic'); },
+    missing: () => new Response('{}'),
+    empty: () => new Response(JSON.stringify({ salt: '  ' })),
+    invalid: () => new Response(JSON.stringify({ salt: 123 })),
+    http: () => new Response(JSON.stringify({ salt: 'untrusted-error-response' }), { status: 503 }),
+    json: () => new Response('private non-JSON response'),
+  };
+  for (const [kind, fail] of Object.entries(failures)) {
+    const { default: isolated } = await import(pathToFileURL(path.join(tmp, 'index.js')).href + `?salt=${kind}`);
+    const registry = new Registry(new FakeCtx(), {});
+    let lookups = 0;
+    const routed = [], errors = [];
+    const env = {
+      REGISTRY: { idFromName: name => name, get: () => registry },
+      STATS: { idFromName: name => name, get: () => ({ fetch: async () => {
+        if (++lookups === 1) return fail();
+        return new Response(JSON.stringify({ salt: 'persisted-probe-secret' }));
+      } }) },
+      LOBBY: { idFromName: name => name, get: id => ({ fetch: async () => {
+        routed.push(id);
+        return new Response(JSON.stringify({ id }));
+      } }) },
+    };
+    const route = (bindings = env) => isolated.fetch(new Request('https://worker.test/lobby', {
+      headers: { Upgrade: 'websocket', 'cf-connecting-ip': '203.0.113.71' },
+    }), bindings);
+    const originalError = console.error;
+    const originalNow = Date.now;
+    try {
+      console.error = (...args) => errors.push(args.join(' '));
+      const rejected = await route();
+      check(`Lobby salt ${kind}: failed upgrade returns 503 without routing`, rejected.status === 503 && routed.length === 0);
+      check(`Lobby salt ${kind}: logs a reason without upstream secrets`, errors.length === 1
+        && errors[0].includes('salt') && !/private|untrusted-error-response|persisted-probe-secret/.test(errors[0]));
+      const expected = await (await route({ ...env, LOBBY_SALT: 'persisted-probe-secret' })).json();
+      const a = await (await route()).json();
+      const b = await (await route()).json();
+      check(`Lobby salt ${kind}: retries join the expected same lobby`, a.id === expected.id && b.id === expected.id);
+      const before = lookups;
+      Date.now = () => originalNow() + 61_000;
+      const later = await route();
+      check(`Lobby salt ${kind}: successful lookup survives the old cache TTL`, later.ok && lookups === before && lookups === 2);
+      check(`Lobby salt ${kind}: configured secret bypasses Stats`, (await route({ ...env, LOBBY_SALT: 'configured-probe-secret' })).ok && lookups === before);
+    } finally {
+      console.error = originalError;
+      Date.now = originalNow;
+    }
+  }
+}
+
 async function runLobbyDiscovery() {
   const registry = new Registry(new FakeCtx(), {});
   const env = {
@@ -1271,6 +1323,7 @@ await runMetrics();
 await runSpace();
 await runSpaceHibernation();
 await runLobbyWithdrawal();
+await runLobbySaltRouting();
 await runLobbyDiscovery();
 
 rmSync(tmp, { recursive: true, force: true });
