@@ -275,7 +275,7 @@ function ItemCard({
           </div>
         )}
         <div className="mt-2.5 flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 text-[12px] text-apple-ink-muted/80 dark:text-white/40">
-          <span className="basis-full min-w-0 [overflow-wrap:anywhere] sm:basis-auto sm:flex-1">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
+          <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
           <button type="button" className="st-space-item-more flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full hover:bg-black/[0.05] dark:hover:bg-white/[0.08]" aria-label={t('nav.more')} aria-expanded={actionsOpen} onClick={() => setActionsOpen(v => !v)}>
             <MoreHorizontal className="h-4 w-4" aria-hidden />
           </button>
@@ -1042,7 +1042,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             className="st-space-share shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full text-[13px] font-semibold active:scale-[0.96] transition-transform"
             data-testid="space-share-btn"
           >
-            <Share2 className="w-3.5 h-3.5" />
+            <Share2 className="w-3.5 h-3.5 shrink-0" />
             <span>{t('action.share')}</span>
           </button>
           {canClose && (

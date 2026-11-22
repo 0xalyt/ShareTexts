@@ -177,6 +177,13 @@ try {
   ok('mobile: send button inside the viewport',
     mob.sendRight !== null && mob.sendRight <= mob.vw + 1 && mob.sendBottom <= mob.vh + 1,
     `right=${mob.sendRight} bottom=${mob.sendBottom} vp=${mob.vw}x${mob.vh}`);
+  await A.page.setViewportSize({ width: 320, height: 844 });
+  const narrow = await A.page.getByTestId('space-share-btn').evaluate(button => ({
+    width: button.getBoundingClientRect().width,
+    iconWidth: button.querySelector('svg')?.getBoundingClientRect().width ?? 0,
+    overflow: document.documentElement.scrollWidth - window.innerWidth,
+  }));
+  ok('320px: Share has room for its label and icon', narrow.width > 70 && narrow.iconWidth >= 13 && narrow.overflow === 0, JSON.stringify(narrow));
   await A.page.setViewportSize({ width: 1366, height: 900 });
 
   // ── dark theme (fresh device, seeded before paint) ───────────────────
