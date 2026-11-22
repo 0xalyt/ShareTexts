@@ -169,6 +169,49 @@ try {
   });
   out('the React control is keyboard-reachable', reactReachable.found && reactReachable.focused, JSON.stringify(reactReachable));
 
+  // A Motion press gesture synthesizes pointerdown for Enter. The native
+  // keyboard click must still toggle once, not undo that same reaction.
+  const reactTrigger = pb.getByTestId('add-reaction').first();
+  await pb.setViewportSize({ width: 390, height: 844 });
+  await pb.getByTestId('composer').focus();
+  await pb.locator('[class~="group/msg"]').first().hover();
+  const revealed = await pb.waitForFunction(() => {
+    const trigger = document.querySelector('[data-testid="add-reaction"]');
+    return trigger && getComputedStyle(trigger.parentElement.parentElement).opacity === '1';
+  }, undefined, { timeout: 3000 }).then(() => true, () => false);
+  out('hovering a message reveals its closed reaction control', revealed);
+  await reactTrigger.click();
+  await pb.getByTestId('reaction-emoji-thumbs-up').click();
+  await pb.getByTestId('reaction-chip-👍').click();
+  await pb.keyboard.press('Escape');
+  await reactTrigger.focus();
+  await reactTrigger.press('Enter');
+  const reopened = await pb.getByTestId('reaction-emoji-thumbs-up').waitFor({ state: 'visible', timeout: 4000 }).then(() => true, () => false);
+  out('first Enter reopens text picker after pointer reaction removal', reopened && await reactTrigger.getAttribute('aria-expanded') === 'true');
+  await pb.keyboard.press('Escape');
+  await pb.setViewportSize({ width: 320, height: 760 });
+  for (const key of ['Enter', 'Space']) {
+    await reactTrigger.focus();
+    await reactTrigger.press('Enter');
+    const heartOption = pb.getByTestId('reaction-emoji-red-heart');
+    await heartOption.focus();
+    await heartOption.press('ArrowRight');
+    const thumbsUp = pb.getByTestId('reaction-emoji-thumbs-up');
+    out(`${key}: arrows focus the named thumbs-up option`, await thumbsUp.evaluate(el => el === document.activeElement));
+    await thumbsUp.press(key);
+    const thumbChip = pb.getByTestId('reaction-chip-👍');
+    const arrived = await pa.getByTestId('reaction-chip-👍').waitFor({ state: 'visible', timeout: 4000 }).then(() => true, () => false);
+    out(`${key}: one keyboard activation adds exactly one reaction on both peers`, arrived && await thumbChip.count() === 1 && await thumbChip.getAttribute('aria-pressed') === 'true');
+    await pb.keyboard.press('Escape');
+    if (await thumbChip.count()) {
+      await thumbChip.press('Space');
+      const cleared = await pa.getByTestId('reaction-chip-👍').waitFor({ state: 'detached', timeout: 4000 }).then(() => true, () => false);
+      out(`${key}: keyboard chip activation removes the reaction on both peers`, cleared && await thumbChip.count() === 0);
+    } else {
+      out(`${key}: keyboard chip activation removes the reaction on both peers`, false, 'no chip to remove');
+    }
+  }
+
   // 7. Screenshot of strip + menu at 390×844, the review artefact §19 asks for.
   try {
     await pb.setViewportSize({ width: 390, height: 844 });

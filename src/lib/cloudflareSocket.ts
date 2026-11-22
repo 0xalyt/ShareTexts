@@ -36,6 +36,8 @@ export class CloudflareSocket implements SignalingSocket {
   private listeners = new Map<string, Set<Handler>>();
   private pending = new Map<string, (res: any) => void>();
   private reqSeq = 0;
+  private binaryFrom: string | undefined;
+  private binaryTargets = false;
 
   private httpBase: string; // https://host (for POST /lookup)
   private wsBase: string;   // wss://host/ws (for the room socket)
@@ -266,8 +268,9 @@ export class CloudflareSocket implements SignalingSocket {
         }
         resolve(ws);
       };
-      ws.onmessage = (ev) => this.handleMessage(ev.data);
+      ws.onmessage = (ev) => { if (this.ws === ws) this.handleMessage(ev.data); };
       ws.onclose = () => {
+        if (this.ws === ws) this.binaryFrom = undefined;
         if (this.ws === ws) this.ws = null;
         this.connected = false;
         this.emitLocal('disconnect', 'transport close');
@@ -329,6 +332,8 @@ export class CloudflareSocket implements SignalingSocket {
   }
 
   private closeWs() {
+    this.binaryFrom = undefined;
+    this.binaryTargets = false;
     if (this.ws) {
       const old = this.ws;
       this.ws = null;
@@ -375,15 +380,25 @@ export class CloudflareSocket implements SignalingSocket {
       } else if (msg?.type === 'error') {
         this.emitLocal('error', { code: msg.code, message: msg.message });
       } else if (msg?.type === 'event') {
-        this.emitLocal(msg.event, msg.payload);
+        if (msg.event === 'relay_capabilities') {
+          this.binaryTargets = msg.payload?.binaryTargets === true;
+        } else if (msg.event === 'relay_binary') {
+          this.binaryFrom = typeof msg.payload?.from === 'string' && msg.payload.from ? msg.payload.from : undefined;
+        } else {
+          this.emitLocal(msg.event, msg.payload);
+        }
       }
     } else if (data instanceof Blob) {
       // Fallback: if binaryType was somehow not honoured, the frame arrives
       // as a Blob — convert it so relay chunks still decrypt.
-      void data.arrayBuffer().then(buf => this.emitLocal('relay_message', { data: buf }));
+      const from = this.binaryFrom;
+      this.binaryFrom = undefined;
+      void data.arrayBuffer().then(buf => this.emitLocal('relay_message', { from, data: buf }));
     } else {
       // Binary frame — relay data (an encrypted text/file chunk).
-      this.emitLocal('relay_message', { data });
+      const from = this.binaryFrom;
+      this.binaryFrom = undefined;
+      this.emitLocal('relay_message', { from, data });
     }
   }
 
@@ -494,15 +509,14 @@ export class CloudflareSocket implements SignalingSocket {
     }
   }
 
-  private async sendRelay(payload: { roomId?: string; data?: string | ArrayBuffer } | undefined) {
+  private async sendRelay(payload: { roomId?: string; to?: string; data?: string | ArrayBuffer } | undefined) {
     if (!payload?.roomId) return;
     try {
       const ws = await this.openRoom(payload.roomId);
       if (typeof payload.data === 'string') {
-        this.sendJson(ws, 'relay_message', { data: payload.data });
+        this.sendJson(ws, 'relay_message', { to: payload.to, data: payload.data });
       } else if (payload.data instanceof ArrayBuffer) {
-        // Binary frames are unambiguous relay data (encrypted chunks) — the
-        // DO forwards the raw frame to the peer without a header.
+        if (payload.to && this.binaryTargets) this.sendJson(ws, 'relay_binary_target', { to: payload.to });
         ws.send(payload.data);
       }
     } catch {

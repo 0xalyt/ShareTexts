@@ -385,6 +385,7 @@ const hi: Dict = {
   'action.copy': 'कॉपी करें',
   'action.share': 'साझा करें',
   'action.save': 'सेव करें',
+  'action.download': 'डाउनलोड करें',
   'action.copied': 'कॉपी हो गया',
   'action.shared': 'साझा हुआ',
   'action.saved': 'सेव हुआ',
