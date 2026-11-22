@@ -586,7 +586,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
           // URL, an unbroken word) sets its width from max-content and blows
           // past the 82% column — measured at 1022 px inside a 390 px phone.
           "px-[15px] py-[10px] rounded-[16px] transition-shadow min-w-0 max-w-full",
-          selected && "ring-2 ring-azure-500/60",
+          selected && "outline-2 outline-ember outline-offset-[-2px]",
           isMe
             /* Sent: a real ember wash — the old #fff4ea was within two
                steps of the parchment, so “mine” and “theirs” separated only
