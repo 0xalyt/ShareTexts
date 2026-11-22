@@ -3,6 +3,8 @@
 .st-photo-grid > .group\/msg { align-items: stretch; align-self: stretch; margin-block-start: 0; }
 .st-photo-grid .st-file-bubble { position: relative; max-width: 100%; height: 100%; }
 .st-photo-grid .st-file-bubble > div:first-child { flex: 1; border-radius: 12px; }
+/* Keep the selection edge inside the row's paint containment. */
+.st-photo-grid .st-file-bubble.ring-2 { box-shadow: none; border-radius: 12px; outline: 2px solid var(--color-ember); outline-offset: -2px; }
 .st-photo-grid .st-file-bubble .st-img-edge { aspect-ratio: 1; object-fit: cover; }
 .st-photo-grid .st-message-reactions { position: absolute; inset: 8px 8px auto auto; width: auto; max-width: calc(100% - 16px); min-height: 44px; justify-content: flex-end; z-index: 1; }
 .st-photo-grid [data-testid='transfer-download'] { width: 100%; min-height: 52px; justify-content: center; }
