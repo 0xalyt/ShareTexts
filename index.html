@@ -220,7 +220,9 @@
             background: #fbfbfd;
             font-family: var(--st-font-sans);
             height: 100dvh;
-            overflow: hidden;
+            overflow-y: auto;
+            scrollbar-gutter: stable;
+            scrollbar-width: none;
           }
           #loading-shell.fade-out { opacity: 0; }
           html.dark #loading-shell { background: #181818; }
@@ -232,11 +234,11 @@
           #loading-shell .st-skel__header, #loading-shell .st-skel__main {
             max-width: 1200px;
             margin: 0 auto;
-            padding-inline: 24px;
+            padding-inline: 20px;
           }
-          #loading-shell .st-skel__header { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 20px; }
+          #loading-shell .st-skel__header { height: 65px; padding-bottom: 1px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
           #loading-shell .st-skel__brand, #loading-shell .st-skel__tools { display: flex; align-items: center; gap: 8px; }
-          #loading-shell .st-skel__main { padding-block: 32px 64px; }
+          #loading-shell .st-skel__main { padding-block: 20px 32px; }
           #loading-shell .st-skel__intro { display: flex; flex-direction: column; align-items: center; max-width: 470px; margin-inline: auto; }
           #loading-shell .st-sk {
             position: relative;
@@ -262,44 +264,54 @@
           #loading-shell .st-sk--wordmark { width: 92px; height: 20px; }
           #loading-shell .st-sk--tools { width: 82px; height: 44px; border-radius: 999px; }
           #loading-shell .st-sk--theme { width: 40px; height: 40px; border-radius: 50%; }
-          #loading-shell .st-skel__heading { width: 100%; max-width: 680px; display: flex; flex-direction: column; align-items: center; gap: .18em; font-size: clamp(32px, 8.8vw, 46px); }
-          #loading-shell .st-sk--h1 { height: .88em; width: 64%; }
-          #loading-shell .st-sk--h1:nth-child(2) { width: 92%; }
-          #loading-shell .st-sk--h1:nth-child(3) { width: 56%; }
-          #loading-shell .st-skel__lede { width: 100%; max-width: 520px; height: 56px; margin-top: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+          #loading-shell .st-skel__heading { width: 100%; max-width: 680px; height: 2.22em; display: flex; flex-direction: column; align-items: center; justify-content: space-around; font-size: clamp(32px, 8.8vw, 46px); }
+          #loading-shell .st-sk--h1 { height: .8em; width: 60%; }
+          #loading-shell .st-sk--h1:last-child { width: 84%; }
+          #loading-shell .st-skel__lede { width: 100%; max-width: 482px; height: 3.1em; font-size: 17px; margin-top: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
           #loading-shell .st-sk--line { width: 90%; height: 12px; border-radius: 999px; }
           #loading-shell .st-sk--line:last-child { width: 58%; }
           #loading-shell .st-sk--btn { height: 56px; border-radius: 16px; }
           #loading-shell .st-skel__btns { width: 100%; max-width: 480px; display: grid; gap: 12px; margin-top: 24px; grid-template-columns: 1fr 1fr; }
-          #loading-shell .st-skel__film { width: 100%; margin-block: 40px 8px; overflow: hidden; border-radius: 12px; }
+          #loading-shell .st-skel__film { width: 100%; margin-block: 40px 8px; overflow: hidden; border: 1px solid transparent; border-radius: 12px; }
           #loading-shell .st-sk--picture { aspect-ratio: 4 / 3; border-radius: 0; }
-          #loading-shell .st-sk--play { height: 45px; margin-top: 1px; border-radius: 0; }
-          #loading-shell .st-sk--field { width: 100%; max-width: 480px; height: 56px; margin-top: 32px; border-radius: 16px; }
-          #loading-shell .st-sk--utility { width: 120px; height: 16px; margin-top: 24px; border-radius: 999px; }
+          #loading-shell .st-sk--play { height: 44px; margin-top: 1px; border-radius: 0; }
+          #loading-shell .st-sk--field { width: 100%; max-width: 480px; height: 58px; margin-top: 32px; border-radius: 16px; }
+          #loading-shell .st-skel__utilities { width: 100%; max-width: 480px; margin-top: 16px; }
+          #loading-shell .st-skel__row { height: 53px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(20, 16, 10, .06); }
+          #loading-shell .st-skel__row:first-child { height: 62.5px; }
+          #loading-shell .st-skel__row:last-child { height: 52px; border: 0; }
+          html.dark #loading-shell .st-skel__row { border-color: rgba(255, 255, 255, .08); }
+          #loading-shell .st-sk--row-icon { flex-shrink: 0; width: 32px; height: 32px; border-radius: 12px; }
+          #loading-shell .st-skel__row-copy { flex: 1; }
+          #loading-shell .st-sk--row-title { width: 60%; height: 14px; border-radius: 999px; }
+          #loading-shell .st-sk--row-subtitle { width: 80%; height: 10px; margin-top: 6px; border-radius: 999px; }
+          #loading-shell .st-sk--row-value { width: 24px; height: 10px; border-radius: 999px; }
           @media (min-width: 640px) {
-            #loading-shell .st-skel__header { padding-inline: 24px; }
+            #loading-shell .st-skel__header, #loading-shell .st-skel__main { padding-inline: 24px; }
+            #loading-shell .st-skel__main { padding-top: 32px; }
             #loading-shell .st-sk--mark { width: 44px; height: 44px; }
             #loading-shell .st-sk--wordmark { width: 120px; height: 24px; }
             #loading-shell .st-sk--tools { width: 184px; }
             #loading-shell .st-sk--picture { aspect-ratio: 16 / 9; }
           }
           @media (min-width: 768px) {
+            #loading-shell { scrollbar-width: thin; scrollbar-color: rgba(20, 16, 10, .1) transparent; }
             #loading-shell .st-skel__film { border-radius: 16px; }
-            #loading-shell .st-sk--play { height: 49px; }
+            #loading-shell .st-sk--play { height: 48px; }
           }
           @media (min-width: 1024px) {
             #loading-shell .st-skel__header, #loading-shell .st-skel__main { padding-inline: 32px; }
             #loading-shell .st-skel__intro { max-width: none; }
-            #loading-shell .st-skel__heading { font-size: 60px; }
+            #loading-shell .st-skel__heading { height: 2.16em; font-size: 60px; }
             #loading-shell .st-sk--h1:first-child { width: 56%; }
-            #loading-shell .st-sk--h1:nth-child(3) { display: none; }
-            #loading-shell .st-skel__lede { height: 28px; }
+            #loading-shell .st-skel__main { padding-bottom: 64px; }
+            #loading-shell .st-skel__lede { height: 1.55em; }
             #loading-shell .st-sk--line:last-child { display: none; }
             #loading-shell .st-sk--btn { height: 64px; }
             #loading-shell .st-skel__film { margin-top: 32px; }
           }
           @media (min-width: 1440px) {
-            #loading-shell .st-skel__heading { font-size: 64px; }
+            #loading-shell .st-skel__heading { height: 2.16em; font-size: 64px; }
           }
           @media (min-width: 1536px) {
             #loading-shell .st-skel__header, #loading-shell .st-skel__main { padding-inline: 48px; }
@@ -309,7 +321,7 @@
           }
           @media (max-width: 359px) {
             #loading-shell .st-skel__btns { margin-top: 20px; }
-            #loading-shell .st-skel__lede { height: 50px; }
+            #loading-shell .st-skel__lede { font-size: 16px; }
           }
           @media (max-width: 767px) {
             #loading-shell .st-skel__film { margin-bottom: 0; }
@@ -371,7 +383,6 @@
               <div class="st-skel__heading">
                 <div class="st-sk st-sk--h1"></div>
                 <div class="st-sk st-sk--h1"></div>
-                <div class="st-sk st-sk--h1"></div>
               </div>
               <div class="st-skel__lede">
                 <div class="st-sk st-sk--line"></div>
@@ -386,7 +397,26 @@
                 <div class="st-sk st-sk--play"></div>
               </div>
               <div class="st-sk st-sk--field"></div>
-              <div class="st-sk st-sk--utility"></div>
+              <div class="st-skel__utilities">
+                <div class="st-skel__row">
+                  <div class="st-sk st-sk--row-icon"></div>
+                  <div class="st-skel__row-copy">
+                    <div class="st-sk st-sk--row-title"></div>
+                    <div class="st-sk st-sk--row-subtitle"></div>
+                  </div>
+                  <div class="st-sk st-sk--row-value"></div>
+                </div>
+                <div class="st-skel__row">
+                  <div class="st-sk st-sk--row-icon"></div>
+                  <div class="st-skel__row-copy"><div class="st-sk st-sk--row-title"></div></div>
+                  <div class="st-sk st-sk--row-value"></div>
+                </div>
+                <div class="st-skel__row">
+                  <div class="st-sk st-sk--row-icon"></div>
+                  <div class="st-skel__row-copy"><div class="st-sk st-sk--row-title"></div></div>
+                  <div class="st-sk st-sk--row-value"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
