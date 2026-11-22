@@ -524,7 +524,10 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
         if (canSendFile) {
           await navigator.share({ files: [file], title: name });
         } else {
-          await navigator.share({ title: 'ShareTexts', text: name, url: a.url });
+          // A blob: URL only works in this browser. Never hand it to
+          // another app as though it were a public download link.
+          handleDownload(a.url, name);
+          return;
         }
         setShared(true);
         setTimeout(() => setShared(false), 2000);

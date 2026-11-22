@@ -39,6 +39,7 @@ import { OverlaySheet } from '../components/OverlaySheet';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { generateTOTP, getTOTPRemainingSeconds } from '../lib/totp';
 import { saveDraft, loadDraft, clearDraft, ComposerDraft } from '../lib/draftStore';
+import { composerIntentGeneration } from '../lib/composerIntent';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { hasOpenLayer } from '../lib/layers';
 import { useI18n } from '../lib/i18n';
@@ -60,15 +61,10 @@ import { RecipientStrip } from '../components/RecipientStrip';
 /** Text carried in from the landing intent field (SingleScreenApp parks it
  *  right before creating the room). Consumed once, so a later room in the
  *  same tab never inherits it. */
-function takeIntentText(): string | null {
-  const w = window as Window & { __stPendingIntentText?: string };
-  const v = w.__stPendingIntentText;
-  if (!v) return null;
-  delete w.__stPendingIntentText;
-  return v;
-}
+import { noteConnectedRoom } from '../lib/completedItems';
+import { ShortcutHints } from '../components/ShortcutHints';
 
-export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' } = {}) {
+export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 'standalone'; intakeError?: string } = {}) {
   const reducedMotion = useMotionPreference();
   const quietMotion = reducedMotion || document.documentElement.dataset.motionIntent === 'keyboard';
   const { t, lang } = useI18n();
@@ -121,9 +117,20 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     setEditingName(false);
   };
   const [inputText, setInputText] = useState('');
+  useEffect(() => {
+    const pasteShortcut = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'v' || hasOpenLayer()) return;
+      const target = document.activeElement;
+      if (target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable)) return;
+      textareaRef.current?.focus({ preventScroll: true });
+    };
+    window.addEventListener('keydown', pasteShortcut);
+    return () => window.removeEventListener('keydown', pasteShortcut);
+  }, []);
   // Multiple staged attachments per send (up to 20) — each file becomes its
   // own transfer bubble on send, but they're picked together in one message.
   const [attachments, setAttachments] = useState<(Attachment & { file: File })[]>([]);
+  const [pendingShares, setPendingShares] = useState<NonNullable<ComposerDraft['pendingShares']>>([]);
   // ---- Draft persistence: text + attachments survive an accidental refresh.
   // Restore on mount, save (debounced) on every change, clear on send. The
   // draft is keyed by room, so switching rooms never mixes composers. A
@@ -134,35 +141,36 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     let cancelled = false;
     void loadDraft(session.roomId).then((d) => {
       if (cancelled) return;
-      // What the user typed into the intent field on the way here is the
-      // thing they chose to move — it outranks a stale draft for this room
-      // (and is normally the only content there anyway).
-      const carried = takeIntentText();
-      if (carried) {
-        setInputText(carried);
-        setComposerTouched(true);
-        setDraftReady(true);
-        return;
-      }
+      // Restore first. Pickup below adds a share's text AND files together,
+      // only once the full batch fits beside this saved draft.
       if (!d) { setDraftReady(true); return; }
       setInputText(d.text);
       setAttachments(d.attachments.filter(a => a.file && a.file.size > 0));
+      setPendingShares(d.pendingShares ?? []);
       setDraftReady(true);
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.roomId]);
   useEffect(() => {
-    if (!draftReady) return;
+    if (!draftReady || !session.roomId) return;
+    const generation = composerIntentGeneration();
     const t = setTimeout(() => {
-      const draft: ComposerDraft = { text: inputText, attachments, updatedAt: Date.now() };
+      // Teardown can precede this effect's cleanup during an exit animation.
+      if (generation !== composerIntentGeneration()) return;
+      const draft: ComposerDraft = { text: inputText, attachments, pendingShares, updatedAt: Date.now() };
       void saveDraft(session.roomId, draft);
     }, 250);
     return () => clearTimeout(t);
-  }, [inputText, attachments, session.roomId, draftReady]);
+  }, [inputText, attachments, pendingShares, session.roomId, draftReady]);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [showConnectionDetails, setShowConnectionDetails] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Phone shares can be rejected while this restored room is already open.
+  // Reuse the visible composer's alert rather than an off-screen home alert.
+  useEffect(() => {
+    if (intakeError) setErrorMsg(intakeError);
+  }, [intakeError]);
   // Message selection (bencho selection-list): long-press a bubble to enter,
   // tap to toggle, floating bar copies or exits. Long-press keeps the copy
   // button free; a fresh selection always starts with the pressed message.
@@ -429,10 +437,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     claimSeen();
   }, [claimSeen, session.messages.length]);
-  // Screen-reader live region: connection state + inbound transfers are
-  // announced in plain words ("Connected", "Photo received", "Couldn't send
-  // the file.") without any visual change.
-  const lastMessage = session.messages[session.messages.length - 1];
   useEffect(() => {
     const arrivals = session.messages.filter(message => message.sender === 'partner'
       && message.attachment?.status === 'complete'
@@ -442,24 +446,27 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     hapticArrive();
     setArrivalPulse(arrivals[arrivals.length - 1].id);
   }, [session.messages]);
+  // Announce every new inbound item once, with its actual sender's name.
+  // Arrival feedback above owns the haptic so a completion never ticks twice.
+  const announcedStatuses = useRef(new Map(session.messages.map(message => [message.id, message.attachment?.status ?? 'text'])));
   useEffect(() => {
-    if (!lastMessage || lastMessage.sender === 'me') return;
-    const st = lastMessage.attachment?.status;
     const tr = tRef.current;
-    if (st === 'complete') {
-      // A real arrival — the transfer landed intact. One quiet tick.
-      const type = lastMessage.attachment?.type;
-      setAnnouncement(type === 'image' ? tr('chat.photoReceived') : type === 'video' ? tr('chat.videoReceived') : type === 'audio' ? tr('chat.audioReceived') : tr('chat.fileReceived', { name: lastMessage.attachment!.name }));
-    } else if (st === 'failed') {
-      setAnnouncement(tr('chat.couldNotSend'));
-    } else if (st === 'cancelled') {
-      setAnnouncement(tr('chat.transferCancelled'));
-    } else if (!lastMessage.attachment) {
-      // Named attribution in the SR announcement too — "Message from
-      // Windows PC" tells the listener which device spoke, not just that
-      // *something* arrived.
-      setAnnouncement(session.partnerName ? tr('chat.messageFrom', { name: session.partnerName }) : tr('chat.messageReceived'));
+    const arrivals: string[] = [];
+    for (const message of session.messages) {
+      if (message.sender === 'me') continue;
+      const status = message.attachment?.status ?? 'text';
+      if (announcedStatuses.current.get(message.id) === status) continue;
+      announcedStatuses.current.set(message.id, status);
+      const name = message.senderDeviceName || session.partnerName;
+      if (status === 'complete') {
+        const file = message.attachment!;
+        const item = file.type === 'image' ? tr('chat.photoReceived') : file.type === 'video' ? tr('chat.videoReceived') : file.type === 'audio' ? tr('chat.audioReceived') : tr('chat.fileReceived', { name: file.name });
+        arrivals.push(name ? tr('chat.receivedFrom', { item, name }) : item);
+      } else if (status === 'failed') arrivals.push(tr('chat.couldNotSend'));
+      else if (status === 'cancelled') arrivals.push(tr('chat.transferCancelled'));
+      else if (status === 'text') arrivals.push(name ? tr('chat.messageFrom', { name }) : tr('chat.messageReceived'));
     }
+    if (arrivals.length) setAnnouncement(arrivals.join(' '));
   }, [session.messages]);
   // "Connected" toast — fire ONCE per room, the moment the channel first
   // opens (room entry), never again for the life of the room. The old
@@ -469,6 +476,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     const tr = tRef.current;
     if (partnerLinkHealthy) {
+      if (session.roomId) noteConnectedRoom(session.roomId);
       setAnnouncement(tr('common.connected'));
       if (connectedToastRoomRef.current !== session.roomId) {
         connectedToastRoomRef.current = session.roomId;
@@ -581,24 +589,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // Drop-to-send handoff: files dropped on the idle home screen were parked
   // here by SingleScreenApp right before the room was created. Consume once,
   // staged as attachments the moment the composer exists.
-  const pickedUpRef = useRef(false);
-  useEffect(() => {
-    if (pickedUpRef.current) return;
-    const parked = (window as Window & { __stHomeDropFiles?: File[] }).__stHomeDropFiles;
-    if (!parked || parked.length === 0) return;
-    pickedUpRef.current = true;
-    delete (window as Window & { __stHomeDropFiles?: File[] }).__stHomeDropFiles;
-    const first = parked[0];
-    const type = first.type.startsWith('image/')
-      ? 'image'
-      : first.type.startsWith('video/')
-        ? 'video'
-        : first.type.startsWith('audio/')
-          ? 'audio'
-          : 'file';
-    addFiles(parked, type);
-  }, []);
-  const addFiles = (files: FileList | File[], type: 'image' | 'file' | 'video' | 'audio') => {
+  const addFiles = useCallback((files: FileList | File[], type: 'image' | 'file' | 'video' | 'audio') => {
     const list = Array.from(files);
     if (list.length === 0) return;
     setComposerTouched(true);
@@ -608,9 +599,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       return;
     }
     const accepted: (Attachment & { file: File })[] = [];
+    let notice: string | null = null;
     for (const file of list) {
       if (accepted.length >= roomLeft) {
-        setErrorMsg(t('attach.overflow', { max: MAX_ATTACHMENTS, left: list.length - accepted.length }));
+        notice = t('attach.overflow', { max: MAX_ATTACHMENTS, left: list.length - accepted.length });
         break;
       }
       let kind = type;
@@ -626,10 +618,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       // below is a heads-up, not a rejection: quality is never compromised.
       if (kind === 'image' && file.size > 100 * 1024 * 1024) {
         kind = 'file';
-        setErrorMsg(t('attach.largeImage', { name: file.name }));
+        notice = t('attach.largeImage', { name: file.name });
       }
       if (file.size > 4 * 1024 * 1024 * 1024) {
-        setErrorMsg(t('attach.tooLarge', { name: file.name }));
+        notice = t('attach.tooLarge', { name: file.name });
         continue;
       }
       accepted.push({
@@ -642,12 +634,42 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         status: 'draft'
       });
     }
+    setErrorMsg(notice);
     if (accepted.length > 0) {
-      setErrorMsg(null);
       setAttachments(prev => [...prev, ...accepted]);
       setShowAttachmentMenu(false);
     }
-  };
+  }, [attachments.length, t]);
+  useEffect(() => {
+    // Shares can arrive after the restored room mounted. Wait for its saved
+    // draft first, so asynchronous restoration cannot overwrite the intake.
+    if (!draftReady) return;
+    const pickUp = () => {
+      const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+      const files = w.__stHomeDropFiles ?? [];
+      const text = w.__stPendingIntentText ?? '';
+      delete w.__stHomeDropFiles;
+      delete w.__stPendingIntentText;
+      // The room owns the handoff now. Save waiting batches with its draft,
+      // not only in globals that disappear on refresh; later shares queue.
+      if (files.length || text) setPendingShares(previous => [...previous, { files, text }]);
+    };
+    pickUp();
+    window.addEventListener('sharetext:composer-intent', pickUp);
+    return () => window.removeEventListener('sharetext:composer-intent', pickUp);
+  }, [draftReady]);
+  useEffect(() => {
+    if (!draftReady || !pendingShares.length) return;
+    const { files, text } = pendingShares[0];
+    if (files.length <= MAX_ATTACHMENTS && files.length > MAX_ATTACHMENTS - attachments.length) {
+      setErrorMsg(t('shareTarget.waiting'));
+      return; // Keep the caption with its waiting files, not this draft.
+    }
+    if (files.length) addFiles(files, 'file');
+    if (text) setInputText(previous => previous ? `${previous}\n${text}` : text);
+    setComposerTouched(true);
+    setPendingShares(previous => previous.slice(1));
+  }, [draftReady, pendingShares, addFiles, attachments.length, t]);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file' | 'video' | 'audio') => {
     if (!e.target.files || e.target.files.length === 0) return;
     addFiles(e.target.files, type);
@@ -1628,7 +1650,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 ~100ms to as much as 2000ms (measured, verify-quality). The
                 rim, specular and graded fill cost a single paint and read
                 the same at this size; the blur stays on static chrome. */}
-            <motion.div className="relative flex-1 min-w-0 rounded-[24px] st-lens st-lens-quiet overflow-visible focus-within:ring-2 focus-within:ring-ember/25 transition-shadow">
+            <motion.div className="relative flex-1 min-w-0 rounded-[24px] st-lens st-lens-quiet overflow-visible focus-within:ring-2 focus-within:ring-ember transition-shadow">
+            <ShortcutHints />
 
             {/* Multi-attachment preview strip — up to 20 files, each with a
                 circular remove button that's always visible and tappable. */}
@@ -1795,6 +1818,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   ? t('composer.to', { name: session.partnerName })
                   : t('composer.placeholderShort'),
                 'aria-label': t('composer.aria'),
+                'aria-keyshortcuts': 'Enter Control+V Meta+V',
                 title: t('composer.title'),
               }}
               onSend={handleSend}

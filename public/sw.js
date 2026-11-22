@@ -14,6 +14,42 @@
  *     Worker's /health, /lookup, /ws) are never intercepted.
  */
 const CACHE = 'sharetexts-v32';
+const SHARE_CACHE = 'sharetexts-share-inbox-v1';
+
+async function receiveShare(request) {
+  let cache;
+  const id = crypto.randomUUID();
+  const base = self.location.origin + '/__share/' + id + '/';
+  try {
+    cache = await caches.open(SHARE_CACHE);
+    // Sweep abandoned handoffs on the next share, not the app-shell cache.
+    for (const key of await cache.keys()) {
+      if (!key.url.endsWith('/meta')) continue;
+      const meta = await (await cache.match(key)).json();
+      if (Date.now() - meta.at < 10 * 60_000) continue;
+      const prefix = key.url.slice(0, -4);
+      await Promise.all((await cache.keys()).filter(r => r.url.startsWith(prefix)).map(r => cache.delete(r)));
+    }
+    const form = await request.formData();
+    const files = form.getAll('files').filter(f => f instanceof File && f.name);
+    // Bound local staging. Larger files can still be picked in the app.
+    if (files.length > 20 || files.reduce((n, f) => n + f.size, 0) > 100 * 1024 * 1024) throw new Error('Too large');
+    // The transfer protocol needs at least one chunk. Fail this handoff
+    // honestly instead of leaving the other device waiting forever.
+    if (files.some(file => file.size === 0)) throw new Error('Empty file');
+    const text = [...new Set(['share_title', 'share_text', 'share_url'].map(k => form.get(k)).filter(v => typeof v === 'string' && v.trim()).map(v => v.trim()))].join('\n');
+    if (!files.length && !text) throw new Error('Empty share');
+    const writes = await Promise.allSettled(files.map((f, i) => cache.put(base + i, new Response(f))));
+    if (writes.some(result => result.status === 'rejected')) throw new Error('Share storage unavailable');
+    await cache.put(base + 'meta', new Response(JSON.stringify({ at: Date.now(), text, files: files.map(f => ({ name: f.name, type: f.type })) }), { headers: { 'content-type': 'application/json' } }));
+    return Response.redirect(self.location.origin + '/?share_id=' + id, 303);
+  } catch {
+    try {
+      if (cache) await Promise.all((await cache.keys()).filter(r => r.url.startsWith(base)).map(r => cache.delete(r)));
+    } catch { /* Storage failure must still reach the recovery message. */ }
+    return Response.redirect(self.location.origin + '/?share_error=1', 303);
+  }
+}
 const SHELL = [
   '/',
   '/index.html',
@@ -92,7 +128,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    const stale = (await caches.keys()).filter((k) => k !== CACHE);
+    const stale = (await caches.keys()).filter((k) => k !== CACHE && k !== SHARE_CACHE);
     for (const key of stale) {
       const old = await caches.open(key);
       // Carry the previous build's hashed assets forward before dropping its
@@ -113,6 +149,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  if (request.method === 'POST' && new URL(request.url).origin === self.location.origin && new URL(request.url).pathname === '/share-target') {
+    event.respondWith(receiveShare(request).catch(() => Response.redirect(self.location.origin + '/?share_error=1', 303)));
+    return;
+  }
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);

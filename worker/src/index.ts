@@ -383,7 +383,7 @@ export default {
       if (!(await rateLimited(env, 'push', clientIp(request)))) {
         return json({ error: 'Too many attempts. Wait a moment and try again.' }, 429, cors);
       }
-      const CLIENT_EVENTS = /^product\.(page_view|first_interaction|activation|transfer_completed|transfer_failed|method_nearby|method_code|method_qr|method_link|qr_opened|docs_opened|diagnostics_opened|space_created|space_joined|space_item_uploaded)$/;
+      const CLIENT_EVENTS = /^product\.(page_view|code_shown|connected|first_item_received|second_session|first_interaction|activation|transfer_completed|transfer_failed|method_nearby|method_code|method_qr|method_link|qr_opened|docs_opened|diagnostics_opened|space_created|space_joined|space_item_uploaded)$/;
       let name = '';
       try { name = (await request.text()).trim(); } catch { /* keep empty */ }
       if (!CLIENT_EVENTS.test(name)) return json({ error: 'Bad request' }, 400, cors);

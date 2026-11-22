@@ -30,6 +30,7 @@ import { useFocusTrap } from '../lib/useFocusTrap';
 import { DUR } from '../lib/motion/tokens';
 import { Sheet } from './ui/Sheet';
 import { StatePanel, StateSkeletonRow } from './ui/StatePanel';
+import { SceneSaved } from './art/Scenes';
 import { cn, formatBytes } from '../lib/utils';
 import { FileTypeIcon } from './FileTypeIcon';
 import { ConfirmSheet } from './ConfirmSheet';
@@ -516,11 +517,9 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
     }
     if (items.length === 0) {
       return (
-        <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 px-6 py-8 text-center" data-testid="saved-empty">
-          <p className="text-[17px] font-medium text-apple-ink dark:text-white">{t('saved.emptyTitle')}</p>
-          <button type="button" onClick={onClose} data-testid="saved-empty-cta" className="min-h-[44px] rounded-full bg-black/[0.05] px-5 text-[15px] font-medium text-apple-ink transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]">
-            {t('saved.emptyCta')}
-          </button>
+        <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 px-6 py-8 text-center text-apple-ink dark:text-white" data-testid="saved-empty">
+          <SceneSaved size={112} />
+          <p className="max-w-[28ch] break-words text-pretty text-[15px] leading-relaxed text-apple-ink-muted dark:text-white/65">{t('saved.emptyBody')}</p>
         </div>
       );
     }

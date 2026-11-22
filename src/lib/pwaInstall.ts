@@ -4,9 +4,9 @@
  * The app exists to help people move a file; installing it is a convenience
  * for them, not a metric for us. So the offer obeys three rules:
  *
- *   1. EARN IT. It only appears after the app has been used (a room that ran)
- *      or after a second visit — never on a first, unfinished visit, and
- *      never during the first task. The caller also delays the first paint of
+ *   1. EARN IT. It only appears after two items have actually arrived —
+ *      never after merely opening a room or returning to the site.
+ *      The caller also delays the first paint of
  *      the card; this file only answers "would it be reasonable?".
  *   2. BE HONEST ABOUT WHAT IT DOES. On Chromium we can hand the real
  *      beforeinstallprompt event to a real button. Where that event does not
@@ -17,6 +17,8 @@
  *      standalone windows never see it at all.
  */
 
+import { completedItemCount } from './completedItems';
+
 const SEEN_KEY = 'sharetext.visits.v1';
 const MUTE_KEY = 'sharetext.install.mute.v1';
 const SNOOZE_MS = 14 * 24 * 60 * 60 * 1000;
@@ -24,9 +26,12 @@ const SNOOZE_MS = 14 * 24 * 60 * 60 * 1000;
 type BipEvent = Event & { prompt: () => Promise<void>; userChoice?: Promise<{ outcome: string }> };
 
 let deferred: BipEvent | null = null;
+let capturing = false;
 
 export function initInstallCapture() {
   if (typeof window === 'undefined') return;
+  if (capturing) return;
+  capturing = true;
   if (!('onbeforeinstallprompt' in window)) return;
   window.addEventListener('beforeinstallprompt', (e) => {
     // Chromium's own mini-infobar is the pushy version of this: suppress it
@@ -102,15 +107,15 @@ export function isSnoozedOrMuted(): boolean {
 }
 
 /**
- * Should we offer at all? Used-ness is passed in by the caller (it owns the
- * room lifecycle); this adds the platform and visit side of the answer.
+ * The completed-item ledger is the authority; the legacy argument remains
+ * compatible with the explicit install-help link.
  */
-export function shouldOfferInstall(used: boolean): boolean {
+export function shouldOfferInstall(_used = false): boolean {
   if (typeof window === 'undefined') return false;
   if (isStandalone()) return false;
   if (isSnoozedOrMuted()) return false;
   if (!hasInstallPrompt() && !isManualInstallPlatform()) return false;
-  return used || readNum(SEEN_KEY) >= 2;
+  return completedItemCount() >= 2;
 }
 
 export function silenceInstall(forever: boolean) {

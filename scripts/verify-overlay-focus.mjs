@@ -48,10 +48,11 @@ try {
       await language.waitFor({ state: 'detached' });
       assert.ok(await more.isVisible(), 'immediate Escape closes only the child');
 
-      // A locale update rerenders both overlays and changes their callbacks.
-      for (const locale of ['es', 'en', 'ja']) {
+      // Launch exposes reviewed languages only; draft options never appear.
+      for (const locale of ['en']) {
         await trigger.click();
         await focusInside('language-sheet');
+        assert.equal(await language.locator('button[lang]').count(), 1, 'only reviewed English is offered');
         await language.locator(`button[lang="${locale}"]`).click();
         await language.waitFor({ state: 'detached' });
         assert.equal(await page.locator('html').getAttribute('lang'), locale);

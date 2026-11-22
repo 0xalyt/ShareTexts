@@ -58,6 +58,10 @@
       "destination": "/seo/about.html"
     },
     {
+      "source": "/changelog",
+      "destination": "/seo/changelog.html"
+    },
+    {
       "source": "/docs",
       "destination": "/seo/docs.html"
     },

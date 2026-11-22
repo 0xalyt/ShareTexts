@@ -49,7 +49,7 @@ jobs:
           test "$(getent ahostsv4 sharetext-signaling.alighttt.workers.dev | head -1 | cut -d' ' -f1)" = '0.0.0.0'
 
       - name: Worker protocol suite (emulator)
-        run: npm run worker:test && node scripts/verify-worker-endpoint.mjs
+        run: npm run worker:test && node scripts/verify-worker-endpoint.mjs && node scripts/verify-product.mjs
 
       - name: Build
         run: npm run build

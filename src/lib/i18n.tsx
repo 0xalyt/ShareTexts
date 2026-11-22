@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import en from './messages/en';
-import { LANGS, type Lang, type Dir } from './messages/registry';
+import { LANGS as ALL_LANGS, type Lang, type Dir } from './messages/registry';
 import type { MsgKey } from './messages/types';
 
 /**
@@ -18,7 +18,9 @@ import type { MsgKey } from './messages/types';
  *      reader needs to pick the right voice.
  */
 export type { Lang, Dir } from './messages/registry';
-export { LANGS } from './messages/registry';
+// Draft dictionaries stay in source for translators, not in the launch UI.
+// Promotion is still the dictionary's existing STATUS = 'reviewed' switch.
+export const LANGS = ALL_LANGS.filter(locale => locale.status === 'reviewed');
 
 type Dict = Partial<Record<MsgKey, string>>;
 
@@ -104,7 +106,7 @@ export function resolveLang(tag: string): Lang | null {
   if (exact) return exact.code;
 
   const alias = ALIAS[raw];
-  if (alias) return alias;
+  if (alias && BY_CODE.has(alias.toLowerCase())) return alias;
 
   const parts = raw.split('-');
   const lang = parts[0];
@@ -120,7 +122,10 @@ export function resolveLang(tag: string): Lang | null {
     if (byRegion) return byRegion.code;
     if (lang === 'zh') {
       const s = SCRIPT_OF_REGION[region];
-      if (s) return s === 'Hant' ? 'zh-Hant' : 'zh-Hans';
+      if (s) {
+        const code = s === 'Hant' ? 'zh-Hant' : 'zh-Hans';
+        if (BY_CODE.has(code.toLowerCase())) return code;
+      }
     }
   }
   const byLang = BY_CODE.get(lang);
@@ -264,6 +269,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       t,
       tCount,
       setLang: (l: Lang) => {
+        if (!LANGS.some(locale => locale.code === l)) return;
         setAuto(false);
         // The switch lands when the words are here, not before: committing
         // `lang` first would repaint the current screen in English for the

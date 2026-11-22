@@ -40,6 +40,7 @@ import { ShuffleHeading } from '../components/ShuffleHeading';
 import { GlassCapsule } from '../components/ui/GlassCapsule';
 import { GlassCircleButton } from '../components/ui/GlassCircleButton';
 import { ListRow } from '../components/ui/ListRow';
+import { RecentDevicesRow } from '../components/RecentDevicesRow';
 import { ScreenStack } from '../components/ui/ScreenStack';
 import { OverlaySheet } from '../components/OverlaySheet';
 import { TactileButton } from '../components/TactileButton';
@@ -117,6 +118,8 @@ import { generateTOTP } from '../lib/totp';
 import { useFocusTrap } from '../lib/useFocusTrap';
 const QRScanner = lazy(() => import('../components/QRScanner').then(m => ({ default: m.QRScanner })));
 const ChatView = lazy(() => import('./ChatView').then(m => ({ default: m.ChatView })));
+
+import { discardComposerIntent } from '../lib/composerIntent';
 type PanelMode = 'idle' | 'sending' | 'receiving' | 'connecting' | 'connected';
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -166,7 +169,7 @@ function useIsDesktopLayout() {
 /* ------------------------------------------------------------------ */
 export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initialSpaceSheet?: 'create' | 'join'; initialSpaceCode?: string } = {}) {
   const { t, lang } = useI18n();
-  const { session, createSession, abandonSession, joinWithCode, joinWithShortCode, setDeviceName, rejoinStayRoom, requestReconnect, refreshCode } = useSession();
+  const { session, isRestoringSession, createSession, abandonSession, joinWithCode, joinWithShortCode, setDeviceName, rejoinStayRoom, requestReconnect, refreshCode } = useSession();
   const isDesktopLayout = useIsDesktopLayout();
   const filmPlayback = useRef<HeroFilmPlayback>({ phase: 0, choice: 'auto', loaded: false });
   // "Is the link actually usable right now?" — during a stall the room
@@ -191,6 +194,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     return stored.isCreator ? 'sending' : 'connecting';
   });
   const [isCreating, setIsCreating] = useState(false);
+  useEffect(() => {
+    if (panelMode === 'sending' && session.secret) productEvent('product.code_shown');
+  }, [panelMode, session.secret]);
+  const [sharedArrival] = useState(() => {
+    const q = new URLSearchParams(window.location.search);
+    return { id: q.get('share_id'), error: q.has('share_error') };
+  });
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   // Settings — one overlay for theme / language / stay connected / reconnect.
   const [showSettings, setShowSettings] = useState(false);
@@ -656,6 +666,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       }
     } catch (e: unknown) {
       if (thisAttempt !== createAbortRef.current) return;
+      // A failed connection is retryable; only Cancel/Disconnect discards
+      // the phone share or home drop waiting for the composer.
       setCreateError(friendlyConnectError(e));
       setPanelMode('idle');
     } finally {
@@ -880,6 +892,26 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     void handleCodeComplete(code);
   }, [handleReceive, handleCodeComplete]);
 
+  const sharedArrivalStarted = useRef(false);
+  useEffect(() => {
+    // Resolve the saved room before consuming the cache. Otherwise an
+    // expired pairing can strand the share (or consume it into a dead draft).
+    if (isRestoringSession || sharedArrivalStarted.current || (!sharedArrival.id && !sharedArrival.error)) return;
+    sharedArrivalStarted.current = true;
+    const intakeAttempt = createAbortRef.current;
+    window.history.replaceState(null, '', window.location.pathname);
+    if (sharedArrival.error) { setCreateError({ text: t('shareTarget.failed'), icon: 'info' }); return; }
+    void import('../lib/shareTarget').then(m => m.stageSharedItems(
+      sharedArrival.id!, () => intakeAttempt === createAbortRef.current,
+    )).then(staged => {
+      // Staging, never auto-sending: the user still chooses the recipient
+      // and presses Send, exactly as with a file dropped on the landing.
+      // A restored room owns its history and received files. Reuse it rather
+      // than silently replacing it just because the phone opened a share.
+      if (staged && !session.roomId && !loadStoredSession()?.roomId) void handleSend();
+    }).catch(() => setCreateError({ text: t('shareTarget.failed'), icon: 'info' }));
+  }, [sharedArrival, handleSend, session.roomId, isRestoringSession, t]);
+
   // Body-level paste is a shortcut, never a clipboard read on page load.
   // Editors and open sheets keep their normal paste behavior.
   useEffect(() => {
@@ -905,10 +937,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     return () => document.removeEventListener('paste', paste);
   }, [panelMode, showSaved, showSettings, showMore, cmdOpen, hopSheet, nearbySheet, spaceSheet, showQROverlay, showQRScan, handleSend]);
 
-  const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
+  const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; discardComposerIntent(); if (homeDropTimer.current) clearTimeout(homeDropTimer.current); setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
     joinAbortRef.current++;
+    discardComposerIntent();
+    if (homeDropTimer.current) clearTimeout(homeDropTimer.current);
     // Release the creation latch with the attempt. createSession() can still
     // be in flight when the user cancels; the attempt's own `finally` only
     // runs when that promise settles, so until then the NEXT Send was
@@ -1228,6 +1262,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   used), Temporary Space opens a chooser instead of putting two
                   buttons and a recents rail in the hero. */}
               <div className="landing-utilities flex w-full flex-col" data-testid="home-rows">
+                <RecentDevicesRow onOpen={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }} />
                 {/* My devices comes first: for anyone who has linked a device
                     it is the shortest path on the page. */}
                 <ListRow
@@ -1986,7 +2021,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 transition={{ duration: 0.28, ease: EASE }}
                 className="h-full flex flex-col min-h-0"
               >
-                <ChatView panelMode="embedded" />
+                <ChatView panelMode="embedded" intakeError={createError?.text} />
               </motion.div>
             </div>
           </Suspense>
@@ -2237,7 +2272,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               transition={{ duration: 0.3, ease: EASE }}
               className="h-full"
             >
-              <ChatView panelMode="standalone" />
+              <ChatView panelMode="standalone" intakeError={createError?.text} />
             </motion.div>
           </Suspense>
         ) : (

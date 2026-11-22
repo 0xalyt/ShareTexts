@@ -209,7 +209,7 @@ if (inRoom) {
     })),
   )));
   // trap: focus after many Tabs must still be inside the sheet
-  await page.getByTestId('theme-dark').focus();
+  await page.getByTestId('settings-device-name').focus();
   for (let i = 0; i < 30; i++) await page.keyboard.press('Tab');
   line('SETTINGS focus trap: ' + JSON.stringify(await page.evaluate(() => {
     const a = document.activeElement;
