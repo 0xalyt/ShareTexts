@@ -132,7 +132,7 @@ function ToggleRow({ icon, active, title, hint, onClick, ariaLabel, testId, rowT
   );
 }
 
-export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => void }) {
+export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: string | null) => void; onPairingStart?: () => void }) {
   const { t } = useI18n();
   const reduced = useMotionPreference();
   const quiet = reduced || (typeof document !== 'undefined' && document.documentElement.dataset.motionIntent !== 'pointer');
@@ -240,6 +240,12 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
   }, [devices.length]);
 
   /* --- tracker lift-up -------------------------------------------------- */
+  // The engine stays mounted, but its discovery sheet must release the room
+  // when acceptance hides this content — including a still-pending link join.
+  useEffect(() => {
+    if (!idle || phase.kind === 'connecting') onPairingStart?.();
+  }, [idle, phase.kind, onPairingStart]);
+
   // Only TRANSIENT connection states claim the activity line — the discovery
   // result itself is communicated by the device rows, and the hero's lifetime
   // counter must keep its place.

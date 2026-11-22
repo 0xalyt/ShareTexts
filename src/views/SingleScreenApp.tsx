@@ -206,6 +206,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   // Nearby moved into a sheet (§18): discovery keeps running underneath, the
   // list is the same component, and Home stays two rows instead of a panel.
   const [nearbySheet, setNearbySheet] = useState(false);
+  const closeNearbySheet = useCallback(() => setNearbySheet(false), []);
   // Hop: a `#hop=` link (a scanned code) or text from the OS share sheet
   // opens My devices on arrival. Both are read once and then removed from
   // the address bar, so a reload or a shared screenshot cannot replay them.
@@ -1466,7 +1467,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {!longStuckConnecting && session.isCreator && (
                       <button
                         onClick={handleStuckRetry}
-                        className="flex min-h-[44px] min-w-[44px] items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white min-h-[44px] min-w-[44px] active:scale-[0.96] transition-colors"
+                        className="flex min-h-[44px] min-w-[44px] items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white active:scale-[0.96] transition-colors"
                       >
                         <RotateCcw className="w-3.5 h-3.5" /> {t('common.tryAgain')}
                       </button>
@@ -2394,9 +2395,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           unmounting it when the list closes would stop presence, auto-connect
           and the AirDrop-style detect popup (which portals out on its own and
           keeps working while the sheet is shut). Closed = hidden, not gone. */}
-      <OverlaySheet open={nearbySheet} onClose={() => setNearbySheet(false)} label={t('nearby.title')} maxWidth={460} testId="nearby-sheet" keepMounted>
+      <OverlaySheet open={nearbySheet} onClose={closeNearbySheet} label={t('nearby.title')} maxWidth={460} testId="nearby-sheet" keepMounted>
         <Suspense fallback={null}>
-          <NearbyDevices onStatus={setNearbyStatus} />
+          <NearbyDevices onStatus={setNearbyStatus} onPairingStart={closeNearbySheet} />
         </Suspense>
       </OverlaySheet>
       {/* Temporary Space chooser — the two verbs and the recents that used to
