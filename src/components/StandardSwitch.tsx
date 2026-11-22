@@ -105,6 +105,7 @@ export function StandardSwitch({
   const settle = () => {
     if (!draggingRef.current) return;
     draggingRef.current = false;
+    if (!movedRef.current) return;
     const target = x.get() > X_ON / 2;
     if (target !== checked) onChange(target);
     else animate(x, checked ? X_ON : 0, SPRING);
