@@ -240,7 +240,7 @@ export function SendScreen({
           {expired ? (
             <button
               onClick={onNewCode}
-              className="press mt-3 w-full min-h-[44px] rounded-[12px] bg-[#f06413] text-white text-[16px] font-semibold [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:min-h-[34px] [@media(max-height:520px)]:text-[13px]"
+              className="press mt-3 w-full min-h-[44px] rounded-[12px] bg-[#f06413] text-white text-[16px] font-semibold [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:text-[13px]"
               data-testid="new-code"
             >
               {t('send.newCode')}
@@ -249,7 +249,7 @@ export function SendScreen({
             <button
               onClick={handleCopy}
               disabled={!code}
-              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[13px]"
+              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:text-[13px]"
               data-testid="copy-code"
             >
               {justCopied ? <AlloSymbol name="check" size={16} className="text-status-success" /> : <Copy className="w-4 h-4" aria-hidden />}
@@ -286,7 +286,7 @@ export function SendScreen({
             icon={<Share2 className="w-4 h-4" aria-hidden />}
             onPress={onShareLink}
             radius={12}
-            className="mt-3 w-full min-h-[44px] text-[16px] [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:min-h-[38px] [@media(max-height:520px)]:text-[13px]"
+            className="mt-3 w-full min-h-[44px] text-[16px] [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:text-[13px]"
             data-testid="share-link"
           />
         </div>

@@ -1320,7 +1320,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 data-testid="reconnect"
                 onPointerDown={startReconnectFeedback}
                 disabled={reconnecting}
-                className="min-h-[40px] px-3 py-1.5 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-[0.96] shrink-0 flex items-center gap-1.5"
+                className="min-h-[44px] px-3 py-1.5 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-[0.96] shrink-0 flex items-center gap-1.5"
               >
                 {/* In-flight acknowledgment: the arrow spins while the
                     handshake runs and the label says so — a tap always
@@ -1570,7 +1570,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 type="button"
                 onClick={copySelected}
                 disabled={selection.size === 0}
-                className="flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-full bg-white/15 dark:bg-black/10 text-[12px] font-semibold disabled:opacity-40 active:scale-[0.96] transition-motion"
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-white/15 dark:bg-black/10 text-[12px] font-semibold disabled:opacity-40 active:scale-[0.96] transition-motion"
               >
                 <Copy className="w-3.5 h-3.5" /> {t('select.copySelected')}
               </button>
@@ -1578,7 +1578,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 type="button"
                 onClick={exitSelectMode}
                 aria-label={t('select.clear')}
-                className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/15 dark:hover:bg-black/10 active:scale-[0.96] transition-motion"
+                className="flex items-center justify-center w-11 h-11 rounded-full hover:bg-white/15 dark:hover:bg-black/10 active:scale-[0.96] transition-motion"
               >
                 <X className="w-4 h-4" />
               </button>
