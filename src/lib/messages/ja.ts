@@ -385,6 +385,7 @@ const ja: Dict = {
   'action.copy': 'コピー',
   'action.share': '共有',
   'action.save': '保存',
+  'action.download': 'ダウンロード',
   'action.copied': 'コピーしました',
   'action.shared': '共有しました',
   'action.saved': '保存しました',
