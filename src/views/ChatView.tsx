@@ -662,9 +662,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       const parked = w.__stHomeDropFiles;
       delete w.__stHomeDropFiles;
       if (parked?.length) {
-        const first = parked[0];
-        const type = first.type.startsWith('image/') ? 'image' : first.type.startsWith('video/') ? 'video' : first.type.startsWith('audio/') ? 'audio' : 'file';
-        addFiles(parked, type);
+        // The generic intake path identifies each file independently. A
+        // photo first must not turn a following video or PDF into an image.
+        addFiles(parked, 'file');
       }
       const text = takeIntentText();
       if (text) {
