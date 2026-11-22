@@ -30,6 +30,7 @@ const PORT = process.env.VERIFY_BROWSER_PORT || await new Promise((resolve, reje
 });
 const BASE = `http://localhost:${PORT}`;
 const GATES = [
+  ['overlay-focus', 'verify-overlay-focus.mjs'],
   ['handoff', 'verify-handoff.mjs'],
   ['typing', 'verify-typing.mjs'],
   ['sheets', 'verify-sheets.mjs'],

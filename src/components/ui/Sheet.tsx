@@ -153,7 +153,7 @@ export function Sheet({
   const { t } = useI18n();
   const reduced = useMotionPreference();
   const quiet = reduced || (typeof document !== 'undefined' && document.documentElement.dataset.motionIntent !== 'pointer');
-  const trapRef = useFocusTrap(open);
+  const trapRef = useFocusTrap(open, dismissable ? onClose : undefined);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const backdropRef = useRef<HTMLDivElement | null>(null);
@@ -242,21 +242,6 @@ export function Sheet({
     lockBodyScroll();
     return unlockBodyScrollSafely;
   }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        // A destructive confirmation is decided by its buttons, not by a
-        // stray Escape that would read as "cancelled" after the fact.
-        if (!dismissable) return;
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose, dismissable]);
 
   /* ── drag ─────────────────────────────────────────────────────────────── */
   const gesture = useRef<{

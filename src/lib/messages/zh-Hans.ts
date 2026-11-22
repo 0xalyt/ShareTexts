@@ -385,6 +385,7 @@ const zh: Dict = {
   'action.copy': '复制',
   'action.share': '分享',
   'action.save': '保存',
+  'action.download': '下载',
   'action.copied': '已复制',
   'action.shared': '已分享',
   'action.saved': '已保存',
