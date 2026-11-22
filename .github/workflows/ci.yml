@@ -93,6 +93,10 @@ jobs:
       - name: Verify local signaling in built app
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-ci-worker.mjs
 
+      - name: Nearby opt-in lifecycle
+        if: matrix.browsers == 'chromium'
+        run: BASE_URL=http://localhost:3311 node scripts/verify-nearby-optin.mjs
+
       - name: Composer geometry gate
         run: URL=http://localhost:3311 node scripts/verify-composer.mjs
 

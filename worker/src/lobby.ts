@@ -282,8 +282,8 @@ export class Lobby extends DurableObject<Env> {
     if (entry) {
       const conns = await this.ensureConns();
       if (conns.get(entry.cid)?.deviceId === deviceId) {
-        conns.delete(entry.cid);
-        await this.ctx.storage.delete('conn:' + entry.cid);
+        conns.set(entry.cid, { deviceId: null });
+        await this.ctx.storage.put('conn:' + entry.cid, { deviceId: null } satisfies LobbyConnMeta);
       }
     }
   }
