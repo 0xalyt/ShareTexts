@@ -15,6 +15,15 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  "send.registering": "正在完成設定…",
+  "receive.paste": "貼上代碼",
+  "receive.pasteHint": "輸入或貼上另一部裝置上的六位數代碼。",
+  "composer.to": "傳訊息給{name}",
+  "action.savePhotos": "儲存到照片",
+  "action.downloadStarted": "下載已開始",
+  "batch.saveAll": "全部儲存",
+  "batch.photos": "{count}張照片",
+  "batch.files": "{count}個檔案",
   "nav.changelog": "最新動態",
   "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",

@@ -15,6 +15,15 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  "send.registering": "A concluir a configuração…",
+  "receive.paste": "Colar código",
+  "receive.pasteHint": "Escreva ou cole o código de seis dígitos do outro dispositivo.",
+  "composer.to": "Mensagem para {name}",
+  "action.savePhotos": "Guardar em Fotografias",
+  "action.downloadStarted": "Transferência iniciada",
+  "batch.saveAll": "Guardar tudo",
+  "batch.photos": "{count} fotografias",
+  "batch.files": "{count} ficheiros",
   "nav.changelog": "Novidades",
   "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",

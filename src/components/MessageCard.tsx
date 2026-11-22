@@ -6,9 +6,12 @@
  * The card owns nothing about the transport: it renders `ChatMessage` state
  * and calls back into SessionContext for retry/cancel/send actions.
  */
-import { EASE } from '../lib/motion/tokens';
+import { EASE, SPRING } from '../lib/motion/tokens';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
+import { useMotionPreference } from '../lib/useMotionPreference';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import { useSession } from '../lib/SessionContext';
 import { formatSpeed, formatEta } from '../lib/speedEngine';
 import { renderRichText } from '../lib/richText';
@@ -21,7 +24,7 @@ import {
   X as X, Copy, Check, CheckCheck, Download,
   Image as ImageIcon, Play, Pause, RefreshCw,
   CircleAlert as AlertCircle, ChevronDown, ChevronUp,
-  Share2, ShieldCheck, Terminal, ZoomIn,
+  Share2, ShieldCheck, Terminal, ZoomIn, Ellipsis,
   Link as Link2, Bookmark, ArrowUpRight,
 } from 'lucide-react';
 import { hapticTick } from '../lib/haptics';
@@ -78,21 +81,23 @@ async function toPngClipboardBlob(blob: Blob): Promise<Blob | null> {
 
 
 /**
- * Selection ring for selection mode (bencho selection list): an absolutely
- * positioned ring on the message edge; filled when selected. Tap target is
+ * Selection ring for selection mode: a separate flex item, never over text.
+ * Filled when selected. Tap target is
  * the whole bubble wrapper (handled in the render paths via onPointerDown).
  */
 function SelectionRing({ selected }: { selected: boolean }) {
   return (
     <motion.span
+      aria-hidden="true"
+      data-testid="message-selection-marker"
       initial={false}
       animate={{ scale: selected ? 1 : 0.85, opacity: 1 }}
       transition={{ duration: 0.2, ease: EASE.out }}
       className={cn(
-        'absolute top-1/2 -translate-y-1/2 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 pointer-events-none',
+        'self-center w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 pointer-events-none',
         selected
           ? 'bg-ember border-ember'
-          : 'bg-transparent border-apple-ink-muted/40 dark:border-white/35'
+          : 'bg-transparent border-apple-ink-muted dark:border-white/45'
       )}
     >
       {selected && (
@@ -136,7 +141,7 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
   if (disabled && entries.length === 0) return null;
   return (
     <div className={cn(
-      'flex items-center gap-1 flex-wrap',
+      'st-message-reactions flex items-center gap-1 flex-wrap',
       // A reaction-free message needs no footer row. Keep its accessible
       // picker beside the bubble, in the opposite-side gutter, rather than
       // reserving 46px below a trigger that is invisible until hover.
@@ -371,6 +376,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
 
 export interface MessageCardProps {
   msg: ChatMessage;
+  arrival?: 'first-file' | 'file';
   isGroupStart?: boolean;
   isGroupEnd?: boolean;
   /** Selection mode (bencho selection list) — owned by ChatView. */
@@ -388,8 +394,11 @@ export interface MessageCardProps {
   showStateWord?: boolean;
 }
 
-export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart, showMeta = true, showStateWord = true }) => {
+export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupStart = true, isGroupEnd = true, selectMode = false, selected = false, onToggleSelect, onLongPressStart, showMeta = true, showStateWord = true }) => {
   const { t, lang } = useI18n();
+  const reducedMotion = useMotionPreference();
+  const savesPhotos = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const { retryTransfer, retryText, cancelTransfer, pauseTransfer, resumeTransferById, session, reactToMessage, deleteLocalMessage } = useSession();
   const isMe = msg.sender === 'me';
   const a = msg.attachment;
@@ -397,6 +406,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
   const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
+  const viewerTrap = useFocusTrap(viewerOpen, () => setViewerOpen(false));
   // Decoded dimensions of the ORIGINAL image bytes (proves nothing was
   // resized) and a decode-failure flag: a received "image" that the browser
   // can't decode (HEIC/HEIF on Chrome, damaged file, …) degrades to the file
@@ -476,7 +486,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
   const [actionsAnchor, setActionsAnchor] = useState<{ x: number; y: number } | null>(null);
   const openActions = (e?: { clientX: number; clientY: number }) => {
     if (selectMode) return;
-    if (e) setActionsAnchor({ x: e.clientX, y: e.clientY });
+    setActionsAnchor(e ? { x: e.clientX, y: e.clientY } : null);
     setActionsOpen(true);
     // Android only; iOS Safari has no vibrate, and nothing pretends it does.
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -538,7 +548,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
   if (!a) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
         className={cn(
@@ -548,7 +558,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           // as the plain justify-end layout renders without a ring.
           isMe ? "flex-row-reverse justify-start" : "justify-start",
           isGroupStart ? "mt-3" : "mt-0.5",
-          selectMode && "px-1"
+          selectMode && "st-message-selecting px-1"
         )}
         {...longPress}
         {...rowKeyboard}
@@ -579,7 +589,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           // URL, an unbroken word) sets its width from max-content and blows
           // past the 82% column — measured at 1022 px inside a 390 px phone.
           "px-[15px] py-[10px] rounded-[16px] transition-shadow min-w-0 max-w-full",
-          selected && "ring-2 ring-azure-500/60",
+          selected && "outline-2 outline-ember outline-offset-[-2px]",
           isMe
             /* Sent: a real ember wash — the old #fff4ea was within two
                steps of the parchment, so “mine” and “theirs” separated only
@@ -688,7 +698,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   aria-label={t('msg.copyMessage')}
                   title={t('msg.copy')}
                   className={cn(
-                    "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] -mr-[15px] rounded-full transition-motion active:scale-[0.97]",
+                    "st-message-utility flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] -mr-[15px] rounded-full transition-motion active:scale-[0.97]",
                     copied
                       ? "text-status-success"
                       : "text-apple-ink-muted hover:text-apple-ink dark:hover:text-white hover:bg-apple-divider/60 dark:hover:bg-apple-tile-3"
@@ -735,16 +745,14 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
   const settled = msg.sender === 'partner';
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6, scale: settled ? 1.015 : 1 }}
+      initial={arrival && !reducedMotion ? { opacity: 0, y: arrival === 'first-file' ? 16 : 6, scale: arrival === 'first-file' ? .985 : 1 } : false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={settled
-        ? { type: 'spring', stiffness: 380, damping: 26, mass: 0.9 }
-        : { type: 'spring', stiffness: 420, damping: 34, mass: 0.9 }}
+      transition={{ type: 'spring', ...SPRING.sheet }}
       className={cn(
         "group/msg relative flex w-full items-center gap-2",
         isMe ? "flex-row-reverse justify-start" : "justify-start",
         isGroupStart ? "mt-3" : "mt-0.5",
-        selectMode && "px-1"
+        selectMode && "st-message-selecting px-1"
       )}
       {...longPress}
       {...rowKeyboard}
@@ -757,11 +765,9 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         onClose={() => setActionsOpen(false)}
         anchor={actionsAnchor}
         onReact={(emoji) => reactToMessage(msg.id, emoji)}
-        onCopy={() => { void handleCopy(msg.text); }}
-        onSave={a?.url ? () => handleDownload(a.url as string, a.name) : undefined}
-        onShare={typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-          ? () => { void navigator.share({ text: msg.text }).catch(() => {}); }
-          : undefined}
+        onCopy={() => { void copyAttachment(a); }}
+        onSave={a.url ? () => handleDownload(a.url as string, a.name) : undefined}
+        onShare={() => { void handleShare(); }}
         onSelect={() => onLongPressStart?.(msg.id)}
         onDelete={() => deleteLocalMessage(msg.id)}
         align={isMe ? 'right' : 'left'}
@@ -769,7 +775,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
       />
       {selectMode && <SelectionRing selected={selected} />}
       <div className={cn(
-        "flex flex-col gap-0 max-w-[calc(100%-3rem)] sm:max-w-[65%] w-full transition-shadow",
+        "st-file-bubble flex flex-col gap-0 max-w-[calc(100%-3rem)] sm:max-w-[65%] w-full transition-shadow",
         selected && "ring-2 ring-ember/60",
         isMe ? "items-end" : "items-start"
       )}>
@@ -945,9 +951,9 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               ) : (
                 <span className={cn("text-[12px] font-medium flex flex-wrap items-center gap-x-1.5", a.status === 'failed' ? "text-status-danger" : a.status === 'cancelled' || a.status === 'interrupted' ? "text-apple-ink-muted" : "text-apple-blue")}>
                   {/* Who it's talking to, while bytes are moving. */}
-                  {(a.status === 'sending' || a.status === 'receiving') && (session.partnerName || session.deviceName) && (
+                  {(a.status === 'sending' || a.status === 'receiving') && session.partnerName && (
                     <span className="text-apple-ink-muted dark:text-white/65 font-medium">
-                      {t(isMe ? 'xfer.to' : 'xfer.from', { name: isMe ? session.partnerName : session.deviceName })} ·
+                      {t(isMe ? 'xfer.to' : 'xfer.from', { name: session.partnerName })} ·
                     </span>
                   )}
                   {/* Media cards already show this status inside the image/
@@ -967,13 +973,14 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             <div className="flex items-center gap-1 sm:gap-1.5 mt-2 flex-wrap">
               {complete && (
                 <>
-                  <ActionButton icon={saved ? <Check /> : <Download />} label={t('action.download')} active={saved} onClick={() => handleDownload(a.url!, a.name)} primary onBlue={isMe} testId="transfer-download" />
-                  <div className="flex items-center gap-1 sm:gap-1.5">
+                  <ActionButton icon={saved ? <Check /> : <Download />} label={saved ? t('action.downloadStarted') : savesPhotos && isImage && typeof navigator.share === 'function' ? t('action.savePhotos') : t('action.download')} active={saved} onClick={() => { if (savesPhotos && isImage && typeof navigator.share === 'function') void handleShare(); else handleDownload(a.url!, a.name); }} primary onBlue={isMe} testId="transfer-download" />
+                  <div className="st-file-utilities flex min-w-0 max-w-full flex-wrap items-center gap-1 sm:gap-1.5">
                     {a.type === 'image' && (
                       <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} compact onBlue={isMe} testId="transfer-copy" />
                     )}
                     <BookmarkAction msg={msg} onBlue={isMe} />
                     <ActionButton icon={<Share2 />} label={shared ? t('action.shared') : t('action.share')} active={shared} onClick={() => { void handleShare(); }} compact onBlue={isMe} testId="transfer-share" />
+                    <span className="st-file-more"><ActionButton icon={<Ellipsis />} label={t('msg.actions')} onClick={() => openActions()} viaClick compact onBlue={isMe} testId="transfer-more" /></span>
                   </div>
                 </>
               )}
@@ -1010,7 +1017,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
         </div>
         <ReactionBar msg={msg} disabled={selectMode} />
         {viewerOpen && complete && (
-          <ImageViewer src={a.url!} name={a.name} onClose={() => setViewerOpen(false)} />
+          <ImageViewer src={a.url!} name={a.name} onClose={() => setViewerOpen(false)} trapRef={viewerTrap} />
         )}
       </div>
     </motion.div>
@@ -1116,10 +1123,10 @@ function BookmarkButton({ msg }: { msg: ChatMessage }) {
         aria-label={name}
         title={name}
         aria-pressed={bm.saved}
-        disabled={bm.busy}
+        aria-disabled={bm.busy}
         data-testid="save-item"
         className={cn(
-          "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.97]",
+          "st-message-utility flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.97]",
           bm.error
             ? "text-status-danger"
             : bm.saved
@@ -1176,18 +1183,18 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
   return (
     <button
       type="button"
-      onClick={viaClick ? onClick : (e) => { if (e.detail === 0) onClick(); }}
-      onPointerDown={viaClick ? undefined : (e) => { e.preventDefault(); onClick(); }}
-      aria-label={ariaLabel}
+      onClick={(e) => { if (!disabled && (viaClick || e.detail === 0)) onClick(); }}
+      onPointerDown={viaClick ? undefined : (e) => { e.preventDefault(); if (!disabled) onClick(); }}
+      aria-label={ariaLabel ?? label}
       title={ariaLabel ?? label}
       aria-pressed={pressed}
-      disabled={disabled}
+      aria-disabled={disabled}
       data-testid={testId}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-medium transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
+        "flex max-w-full shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-medium transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
       compact ? "justify-center w-11 sm:w-auto sm:px-3" : "px-1.5 sm:px-3",
         active
-          ? "bg-status-success/15 text-status-success shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
+          ? "bg-status-success/15 text-status-success-ink dark:text-status-success-ink-dark shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
           : primary
             ? "bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-[0_0_0_1px_rgba(0,0,0,0.10),0_1px_1px_rgba(0,0,0,0.12),0_2px_3px_rgba(0,0,0,0.10),inset_0_1px_1px_rgba(255,255,255,0.22),inset_0_-2px_3px_rgba(0,0,0,0.28)] active:shadow-[0_0_0_1px_rgba(0,0,0,0.10),inset_0_2px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_1px_1px_rgba(0,0,0,0.20),inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-2px_3px_rgba(0,0,0,0.10)] dark:active:shadow-[0_0_0_1px_rgba(255,255,255,0.14),inset_0_2px_4px_rgba(0,0,0,0.18)]"
             : "bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_1px_1px_rgba(0,0,0,0.10),0_2px_3px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.65),inset_0_-2px_3px_rgba(0,0,0,0.06)] active:bg-apple-divider dark:active:bg-apple-tile-3 active:shadow-[0_0_0_1px_rgba(0,0,0,0.06),inset_0_1px_2px_rgba(0,0,0,0.10)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_1px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.08),inset_0_-2px_3px_rgba(0,0,0,0.22)] dark:active:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_2px_rgba(0,0,0,0.3)]",
@@ -1199,11 +1206,11 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.18, ease: EASE.out }}
-        className="[&>svg]:w-3.5 [&>svg]:h-3.5"
+        className="shrink-0 [&>svg]:w-3.5 [&>svg]:h-3.5"
       >
         {active ? (activeIcon ?? <Check />) : icon}
       </motion.span>
-      <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{label}</span>
+      <span className={compact ? 'sr-only sm:not-sr-only' : 'min-w-0 break-words'}>{label}</span>
     </button>
   );
 }
@@ -1213,7 +1220,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
  * Wheel / pinch to zoom, drag to pan, double-tap or double-click to toggle,
  * Esc or backdrop to close. Touch-friendly and keyboard-friendly.
  */
-function ImageViewer({ src, name, onClose }: { src: string; name: string; onClose: () => void }) {
+function ImageViewer({ src, name, onClose, trapRef }: { src: string; name: string; onClose: () => void; trapRef: React.Ref<HTMLDivElement> }) {
   const { t } = useI18n();
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -1276,13 +1283,16 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
     pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) pinchDist.current = null;
   };
-  return (
+  // Fixed overlays must escape the row's content-visibility paint containment
+  // and arrival transform, just like MessageActions does.
+  return createPortal(
     <motion.div
+      ref={trapRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-black/92 flex items-center justify-center"
-      onPointerDown={onClose}
+      onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
       role="dialog"
       aria-modal="true"
       aria-label={`Viewing ${name}`}
@@ -1318,7 +1328,8 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
           <ZoomIn className="w-3.5 h-3.5" /> {Math.round(scale * 100)}% · scroll or pinch to zoom
         </span>
       </div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }
 

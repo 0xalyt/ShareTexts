@@ -1,4 +1,13 @@
 const en = {
+  "send.registering": "Finishing setup…",
+  "receive.paste": "Paste code",
+  "receive.pasteHint": "Type or paste the six-digit code from your other device.",
+  "composer.to": "Message {name}",
+  "action.savePhotos": "Save to Photos",
+  "action.downloadStarted": "Download started",
+  "batch.saveAll": "Save all",
+  "batch.photos": "{count} photos",
+  "batch.files": "{count} files",
   "nav.changelog": "What’s new",
   "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { launchBrowser, URL, readLiveCode, gotoPage } from './lib.mjs';
+import { launchBrowser, URL, readLiveCode, showPairingCode, gotoPage } from './lib.mjs';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 import { tsImport } from 'tsx/esm/api';
 
@@ -60,6 +60,7 @@ try {
   }
   const [sender, ...receivers] = pages;
   await sender.getByTestId('home-send').click();
+  await showPairingCode(sender);
   await sender.getByTestId('pairing-code').waitFor({ timeout: 45000 });
   const initialCode = await readLiveCode(sender);
   for (const receiver of receivers) {

@@ -1,0 +1,13 @@
+/* One invitation, grouped tightly rather than centred in an empty viewport. */
+[data-testid='send-screen'] .st-pairing-content,
+[data-testid='receive-screen'] .st-pairing-content { justify-content: flex-start; padding-block: 20px; }
+[data-testid='send-screen'] [data-testid='send-code-card'] {
+  background: transparent; border: 0; box-shadow: none; border-radius: 16px; padding-block: 12px;
+}
+[data-testid='send-screen'] [data-testid='pairing-code'] { margin-block: 16px; }
+[data-testid='send-screen'] [data-testid='send-status'] > div { background: transparent; border-color: transparent; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-testid='send-screen'] .st-task-status-dot[data-state='waiting'] { animation: st-waiting-breath 2.8s ease-in-out infinite; }
+}
+@keyframes st-waiting-breath { 0%, 100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+@media (min-width: 1024px) { [data-testid='send-screen'] .st-pairing-content { padding-top: 32px; } }

@@ -1,5 +1,5 @@
 // E2E: create → join → connect → send → receive → refresh-reconnect → large text → third-device rejection
-import { launchBrowser, URL, sleep, readLiveCode, gotoPage } from './lib.mjs';
+import { launchBrowser, URL, sleep, readLiveCode, showPairingCode, gotoPage } from './lib.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 import { verifySpaceCreate } from './verify-space-create.mjs';
@@ -96,6 +96,7 @@ async function main() {
   await A.getByTestId('home-send').waitFor();
   const createStarted = Date.now();
   await A.getByTestId('home-send').click();
+  await showPairingCode(A);
   // The pairing-code tile group (LiveCodeDisplay) marks the sending panel.
   // socketReady + health probe, two create ACKs, retry socketReady + probe.
   const createTimeout = 16000 + 3500 + 2 * 9000 + 4000 + 3500;

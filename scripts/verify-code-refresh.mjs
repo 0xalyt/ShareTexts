@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { launchBrowser, URL, gotoPage, readLiveCode } from './lib.mjs';
+import { launchBrowser, URL, gotoPage, readLiveCode, showPairingCode } from './lib.mjs';
 
 assert.match(URL, /^http:\/\/(localhost|127\.0\.0\.1):\d+/);
 const browser = await launchBrowser();
@@ -33,6 +33,7 @@ try {
   });
   await gotoPage(page, URL, { waitUntil: 'domcontentloaded' });
   await page.getByTestId('home-send').click();
+  await showPairingCode(page);
   await page.getByTestId('pairing-code').waitFor({ timeout: 45000 });
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')));
   assert.ok(before.secret && before.createdAt);
@@ -53,7 +54,7 @@ try {
   assert.ok(refreshed.createdAt > before.createdAt);
   await page.clock.setSystemTime(refreshed.createdAt + 30_000);
   await page.clock.pauseAt(new Date(refreshed.createdAt + 31_000));
-  const progress = await page.getByTestId('code-lifecycle').locator('div').evaluate(element => parseFloat(element.style.width));
+  const progress = await page.getByTestId('code-lifecycle').locator('div').evaluate(element => Number(element.style.transform.match(/scaleX\(([^)]+)\)/)?.[1]) * 100);
   assert.ok(Math.abs(progress - 65.55555556) < 0.01, 'countdown uses the Worker refresh anchor');
   await page.clock.setSystemTime(Date.now());
   await page.clock.runFor(300);

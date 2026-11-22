@@ -1,0 +1,29 @@
+.st-file-group { box-shadow: 0 2px 0 rgb(0 0 0 / .035), 0 5px 0 -2px rgb(0 0 0 / .035); }
+.st-photo-grid > div { min-width: 0; }
+.st-photo-grid > .group\/msg { align-items: stretch; align-self: stretch; margin-block-start: 0; }
+/* A dedicated marker row keeps two narrow photo columns usable in selection. */
+.st-photo-grid > .st-message-selecting { flex-direction: column; }
+.st-photo-grid .st-file-bubble { position: relative; max-width: 100%; height: 100%; }
+.st-photo-grid > .st-message-selecting .st-file-bubble { height: auto; flex: 1; }
+.st-photo-grid .st-file-bubble > div:first-child { flex: 1; border-radius: 12px; }
+/* Keep the selection edge inside the row's paint containment. */
+.st-photo-grid .st-file-bubble.ring-2 { box-shadow: none; border-radius: 12px; outline: 2px solid var(--color-ember); outline-offset: -2px; }
+.st-photo-grid .st-file-bubble .st-img-edge { aspect-ratio: 1; object-fit: cover; }
+.st-photo-grid .st-message-reactions { position: absolute; inset: 8px 8px auto auto; width: auto; max-width: calc(100% - 16px); min-height: 44px; justify-content: flex-end; z-index: 1; }
+.st-photo-grid [data-testid='transfer-download'] { width: 100%; min-height: 52px; justify-content: center; }
+.st-file-more { display: none; }
+.st-photo-grid .st-file-more { display: block; }
+.st-photo-grid [data-testid='transfer-copy'], .st-photo-grid [data-testid='transfer-share'] { display: none; }
+.st-photo-grid .st-file-utilities { width: 100%; flex-wrap: nowrap; justify-content: space-between; }
+.st-photo-grid .st-file-utilities button { width: 44px; padding-inline: 0; justify-content: center; }
+.st-photo-grid .st-file-utilities button > span:last-child { display: none; }
+@media (prefers-reduced-motion: no-preference) { .st-peer-arrival { animation: st-peer-arrival 480ms ease-out both; } }
+@keyframes st-peer-arrival { from { opacity: .8; transform: scale(1); } to { opacity: 0; transform: scale(1.7); } }
+/* Quiet utility icons, not a second line of content. Keyboard and touch
+   users always have the real controls; desktop pointer users reveal them. */
+@media (hover: hover) and (pointer: fine) {
+  .st-message-utility { opacity: 0; transition: opacity 120ms ease-out; }
+  .group\/msg:hover .st-message-utility,
+  .group\/msg:focus-within .st-message-utility { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .st-message-utility { transition: none; } }

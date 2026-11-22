@@ -86,6 +86,9 @@ export async function gotoPage(page, url, options = {}) {
 }
 
 export async function readLiveCode(page) {
+  // Desktop starts on QR; choose the code just as a keyboard-code user does.
+  await showPairingCode(page);
+  await page.waitForFunction(() => document.querySelector('[data-testid="send-screen"]')?.getAttribute('aria-busy') !== 'true');
   // Scope to the pairing-code group and require a stable read: the digit
   // tiles animate code rotation (AnimatePresence popLayout briefly renders
   // the OLD digits while the new ones enter), and an unscoped read can pick
@@ -107,6 +110,12 @@ export async function readLiveCode(page) {
     await sleep(300);
   }
   throw new Error('could not read a stable pairing code');
+}
+
+export async function showPairingCode(page) {
+  const tab = page.locator('#send-segments-tab-code');
+  await tab.waitFor({ timeout: 30000 });
+  if (await tab.getAttribute('aria-selected') !== 'true') await tab.click();
 }
 
 export async function waitForChat(page, label) {

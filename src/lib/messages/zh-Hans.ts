@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const zh: Dict = {
+  "send.registering": "正在完成设置…",
+  "receive.paste": "粘贴代码",
+  "receive.pasteHint": "输入或粘贴另一台设备上的六位代码。",
+  "composer.to": "给{name}发消息",
+  "action.savePhotos": "存储到照片",
+  "action.downloadStarted": "下载已开始",
+  "batch.saveAll": "全部保存",
+  "batch.photos": "{count}张照片",
+  "batch.files": "{count}个文件",
   "nav.changelog": "最新动态",
   "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",

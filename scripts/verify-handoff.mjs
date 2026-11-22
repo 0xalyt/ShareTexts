@@ -256,9 +256,11 @@ try {
         !await page.evaluate(() => Boolean(window.__stPendingIntentText || window.__stHomeDropFiles)));
       await page.keyboard.press('Escape');
       await page.getByTestId('language-sheet').waitFor({ state: 'hidden' });
-      // useFocusTrap restores the trigger on the next animation frame.
-      // The sheet disappearing is not the focus-return completion signal.
-      await page.waitForFunction(() => document.querySelector('[data-testid="landing-footer"] button[aria-haspopup="dialog"]') === document.activeElement, null, { timeout: 1500 });
+      // Focus restoration is deferred one frame; a reduced-motion sheet can
+      // disappear before that frame. Keep the focus assertion, not the race.
+      await page.waitForFunction(() =>
+        document.querySelector('[data-testid="landing-footer"] button[aria-haspopup="dialog"]') === document.activeElement,
+      null, { timeout: 2000 });
       check(`${locale}/${width}: Escape restores focus to the footer language`, await language.evaluate(el => el === document.activeElement));
       check(`${locale}/${width}: no runtime errors`, errors.length === 0);
       await ctx.close();

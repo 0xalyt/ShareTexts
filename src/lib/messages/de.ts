@@ -3,6 +3,15 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const de: Dict = {
+  "send.registering": "Einrichtung wird abgeschlossen…",
+  "receive.paste": "Code einfügen",
+  "receive.pasteHint": "Gib den sechsstelligen Code vom anderen Gerät ein oder füge ihn ein.",
+  "composer.to": "Nachricht an {name}",
+  "action.savePhotos": "In Fotos sichern",
+  "action.downloadStarted": "Download gestartet",
+  "batch.saveAll": "Alle sichern",
+  "batch.photos": "{count} Fotos",
+  "batch.files": "{count} Dateien",
   "nav.changelog": "Neuigkeiten",
   "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
   "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",

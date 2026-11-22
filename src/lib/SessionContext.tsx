@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { SessionState, ChatMessage, ConnectionType, PeerDevice } from '../types';
+import { makeInvitation, waitForInvitation } from './invitation';
 import { getSocket, devLog, resolveShortCode, refreshCode as refreshCodeRPC } from './socket';
 import { emitRoomConnected, resetRoomsBumpLatch } from './useLiveStats';
 import { PeerManager, clearAllTransferState, getPartialInfo } from './webrtc';
@@ -888,7 +889,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
    * unreachable) is retried ONCE silently before surfacing — flaky networks
    * usually connect on the second attempt and the user never sees an error.
    */
-  const createRoomOnce = (attempt: number): Promise<{ roomId: string; secret: string }> => {
+  const creationGeneration = useRef(0);
+  const createRoomOnce = (attempt: number, invitation: ReturnType<typeof makeInvitation>, generation: number): Promise<{ roomId: string; secret: string }> => {
     const ACK_TIMEOUT = 9000;
     return new Promise<{ roomId: string; secret: string }>((resolve, reject) => {
       const socket = getSocket();
@@ -907,10 +909,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       // minted AFTER the server assigns the roomId (server echoes it in
       // myParticipantId, we persist it below).
       try {
-        socket.emit('create_room', { pid: crypto.randomUUID() }, (res: { success: boolean; roomId?: string; secret?: string; createdAt?: number; error?: string; code?: string; myParticipantId?: string; roster?: { participants?: unknown[]; seq?: number } }) => {
+        socket.emit('create_room', invitation, (res: { success: boolean; roomId?: string; secret?: string; createdAt?: number; error?: string; code?: string; myParticipantId?: string; roster?: { participants?: unknown[]; seq?: number } }) => {
           if (settled) return;
           settled = true;
           clearTimeout(timer);
+          if (generation !== creationGeneration.current) { reject(new ConnectError('UNKNOWN')); return; }
           diag('room.create', !!res.success, res.success ? res.roomId : (res.error || 'unknown'));
           if (res.success && res.roomId && res.secret) {
             // Persist THIS device's participant id for the new room so a
@@ -963,6 +966,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const createSession = async (): Promise<{ roomId: string; secret: string }> => {
     abandonedRef.current = false;
+    const generation = ++creationGeneration.current;
+    const invitation = makeInvitation();
+    // Publish only the invitation, not membership. Effects must not resume a
+    // room that hasn't been registered yet. Older servers may replace it.
+    setSession(s => ({ ...s, pendingRoomId: invitation.roomId, secret: invitation.secret, createdAt: invitation.createdAt, isCreator: true }));
     const requestId = crypto.randomUUID();
     createDiagRequestRef.current = requestId;
     devLog('Create Session clicked — connecting to socket…');
@@ -971,6 +979,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       await ensureSocketConnected();
     } catch (e) {
       roomCreateDiagEnd(requestId, 'failure', 'CLIENT_INIT_FAILURE', String(e));
+      if (generation === creationGeneration.current) setSession(s => ({ ...s, pendingRoomId: undefined, secret: null, createdAt: undefined }));
       throw e;
     }
     devLog('Socket connected — sending create request');
@@ -979,12 +988,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     let lastError: unknown = null;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
-        const created = await createRoomOnce(attempt);
+        if (generation !== creationGeneration.current) throw new ConnectError('UNKNOWN');
+        const created = await createRoomOnce(attempt, invitation, generation);
         roomCreateDiagEnd(requestId, 'success');
         devLog('Room created — navigating');
         return created;
       } catch (e) {
         lastError = e;
+        if (generation !== creationGeneration.current) throw e;
         const code = describeConnectFailure(e);
         // One silent retry for transient shapes (timeout / unreachable).
         // Deterministic rejections (room rejected, rate limit, config) fail
@@ -996,17 +1007,19 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       }
     }
     roomCreateDiagEnd(requestId, 'failure', 'CLIENT_INIT_FAILURE', String(lastError));
+    if (generation === creationGeneration.current) setSession(s => ({ ...s, pendingRoomId: undefined, secret: null, createdAt: undefined }));
     throw lastError instanceof Error ? lastError : new ConnectError('UNKNOWN');
   };
   const joinWithCode = async (code: string) => {
+    const generation = creationGeneration.current;
     productEvent('product.first_interaction');
     productEvent('product.method_code');
     const requestId = crypto.randomUUID();
     roomCreateDiagStart(requestId, 'join');
     await ensureSocketConnected();
-    const joinOnce = async (): Promise<{ success: boolean; error?: string }> => {
+    const joinOnce = async (): Promise<{ success: boolean; error?: string; code?: string }> => {
     await ensureSocketConnected();
-    return new Promise<{ success: boolean; error?: string }>((resolve) => {
+    return new Promise<{ success: boolean; error?: string; code?: string }>((resolve) => {
       const timeout = setTimeout(() => {
         roomCreateDiagEnd(requestId, 'failure', 'SIGNALING_TIMEOUT', 'join timed out');
         // Kick the transport like createRoomOnce does — the next attempt
@@ -1019,6 +1032,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       // setupJoiner persists it under the real room.
       getSocket().emit('join_with_code', { code, pid: crypto.randomUUID() }, (res: { success: boolean; roomId?: string; secret?: string; createdAt?: number; error?: string; code?: string; myParticipantId?: string; roster?: { participants?: unknown[]; seq?: number } }) => {
         clearTimeout(timeout);
+        if (generation !== creationGeneration.current) return resolve({ success: false });
         diag('room.join', !!res.success, res.success ? 'ok' : (res.code || res.error || 'unknown'));
         if (res.success) {
           roomCreateDiagEnd(requestId, 'success');
@@ -1037,7 +1051,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   let lastJoin: { success: boolean; error?: string } = { success: false };
   for (let attempt = 1; attempt <= MAX_JOIN_ATTEMPTS; attempt++) {
     try {
-      lastJoin = await joinOnce();
+      lastJoin = await waitForInvitation(joinOnce, result => generation === creationGeneration.current && result.code === 'INVITATION_PENDING');
     } catch (e) {
       const reason = describeConnectFailure(e);
       if ((reason === 'TIMEOUT' || reason === 'UNREACHABLE' || reason === 'UNKNOWN') && attempt < MAX_JOIN_ATTEMPTS) {
@@ -1090,10 +1104,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
    * and tells the other peer to connect — same flow as any other join.
    */
   const joinWithShortCode = async (code: string) => {
+    const generation = creationGeneration.current;
     productEvent('product.method_link'); // /s/<code> short links resolve here
     await ensureSocketConnected();
     diag('link.join_sent', true);
-    let res = await resolveShortCode(code);
+    let res = await waitForInvitation(() => resolveShortCode(code), result => generation === creationGeneration.current && 'reason' in result && result.reason === 'not_found');
+    if (generation !== creationGeneration.current) return { success: false };
     // A phone that just woke up has no route yet. One retry turns "we could not
     // ask" into a room, instead of telling the person their link is dead when
     // it is fine — the sentence a slow mobile connection used to produce.
@@ -1113,6 +1129,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             : "Couldn't reach the room.",
       };
     }
+    if (generation !== creationGeneration.current) return { success: false };
     diag('link.resolved', true);
     const joined = await joinWithLink(res.roomId);
     diag('link.joined', !!joined.success, joined.success ? 'ok' : 'refused');
@@ -1357,6 +1374,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetSession = (reason?: string) => {
+    creationGeneration.current++;
     // Room-owned waiting shares must not survive Disconnect/room closure.
     discardComposerIntent(sessionRef.current.roomId);
     // 1. Mark abandoned (must happen before room_closed echo can fire)

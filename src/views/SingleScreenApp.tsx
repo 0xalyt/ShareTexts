@@ -522,8 +522,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     else if (session.roomId && session.connectionType === 'disconnected') setPanelMode('connected');
     else if (session.roomId && session.isCreator) setPanelMode('sending');
     else if (session.roomId && !session.isCreator) setPanelMode(p => (p === 'connecting' ? 'connecting' : 'receiving'));
+    else if (session.pendingRoomId) setPanelMode('sending');
     else if (!session.roomId) setPanelMode('idle');
-  }, [session.roomId, session.isCreator, session.partnerConnected, session.partnerConnecting, session.connectionType]);
+  }, [session.roomId, session.pendingRoomId, session.isCreator, session.partnerConnected, session.partnerConnecting, session.connectionType]);
 
   /* --- tab status light (pill favicon + live title, room UI only) ---
      `connected` panel = the room UI is on screen. Landing, pairing and
@@ -561,12 +562,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     if (!session.partnerConnected || !session.roomId) return;
     if (celebratedRoomRef.current === session.roomId) return;
     celebratedRoomRef.current = session.roomId;
-    if (!session.isCreator) return;
+    // The same one-off connection moment belongs to both devices.
+    // Reduced motion keeps the announcement and skips the waiting scene.
     hapticSuccess();
-    setCelebrateConnected(true);
-    const timer = setTimeout(() => setCelebrateConnected(false), reduceMotion ? 0 : devBeat || 220);
-    return () => clearTimeout(timer);
-  }, [session.partnerConnected, session.roomId, session.isCreator]);
+    setCelebrateConnected(!reduceMotion);
+    const timer = setTimeout(() => setCelebrateConnected(false), reduceMotion ? 0 : devBeat || 600);
+    return () => { clearTimeout(timer); setCelebrateConnected(false); };
+  }, [session.partnerConnected, session.roomId, reduceMotion]);
 
   // Keep panelMode honest when session flags move without a panel action:
   //  · creator: peer starts joining → handshake replaces the code screen
@@ -1037,7 +1039,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   }, [session.isCreator, abandonSession, clearAcceptBeat]);
 
   /* --- derived --- */
-  const shareUrl = session.roomId ? `${window.location.origin}/s/${shortCodeOf(session.roomId)}` : '';
+  const invitationRoomId = session.roomId || session.pendingRoomId;
+  const shareUrl = invitationRoomId ? `${window.location.origin}/s/${shortCodeOf(invitationRoomId)}` : '';
   const qrCode = session.secret ? generateTOTP(session.secret, session.createdAt) : '';
   const qrValue = qrCode ? `${shareUrl}?c=${qrCode}` : '';
   // shareUrl changes when the room is created; copyLink may be invoked from
@@ -1594,7 +1597,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
 
           {/* ── CONNECTED: device pair + ready to transfer ───────── */}
           {panelMode === 'connected' && !celebrateConnected && (
-            <motion.div key="connected" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: EASE }} className="max-w-md 2xl:max-w-lg mx-auto my-auto">
+            <motion.div key="connected" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18, ease: EASE }} className="max-w-md 2xl:max-w-lg mx-auto w-full">
               {/* Desktop connected rail — decluttered. The room header already
                   carries identity (this ⇄ partner + live status) and the room
                   itself is the product; this rail keeps only what the header
@@ -1657,32 +1660,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </div>
                 )}
 
-              {/* Live session stats — the left pane earns its place by
-                  reporting the room it's hosting: real counts, not copy.
-                  De-boxed: figures + hairlines, no border chrome — the
-                  numbers are the object, not their container. */}
-              {(() => {
-                const msgs = session.messages;
-                const fileCount = msgs.filter(m => m.attachment && m.attachment.status === 'complete').length;
-                const bytes = msgs.reduce((n, m) => n + (m.attachment?.status === 'complete' ? (m.attachment.size ?? 0) : 0), 0);
-                const stat = (label: string, value: React.ReactNode) => (
-                  <div key={label} className="flex-1 flex flex-col items-center gap-1 py-1">
-                    <span className="text-[16px] font-medium text-apple-ink dark:text-white tnum leading-none">{value}</span>
-                    <span className="st-eyebrow">{label}</span>
-                  </div>
-                );
-                return (
-                  <div className="st-tile mb-4 px-2 py-2.5 flex items-stretch">
-                    {/* The numbers roll in when the room opens (one clipped
-                        column per digit) and roll again as counts change. */}
-                    {stat(msgs.length === 1 ? t('conn.stats.message') : t('conn.stats.messages'), <NumberTicker value={msgs.length} locale={localeOf(lang)} />)}
-                    <span className="w-px bg-apple-divider/70 dark:bg-white/[0.09]" aria-hidden />
-                    {stat(fileCount === 1 ? t('conn.stats.file') : t('conn.stats.files'), <NumberTicker value={fileCount} locale={localeOf(lang)} />)}
-                    <span className="w-px bg-apple-divider/70 dark:bg-white/[0.09]" aria-hidden />
-                    {stat(t('conn.stats.data'), <NumberTicker text={bytes > 0 ? formatBytes(bytes) : '0'} locale={localeOf(lang)} />)}
-                  </div>
-                );
-              })()}
 
               {/* Who is here — the rail answers "who else is in this room"
                   before it offers any action: tiles for each seated device,
@@ -1690,7 +1667,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <PresenceDock
                 className="mb-4 px-1"
                 title={roomRosterCount === 1 ? t('room.oneDevice') : t('room.deviceCount', { count: roomRosterCount })}
-                subtitle={session.partnerConnected || roomRosterCount > 1 ? t('room.readyCount', { count: roomRosterCount }) : t('room.waiting')}
                 entries={presenceEntries}
               />
 
@@ -1702,7 +1678,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   already shows live link state, and the rail doesn't need a
                   second voice saying it. */}
               <div className="st-card overflow-hidden">
-                <StayConnectedToggle className="rounded-none" />
+                <StayConnectedToggle compact className="rounded-none" />
                 <div className="h-px bg-apple-divider/50 dark:bg-white/[0.07]" aria-hidden />
                 {/* Same row template as the Stay Connected setting above it:
                     px-1, a 36 px leading slot, gap-3. The link glyph moved
@@ -1718,24 +1694,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <Link2 className="w-4 h-4" />
                   </span>
                   <span className="flex flex-col min-w-0 flex-1">
-                    <span className="text-[13px] font-medium text-apple-ink dark:text-white">{copiedLink ? t('conn.inviteCopied') : t('conn.invite')}</span>
-                    <span className="text-[12px] text-apple-ink-muted dark:text-white/60 truncate">{t('conn.inviteHint')}</span>
+                    <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{copiedLink ? t('conn.inviteCopied') : t('conn.invite')}</span>
                   </span>
                 </button>
                 <div className="h-px bg-apple-divider/50 dark:bg-white/[0.07]" aria-hidden />
               </div>
-              {/* Disconnect is the one irreversible thing on this rail, so it
-                  is no longer a tap: the knob must be carried past the arming
-                  line. Accidental taps can't end a live session. */}
-              <SlideToConfirm
-                className="mt-3"
-                tone="danger"
-                label={t('common.disconnect')}
-                armedLabel={t('end.release')}
-                onConfirm={() => handleDisconnect()}
-                icon={<DisconnectGlyph size={16} />}
-                testId="end-session"
-              />
+              {/* A quiet action; the confirmation sheet protects the room. */}
+              <button type="button" onClick={() => setConfirmDisconnect(true)} data-testid="end-session" className="press mt-3 min-h-11 px-3 text-[13px] text-apple-ink-muted hover:text-status-danger dark:text-white/60">{t('common.disconnect')}</button>
             </motion.div>
           )}
           {/* ── CONNECTED: the payoff beat — the handshake the user just
@@ -1759,14 +1724,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   localIcon={isMobileDevice ? 'phone' : 'monitor'}
                   partnerName={session.partnerName}
                 />
-                <motion.p
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.3, ease: EASE }}
-                  className="mt-3 text-[13px] font-medium text-apple-ink-muted dark:text-white/65"
-                >
-                  {t('conn.ready')}
-                </motion.p>
               </div>
             </motion.div>
           )}
@@ -1922,11 +1879,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         tabIndex={-1}
         className={`flex-1 flex flex-col px-6 lg:px-8 pb-6 min-h-0 overflow-y-auto overscroll-contain room-scroll focus:outline-none ${isTaskScreen ? 'pt-[58px]' : 'pt-5 sm:pt-7 lg:pt-10'}`}
       >
-        {/* Vertically center the connected rail in the pane's real height —
-            the column is shorter than the viewport on desktop, and top-
-            anchoring it left a dead zone below. Idle/pairing content is
-            tall enough to top-anchor; only the room rail benefits. */}
-        <div className={panelMode === 'connected' ? "my-auto w-full" : isTaskScreen ? "w-full flex-1 flex flex-col min-h-0" : "w-full"}>
+        {/* Room tools align with the thread instead of floating mid-pane. */}
+        <div className={panelMode === 'connected' ? "w-full" : isTaskScreen ? "w-full flex-1 flex flex-col min-h-0" : "w-full"}>
           {/* Hierarchy pushes (§18): Send/Receive slide in over Home; the
               room entry crossfades because it is a mode, not a level. */}
           <ScreenStack screen={panelMode} mode={panelMode === 'connected' ? 'mode' : 'push'}>
@@ -2055,7 +2009,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
 
       {/* Room content */}
       <div className="flex-1 min-h-0 flex flex-col">
-        {panelMode === 'connected' ? (
+        {panelMode === 'connected' && !celebrateConnected ? (
           <Suspense fallback={<SkeletonScreen variant="room" />}>
             {/* Definite-height flex wrapper: keeps ChatView's h-full resolved on
                 the desktop two-pane layout (Suspense itself is not a flex item). */}
@@ -2305,7 +2259,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             · Connected: the transfer room takes over the entire screen — a
               full-bleed ChatView with its own device bar and composer. No
               stacked summary card above the chat, no second scroll surface. */
-        panelMode === 'connected' ? (
+        panelMode === 'connected' && celebrateConnected ? (
+          <div data-testid="connected-moment" role="status" className="flex h-full items-center justify-center px-6">
+            <ConnectHandshake phase="connected" localIcon={isMobileDevice ? 'phone' : 'monitor'} partnerName={session.partnerName} />
+          </div>
+        ) : panelMode === 'connected' ? (
           <Suspense fallback={<SkeletonScreen variant="room" />}>
             <motion.div
               key="room-fullscreen"

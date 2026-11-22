@@ -1,5 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
-import { validateTOTP, base32Encode } from './totp';
+import { validateTOTP, base32Encode, TOTP_PERIOD } from './totp';
 import { json, dayKey, type Env } from './types';
 
 /**
@@ -850,12 +850,21 @@ export class Room extends DurableObject<Env> {
 
   // ---- handlers ----------------------------------------------------------
 
-  private async handleCreate(cid: string, id?: string, payload?: { pid?: unknown }) {
+  private async handleCreate(cid: string, id?: string, payload?: { pid?: unknown; secret?: unknown; createdAt?: unknown }) {
     const r = await this.loadRoom();
+    // Retrying a lost creation acknowledgement must keep the same invitation.
+    // Only possession of its full secret can reclaim the existing room.
+    if (r && typeof payload?.secret === 'string' && timingSafeEqual(payload.secret, r.secret)) return this.handleResume(cid, id, payload);
     if (r) return this.ackErr(cid, id, 'ROOM_EXISTS', 'This room already exists.');
-    const secret = base32Encode(crypto.getRandomValues(new Uint8Array(16)));
+    const secret = typeof payload?.secret === 'string' && /^[A-Z2-7]{26}$/.test(payload.secret)
+      ? payload.secret : base32Encode(crypto.getRandomValues(new Uint8Array(16)));
     const roomId = this.urlRoomId ?? crypto.randomUUID();
     const now = Date.now();
+    // The anchor is an elapsed-time origin, not a trust credential. Bound
+    // client clock skew to less than two windows, inside validation's ±3
+    // tolerance. A further-ahead clock must not exclude the initial code.
+    const anchor = typeof payload?.createdAt === 'number' && Number.isFinite(payload.createdAt) && Math.abs(payload.createdAt - now) < 2 * TOTP_PERIOD * 1000
+      ? payload.createdAt : now;
     // The creator's stable participant id rides the create payload (the
     // client proved nothing yet, but the room secret gates every later
     // action — a forged pid only mislabels the creator to itself).
@@ -867,7 +876,7 @@ export class Room extends DurableObject<Env> {
       secret,
       state: 'WAITING',
       createdAt: now,
-      codeAnchor: now,
+      codeAnchor: anchor,
       lastActive: now,
       expiresAt: now + ROOM_TTL,
       participants: [{ pid, cid, name: 'Creator', platform: 'desktop', joinedAt: now }],
@@ -887,7 +896,7 @@ export class Room extends DurableObject<Env> {
     // holds two live participants.
     await reportPresence(this.env, roomId, (await this.livePeers()).length);
     // createdAt anchors the pairing-code window (90s from room creation).
-    this.ackOk(cid, id, { roomId, secret, createdAt: now, participantId: pid, myParticipantId: pid, roster: this.rosterSnapshot(this.room) });
+    this.ackOk(cid, id, { roomId, secret, createdAt: anchor, participantId: pid, myParticipantId: pid, roster: this.rosterSnapshot(this.room) });
   }
 
   private async handleJoinWithCode(cid: string, id?: string, payload?: { code?: unknown; pid?: unknown }) {
