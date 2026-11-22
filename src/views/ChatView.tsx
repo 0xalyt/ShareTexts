@@ -76,7 +76,7 @@ function dateKeyOf(ts: number): string {
   const d = new Date(ts);
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
-export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' } = {}) {
+export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 'standalone'; intakeError?: string } = {}) {
   const reducedMotion = useMotionPreference();
   const quietMotion = reducedMotion || document.documentElement.dataset.motionIntent === 'keyboard';
   const entranceMotion = useRef(document.documentElement.dataset.motionIntent === 'pointer').current;
@@ -182,6 +182,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [showConnectionDetails, setShowConnectionDetails] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Phone shares can be rejected while this restored room is already open.
+  // Reuse the visible composer's alert rather than an off-screen home alert.
+  useEffect(() => {
+    if (intakeError) setErrorMsg(intakeError);
+  }, [intakeError]);
   // Message selection (bencho selection-list): long-press a bubble to enter,
   // tap to toggle, floating bar copies or exits. Long-press keeps the copy
   // button free; a fresh selection always starts with the pressed message.

@@ -2071,7 +2071,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 transition={{ duration: 0.28, ease: EASE }}
                 className="h-full flex flex-col min-h-0"
               >
-                <ChatView panelMode="embedded" />
+                <ChatView panelMode="embedded" intakeError={createError?.text} />
               </motion.div>
             </div>
           </Suspense>
@@ -2318,7 +2318,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               transition={{ duration: 0.3, ease: EASE }}
               className="h-full"
             >
-              <ChatView panelMode="standalone" />
+              <ChatView panelMode="standalone" intakeError={createError?.text} />
             </motion.div>
           </Suspense>
         ) : (
