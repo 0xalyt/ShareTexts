@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { get as getHTTP } from 'node:http';
 import { get as getHTTPS } from 'node:https';
-import { launchBrowser, clickStable, resolveEngine } from './lib.mjs';
+import { launchBrowser, clickStable, resolveEngine, gotoPage } from './lib.mjs';
 import jsQR from 'jsqr';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 
@@ -84,7 +84,7 @@ try {
       page.setDefaultTimeout(15_000);
       const errors = [];
       page.on('pageerror', e => errors.push(e.message));
-      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await gotoPage(page, BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       if (width < 1024) {
@@ -251,12 +251,12 @@ try {
         // Firefox drops context-level color emulation on its first real
         // navigation. Prime plain text (not Firefox's JSON viewer), then establish the OS before
         // the first landing visit; no app/poster has been fetched yet.
-        await page.goto(new URL('/robots.txt', BASE).href, { waitUntil: 'domcontentloaded' });
+        await gotoPage(page, new URL('/robots.txt', BASE).href, { waitUntil: 'domcontentloaded' });
         await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
       }
       const requests = [];
       page.on('request', request => { if (/\/film\/.*-poster\./.test(request.url())) requests.push(request.url()); });
-      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await gotoPage(page, BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       const inspect = () => page.evaluate(() => {
@@ -311,7 +311,7 @@ try {
 
   const laptop = await diagnostics.newContext({ viewport: { width: 1024, height: 700 }, reducedMotion: 'reduce' });
   const shortPage = await laptop.newPage();
-  await shortPage.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoPage(shortPage, BASE, { waitUntil: 'domcontentloaded' });
   await shortPage.getByTestId('hero-demo').waitFor();
   await shortPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const shortLayout = await shortPage.evaluate(() => {
@@ -332,7 +332,7 @@ try {
     const typing = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'no-preference' });
     await typing.addInitScript(value => localStorage.setItem('sharetext.theme', value), theme);
     const entry = await typing.newPage();
-    await entry.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await gotoPage(entry, BASE, { waitUntil: 'domcontentloaded' });
     await entry.getByTestId('intent-input').waitFor();
     await entry.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     const input = entry.getByTestId('intent-input');
@@ -389,7 +389,7 @@ try {
     const dark = await diagnostics.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
     await dark.addInitScript(() => localStorage.setItem('sharetext.theme', 'dark'));
     const darkPage = await dark.newPage();
-    await darkPage.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await gotoPage(darkPage, BASE, { waitUntil: 'domcontentloaded' });
     await darkPage.getByTestId('hero-demo').waitFor();
     await darkPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     check(`${width}: dark landing retains its theme without overflow`, await darkPage.evaluate(() =>
@@ -401,11 +401,35 @@ try {
 
   const ctx = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
-  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoPage(page, BASE, { waitUntil: 'domcontentloaded' });
   const demo = page.getByTestId('hero-demo');
   await demo.scrollIntoViewIfNeeded();
   await page.waitForTimeout(3600);
   check('reduced motion does not autoplay', await demo.locator('video').evaluate(el => el.paused && !el.getAttribute('src')));
+  // Reproduce a returning visitor's complete MP4 cache entry. WebKit asks for
+  // byte ranges after reading metadata; a cached 200 must not answer that seek.
+  // The local wrapper uses Vite (which does not auto-register the worker).
+  await page.evaluate(() => navigator.serviceWorker.register('/sw.js'));
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 15000 });
+  const range = await demo.locator('video').evaluate(async el => {
+    const movie = el.poster.replace(/-poster\.jpg$/, '.mp4');
+    const full = await fetch(movie);
+    if (!full.ok) throw new Error(`Film fixture returned ${full.status}`);
+    const expected = new Uint8Array(await full.clone().arrayBuffer()).slice(32, 64);
+    const fixture = 'film-range-regression';
+    try {
+      const cache = await caches.open(fixture);
+      await cache.put(movie, full);
+      const partial = await fetch(movie, { headers: { Range: 'bytes=32-63' } });
+      const bytes = new Uint8Array(await partial.arrayBuffer());
+      return {
+        status: partial.status, contentRange: partial.headers.get('content-range'),
+        matches: bytes.length === 32 && bytes.every((byte, i) => byte === expected[i]),
+      };
+    } finally { await caches.delete(fixture); }
+  });
+  check('cached films do not replace HTTP byte ranges with a whole 200 response',
+    range.status === 206 && /^bytes 32-63\/\d+$/.test(range.contentRange || '') && range.matches);
   await demo.getByRole('button', { name: 'Play film', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('[data-testid="hero-demo"] video')?.currentTime > 0.2);
   const filmHeight = (await demo.boundingBox()).height;
@@ -453,7 +477,7 @@ try {
 
   const phone = await diagnostics.newContext({ viewport: { width: 320, height: 720 }, reducedMotion: 'reduce' });
   const p = await phone.newPage();
-  await p.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoPage(p, BASE, { waitUntil: 'domcontentloaded' });
   await p.getByTestId('home-receive').waitFor();
   await p.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const action = await p.getByTestId('home-receive').boundingBox();

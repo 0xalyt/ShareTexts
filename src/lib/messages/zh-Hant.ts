@@ -87,6 +87,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
 
   // actions
   'action.save': '儲存',
+  'action.download': '下載',
   'action.copy': '複製',
   'msg.copy': '複製',
   // Landing: open a second browser and explore an expiring example.

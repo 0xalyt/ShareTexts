@@ -6,6 +6,9 @@ import { beginTransferRecord, finishTransferRecord, recordTransferProgress, setC
 import { productEvent } from './telemetry';
 import type { ChunkEnvelope } from './protocol';
 import { setDataChannel } from './netStats';
+import type { RelayBinaryAssembler } from './relayBinary';
+
+const loadRelayCodec = () => import('./relayBinary');
 
 type SignalData = { type: 'offer' | 'answer'; sdp: string } | { type: 'candidate'; candidate: RTCIceCandidateInit };
 
@@ -74,6 +77,7 @@ const MAX_TRANSFER_SIZE = 1024 ** 4; // 1 TB max total
 const MAX_CHUNKS = Math.ceil(MAX_TRANSFER_SIZE / CHUNK_SIZE);
 const OFFER_RETRY_DELAY = 2500;
 const OFFER_RETRY_MAX = 3;
+const ICE_CONNECT_CEILING = 20_000;
 
 /**
  * Receive path threshold: files at or above this size stream to disk via OPFS
@@ -190,6 +194,12 @@ interface PartialReceive {
   updatedAt: number;
 }
 const partialReceives = new Map<string, PartialReceive>();
+const completedReceives = new Set<string>();
+
+function rememberCompletedReceive(transferId: string) {
+  completedReceives.add(transferId);
+  if (completedReceives.size > 256) completedReceives.delete(completedReceives.values().next().value!);
+}
 
 // Chunks can race ahead of their metadata: metadata is a chunk-envelope text
 // message that decrypts asynchronously, so a fast 1-chunk file can have its
@@ -239,6 +249,7 @@ export function getAckedPosition(transferId: string): number {
  * when a session resets so memory isn't held forever.
  */
 export function clearTransferState(transferId: string) {
+  completedReceives.delete(transferId);
   const p = partialReceives.get(transferId);
   // Only clean up disk sinks that never completed — a finished OPFS file's
   // blob URL may still be live for the user to download.
@@ -255,6 +266,7 @@ export function clearAllTransferState() {
     if (p.opfs && p.received < p.total) void closeOpfsSink(p.opfs);
   }
   partialReceives.clear();
+  completedReceives.clear();
   sendProgress.clear();
   ackWaiters.clear();
   orphanChunks.clear();
@@ -432,6 +444,9 @@ export class PeerManager {
   private cryptoKey: CryptoKey | null = null;
   private cryptoPromise: Promise<CryptoKey>;
   private destroyed = false;
+  private peerRelayFragments: boolean | null = null;
+  private relayCapabilityWaiters = new Set<() => void>();
+  private relayAssembly: RelayBinaryAssembler | null = null;
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private relayFallbackTimer: ReturnType<typeof setTimeout> | null = null;
   /** Bandwidth samples (bytes/sec) for adaptive PIPELINE DEPTH pacing.
@@ -579,6 +594,7 @@ export class PeerManager {
     // If the peer never answers (lost signal, transient drop), tear down and
     // re-offer. Only the initiating side retries, so no SDP glare is created.
     let attempts = 0;
+    let attemptStartedAt = Date.now();
     this.retryTimer = setInterval(() => {
       if (this.destroyed || !this.peerId) {
         if (this.retryTimer) clearInterval(this.retryTimer);
@@ -588,6 +604,10 @@ export class PeerManager {
         if (this.retryTimer) clearInterval(this.retryTimer);
         return;
       }
+      const pc = this.pc;
+      if (pc?.remoteDescription && pc.connectionState !== 'failed' && pc.connectionState !== 'closed'
+          && pc.iceConnectionState !== 'failed' && pc.iceConnectionState !== 'closed'
+          && Date.now() - attemptStartedAt < ICE_CONNECT_CEILING) return;
       attempts++;
       if (attempts >= OFFER_RETRY_MAX) {
         if (this.retryTimer) clearInterval(this.retryTimer);
@@ -595,6 +615,7 @@ export class PeerManager {
       }
       this.teardownPeerConnection();
       this.startOfferCycleBody();
+      attemptStartedAt = Date.now();
     }, OFFER_RETRY_DELAY);
   }
 
@@ -610,14 +631,24 @@ export class PeerManager {
   }
 
   private teardownPeerConnection() {
-    if (this.pc) {
-      this.pc.onicecandidate = null;
-      this.pc.onconnectionstatechange = null;
-      this.pc.ondatachannel = null;
-      try { this.pc.close(); } catch { /* noop */ }
-    }
+    this.stopDisconnectStallWatch();
+    const pc = this.pc;
+    const channels = [this.dc, this.cc];
     this.pc = null;
     this.dc = null;
+    this.cc = null;
+    this.ccOpen = false;
+    if (pc) {
+      pc.onicecandidate = null;
+      pc.onconnectionstatechange = null;
+      pc.ondatachannel = null;
+    }
+    for (const channel of channels) {
+      if (!channel) continue;
+      channel.onopen = channel.onmessage = channel.onclose = null;
+      try { channel.close(); } catch { /* noop */ }
+    }
+    try { pc?.close(); } catch { /* noop */ }
   }
 
   public onNegotiating?: () => void;
@@ -674,7 +705,9 @@ export class PeerManager {
     }
 
     if (!this.pc) return;
+    const pc = this.pc;
     this.pc.onicecandidate = (event) => {
+      if (this.destroyed || this.pc !== pc) return;
       if (event.candidate && this.peerId) {
         getSocket().emit('signal', {
           roomId: this.roomId,
@@ -685,7 +718,7 @@ export class PeerManager {
     };
 
     this.pc.onconnectionstatechange = () => {
-      if (!this.pc) return;
+      if (this.destroyed || this.pc !== pc) return;
       const st = this.pc.connectionState;
       if (st === 'connected') {
         this.stopDisconnectStallWatch();
@@ -709,6 +742,7 @@ export class PeerManager {
     };
 
     this.pc.ondatachannel = (event) => {
+      if (this.destroyed || this.pc !== pc) return;
       if (event.channel.label === 'control') {
         // The answering side receives the control channel here.
         this.cc = event.channel;
@@ -759,6 +793,7 @@ export class PeerManager {
     // pointed at the current channel (re-created on renegotiation).
     setDataChannel(channel);
     channel.onopen = () => {
+      if (this.destroyed || this.dc !== channel) return;
       this.isRelayFallback = false;
       this.channelOpenedAt = Date.now();
       diag('webrtc.channel_open', true);
@@ -767,9 +802,11 @@ export class PeerManager {
       if (this.onOpen) this.onOpen();
     };
     channel.onmessage = (event) => {
+      if (this.destroyed || this.dc !== channel) return;
       void this.handleIncomingData(event.data);
     };
     channel.onclose = () => {
+      if (this.destroyed || this.dc !== channel) return;
       diag('webrtc.channel_closed', true);
       this.notOpenSince = Date.now();
       // If the PC didn't already record an ICE failure, a closed channel
@@ -796,14 +833,17 @@ export class PeerManager {
     channel.binaryType = 'arraybuffer';
     channel.bufferedAmountLowThreshold = 64 * 1024;
     channel.onopen = () => {
+      if (this.destroyed || this.cc !== channel) return;
       this.ccOpen = true;
       diag('webrtc.control_open', true);
     };
     channel.onmessage = (event) => {
+      if (this.destroyed || this.cc !== channel) return;
       if (typeof event.data !== 'string') return;
       void this.handleControlMessage(event.data);
     };
     channel.onclose = () => {
+      if (this.destroyed || this.cc !== channel) return;
       this.ccOpen = false;
     };
   }
@@ -903,6 +943,9 @@ export class PeerManager {
         if (this.onDisconnectImmediate) this.onDisconnectImmediate();
         return;
       case 'hello':
+        if (this.peerRelayFragments === null) void this.sendHello();
+        this.peerRelayFragments = Array.isArray(inner.features) && inner.features.includes('relay-fragments-v1');
+        for (const done of this.relayCapabilityWaiters) done();
         if (typeof inner.name === 'string' && this.onHello) this.onHello(inner.name);
         if (this.onPeerCapabilities) {
           // Capability negotiation: intersect our features with the peer's so
@@ -993,10 +1036,31 @@ export class PeerManager {
 
   /** Relay chunks addressed to THIS link (routed by participant id) — inert
    *  once destroyed. */
-  public acceptRelay = (data: string | ArrayBuffer) => {
+  public acceptRelay = async (data: string | ArrayBuffer) => {
     if (this.destroyed) return;
+    if (data instanceof ArrayBuffer) {
+      if (!this.relayAssembly) {
+        const { RelayBinaryAssembler } = await loadRelayCodec();
+        if (this.destroyed) return;
+        this.relayAssembly ??= new RelayBinaryAssembler();
+      }
+      const packet = this.relayAssembly.push(data);
+      if (!packet) return;
+      data = packet;
+    }
     void this.handleIncomingData(data);
   };
+
+  private async sendRelayBinary(packet: ArrayBuffer): Promise<void> {
+    const { relayBinaryFrames, RELAY_PACKET_LIMIT, waitForRelayCapability } = await loadRelayCodec();
+    if (packet.byteLength > RELAY_PACKET_LIMIT && this.peerRelayFragments === null) {
+      void this.sendHello();
+      await waitForRelayCapability(this.relayCapabilityWaiters);
+    }
+    if (this.destroyed) throw new TransferInterruptedError();
+    const frames = this.peerRelayFragments ? relayBinaryFrames(packet) : [packet];
+    for (const data of frames) getSocket().emit('relay_message', { roomId: this.roomId, to: this.peerId, data });
+  }
 
   private setupSocketListeners() {
     // Register with the shared multi-device router instead of touching the
@@ -1027,6 +1091,7 @@ export class PeerManager {
             const peer = this.resolveRelayPeer?.();
             if (peer) this.attach(peer);
           }
+          void this.sendHello();
           if (this.peerId && this.onOpen) this.onOpen();
         }
       }
@@ -1034,6 +1099,7 @@ export class PeerManager {
   }
 
   public expectBinaryTransfer(transferId: string, totalChunks: number) {
+    if (completedReceives.has(transferId)) return;
     const existing = partialReceives.get(transferId);
     const totalBytes = totalChunks * CHUNK_SIZE;
     // Stream to disk for large files when the browser supports it; small files
@@ -1155,6 +1221,7 @@ export class PeerManager {
       const view = new DataView(data);
       const transferIdBytes = new Uint8Array(data, 0, 16);
       const transferId = bytesToUuid(transferIdBytes);
+      if (completedReceives.has(transferId)) return;
       const sequence = view.getUint32(16, true);
       const payload = data.slice(20);
 
@@ -1214,6 +1281,7 @@ export class PeerManager {
               // backing after a grace period so the browser's storage quota
               // isn't eaten by finished transfers.
               const file = await opfs.handle.getFile();
+              rememberCompletedReceive(transferId);
               transfer.updatedAt = Date.now();
               scheduleOpfsSweep(opfs);
               if (this.onFileComplete) this.onFileComplete(transferId, file);
@@ -1269,6 +1337,7 @@ export class PeerManager {
             }
             diag('transfer.received_complete', true, transferId.slice(0, 8));
             const blob = new Blob(transfer.chunks);
+            rememberCompletedReceive(transferId);
             partialReceives.delete(transferId);
             if (this.onFileComplete) {
               this.onFileComplete(transferId, blob);
@@ -1333,7 +1402,7 @@ export class PeerManager {
    * of guessing (the receiver simply never uses features the peer lacks).
    */
   public static readonly TRANSFER_PROTOCOL = 2;
-  private static readonly FEATURES = ['resume', 'hash', 'pause', 'control-channel'] as const;
+  private static readonly FEATURES = ['resume', 'hash', 'pause', 'control-channel', 'relay-fragments-v1'] as const;
 
   /**
    * Announce this device's name + capabilities (reads localStorage at send
@@ -1665,7 +1734,7 @@ export class PeerManager {
           setCurrentTransport('relay');
           if (this.onConnectionTypeChange) this.onConnectionTypeChange('relay');
           if (this.onTransportReady) { this.onTransportReady(); this.onTransportReady = null; }
-          getSocket().emit('relay_message', { roomId: this.roomId, to: this.peerId, data: entry.packet.buffer });
+          await this.sendRelayBinary(entry.packet.buffer as ArrayBuffer);
         }
 
         sendIdx++;
@@ -1863,18 +1932,14 @@ export class PeerManager {
   }
 
   public destroy() {
+    this.relayAssembly?.clear();
+    for (const done of this.relayCapabilityWaiters) done();
     this.destroyed = true;
     this.transferControllers.forEach(c => c.abort(new TransferInterruptedError()));
     this.transferControllers.clear();
     if (this.retryTimer) clearInterval(this.retryTimer);
     if (this.relayFallbackTimer) clearTimeout(this.relayFallbackTimer);
-    this.stopDisconnectStallWatch();
-    if (this.dc) {
-      try { this.dc.close(); } catch { /* noop */ }
-    }
-    if (this.pc) {
-      try { this.pc.close(); } catch { /* noop */ }
-    }
+    this.teardownPeerConnection();
     // Detach THIS link from the shared router only. Other links (multi-device
     // room) keep their dispatch entries; the socket listeners themselves are
     // installed once for the whole page.
