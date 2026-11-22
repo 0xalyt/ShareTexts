@@ -171,8 +171,25 @@ try {
 
   // A Motion press gesture synthesizes pointerdown for Enter. The native
   // keyboard click must still toggle once, not undo that same reaction.
-  await pb.setViewportSize({ width: 320, height: 760 });
   const reactTrigger = pb.getByTestId('add-reaction').first();
+  await pb.setViewportSize({ width: 390, height: 844 });
+  await pb.getByTestId('composer').focus();
+  await pb.locator('[class~="group/msg"]').first().hover();
+  const revealed = await pb.waitForFunction(() => {
+    const trigger = document.querySelector('[data-testid="add-reaction"]');
+    return trigger && getComputedStyle(trigger.parentElement.parentElement).opacity === '1';
+  }, undefined, { timeout: 3000 }).then(() => true, () => false);
+  out('hovering a message reveals its closed reaction control', revealed);
+  await reactTrigger.click();
+  await pb.getByTestId('reaction-emoji-thumbs-up').click();
+  await pb.getByTestId('reaction-chip-👍').click();
+  await pb.keyboard.press('Escape');
+  await reactTrigger.focus();
+  await reactTrigger.press('Enter');
+  const reopened = await pb.getByTestId('reaction-emoji-thumbs-up').waitFor({ state: 'visible', timeout: 4000 }).then(() => true, () => false);
+  out('first Enter reopens text picker after pointer reaction removal', reopened && await reactTrigger.getAttribute('aria-expanded') === 'true');
+  await pb.keyboard.press('Escape');
+  await pb.setViewportSize({ width: 320, height: 760 });
   for (const key of ['Enter', 'Space']) {
     await reactTrigger.focus();
     await reactTrigger.press('Enter');

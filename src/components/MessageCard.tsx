@@ -181,7 +181,7 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
           circle under every bubble; on touch (no hover) it stays visible,
           because there is no other way to find it. */}
       {!disabled && (
-        <span className="opacity-55 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/msg:opacity-100 [@media(hover:hover)]:focus-within:opacity-100 has-[[aria-expanded=true]]:opacity-100">
+        <span className="message-reaction-trigger transition-opacity">
           <EmojiReaction
             size="md"
             align={isMeSide(msg) ? 'right' : 'left'}
@@ -965,11 +965,13 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               {complete && (
                 <>
                   <ActionButton icon={saved ? <Check /> : <Download />} label={t('action.download')} active={saved} onClick={() => handleDownload(a.url!, a.name)} primary onBlue={isMe} testId="transfer-download" />
-                  {a.type === 'image' && (
-                    <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} compact onBlue={isMe} testId="transfer-copy" />
-                  )}
-                  <BookmarkAction msg={msg} onBlue={isMe} />
-                  <ActionButton icon={<Share2 />} label={shared ? t('action.shared') : t('action.share')} active={shared} onClick={() => { void handleShare(); }} compact onBlue={isMe} testId="transfer-share" />
+                  <div className="flex items-center gap-1 sm:gap-1.5">
+                    {a.type === 'image' && (
+                      <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} compact onBlue={isMe} testId="transfer-copy" />
+                    )}
+                    <BookmarkAction msg={msg} onBlue={isMe} />
+                    <ActionButton icon={<Share2 />} label={shared ? t('action.shared') : t('action.share')} active={shared} onClick={() => { void handleShare(); }} compact onBlue={isMe} testId="transfer-share" />
+                  </div>
                 </>
               )}
               {(a.status === 'sending') && (
@@ -1180,7 +1182,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
       data-testid={testId}
       className={cn(
         "flex shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
-        compact ? "justify-center w-11 sm:w-auto sm:px-3" : "px-2.5 sm:px-3",
+      compact ? "justify-center w-11 sm:w-auto sm:px-3" : "px-1.5 sm:px-3",
         active
           ? "bg-status-success/15 text-status-success shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
           : primary

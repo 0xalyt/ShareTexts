@@ -575,11 +575,12 @@ export function EmojiReaction({
           }
           data-testid="add-reaction"
           onPointerDown={onTriggerPointerDown}
-          onClick={() => {
-            if (justOpened.current) {
-              justOpened.current = false;
-              return;
-            }
+          onClick={(event) => {
+            // Only suppress the trailing pointer click. Pointer capture or a
+            // moving palette can omit it; that must not swallow a later key.
+            const openedByPointer = justOpened.current;
+            justOpened.current = false;
+            if (event.detail > 0 && openedByPointer) return;
             if (open) close();
             else setOpen(true);
           }}
