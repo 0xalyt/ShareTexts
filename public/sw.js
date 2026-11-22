@@ -117,6 +117,12 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // A cached 200 response cannot satisfy a byte-range request. WebKit seeks
+  // through MP4s this way; let HTTP handle media and ranges (including when a
+  // previous worker cached the whole film). Posters still work offline.
+  if (request.headers.has('range') || request.destination === 'video' ||
+      request.destination === 'audio' || (url.pathname.startsWith('/film/') && url.pathname.endsWith('.mp4'))) return;
+
   if (request.mode === 'navigate') {
     // PER-URL STALE-WHILE-REVALIDATE: cache each navigated URL under its OWN
     // key and answer from that key. (The previous handler cached every page
