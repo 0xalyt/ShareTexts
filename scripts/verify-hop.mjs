@@ -127,6 +127,9 @@ try {
   ok(decoded === link, 'a camera reading the code gets exactly that link');
 
   const tJoin = Date.now();
+  // A copied link may target an already-open landing tab. That is a hash
+  // navigation, not a new document; it must still start linking.
+  await openLanding(B);
   await B.goto(link, { waitUntil: 'domcontentloaded', timeout: SLOW });
   await B.getByTestId('hop-emoji').waitFor({ timeout: SLOW });
   ok(!(await B.evaluate(() => location.hash)), 'the secret is removed from the address bar once read');

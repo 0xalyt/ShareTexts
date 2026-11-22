@@ -224,6 +224,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [hopMounted, setHopMounted] = useState(hopSheet);
   const [hop, setHop] = useState(readHopCache);
   useEffect(() => {
+    const arrive = () => {
+      const link = parseHopLink(window.location.hash);
+      if (!link) return;
+      // A same-tab invite changes only the fragment, so the initial state
+      // reader does not run again. Consume the secret before opening it.
+      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+      setHopShared(null);
+      setHopLink(link);
+      setHopMounted(true);
+      setHopSheet(true);
+    };
+    arrive();
+    window.addEventListener('hashchange', arrive);
+    return () => window.removeEventListener('hashchange', arrive);
+  }, []);
+  useEffect(() => {
     const sync = () => setHop(readHopCache());
     window.addEventListener(HOP_EVENT, sync);
     if (readHopCache()) void import('../lib/hop/hop').then(m => m.startHop());
