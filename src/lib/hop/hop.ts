@@ -200,9 +200,11 @@ export async function refreshDevices(): Promise<HopDevice[]> {
     const known = new Set(devices.map((d) => d.deviceId));
     const mine = myLabel(identity);
     if (others.length && (others.some((m) => !known.has(m.deviceId)) || introducedAs !== mine)) {
-      void hello(circleId).catch(() => {});
+      // If the hello can't be queued, forget the name so the next refresh tries again.
+      introducedAs = await hello(circleId).then(() => mine, () => undefined);
+    } else {
+      introducedAs = mine;
     }
-    introducedAs = mine;
     labels.set(identity.deviceId, mine);
     const named = distinctLabels(members.map((m) => ({
       ...m,
