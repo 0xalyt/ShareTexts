@@ -40,76 +40,8 @@
   }
 }
 
-/* ── Self-hosted Inter 4 (variable, Latin subsets) ─────────────────────────
-   One variable file covers 100–900, so a single @font-face per subset serves
-   every weight we use — no per-weight requests, no Google Fonts round-trip.
-   font-display: swap paints the system face instantly and swaps Inter in when
-   it lands (the fallback metrics below keep that swap from shifting layout).
-   Files: public/fonts/inter-latin{,-ext}.woff2 (85KB + 48KB, generated from
-   Google's static CDN, committed so the build has no network dependency). */
-/* Size-adjusted fallback (§4): the swap from the system face to Inter shifts
-   nothing, because this face is declared with the metrics Inter actually
-   lands on (Arial, adjusted). Browsers that ignore size-adjust just use it
-   as a plain Arial alias — still no jump, only a slightly different width. */
-@font-face {
-  font-family: "Inter Fallback";
-  src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
-  size-adjust: 107.4%;
-  ascent-override: 90%;
-  descent-override: 22.4%;
-  line-gap-override: 0%;
-}
-/* ── Allo (variable, self-hosted, OFL-1.1) ────────────────────────────────
-   Allo is the product's face now: an interface typeface with an optical-size
-   axis and a roundness axis. Use the full font: the Friendly build pins ROND
-   at 50 and cannot draw the crisp interface style. One cached file serves
-   text, display and symbols, with no icon-font request or external CDN.
-   Allo by Josh Puckett: https://allo.joshpuckett.me/ (OFL.txt alongside it).
-   Do not restrict this face to Latin unicode ranges: that silently excludes
-   Allo's checks, keyboard keys, navigation marks and warning symbol. */
-@font-face {
-  font-family: "Allo";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  font-optical-sizing: auto;
-  src: url("/fonts/AlloVariable.woff2") format("woff2");
-}
-/* Allo's true obliques (post.italicAngle -9°, not a browser shear). The
-   editor has an italic action and the marketing copy uses it, so the old
-   behaviour — font-synthesis skewing the roman — was a visible fake. Two
-   static cuts cover roman-weight italic and semibold italic; they download
-   only when italic text is actually painted. */
-@font-face {
-  font-family: "Allo";
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/AlloOblique.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Allo";
-  font-style: italic;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/AlloSemiBoldOblique.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("/fonts/inter-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("/fonts/inter-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
+/* Font faces and the native Apple stack are shared with standalone pages
+   through /typography.css, linked before this stylesheet in index.html. */
 
 @theme {
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -119,13 +51,10 @@
      Green = success/connected. Amber = waiting/warning. Red = error.
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-  /* One face for the whole product: brand, controls, and content share Allo;
-     system faces cover first paint and scripts the font does not contain. */
-  /* Allo leads on every platform. System fonts are local fallbacks only;
-     Apple font files are never downloaded or bundled by this app. */
-  --font-sans: "Allo", "Inter", "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Real SF on Apple; the same close fallback on other platforms. */
+  --font-sans: var(--st-font-sans);
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  --font-display: "Allo", "Inter", "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--st-font-sans);
 
   /* ── Brand: EMBER — the one accent across the entire app ──────
      Ember is the brand color, full stop: buttons, links, focus,
@@ -339,12 +268,6 @@
 }
 
 @layer base {
-  /* Preserve Allo on Apple devices, including the device capability class. */
-  html.apple-type {
-    --font-sans: "Allo", -apple-system, BlinkMacSystemFont, "Inter", "Inter Fallback", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-display: "Allo", -apple-system, BlinkMacSystemFont, "Inter", "Inter Fallback", "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-
   html, body, #root {
     height: 100%;
   }
@@ -361,15 +284,8 @@
     }
   }
 
-  /* Allo draws Latin and the Latin extended set (606 glyphs, no Cyrillic, no
-     Arabic, no Devanagari, no CJK). We ship eleven locales, four of which are
-     those scripts. Without the rules below a Japanese line renders its kanji
-     from Hiragino and its Latin words and digits from Allo — the mixed-family
-     seam you notice before you can name it, and the reason "just add the
-     font" is not the same as using it. Each script leads with a face that has
-     the whole line, so a sentence is one family again; Allo stays the face of
-     every Latin locale. The stacks are system-first on purpose: a CJK webfont
-     is megabytes, and this app already spends 229 KB on its Latin face. */
+  /* Each non-Latin script uses a coherent local family, including embedded
+     Latin text, without downloading large language font packs. */
   html:lang(ar) {
     --font-sans: "SF Arabic", "Geeza Pro", "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
     --font-display: "SF Arabic", "Geeza Pro", "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
@@ -397,14 +313,9 @@
     line-height: 1.5;
     letter-spacing: 0;
     font-kerning: normal;
-    /* Crisp text, not the round Friendly default. Only set ROND here: an
-       explicit opsz would stop automatic optical sizing for every child.
-       Keep disambiguation for codes, not prose; preserve typed punctuation. */
+    /* Let SF choose its size-specific drawing, without Allo's old axes. */
     font-optical-sizing: auto;
-    font-variation-settings: "ROND" 0;
-    font-feature-settings: "calt" 0;
     font-synthesis-weight: none;
-    font-synthesis-style: none;
     font-variant-ligatures: common-ligatures contextual;
     text-rendering: optimizeLegibility;
     color: var(--color-text);
@@ -529,11 +440,10 @@
     --st-tone-chrome: #141414;
   }
 
-  /* Allo Display is sharper and quieter than a scaled-up text drawing.
-     Balance authored headings; never rebalance editable text. */
+  /* Balance authored headings; never rebalance editable text. */
   h1, h2, h3 {
     font-family: var(--font-display);
-    font-variation-settings: "ROND" 0, "opsz" 32;
+    font-optical-sizing: auto;
     letter-spacing: -0.012em;
     text-wrap: balance;
   }
@@ -543,8 +453,6 @@
     letter-spacing: -0.01em;
   }
   h1, h2, h3 { @apply font-semibold; }
-  h1 { font-weight: 650; }
-  h2 { font-weight: 620; }
 
   :focus-visible {
     outline: 2px solid var(--color-ember);
@@ -574,7 +482,7 @@
     flex: none;
     width: var(--allo-size, 1.25rem);
     height: var(--allo-size, 1.25rem);
-    font-family: "Allo", "Segoe UI Symbol", sans-serif;
+    font-family: "Allo Symbols", "Segoe UI Symbol", sans-serif;
     font-size: calc(var(--allo-size, 1rem) * 1.25);
     font-weight: 500;
     font-style: normal;
@@ -596,23 +504,18 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Allo roles: restrained Display (opsz 32), readable automatic Text, and
-     open-spaced small text (opsz 11). Tracking tightens with size, never
-     across the whole interface. Keep the established size ramp so this
-     typography pass does not restructure screens owned by other work.
-     Every explicit axis tuple includes ROND so it cannot reset to 50.
-     The optical Display drawing is already tightly fitted: modest tracking
-     keeps ss/ce ink separate in Chromium, Firefox and WebKit at 1:1. */
-  .st-display { font-family: var(--font-display); font-weight: 650; letter-spacing: -0.015em; line-height: 1.06; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
-  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 620; letter-spacing: -0.012em; line-height: 1.12; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 32; }
-  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; font-variation-settings: "ROND" 0, "opsz" 24; }
+  /* Size-specific tracking, standard semibold weights and automatic optical
+     sizing. Keep the established size ramp and the layout around it. */
+  .st-display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.015em; line-height: 1.06; text-wrap: balance; }
+  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 600; letter-spacing: -0.012em; line-height: 1.12; text-wrap: balance; }
+  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; }
   .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
   .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; }
   .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; }
   .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: 0; line-height: 1.55; text-wrap: pretty; }
   .st-support { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.45; }
-  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.4; font-variation-settings: "ROND" 0, "opsz" 11; }
-  .st-wordmark { font-variation-settings: "ROND" 20, "opsz" 32; font-feature-settings: "calt" 0; }
+  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.4; }
+  .st-wordmark { font-family: var(--font-display); }
   /* Numbers get their own role because they are read differently: counts, sizes,
      timers and codes must not reflow when a digit changes. Tabular figures are
      the whole point of the role — a proportional 1 is narrower than a 6, and a
@@ -633,13 +536,13 @@
   }
   .st-verbatim {
     font-variant-ligatures: no-contextual;
-    font-feature-settings: "ss02" 1, "case" 1, "calt" 0, "liga" 0;
+    font-feature-settings: "calt" 0, "liga" 0;
   }
   /* Codes are read aloud and typed back: tabular, with a slashed zero so 0 and
      O never become the same character in a six-digit pairing code. */
   .st-code {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1, "zero" 1, "ss02" 1;
+    font-feature-settings: "tnum" 1, "zero" 1;
   }
 
   /* Quiet section labels use sentence case and a small size step rather than

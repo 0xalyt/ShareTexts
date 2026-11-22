@@ -17,6 +17,7 @@ const CACHE = 'sharetexts-v32';
 const SHELL = [
   '/',
   '/index.html',
+  '/typography.css',
   '/manifest.json',
   '/favicon.ico',
   '/favicon.svg',

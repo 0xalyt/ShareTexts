@@ -13,7 +13,7 @@
   --border: rgb(255 255 255 / .08);
 }
 .about-main :is(p, li) { text-wrap: pretty; }
-.about-main :is(h1, h2, h3) { text-wrap: balance; font-variation-settings: 'ROND' 0, 'opsz' 32; }
+.about-main :is(h1, h2, h3) { text-wrap: balance; font-optical-sizing: auto; }
 .about-main { max-width: 1120px; margin-inline: auto; padding: 0 32px 64px; }
 .about-hero { display: grid; grid-template-columns: 1.4fr 1fr; align-items: center; gap: 80px; padding-block: 80px; }
 .about-eyebrow { display: flex; align-items: center; gap: 12px; margin: 0 0 24px; color: var(--text-secondary); font-size: 12px; font-weight: 500; }
