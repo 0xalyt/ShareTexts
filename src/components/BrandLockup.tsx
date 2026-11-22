@@ -56,7 +56,7 @@ export function BrandLockup({
       {/* The box steps with the wordmark so both halves read as one object.
           One mark in the DOM — CSS sizes it, not a second copy. */}
       <span className={cn(
-        'transition-transform duration-200 ease-out group-active:scale-[0.96] motion-reduce:transition-none flex shrink-0',
+        'transition-transform duration-200 ease-out group-active:scale-[0.97] motion-reduce:transition-none flex shrink-0',
         compact ? 'w-[24px] h-[24px]' : 'w-[30px] h-[30px] sm:w-[38px] sm:h-[38px]',
       )}>
         {/* 1px overlap: the mark's transparent margin is the real gap, so a
@@ -65,7 +65,7 @@ export function BrandLockup({
       </span>
       <span
         className={cn(
-          'st-wordmark font-display font-semibold tracking-[-0.025em] leading-none text-apple-ink select-none',
+          'st-wordmark font-display font-medium tracking-[-0.025em] leading-none text-apple-ink select-none',
           compact ? 'text-[16px]' : 'text-[19px] sm:text-[20px]',
         )}
       >

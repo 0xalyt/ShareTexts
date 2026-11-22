@@ -117,7 +117,7 @@ export function IntentField({
       >
         <span
           aria-hidden
-          className="relative flex h-5 w-5 shrink-0 items-center justify-center text-apple-ink-muted/80 dark:text-white/45"
+          className="relative flex h-5 w-5 shrink-0 items-center justify-center text-apple-ink-muted dark:text-white/65"
         >
           <Glyph className={cn('h-[18px] w-[18px]', intent.kind === 'join' && 'text-ember dark:text-azure-400')} strokeWidth={1.8} />
         </span>
@@ -169,13 +169,13 @@ export function IntentField({
           className={cn(
             'group relative flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-full',
             'sm:w-auto sm:px-4',
-            'text-[13px] font-semibold whitespace-nowrap',
-            'transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 active:scale-[0.96]',
+            'text-[13px] font-medium whitespace-nowrap',
+            'transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 active:scale-[0.97]',
             'disabled:opacity-60 disabled:active:scale-100',
             intent.kind === 'join'
-              ? 'bg-ember text-white shadow-[0_1px_3px_rgba(240,100,19,0.35)] hover:bg-brand-strong'
+              ? 'bg-ember text-apple-ink shadow-[0_1px_3px_rgba(240,100,19,0.35)] hover:bg-brand-strong'
               : intent.kind === 'create'
-                ? 'bg-ember text-white shadow-[0_1px_3px_rgba(240,100,19,0.35)] hover:bg-brand-strong'
+                ? 'bg-ember text-apple-ink shadow-[0_1px_3px_rgba(240,100,19,0.35)] hover:bg-brand-strong'
                 : 'bg-apple-ink/[0.06] text-apple-ink hover:bg-apple-ink/[0.1] dark:bg-white/[0.1] dark:text-white dark:hover:bg-white/[0.14]',
           )}
         >
@@ -195,7 +195,7 @@ export function IntentField({
             type="button"
             onClick={() => { setAsText(true); inputRef.current?.focus(); }}
             data-testid="intent-as-text"
-            className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-semibold text-ember underline-offset-2 hover:underline dark:text-azure-400"
+            className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium text-ember underline-offset-2 hover:underline dark:text-azure-400"
           >
             {t('intent.asText')}
           </button>

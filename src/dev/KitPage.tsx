@@ -16,7 +16,7 @@ import { TactileButton } from '../components/TactileButton';
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-4 border-b border-apple-divider py-8 dark:border-white/10">
-      <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-apple-ink-muted dark:text-white/40">{title}</h3>
+      <h3 className="text-[13px] font-semibold tracking-normal text-apple-ink-muted dark:text-white/65">{title}</h3>
       {children}
     </section>
   );
@@ -69,7 +69,7 @@ function Kit() {
             { value: 'link', label: 'Link' },
           ]}
         />
-        <p className="text-[13px] text-apple-ink-muted dark:text-white/45">Selected: {mode}</p>
+        <p className="text-[13px] text-apple-ink-muted dark:text-white/65">Selected: {mode}</p>
       </Section>
 
       <Section title="List rows">

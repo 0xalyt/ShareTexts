@@ -80,7 +80,7 @@ export function SystemAlert({ tone = 'danger', icon = 'info', title, children, a
         <Glyph className={compact ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
       </span>
       <div className="min-w-0 flex-1">
-        {title && <p className={cn('text-[13px] font-semibold leading-snug', toneClasses.title)}>{title}</p>}
+        {title && <p className={cn('text-[13px] font-medium leading-snug', toneClasses.title)}>{title}</p>}
         {children && (
           <p className={cn('text-[13px] leading-relaxed', title ? 'mt-0.5' : '', toneClasses.title, title ? 'text-apple-ink-muted dark:text-white/60 font-medium' : 'font-medium')}>
             {children}
@@ -92,7 +92,7 @@ export function SystemAlert({ tone = 'danger', icon = 'info', title, children, a
             data-testid={action.testId}
             onClick={action.onClick}
             className={cn(
-              'mt-2 min-h-[44px] px-4 rounded-full text-[13px] font-semibold transition-colors active:scale-[0.96]',
+              'mt-2 min-h-[44px] px-4 rounded-full text-[13px] font-medium transition-colors active:scale-[0.97]',
               tone === 'danger'
                 ? 'bg-status-danger/10 text-status-danger hover:bg-status-danger/20'
                 : 'bg-black/[0.05] text-apple-ink hover:bg-black/[0.09] dark:bg-white/10 dark:text-white dark:hover:bg-white/[0.16]'

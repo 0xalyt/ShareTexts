@@ -119,8 +119,8 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
         'max-w-[120px] truncate px-2 py-0.5 rounded-full leading-tight',
         'bg-white/70 dark:bg-black/40 border border-black/[0.05] dark:border-white/10',
         target
-          ? 'text-[12px] font-bold text-apple-ink dark:text-white'
-          : 'text-[12px] font-semibold text-apple-ink/80 dark:text-white/70'
+          ? 'text-[12px] font-medium text-apple-ink dark:text-white'
+          : 'text-[12px] font-medium text-apple-ink/80 dark:text-white/70'
       )}>
         {device.name}
         {target && stayBadge && (
@@ -261,7 +261,7 @@ export function NearbyDetectOverlay({
                   type="button"
                   onClick={onCancel}
                   aria-label={t('nearby.overlay.cancel')}
-                  className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                  className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -284,19 +284,19 @@ export function NearbyDetectOverlay({
                           happening; the card says who and what. */}
                       <p
 
-                        className="text-[12px] font-bold uppercase tracking-[0.08em] text-ember dark:text-azure-400"
+                        className="text-[13px] font-normal tracking-normal text-ember dark:text-azure-400"
                       >
                         ShareTexts
                       </p>
                       <p
 
-                        className="mt-0.5 text-[17px] font-bold text-apple-ink dark:text-white leading-tight text-balance"
+                        className="mt-0.5 text-[17px] font-normal text-apple-ink dark:text-white leading-tight text-balance"
                       >
                         {mode === 'incoming' ? t('nearby.inviteTitle', { name: shown.name }) : shown.name}
                       </p>
                       <p
 
-                        className="mt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 leading-snug"
+                        className="mt-0.5 text-[13px] font-normal text-apple-ink-muted dark:text-white/65 leading-snug"
                       >
                         {mode === 'incoming' ? t('nearby.inviteBody') : subLine}
                       </p>
@@ -350,7 +350,7 @@ export function NearbyDetectOverlay({
                       if (mode === 'incoming' && onDecline) { onDecline(); return; }
                       onCancel();
                     }}
-                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[16px] font-semibold text-apple-ink dark:text-white transition-[color,background-color,border-color,box-shadow,transform,opacity] active:scale-[0.96] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                    className="flex-1 min-h-[50px] rounded-full bg-black/[0.05] dark:bg-white/[0.09] hover:bg-black/[0.09] dark:hover:bg-white/[0.14] text-[16px] font-medium text-apple-ink dark:text-white transition-[color,background-color,border-color,box-shadow,transform,opacity] active:scale-[0.97] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                   >
                     {mode === 'incoming' ? t('nearby.decline') : t('nearby.overlay.cancel')}
                   </button>
@@ -395,7 +395,7 @@ export function NearbyDetectOverlay({
                       data-testid="nearby-detect-more"
                       disabled={busy}
                       onClick={onFindMore}
-                      className="min-h-[44px] min-w-[44px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.96] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                      className="min-h-[44px] min-w-[44px] px-4 rounded-full text-[13px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.97] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                     >
                       <Search className="w-3.5 h-3.5" aria-hidden />
                       {t('nearby.overlay.more')}

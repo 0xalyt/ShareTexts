@@ -1,49 +1,16 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useMotionPreference } from '../lib/useMotionPreference';
 import { Check } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-/**
- * MorphButton — the dissolve "Dynamic Island" pill, on the web.
- *
- * The recipe this ports (react-native-dissolve's MorphButton) is three beats:
- *
- *   1. FOLD   the pill contracts into a round loader — width and radius
- *             travel together, the label shrinks away at the same time.
- *   2. HOLD   a spinner sits in the circle while the work is in flight.
- *   3. OPEN   the pill springs back out as the done state (check + label),
- *             holds a beat, and settles back to its resting label.
- *
- * The dissolve build gets its feel from Reanimated springs on the native
- * thread. This app is a Vite + React web app with no Expo runtime, so the
- * same motion is rebuilt from what is already here: `motion/react` (a real
- * dependency of this project) drives width, radius and content with true
- * springs, and CSS paints every layer. No RN, Skia, NativeWind or Expo
- * package is installed — none of them can run in this bundle.
- *
- * Springs are CRITICALLY DAMPED by construction: damping = 2·√(stiffness ·
- * mass), the value at which an oscillator returns without overshooting. The
- * shape settles once, crisply — it never bounces past its own edge.
- *
- * Geometry: the button box never resizes, so nothing around it reflows. Only
- * the painted surface (`.morph-btn__surface`) contracts; the label keeps
- * defining the resting width through an invisible sizer, which is what keeps
- * the shape honest at any font size, language or zoom level.
- *
- * Two ways to drive it:
- *   · uncontrolled — `onPress` returns a promise; the button owns idle →
- *     loading → done → idle (the dissolve API).
- *   · controlled   — pass `state`; the caller owns the phase (the connect
- *     card's busy flag). `onPress` still fires on tap.
- */
+/** Stable-size action feedback. Labels crossfade in the same box; loading
+ * and success never animate width, radius, or surrounding layout. The API
+ * remains compatible with controlled and promise-driven actions. */
 
 export type MorphState = 'idle' | 'loading' | 'done';
 
-/** 2·√(420·1) ≈ 41.0 — the no-overshoot point for this stiffness. */
-const SHAPE_SPRING = { type: 'spring', stiffness: 420, damping: 41, mass: 1 } as const;
-/** Same rule at a quicker stiffness: 2·√(520·1) ≈ 45.6. */
-const CONTENT_SPRING = { type: 'spring', stiffness: 520, damping: 45.6, mass: 1 } as const;
+const CONTENT_FADE = { duration: 0.2 };
 
 /** How long the done state holds before the pill settles back. */
 const HOLD_DONE_MS = 1500;
@@ -99,35 +66,13 @@ export function MorphButton({
   ref,
 }: MorphButtonProps) {
   const reduce = useMotionPreference();
-  const innerRef = useRef<HTMLButtonElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const running = useRef(false);
   const generation = useRef(0);
 
-  /** Resting box, measured — the surface animates in px from here. */
-  const [box, setBox] = useState({ w: 0, h: 52 });
   const [ownPhase, setOwnPhase] = useState<MorphState>('idle');
   const phase = state ?? ownPhase;
   const collapsed = phase === 'loading';
-
-  const attachRef = useCallback((node: HTMLButtonElement | null) => {
-    innerRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) (ref as React.MutableRefObject<HTMLButtonElement | null>).current = node;
-  }, [ref]);
-
-  // Measure once mounted (before first paint) and again whenever the resting
-  // width changes — a language switch, a zoom change, a resized pane.
-  useLayoutEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const read = () => setBox({ w: el.offsetWidth, h: el.offsetHeight });
-    read();
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(read);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   useEffect(() => () => {
     generation.current += 1;
@@ -173,12 +118,11 @@ export function MorphButton({
 
   const currentLabel =
     phase === 'loading' ? loadingLabel ?? label : phase === 'done' ? doneLabel ?? label : label;
-  const contentTransition = reduce ? { duration: 0 } : CONTENT_SPRING;
-  const shapeTransition = reduce ? { duration: 0 } : SHAPE_SPRING;
+  const contentTransition = reduce ? { duration: 0 } : CONTENT_FADE;
 
   return (
     <button
-      ref={attachRef}
+      ref={ref}
       type={type}
       disabled={disabled}
       onClick={handleClick}
@@ -190,34 +134,21 @@ export function MorphButton({
       style={{ borderRadius: radius }}
       className={cn('morph-btn', className)}
     >
-      {/* The painted shape. Width and radius travel together, so the pill
-          folds into a circle instead of merely shrinking its contents. */}
-      <motion.span
-        aria-hidden
-        className="morph-btn__surface"
-        initial={false}
-        animate={{
-          width: collapsed ? box.h : box.w,
-          borderRadius: collapsed ? box.h / 2 : radius,
-        }}
-        transition={shapeTransition}
-      />
-
-      {/* Invisible, but it is what gives the button its width — the layers
-          above are out of flow, so text, icons and translations all size the
-          resting pill exactly as they would have in normal flow. */}
+      <span aria-hidden className="morph-btn__surface" />
+      {/* Both translations contribute their natural width; a longer Copied
+          label cannot move the control or escape its fixed feedback box. */}
       <span className="morph-btn__sizer" aria-hidden>
-        {icon}
-        {widthLabel ?? label}
+        <span>{icon}{widthLabel ?? label}</span>
+        <span>{doneIcon ?? <Check className="morph-btn__glyph" aria-hidden />}{doneLabel ?? label}</span>
       </span>
 
       <AnimatePresence initial={false}>
         <motion.span
           key={phase}
           className="morph-btn__layer"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={contentTransition}
         >
           {phase === 'loading' ? (
@@ -236,8 +167,7 @@ export function MorphButton({
         </motion.span>
       </AnimatePresence>
 
-      {/* The circle has no room for words; the same sentence still reaches
-          assistive tech while the work is in flight. */}
+      {/* Busy information remains available without relying on motion. */}
       {collapsed && loadingLabel && (
         <span className="sr-only" role="status">{loadingLabel}</span>
       )}

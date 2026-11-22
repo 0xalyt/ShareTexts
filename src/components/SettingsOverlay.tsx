@@ -91,7 +91,7 @@ function Group({ title, children, testId, collapsible = false }: { title: string
   const Heading = collapsible ? 'summary' : 'h4';
   return (
     <Tag className="st-task-settings-group group mt-5 first:mt-2" data-testid={testId}>
-      <Heading className={cn(collapsible && "flex cursor-pointer list-none min-h-[44px] items-center justify-between", "px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55")}>
+      <Heading className={cn(collapsible && "flex cursor-pointer list-none min-h-[44px] items-center justify-between", "px-4 pb-2 text-[13px] font-medium tracking-normal text-apple-ink-muted dark:text-white/65")}>
         {title}
         {collapsible && <ChevronRight className="h-4 w-4 group-open:rotate-90" aria-hidden />}
       </Heading>
@@ -204,7 +204,7 @@ export function SettingsOverlay({
                   type="button"
                   onClick={onClose}
                   aria-label={t('common.close')}
-                  className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full text-apple-ink-muted dark:text-white/70 active:scale-[0.96] transition-transform"
+                  className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full text-apple-ink-muted dark:text-white/70 active:scale-[0.97] transition-transform"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -219,7 +219,7 @@ export function SettingsOverlay({
                     type="button"
                     onClick={() => setLanguageOpen(false)}
                     data-testid="settings-language-back"
-                    className="flex min-h-[44px] min-w-[44px] items-center gap-1 px-1 text-[16px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
+                    className="flex min-h-[44px] min-w-[44px] items-center gap-1 px-1 text-[15px] font-medium text-[#9a3a08] dark:text-[#ffb340]"
                   >
                     <ChevronRight className="h-4 w-4 rotate-180" aria-hidden /> {t('settings.title')}
                   </button>
@@ -269,7 +269,7 @@ export function SettingsOverlay({
                           }}
                           maxLength={40}
                           aria-label={t('settings.deviceName')}
-                          className="min-w-0 flex-1 bg-transparent text-right text-[16px] font-semibold text-apple-ink dark:text-white outline-none"
+                          className="min-w-0 flex-1 bg-transparent text-right text-[16px] font-medium text-apple-ink dark:text-white outline-none"
                           data-testid="settings-device-input"
                         />
                       ) : (
@@ -279,7 +279,7 @@ export function SettingsOverlay({
                             setDraftName(session.deviceName || '');
                             setEditingName(true);
                           }}
-                          className="min-w-0 flex-1 truncate text-right min-h-[44px] text-[16px] font-semibold text-apple-ink dark:text-white"
+                          className="min-w-0 flex-1 truncate text-right min-h-[44px] text-[15px] font-medium text-apple-ink dark:text-white"
                           data-testid="settings-device-name"
                         >
                           {session.deviceName || t('common.connected')}
@@ -323,7 +323,7 @@ export function SettingsOverlay({
                     <Row first onClick={() => setLanguageOpen(true)} testId="settings-language-row">
                       <span className="flex-1">{t('settings.language')}</span>
                       <span className="truncate text-[13px] text-apple-ink-muted dark:text-white/70">{languageLabel}</span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                     </Row>
                   </Group>
 
@@ -415,7 +415,7 @@ export function SettingsOverlay({
                         )}
                       >
                         <span className="flex-1">{label}</span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                       </a>
                     ))}
                     {/* P7: the maker's inbox. One row, X only — no repository
@@ -428,7 +428,7 @@ export function SettingsOverlay({
                       className="relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[16px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06] before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10"
                     >
                       <span className="flex-1">{t('settings.messageMaker')}</span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                     </a>
                     <Row as="div" className="justify-between">
                       <span>{t('settings.version')}</span>
@@ -442,7 +442,7 @@ export function SettingsOverlay({
                     <Group title={t('saved.title')} testId="settings-saved">
                       <Row first onClick={onOpenSaved} testId="settings-open-saved">
                         <span className="flex-1">{t('saved.title')}</span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                       </Row>
                     </Group>
                   )}
@@ -462,7 +462,7 @@ function LanguageRow({ label, selected, onClick, testId, badge }: { label: strin
       data-testid={testId}
       className={cn(
         'flex min-h-[52px] w-full items-center gap-3 rounded-[12px] px-3 text-left text-[16px] transition-colors',
-        selected ? 'font-semibold text-apple-ink dark:text-white' : 'text-apple-ink dark:text-white/85',
+        selected ? 'font-medium text-apple-ink dark:text-white' : 'text-apple-ink dark:text-white/85',
         'active:bg-black/[0.04] dark:active:bg-white/[0.06]',
       )}
     >
@@ -470,7 +470,7 @@ function LanguageRow({ label, selected, onClick, testId, badge }: { label: strin
       {badge && (
         <span
           data-testid={testId ? `${testId}-badge` : undefined}
-          className="shrink-0 rounded-full bg-apple-divider/70 px-2 py-[3px] text-[10px] font-semibold uppercase tracking-wide text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
+          className="shrink-0 rounded-full bg-apple-divider/70 px-2 py-[3px] text-[10px] font-medium tracking-normal text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
         >
           {badge}
         </span>

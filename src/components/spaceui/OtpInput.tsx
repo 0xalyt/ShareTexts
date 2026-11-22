@@ -411,8 +411,8 @@ export function OtpInput({
                 }
                 className={cn(
                   flat
-                    ? 'w-full min-w-0 text-center font-semibold tabular-nums caret-transparent outline-none transition-shadow duration-150 h-[52px] min-[360px]:h-14 rounded-[12px] text-[24px]'
-                    : 'w-full text-center font-semibold tabular-nums caret-transparent outline-none',
+                    ? 'w-full min-w-0 text-center font-medium tabular-nums caret-transparent outline-none transition-shadow duration-150 h-[52px] min-[360px]:h-14 rounded-[12px] text-[24px]'
+                    : 'w-full text-center font-medium tabular-nums caret-transparent outline-none',
                   'text-apple-ink dark:text-white',
                   !flat && cn(scale.box, scale.text),
                   flat
@@ -443,7 +443,7 @@ export function OtpInput({
                       transition={reduceMotion ? { duration: 0 } : ROLL_SPRING}
                       data-slot="otp-input-char"
                       className={cn(
-                        'font-bold tracking-tight leading-none select-none st-code',
+                        'font-medium tracking-tight leading-none select-none st-code',
                         status === 'success'
                           ? 'text-white'
                           : 'text-apple-ink dark:text-white',

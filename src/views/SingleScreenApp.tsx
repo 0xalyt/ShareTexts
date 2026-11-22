@@ -1038,7 +1038,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           reach the page every single time. */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:inline-flex focus:min-h-[44px] focus:items-center focus:rounded-full focus:bg-apple-ink focus:px-4 focus:text-[13px] focus:font-semibold focus:text-white focus:outline-none dark:focus:bg-white dark:focus:text-apple-ink"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:inline-flex focus:min-h-[44px] focus:items-center focus:rounded-full focus:bg-apple-ink focus:px-4 focus:text-[13px] focus:font-medium focus:text-white focus:outline-none dark:focus:bg-white dark:focus:text-apple-ink"
       >
         {t('app.skip')}
       </a>
@@ -1072,7 +1072,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 docs. A 13px word is unmistakable and costs no extra tap. */}
             <a
               href="/docs"
-              className="inline-flex min-h-[44px] items-center rounded-full px-2 text-[13px] font-semibold text-apple-ink-muted transition-colors hover:text-apple-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-apple-ink/25 dark:text-white/60 dark:hover:text-white dark:focus-visible:ring-white/40"
+              className="inline-flex min-h-[44px] items-center rounded-full px-2 text-[13px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-apple-ink/25 dark:text-white/60 dark:hover:text-white dark:focus-visible:ring-white/40"
             >
               {t('nav.docs')}
             </a>
@@ -1093,7 +1093,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                        ember pill on the rim of the control. */
                     <span
                       aria-hidden
-                      className="absolute -top-1 -right-1 inline-flex min-w-[16px] h-[16px] items-center justify-center rounded-full bg-ember px-1 text-[10px] font-bold leading-none text-white tnum ring-2 ring-apple-canvas dark:ring-night-900"
+                      className="absolute -top-1 -right-1 inline-flex min-w-[16px] h-[16px] items-center justify-center rounded-full bg-ember-ink px-1 text-[10px] font-medium leading-none text-white tnum ring-2 ring-apple-canvas dark:ring-night-900"
                     >
                       {savedCount > 99 ? '99+' : savedCount}
                     </span>
@@ -1169,7 +1169,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       if (deadLink === 'unreachable' && m) void attemptLinkJoin(m[1].toLowerCase());
                       else handleReceive();
                     }}
-                    className="press ms-auto shrink-0 min-h-[44px] min-w-[44px] text-[13px] font-semibold text-ember-ink dark:text-azure-400 underline decoration-ember-ink/30 dark:decoration-azure-400/30 underline-offset-2 motion-reduce:transition-none"
+                    className="press ms-auto shrink-0 min-h-[44px] min-w-[44px] text-[13px] font-medium text-ember-ink dark:text-azure-400 underline decoration-ember-ink/30 dark:decoration-azure-400/30 underline-offset-2 motion-reduce:transition-none"
                   >
                     {deadLink === 'unreachable' ? t('common.tryAgain') : t('link.tryCode')}
                   </button>
@@ -1186,7 +1186,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   {inApp.ios ? null : (
                     <a
                       href={inApp.intentUrl ?? '#'}
-                      className="ms-auto shrink-0 text-[13px] font-semibold text-[#f06413] underline decoration-[#f06413]/30 underline-offset-2"
+                      className="ms-auto shrink-0 text-[13px] font-medium text-[#f06413] underline decoration-[#f06413]/30 underline-offset-2"
                       data-testid="inapp-open"
                     >
                       {t('inapp.cta')}
@@ -1196,7 +1196,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     type="button"
                     onClick={() => setInAppDismissed(true)}
                     aria-label={t('pair.dismiss')}
-                    className="ms-auto shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/45"
+                    className="ms-auto shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/65"
                   >
                     ×
                   </button>
@@ -1277,7 +1277,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                         data-testid="stay-rejoin"
                         onClick={handleStayRejoin}
                         disabled={isRejoining}
-                        className="group w-full flex items-center gap-3.5 pl-3.5 pr-3 py-3 rounded-[16px] st-card hover:border-ember/45 dark:hover:border-azure-400/50 active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 text-left disabled:opacity-60"
+                        className="group w-full flex items-center gap-3.5 pl-3.5 pr-3 py-3 rounded-[16px] st-card hover:border-ember/45 dark:hover:border-azure-400/50 active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 text-left disabled:opacity-60"
                       >
                         <span className="relative shrink-0 w-9 h-9 rounded-full bg-ember/10 dark:bg-azure-400/15 flex items-center justify-center text-ember dark:text-azure-400" aria-hidden>
                           {/* Live pulse: this room is still breathing upstream. */}
@@ -1285,11 +1285,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                           <InfinityIcon className="relative w-4 h-4" strokeWidth={2} />
                         </span>
                         <span className="flex-1 flex flex-col min-w-0 gap-0.5 leading-tight">
-                          <span className="text-[13px] font-semibold text-apple-ink dark:text-white">
+                          <span className="text-[13px] font-medium text-apple-ink dark:text-white">
                             {isRejoining ? t('stay.rejoining') : t('stay.rejoinTitle')}
                           </span>
                           {facts.length > 0 ? (
-                            <span className="flex items-center gap-1.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/45 min-w-0">
+                            <span className="flex items-center gap-1.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/65 min-w-0">
                               {facts.map((f, i) => (
                                 <span key={i} className="flex items-center gap-1.5 min-w-0">
                                   {i > 0 && <span className="opacity-50" aria-hidden>·</span>}
@@ -1298,7 +1298,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                               ))}
                             </span>
                           ) : (
-                            <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45 truncate">
+                            <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/65 truncate">
                               {t('stay.rejoinHint')}
                             </span>
                           )}
@@ -1308,7 +1308,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                             Two circles in one row (ember glyph left, grey
                             button right) made the card read as a pair of
                             buttons rather than one thing you tap. */}
-                        <ArrowRightLeft className="shrink-0 w-4 h-4 text-apple-ink-muted/70 dark:text-white/40 group-hover:text-ember dark:group-hover:text-azure-400 transition-colors duration-200" aria-hidden />
+                        <ArrowRightLeft className="shrink-0 w-4 h-4 text-apple-ink-muted dark:text-white/65 group-hover:text-ember dark:group-hover:text-azure-400 transition-colors duration-200" aria-hidden />
                       </button>
                     </motion.div>
                   );
@@ -1330,11 +1330,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     ? hop.devices.map(d => d.label || t('hop.devices.unnamed')).join(', ')
                     : t('hop.row.hint')}
                   trailing={hop?.unread ? (
-                    <span className="rounded-full bg-ember/12 px-2 py-0.5 text-[12px] font-semibold text-ember-ink dark:text-ember" data-testid="home-hop-new">
+                    <span className="rounded-full bg-ember/12 px-2 py-0.5 text-[12px] font-medium text-ember-ink dark:text-ember" data-testid="home-hop-new">
                       {t('hop.row.new', { count: hop.unread })}
                     </span>
                   ) : (
-                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45">{HOP}</span>
+                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/65">{HOP}</span>
                   )}
                   leading={<MonitorSmartphone className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
                   onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(false); openHop(); }}
@@ -1357,7 +1357,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <ListRow
                   title={t('space.entryTitle')}
                   trailing={(
-                    <span className="text-[13px] font-medium tabular-nums text-apple-ink-muted dark:text-white/45">
+                    <span className="text-[13px] font-medium tabular-nums text-apple-ink-muted dark:text-white/65">
                       {t('space.retention')}
                     </span>
                   )}
@@ -1462,13 +1462,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     cause with an action beats a spinner that outlives hope. */}
                 {stuckConnecting ? (
                   <div className="mt-5 flex flex-col items-center gap-3">
-                    <p className="text-[13px] font-medium text-apple-ink-muted dark:text-white/55 max-w-[280px] leading-relaxed">
+                    <p className="text-[13px] font-normal text-apple-ink-muted dark:text-white/65 max-w-[280px] leading-relaxed">
                       {longStuckConnecting ? t('connect.stuckLong') : t('connect.stuck')}
                     </p>
                     {!longStuckConnecting && session.isCreator && (
                       <button
                         onClick={handleStuckRetry}
-                        className="flex min-h-[44px] min-w-[44px] items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white active:scale-[0.96] transition-colors"
+                        className="flex min-h-[44px] min-w-[44px] items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-medium text-apple-ink dark:text-white active:scale-[0.97] transition-colors"
                       >
                         <RotateCcw className="w-3.5 h-3.5" /> {t('common.tryAgain')}
                       </button>
@@ -1478,7 +1478,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* Escape hatch: the creator returns to their pairing screen
                     (the room stays open); the joiner abandons and can enter a
                     fresh code. Never a trap. */}
-                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[44px] min-w-[44px] rounded-full active:scale-[0.96] transition-colors">
+                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-medium text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[44px] min-w-[44px] rounded-full active:scale-[0.97] transition-colors">
                   <AlloSymbol name="close" size={14} /> {t('cancel')}
                 </button>
               </div>
@@ -1522,17 +1522,17 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     }}
                     aria-label={t('pair.renameField')}
                     maxLength={32}
-                    className="min-w-0 flex-1 min-h-[44px] text-[16px] font-semibold text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none px-0.5 py-1"
+                    className="min-w-0 flex-1 min-h-[44px] text-[16px] font-medium text-apple-ink dark:text-white bg-transparent border-b border-ember/50 dark:border-azure-400/50 outline-none px-0.5 py-1"
                   />
                 ) : (
                   <button
                     onClick={startEditName}
                     title={t('pair.renameTitle')}
                     aria-label={t('pair.renameAria', { name: session.deviceName })}
-                    className="group min-w-0 flex-1 min-h-[44px] flex items-center gap-1.5 text-left text-[16px] font-semibold text-apple-ink dark:text-white hover:text-apple-ink dark:hover:text-white transition-colors"
+                    className="group min-w-0 flex-1 min-h-[44px] flex items-center gap-1.5 text-left text-[16px] font-medium text-apple-ink dark:text-white hover:text-apple-ink dark:hover:text-white transition-colors"
                   >
                     <span className="truncate">{session.deviceName}</span>
-                    <Pencil className="w-3 h-3 shrink-0 text-apple-ink-muted/60 dark:text-white/35 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity" />
+                    <Pencil className="w-3 h-3 shrink-0 text-apple-ink-muted dark:text-white/65 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity" />
                   </button>
                 )}
               </div>
@@ -1542,7 +1542,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <div role="status" className="st-band w-full sm:max-w-[340px] flex items-start gap-2 text-[12px] leading-snug">
                     <Info className="w-3.5 h-3.5 text-ember dark:text-azure-400 shrink-0 mt-px" />
                     <span className="flex-1">
-                      {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-semibold text-apple-ink dark:text-white">{session.autoAdjustedName}</span>{parts[1]}</>); })()}
+                      {(() => { const parts = t('pair.autoRename', { name: '\u0000' }).split('\u0000'); return (<>{parts[0]}<span className="font-medium text-apple-ink dark:text-white">{session.autoAdjustedName}</span>{parts[1]}</>); })()}
                     </span>
                     <button onClick={() => setDismissedNameNotice(true)} aria-label={t('pair.dismiss')} className="shrink-0 min-w-[44px] min-h-[44px] -m-[12px] flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                       <AlloSymbol name="close" size={12} />
@@ -1560,7 +1560,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 const bytes = msgs.reduce((n, m) => n + (m.attachment?.status === 'complete' ? (m.attachment.size ?? 0) : 0), 0);
                 const stat = (label: string, value: React.ReactNode) => (
                   <div key={label} className="flex-1 flex flex-col items-center gap-1 py-1">
-                    <span className="text-[16px] font-bold text-apple-ink dark:text-white tnum leading-none">{value}</span>
+                    <span className="text-[16px] font-medium text-apple-ink dark:text-white tnum leading-none">{value}</span>
                     <span className="st-eyebrow">{label}</span>
                   </div>
                 );
@@ -1607,11 +1607,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   onClick={copyLink}
                   className="w-full flex items-center gap-3 px-1 py-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors text-left"
                 >
-                  <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-black/[0.055] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/45">
+                  <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-black/[0.055] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/65">
                     <Link2 className="w-4 h-4" />
                   </span>
                   <span className="flex flex-col min-w-0 flex-1">
-                    <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{copiedLink ? t('conn.inviteCopied') : t('conn.invite')}</span>
+                    <span className="text-[13px] font-medium text-apple-ink dark:text-white">{copiedLink ? t('conn.inviteCopied') : t('conn.invite')}</span>
                     <span className="text-[12px] text-apple-ink-muted dark:text-white/60 truncate">{t('conn.inviteHint')}</span>
                   </span>
                 </button>
@@ -1656,7 +1656,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.35, duration: 0.3, ease: EASE }}
-                  className="mt-3 text-[13px] font-medium text-apple-ink-muted dark:text-white/50"
+                  className="mt-3 text-[13px] font-medium text-apple-ink-muted dark:text-white/65"
                 >
                   {t('conn.ready')}
                 </motion.p>
@@ -1682,13 +1682,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
           <div className="flex min-w-0 flex-col gap-2.5">
             <BrandLockup className="self-start" />
-            <p className="max-w-[34ch] text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55">
+            <p className="max-w-[34ch] text-[13px] font-normal leading-relaxed text-apple-ink-muted dark:text-white/65">
               {t('footer.trust')}
             </p>
             {/* The one line that answers "will this work on MY things?"
                 without a support page. Same dot + wording as the long-form
                 footer, so the two footers describe one product. */}
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-normal text-apple-ink-muted dark:text-white/65">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-status-success" aria-hidden />
               iPhone · Android · Windows · macOS · Linux
             </p>
@@ -1756,7 +1756,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-x-5 gap-y-0.5 flex-wrap">
         <BrandLockup compact className="select-none order-1" />
         <XProfileLink testId="footer-x-app" className="order-2 sm:order-3" />
-        <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center justify-between sm:justify-start gap-4 sm:gap-7 pt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/55">
+        <nav className="order-3 sm:order-2 w-full sm:w-auto sm:ml-auto flex items-center justify-between sm:justify-start gap-4 sm:gap-7 pt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/65">
           <a href="/docs" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.docs')}</a>
           <a href="/about" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.about')}</a>
           <a href="/privacy" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] hover:text-apple-ink dark:hover:text-white transition-colors">{t('nav.privacy')}</a>
@@ -1785,8 +1785,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         >
           <div className="flex flex-col items-center gap-3 px-10 py-8 rounded-[24px] border-2 border-dashed border-ember/50 dark:border-azure-400/50">
             <UploadFolder />
-            <p className="text-[17px] font-semibold text-apple-ink dark:text-white">{t('drop.send')}</p>
-            <p className="text-[13px] font-medium text-apple-ink-muted dark:text-white/50">{t('drop.hint')}</p>
+            <p className="text-[17px] font-normal text-apple-ink dark:text-white">{t('drop.send')}</p>
+            <p className="text-[13px] font-normal text-apple-ink-muted dark:text-white/65">{t('drop.hint')}</p>
           </div>
         </motion.div>
       )}
@@ -1854,12 +1854,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <span className="flex items-center justify-center w-7 h-7 rounded-[8px] bg-ember/10 border border-ember/20 text-ember shrink-0" aria-hidden>
                 <ThisDeviceIcon className="w-4 h-4" />
               </span>
-              <span className="text-[13px] font-semibold text-apple-ink dark:text-white truncate max-w-[110px]">{session.deviceName}</span>
-              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0 text-apple-ink-muted/60 dark:text-white/30" />
+              <span className="text-[13px] font-medium text-apple-ink dark:text-white truncate max-w-[110px]">{session.deviceName}</span>
+              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0 text-apple-ink-muted dark:text-white/30" />
               <span className={cn(
                 "relative flex items-center justify-center w-7 h-7 rounded-[8px] shrink-0 transition-colors",
                 session.connectionType === 'disconnected'
-                  ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted/60 dark:text-white/30"
+                  ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/30"
                   : session.connectionType === 'connecting'
                     ? "bg-status-warning/10 border border-status-warning/25 text-status-warning"
                     : "bg-status-success/10 border border-status-success/20 text-status-success"
@@ -1872,13 +1872,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* Room-aware header (F13): a 3+ device room leads with the
                     device COUNT — never "Connected to Windows PC" for a whole
                     room. The two-device room keeps the partner's name. */}
-                <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-[130px]">
+                <span className="text-[12px] font-medium text-apple-ink dark:text-white truncate max-w-[130px]">
                   {(session.peers?.filter(p => !p.isSelf).length ?? 0) > 1
                     ? t('room.deviceCount', { count: String((session.peers?.length ?? 0)) })
                     : (session.partnerName || t('chat.pairedDevice'))}
                 </span>
                 {(session.peers?.filter(p => !p.isSelf).length ?? 0) > 1 ? (
-                  <span data-testid="room-device-count" className="text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
+                  <span data-testid="room-device-count" className="text-[12px] font-medium text-apple-ink-muted dark:text-white/65">
                     {(() => {
                       const list = session.peers?.filter(p => !p.isSelf) ?? [];
                       const parts: string[] = [];
@@ -1920,7 +1920,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* Label follows the pane's actual job: the three-step guide
                   while idle, "Room" once a session exists (pairing, connect,
                   live). One header, no mixed messages. */}
-              <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{panelMode === 'idle' ? t('room.idleTitle') : t('room.title')}</span>
+              <span className="text-[13px] font-medium text-apple-ink dark:text-white">{panelMode === 'idle' ? t('room.idleTitle') : t('room.title')}</span>
             </>
           )}
         </div>
@@ -1941,7 +1941,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 onClick={() => setShowSettings(true)}
                 aria-label={t('settings.title')}
                 title={t('settings.title')}
-                className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 active:scale-[0.96] text-apple-ink-muted/70 dark:text-white/50 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07]"
+                className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 active:scale-[0.97] text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07]"
               >
                 <SettingsIcon className="w-[18px] h-[18px]" aria-hidden />
               </button>
@@ -1995,7 +1995,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <div className="w-full max-w-[420px] space-y-3.5">
                     {[t('room.step.1'), t('room.step.2'), t('room.step.3')].map((step, i) => (
                       <div key={i} className="flex items-center gap-3">
-                        <span className="shrink-0 w-7 h-7 rounded-full bg-ember/[0.1] dark:bg-ember/[0.16] text-ember dark:text-azure-400 text-[13px] font-bold flex items-center justify-center">{i + 1}</span>
+                        <span className="shrink-0 w-7 h-7 rounded-full bg-ember/[0.1] dark:bg-ember/[0.16] text-ember dark:text-azure-400 text-[13px] font-medium flex items-center justify-center">{i + 1}</span>
                         <span className="text-[16px] font-medium text-apple-ink/80 dark:text-white/65 leading-snug">{step}</span>
                       </div>
                     ))}
@@ -2030,11 +2030,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       />
                     </div>
                   )}
-                  <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-1.5">
+                  <p className="text-[16px] font-normal text-apple-ink dark:text-white mb-1.5">
                     {panelMode === 'sending' && (isCreating && !session.secret ? t('create.creating') : t('room.created'))}
                     {panelMode === 'receiving' && t('room.waiting')}
                   </p>
-                  <p className="text-[13px] text-apple-ink-muted dark:text-white/50 max-w-[300px] leading-relaxed mb-7">
+                  <p className="text-[13px] text-apple-ink-muted dark:text-white/65 max-w-[300px] leading-relaxed mb-7">
                     {panelMode === 'sending' && (isCreating && !session.secret ? t('room.setup') : t('room.sendHint'))}
                     {panelMode === 'receiving' && t('room.receiveHint')}
                   </p>
@@ -2045,7 +2045,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   <ol className="w-full max-w-[340px] mb-6 flex flex-col gap-3 text-left">
                     {[t('room.step.1'), t('room.step.2'), t('room.step.3')].map((step, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <span className="shrink-0 w-6 h-6 rounded-full bg-ember/[0.12] dark:bg-azure-400/[0.16] text-ember dark:text-azure-400 text-[12px] font-bold flex items-center justify-center mt-px">{i + 1}</span>
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-ember/[0.12] dark:bg-azure-400/[0.16] text-ember dark:text-azure-400 text-[12px] font-medium flex items-center justify-center mt-px">{i + 1}</span>
                         <span className="text-[13px] font-medium text-apple-ink/80 dark:text-white/70 leading-snug">{step}</span>
                       </li>
                     ))}
@@ -2061,15 +2061,15 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     <div className="mt-3.5 grid grid-cols-3 gap-2.5" aria-hidden>
                       <span className="st-glyph st-glyph-ember aspect-[4/3] flex-col gap-1.5">
                         <ImageIcon className="w-4.5 h-4.5" />
-                        <span className="text-[12px] font-semibold leading-none">{t('attach.photos')}</span>
+                        <span className="text-[12px] font-medium leading-none">{t('attach.photos')}</span>
                       </span>
                       <span className="st-glyph aspect-[4/3] flex-col gap-1.5">
                         <FileIcon className="w-4.5 h-4.5" />
-                        <span className="text-[12px] font-semibold leading-none">{t('attach.files')}</span>
+                        <span className="text-[12px] font-medium leading-none">{t('attach.files')}</span>
                       </span>
                       <span className="st-glyph aspect-[4/3] flex-col gap-1.5">
                         <Link2 className="w-4.5 h-4.5" />
-                        <span className="text-[12px] font-semibold leading-none">{t('composer.teach.paste')}</span>
+                        <span className="text-[12px] font-medium leading-none">{t('composer.teach.paste')}</span>
                       </span>
                     </div>
                   </div>
@@ -2252,9 +2252,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/50 dark:bg-black/70 flex items-center justify-center p-4" onClick={() => setShowQRScan(false)}>
             <motion.div ref={qrScanTrapRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ type: 'spring', bounce: 0, duration: 0.35 }} onClick={e => e.stopPropagation()} className="w-full max-w-[360px] bg-white dark:bg-surface-dark rounded-[24px] p-6 shadow-2xl relative" role="dialog" aria-modal="true" aria-label={t('receive.scan')}>
               <button onClick={() => setShowQRScan(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors z-10" aria-label={t('common.close')}><AlloSymbol name="close" size={16} /></button>
-              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
-              <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.scan.title')}</h3>
-              <p className="text-[13px] text-apple-ink-muted dark:text-white/50 mb-4">{t('qr.scan.body')}</p>
+              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted dark:text-white/65">Esc</kbd>
+              <h3 className="text-[16px] font-medium text-apple-ink dark:text-white mb-2">{t('qr.scan.title')}</h3>
+              <p className="text-[13px] text-apple-ink-muted dark:text-white/65 mb-4">{t('qr.scan.body')}</p>
               {/* Skeleton, not a text spinner: the lazy camera chunk loads in
                   under a circle-slash frame on warm caches, but on cold ones
                   the shell holds the scanner's exact place — same height, same
@@ -2273,7 +2273,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   so the only escape from a dead camera looked like a caption. */}
               <button
                 onClick={() => setShowQRScan(false)}
-                className="mt-4 text-[13px] font-semibold text-apple-ink-muted underline underline-offset-2 hover:text-apple-ink dark:hover:text-white transition-colors"
+                className="mt-4 text-[13px] font-medium text-apple-ink-muted underline underline-offset-2 hover:text-apple-ink dark:hover:text-white transition-colors"
               >
                 {t('qr.scan.typeCode')}
               </button>
@@ -2290,8 +2290,8 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   close/Esc controls — instruction text can never run under
                   them again. */}
               <button onClick={() => setShowQROverlay(false)} className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-apple-parchment dark:bg-white/5 flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:hover:text-white transition-colors" aria-label={t('common.close')}><AlloSymbol name="close" size={16} /></button>
-              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">Esc</kbd>
-              <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{t('qr.display.title')}</p>
+              <kbd aria-hidden="true" className="hidden sm:inline absolute top-5 right-16 px-1.5 py-0.5 rounded-[8px] border border-apple-divider dark:border-white/10 bg-white/60 dark:bg-white/5 text-[12px] font-medium text-apple-ink-muted dark:text-white/65">Esc</kbd>
+              <p className="text-[16px] font-normal text-apple-ink dark:text-white mb-2">{t('qr.display.title')}</p>
               <p className="text-[13px] text-apple-ink-muted dark:text-white/60 mb-4 leading-relaxed">
                 {(() => { const parts = t('qr.display.body', { receive: '\u0000' }).split('\u0000'); return (<>{parts[0]}<strong className="text-apple-ink dark:text-white">{t('qr.display.receive')}</strong>{parts[1]}</>); })()}
               </p>
@@ -2307,7 +2307,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <button
                   onClick={() => { void copyLink(); }}
                   data-testid="qr-copy"
-                  className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-apple-parchment dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.96]"
+                  className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-apple-parchment dark:bg-white/[0.07] text-[13px] font-medium text-apple-ink dark:text-white transition-colors active:scale-[0.97]"
                 >
                   {copiedLink ? <AlloSymbol name="check" size={16} className="text-status-success" /> : <Copy className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />}
                   {copiedLink ? t('action.copied') : t('action.copy')}
@@ -2322,7 +2322,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   testId="qr-share"
                 />
               </div>
-              <button onClick={() => setShowQROverlay(false)} className="w-full mt-2 py-2.5 min-h-[44px] rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors">{t('qr.close')}</button>
+              <button onClick={() => setShowQROverlay(false)} className="w-full mt-2 py-2.5 min-h-[44px] rounded-full text-[13px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white transition-colors">{t('qr.close')}</button>
             </motion.div>
           </motion.div>
         )}
@@ -2363,7 +2363,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               into rows under the floating ✕ (which is why an 8px top inset
               was added), so the sheet never said what it was. */}
           <div className="mb-1 flex items-center justify-between gap-3 pr-9">
-            <h2 id="more-title" className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('nav.more')}</h2>
+            <h2 id="more-title" className="text-[20px] font-medium tracking-[-0.01em] text-apple-ink dark:text-white">{t('nav.more')}</h2>
           </div>
           {/* Mine → learn → legal, split by quiet hairlines instead of one
               undifferentiated stack of eight. The split needs no words, so
@@ -2384,7 +2384,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               affordance — this row used to show a leading icon AND the
               menu's own globe, so it read as a different kind of row. */}
           <div className="flex min-h-[52px] items-center gap-3 border-b border-apple-divider/70 px-1 py-1 dark:border-white/[0.08]" data-testid="more-language">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center text-apple-ink-muted dark:text-white/55">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center text-apple-ink-muted dark:text-white/65">
               <Languages className="h-4 w-4" strokeWidth={1.6} aria-hidden />
             </span>
             <span className="min-w-0 flex-1 text-[16px] font-medium text-apple-ink dark:text-white">{t('settings.language')}</span>
@@ -2408,7 +2408,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           {/* Every sheet says what it is. This one used to start straight into
               two rows under a floating ✕, which read as a stray popover. */}
           <div className="mb-1 flex items-center justify-between gap-3 pr-9">
-            <h2 id="space-sheet-title" className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">{t('space.entryTitle')}</h2>
+            <h2 id="space-sheet-title" className="text-[20px] font-medium tracking-[-0.01em] text-apple-ink dark:text-white">{t('space.entryTitle')}</h2>
           </div>
           <ListRow title={t('space.createCta')} subtitle={t('space.entryHint')} leading={<AlloSymbol name="plus" size={16} />} onClick={() => setSpaceSheet('create')} testId="space-sheet-create" />
           <ListRow title={t('space.joinTitle')} leading={<Link2 className="h-4 w-4" strokeWidth={1.6} aria-hidden />} onClick={() => setSpaceSheet('join')} testId="space-sheet-join" />

@@ -28,7 +28,7 @@ const pillGhost = cn(
   'flex items-center gap-1.5 px-3.5 py-2 rounded-full',
   'bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10',
   'hover:bg-apple-parchment dark:hover:bg-white/[0.08] text-apple-ink dark:text-white',
-  'text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]',
+  'text-[13px] font-medium active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity]',
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-azure-500'
 );
 /**
@@ -110,15 +110,15 @@ function ToggleRow({ icon, active, title, hint, onClick, ariaLabel, testId, rowT
           'shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark',
           active
             ? 'bg-ember/10 dark:bg-azure-400/15 text-ember dark:text-azure-400'
-            : 'bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/40'
+            : 'bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/65'
         )}
         aria-hidden
       >
         {icon}
       </span>
       <span className="flex-1 flex flex-col min-w-0 leading-tight">
-        <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{title}</span>
-        <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45">{hint}</span>
+        <span className="text-[13px] font-medium text-apple-ink dark:text-white">{title}</span>
+        <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/65">{hint}</span>
       </span>
       {/* THE standard switch of this app — ThemeToggle's exact geometry
           (56×26 track, 34×22 thumb), one silhouette everywhere. */}
@@ -623,8 +623,8 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
               <DeviceArt kind={suggest.kind} model={suggest.model} gpu={suggest.gpu} size={26} />
             </span>
             <span className="flex min-w-0 flex-1 flex-col leading-tight">
-              <span className="truncate text-[13px] font-semibold text-apple-ink dark:text-white">{suggest.name}</span>
-              <span className="truncate text-[11.5px] font-medium text-apple-ink-muted dark:text-white/45">{t('nearby.found')}</span>
+              <span className="truncate text-[13px] font-medium text-apple-ink dark:text-white">{suggest.name}</span>
+              <span className="truncate text-[11.5px] font-medium text-apple-ink-muted dark:text-white/65">{t('nearby.found')}</span>
             </span>
             <button
               type="button"
@@ -633,7 +633,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
               /* 44px tall, not the pill's visual 28: this is the one control in
                  the strip that commits something, so it has to meet the repo's
                  tap-target floor rather than inherit the label's line height. */
-              className="press inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center rounded-full bg-ember px-3.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
+              className="press inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center rounded-full bg-ember-ink px-3.5 text-[13px] font-medium text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
             >
               {t('nearby.accept')}
             </button>
@@ -642,7 +642,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
               onClick={dismissSuggestion}
               aria-label={t('common.close')}
               data-testid="nearby-suggest-dismiss"
-              className="press grid h-11 w-11 shrink-0 place-items-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 dark:text-white/45 dark:hover:bg-white/[0.08]"
+              className="press grid h-11 w-11 shrink-0 place-items-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 dark:text-white/65 dark:hover:bg-white/[0.08]"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
             </button>
@@ -703,7 +703,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                          two never read as the same thing at a glance. */
                       'st-card',
                       'hover:border-ember/45 dark:hover:border-azure-400/50',
-                      'active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]',
+                      'active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity]',
                       'disabled:opacity-50 disabled:pointer-events-none',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark',
                       'focus-visible:transition-colors' // smoother focus state
@@ -712,19 +712,19 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                     <span className={cn(
                       'relative shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-ember dark:text-azure-400',
                       busy
-                        ? 'bg-ember dark:bg-azure-400 text-white dark:text-apple-ink'
+                        ? 'bg-ember-ink dark:bg-azure-400 text-white dark:text-apple-ink'
                         : 'bg-ember/10 dark:bg-azure-400/15'
                     )}>
                       {busy && <span aria-hidden className="absolute -inset-1 rounded-full border border-ember/40 dark:border-azure-400/40 st-halo-ring" />}
                       <DeviceArt kind={d.kind} model={d.model} gpu={d.gpu} size={36} />
                     </span>
                     <span className="flex-1 flex flex-col min-w-0 leading-tight">
-                      <span className="text-[13px] font-semibold text-apple-ink dark:text-white truncate">{d.name}</span>
+                      <span className="text-[13px] font-medium text-apple-ink dark:text-white truncate">{d.name}</span>
                       <span className={cn(
                         'text-[12px] font-medium flex items-center gap-1 truncate',
                         busy
-                          ? 'text-ember dark:text-azure-400 font-semibold'
-                        : 'text-apple-ink-muted dark:text-white/45'
+                          ? 'text-ember dark:text-azure-400 font-medium'
+                        : 'text-apple-ink-muted dark:text-white/65'
                       )}>
                         {busy ? t('nearby.waiting') : trusted ? (
                           <><Check className="w-3 h-3 text-status-success shrink-0" strokeWidth={2.5} /> {t('nearby.trusted')}</>
@@ -734,7 +734,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                             same truth ladder the overlay card uses, so a
                             row and its popup never disagree. */}
                         {!busy && (d.model || d.browser) && (
-                          <span className="text-apple-ink-muted/60 dark:text-white/30 truncate">
+                          <span className="text-[13px] text-apple-ink-muted dark:text-white/65 truncate">
                             · {d.model || d.browser}
                           </span>
                         )}
@@ -792,12 +792,12 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                   transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
                   className="group flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[16px] text-left st-tile opacity-90 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                 >
-                  <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/40">
+                  <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/65">
                     <DeviceArt kind={kindFromName(r.name)} size={36} className="opacity-80" />
                   </span>
                   <span className="flex-1 flex flex-col min-w-0 leading-tight">
-                    <span className="text-[13px] font-semibold text-apple-ink dark:text-white truncate">{r.name}</span>
-                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45">
+                    <span className="text-[13px] font-medium text-apple-ink dark:text-white truncate">{r.name}</span>
+                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/65">
                       {t('nearby.offline', { when: lastSeenLabel(r.lastConnectedAt) })}
                     </span>
                   </span>
@@ -805,7 +805,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                     type="button"
                     onClick={() => { forgetRecentDevice(r.token); setRecents(getRecentDevices()); }}
                     aria-label={t('nearby.forget')}
-                    className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 dark:text-white/30 hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
+                    className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted dark:text-white/65 hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity] opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -847,8 +847,8 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                   are buttons, and an identical container reads as clickable
                   when it isn't (usability audit #8/#9): status is typography,
                   actions are surfaces. */}
-              <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{t('nearby.hint')}</span>
-              <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45 flex items-center gap-1">
+              <span className="text-[13px] font-medium text-apple-ink dark:text-white">{t('nearby.hint')}</span>
+              <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/65 flex items-center gap-1">
                 {searchExpired
                   ? <><Wifi className="w-3 h-3" aria-hidden /> {presenceHidden ? t('nearby.hiddenHint') : t('nearby.searchingHint')}</>
                   : t('nearby.waitingOther')}
@@ -922,10 +922,10 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                 <DeviceLinkIllustration state="error" width={120} className="text-apple-ink-muted dark:text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-status-danger">{phase.text}</p>
+                <p className="text-[13px] font-normal text-status-danger">{phase.text}</p>
                 {failedDevice && (
                   <>
-                    <p className="mt-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 leading-snug">
+                    <p className="mt-1 text-[13px] font-normal text-apple-ink-muted dark:text-white/65 leading-snug">
                       {t('nearby.failBody')}
                     </p>
                     <div className="mt-2.5 flex flex-wrap gap-2">
@@ -933,7 +933,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                         type="button"
                         data-testid="nearby-fail-retry"
                         onClick={() => { void handleInvite(failedDevice); }}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] min-h-[44px] min-w-[44px]"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-medium active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity] min-h-[44px] min-w-[44px]"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> {t('nearby.failRetry')}
                       </button>
@@ -964,7 +964,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
             data-testid="nearby-why-toggle"
             aria-expanded={whyOpen}
             onClick={() => { setWhyOpen(o => !o); }}
-            className="flex items-center gap-1.5 px-1.5 -mx-1.5 my-1 min-h-[44px] min-w-[44px] text-[13px] font-semibold text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-1.5 -mx-1.5 my-1 min-h-[44px] min-w-[44px] text-[13px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white transition-colors"
           >
             {t('nearby.whyTitle')}
             <motion.span animate={{ rotate: whyOpen ? 180 : 0 }} transition={{ duration: quiet ? 0 : DUR.micro / 1000 }} className="inline-flex" aria-hidden>
@@ -983,8 +983,8 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
               >
                 <div className="mt-1.5 px-3.5 py-3 rounded-[12px] bg-apple-parchment/60 dark:bg-white/[0.03] border border-apple-divider/40 dark:border-white/[0.06]">
                   {(['why1', 'why2', 'why3', 'why4', 'why5'] as const).map((k, i) => (
-                    <li key={k} className="flex items-start gap-2.5 py-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 leading-snug">
-                      <span className="shrink-0 w-4 h-4 mt-px rounded-full bg-apple-divider/50 dark:bg-white/[0.08] flex items-center justify-center text-[12px] font-bold text-apple-ink-muted dark:text-white/50 tnum" aria-hidden>{i + 1}</span>
+                    <li key={k} className="flex items-start gap-2.5 py-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/65 leading-snug">
+                      <span className="shrink-0 w-4 h-4 mt-px rounded-full bg-apple-divider/50 dark:bg-white/[0.08] flex items-center justify-center text-[12px] font-medium text-apple-ink-muted dark:text-white/65 tnum" aria-hidden>{i + 1}</span>
                       {t(`nearby.${k}`)}
                     </li>
                   ))}

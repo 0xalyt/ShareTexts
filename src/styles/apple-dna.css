@@ -16,14 +16,14 @@
     --st-press-scale: 0.97;
 
     /* Durations (§18) */
-    --st-t-press: 160ms;
-    --st-t-release: 160ms;
-    --st-t-popover: 175ms;
+    --st-t-press: 120ms;
+    --st-t-release: 150ms;
+    --st-t-popover: 200ms;
     --st-t-thumb: 200ms;
-    --st-t-mode: 190ms;
-    --st-t-push: 280ms;
-    --st-t-sheet: 320ms;
-    --st-t-reduce: 140ms;
+    --st-t-mode: 200ms;
+    --st-t-push: 400ms;
+    --st-t-sheet: 400ms;
+    --st-t-reduce: 120ms;
 
     /* Easings (§18) */
     --st-ease-enter: cubic-bezier(0.23, 1, 0.32, 1);
@@ -51,7 +51,7 @@
 
 /* ── Press ──────────────────────────────────────────────────────────────
    Every tappable control answers contact the same way: transform to
-   scale(0.97) in 160 ms on ease-out, released on the same curve.
+   scale(0.97) in 120 ms on ease-out, released in 150 ms.
 
    Deliberately NOT a layout change — no margin, width, padding or position
    moves on press, so a press cannot reflow what is being pressed, and
@@ -76,6 +76,14 @@
 .press:active:not(:disabled):not([aria-disabled='true']):not([data-no-press]),
 :where(button, [role='button'], summary, [data-press]):active:not(:disabled):not([aria-disabled='true']):not([data-no-press]) {
   transform: scale(var(--st-press-scale));
+}
+
+/* Optical centering is progressive enhancement; minimum touch sizes stay put. */
+@supports (text-box-trim: trim-both) {
+  :is(.st-btn, .morph-btn, .glossy-btn) {
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+  }
 }
 
 /* A disabled control does not answer contact and does not pretend to: no
@@ -166,7 +174,7 @@ html.dark .segmented-thumb {
   padding: 0 14px;
   border-radius: 9999px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   /* One step darker than ink-muted: the 13px label sits on the control's own
      tinted track, where ink-muted measured 4.3:1 — below AA (§17). */
   color: #4f4f55;
@@ -303,10 +311,8 @@ html.dark .sheet-grabber {
   }
 }
 
-/* ── Buttons (§6) ───────────────────────────────────────────────────────
-   One grammar for the whole app. The primary fill is the brand orange in
-   BOTH themes with a white 19px/700 label (WCAG large text); pressing
-   moves it down 2px and the edge shrinks 3→1px in 60 ms. */
+/* Buttons use body-minus-one labels. Deep ember keeps white text readable
+   at the smaller regular-size label; bright ember is not a text backing. */
 .st-btn {
   position: relative;
   display: inline-flex;
@@ -314,7 +320,7 @@ html.dark .sheet-grabber {
   justify-content: center;
   gap: 8px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   user-select: none;
@@ -338,9 +344,9 @@ html.dark .sheet-grabber {
 
 /* Primary: flat orange, a darker bottom edge that is part of the shape. */
 .st-btn--primary {
-  background: #f06413;
+  background: var(--color-ember-ink);
   color: #fff;
-  font-size: 19px;
+  font-size: var(--text-card);
   box-shadow: 0 3px 0 #c04b09;
 }
 /* Press is the same scale as everything else; the edge shrink rides along
@@ -350,7 +356,7 @@ html.dark .sheet-grabber {
   box-shadow: 0 1px 0 #c04b09;
 }
 html.dark .st-btn--primary {
-  background: #f06413;
+  background: var(--color-ember-ink);
   box-shadow: 0 3px 0 #c04b09;
 }
 
@@ -358,8 +364,8 @@ html.dark .st-btn--primary {
 .st-btn--secondary {
   background: var(--color-surface);
   color: var(--color-text);
-  font-size: 17px;
-  font-weight: 600;
+  font-size: var(--text-card);
+  font-weight: 500;
   box-shadow: inset 0 0 0 1.5px rgb(0 0 0 / 0.12);
 }
 html.dark .st-btn--secondary {
@@ -376,7 +382,7 @@ html.dark .st-btn--secondary {
   background: transparent;
   color: var(--color-apple-ink-muted);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   padding-inline: 8px;
 }
 /* Gated: a tertiary label must not stay lit after a tap. */
@@ -398,8 +404,8 @@ html.dark .st-btn--tertiary {
 .st-btn--destructive {
   background: transparent;
   color: var(--color-status-danger-ink);
-  font-size: 17px;
-  font-weight: 700;
+  font-size: var(--text-card);
+  font-weight: 500;
 }
 html.dark .st-btn--destructive {
   color: var(--color-status-danger-ink-dark);
@@ -412,7 +418,7 @@ html.dark .st-btn--destructive {
 
 /* Hover exists only where a pointer can hover. */
 @media (hover: hover) and (pointer: fine) {
-  .st-btn--primary:hover:not(:disabled) { background: #e85e10; }
+  .st-btn--primary:hover:not(:disabled) { background: #a83f08; }
   .st-btn--secondary:hover:not(:disabled) { background: var(--color-bg-secondary); }
 }
 
@@ -476,23 +482,19 @@ html.dark .st-btn--destructive {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  /* Same metrics the primary button renders today (this stylesheet is
-     unlayered, so these values win over the call site's text-[15px] exactly
-     as .st-btn--primary's 19px did). Only the surface is meant to change. */
+  /* Standard controls stay one pixel below body copy, with a full target. */
   min-height: 52px;
   padding: 0 26px;
   border-radius: 999px;
-  font-size: 19px;
-  font-weight: 700;
+  font-size: var(--text-card);
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   user-select: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  color: #fff;
-  /* A hair of shadow under the label: on a lit surface white type needs an
-     edge that a flat fill never asked for. */
-  text-shadow: 0 1px 1px rgb(120 45 0 / 0.28);
+  color: #1d1d1f;
+  text-shadow: none;
   background: var(--gloss-fill);
   box-shadow: 0 0 0 1px var(--gloss-ring), var(--gloss-shell), var(--gloss-inner);
   /* Crisp in, springy out: the press shortens the duration below. */
@@ -561,7 +563,7 @@ html.dark .glossy-btn {
   --gloss-inner:
     inset 0 1px 1px rgb(255 255 255 / calc(var(--gloss-light) * 0.55)),
     inset 0 -1px 1px rgb(90 30 0 / 0.45);
-  text-shadow: 0 1px 1px rgb(80 26 0 / 0.4);
+  text-shadow: none;
 }
 
 /* The light lifts a touch under a real pointer. No movement, no new paint. */
@@ -626,12 +628,12 @@ html.dark .glossy-btn {
     min-height: 52px;
     padding-inline: 22px;
     border-radius: 999px;
-    color: #fff;
-    font-size: 17px;
-    font-weight: 700;
+    color: #1d1d1f;
+    font-size: var(--text-card);
+    font-weight: 500;
     line-height: 1;
     white-space: nowrap;
-    text-shadow: 0 1px 1px rgb(120 45 0 / 0.26);
+    text-shadow: none;
     background: transparent;
     user-select: none;
     touch-action: manipulation;
@@ -664,16 +666,15 @@ html.dark .glossy-btn {
       var(--morph-shadow),
       inset 0 1px 1px rgb(255 255 255 / 0.34),
       inset 0 -1px 1px rgb(120 45 0 / 0.2);
-    will-change: width, border-radius;
+    border-radius: inherit;
   }
 
   .morph-btn__sizer {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: inline-grid;
     visibility: hidden;
     pointer-events: none;
   }
+  .morph-btn__sizer > span { grid-area: 1 / 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 
   .morph-btn__layer {
     position: absolute;
@@ -698,8 +699,8 @@ html.dark .glossy-btn {
     height: 20px;
     flex-shrink: 0;
     border-radius: 50%;
-    border: 2.5px solid rgb(255 255 255 / 0.32);
-    border-top-color: #fff;
+    border: 2.5px solid rgb(29 29 31 / 0.24);
+    border-top-color: currentColor;
     animation: morph-btn-spin 700ms linear infinite;
   }
 
@@ -713,7 +714,7 @@ html.dark .glossy-btn {
     --morph-shadow:
       0 2px 5px rgb(0 0 0 / 0.5),
       0 12px 22px -10px rgb(251 122 46 / 0.34);
-    text-shadow: 0 1px 1px rgb(80 26 0 / 0.4);
+    text-shadow: none;
   }
 
   /* Reduced motion keeps the loader legible without a fast rotation. */

@@ -14,7 +14,7 @@
 .handoff-status-dot[data-connected=true] { background: var(--color-status-success); }
 .handoff-peer { display: flex; align-items: center; gap: .7em; padding: .8em 1.3em; border-bottom: 1px solid var(--color-apple-divider); }
 .handoff-peer > svg:last-child { margin-inline-start: auto; color: #1d7a35; }
-.handoff-peer span { font-weight: 600; }
+.handoff-peer span { font-weight: 500; }
 .handoff-peer small { display: block; font-weight: 400; font-size: .85em; color: var(--color-apple-ink-muted); }
 .handoff-feed { min-height: 0; flex: 1; display: flex; flex-direction: column; gap: .8em; padding: 1em 1.4em; }
 .handoff-feed-label { font-size: .8em; text-align: center; color: var(--color-apple-ink-muted); }
@@ -22,7 +22,7 @@
 .handoff-message small { display: flex; align-items: center; justify-content: flex-end; gap: .3em; margin-top: .6em; font-size: .72em; color: var(--color-apple-ink-muted); }
 .handoff-message small svg { width: 1em; height: 1em; }
 .handoff-file { position: relative; display: flex; align-items: center; gap: .8em; padding: 1em; border-radius: 8px; border: 1px solid var(--color-apple-divider); max-width: 86%; }
-.handoff-file strong { display: block; font-weight: 600; }
+.handoff-file strong { display: block; font-weight: 500; }
 .handoff-file small { display: block; color: var(--color-apple-ink-muted); margin-top: .25em; font-size: .8em; }
 .handoff-file-icon { display: grid; place-items: center; width: 2.5em; height: 3em; color: var(--color-ember); background: var(--color-apple-parchment); border-radius: 8px; }
 .handoff-file-icon svg { width: 1.5em; height: 1.5em; }
@@ -30,7 +30,7 @@
 .dark .handoff-done, .dark .handoff-peer > svg:last-child { color: #68d57f; }
 .handoff-progress { position: absolute; bottom: 0; inset-inline: 1em; height: 2px; background: var(--color-apple-divider); overflow: hidden; }
 .handoff-progress > span { display: block; width: 100%; height: 100%; background: var(--color-ember); transform-origin: left; transition: transform 600ms cubic-bezier(.77,0,.175,1); }
-.handoff-save { display: flex; align-items: center; gap: .5em; color: #1d7a35; font-weight: 600; font-size: .9em; }
+.handoff-save { display: flex; align-items: center; gap: .5em; color: #1d7a35; font-weight: 500; font-size: .9em; }
 .dark .handoff-save { color: #68d57f; }
 .handoff-ready { position: absolute; inset: 42% 25% 16% 12%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8em; color: var(--color-apple-ink-muted); }
 .handoff-ready > span { display: grid; place-items: center; width: 3em; height: 3em; border-radius: 50%; background: var(--color-apple-parchment); color: #1d7a35; }
@@ -39,9 +39,9 @@
 .handoff-pairing { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: .8em; padding: 1em 2em; text-align: center; }
 .handoff-pair-icon { color: var(--color-apple-ink-muted); }
 .handoff-pair-icon svg { width: 2.2em; height: 2.2em; }
-.handoff-code { font-variant-numeric: tabular-nums; font-size: 2.7em; font-weight: 650; letter-spacing: .13em; white-space: nowrap; }
+.handoff-code { font-variant-numeric: tabular-nums; font-size: 2.7em; font-weight: 500; letter-spacing: .13em; white-space: nowrap; }
 .handoff-pairing small { color: var(--color-apple-ink-muted); font-size: .95em; max-width: 24ch; text-wrap: pretty; }
-.handoff-pair-action { display: flex; align-items: center; gap: .4em; padding: .65em 1.1em; border: 1px solid var(--color-apple-divider); border-radius: 8px; font-weight: 600; }
+.handoff-pair-action { display: flex; align-items: center; gap: .4em; padding: .65em 1.1em; border: 1px solid var(--color-apple-divider); border-radius: 8px; font-weight: 500; }
 .handoff-screen-phone { font-size: 1.3cqw; }
 .handoff-screen-phone .handoff-appbar { padding-top: 1.6em; }
 .handoff-screen-phone .handoff-peer { padding-inline: 1em; }
@@ -54,12 +54,12 @@
 .handoff-bridge svg { width: 48%; height: 48%; }
 .handoff-bridge[data-active=true] { color: var(--color-ember); transform: translateX(-12%); }
 .handoff-caption { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 16px; padding: 20px 4px 8px; min-height: 112px; }
-.handoff-step-number { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+.handoff-step-number { font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
 .handoff-copy { display: grid; min-width: 0; }
 .handoff-copy > div { grid-area: 1 / 1; visibility: hidden; }
 .handoff-copy > div[data-active=true] { visibility: visible; }
 .handoff-step-number > span { font-size: 12px; letter-spacing: 0; margin-inline-start: 5px; color: var(--color-apple-ink-muted); }
-.handoff-caption .handoff-caption-title { font-size: 22px; font-weight: 650; line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; }
+.handoff-caption .handoff-caption-title { font-size: 22px; font-weight: 500; line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; }
 .handoff-caption p + p { margin-top: 6px; font-size: 13px; line-height: 1.5; color: var(--color-apple-ink-muted); text-wrap: pretty; }
 .dark .handoff-caption p + p, .dark .handoff-step-number > span { color: #a1a1a6; }
 .handoff-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: 12px; padding-inline: 4px; }
@@ -67,7 +67,7 @@
 .handoff-steps button { display: grid; place-items: center; width: 40px; min-width: 40px; height: 44px; cursor: pointer; }
 .handoff-steps button > span { width: 20px; height: 3px; border-radius: 8px; background: var(--color-apple-divider); transition: background-color 180ms ease; }
 .handoff-steps button > span[data-active=true] { background: var(--color-ember); }
-.handoff-play { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; font-size: 12px; font-weight: 600; color: var(--color-apple-ink); cursor: pointer; border-radius: 8px; }
+.handoff-play { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; font-size: 12px; font-weight: 500; color: var(--color-apple-ink); cursor: pointer; border-radius: 8px; }
 .dark .handoff-play { color: #ededf2; }
 .handoff-play:hover { background: rgb(0 0 0 / .04); }
 .dark .handoff-play:hover { background: rgb(255 255 255 / .06); }
