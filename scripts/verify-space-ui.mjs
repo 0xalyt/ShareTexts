@@ -21,6 +21,7 @@ const UNKNOWN = freshCode(); // random 8, never created
 // Default 3010 like the rest of the battery — the old 3012 server no
 // longer exists and only produced connection-refused phantom failures.
 const BASE = process.env.URL || 'http://localhost:3010';
+if (!['localhost', '127.0.0.1'].includes(new URL(BASE).hostname)) throw new Error('Space checks require a local app and Worker');
 let pass = 0, fail = 0;
 const ok = (n, c, x = '') => { if (c) { pass++; console.log(`  ok  ${n}${x ? ' — ' + x : ''}`); } else { fail++; console.log(`FAIL  ${n}${x ? ' — ' + x : ''}`); } };
 
@@ -28,6 +29,11 @@ const browser = await chromium.launch();
 const errors = [];
 const mk = async () => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } });
+  await ctx.route('**/*', route => {
+    const url = new URL(route.request().url());
+    return ['blob:', 'data:'].includes(url.protocol) || ['localhost', '127.0.0.1'].includes(url.hostname)
+      ? route.continue() : route.abort();
+  });
   const page = await ctx.newPage();
   page.on('pageerror', e => errors.push(String(e)));
   return { ctx, page };
@@ -72,6 +78,38 @@ try {
   await A.page.waitForTimeout(1200);
   const onA = await A.page.getByText('hello from device B').count();
   ok('joiner text appears on the creator device', onA >= 1, `count=${onA}`);
+
+  // The creator must moderate another device's item, not just their own.
+  // A shared access token can add items but cannot grant creator privileges.
+  const joinedItem = A.page.getByTestId('space-item').filter({ hasText: 'hello from device B' });
+  await joinedItem.getByRole('button', { name: 'Remove', exact: true }).click();
+  const confirm = A.page.getByRole('dialog', { name: 'Remove this?', exact: true });
+  await confirm.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await confirm.waitFor({ state: 'hidden' });
+  ok('cancel keeps the joiner item', await joinedItem.count() === 1);
+  await joinedItem.getByRole('button', { name: 'Remove', exact: true }).click();
+  const deleted = A.page.waitForResponse(r => r.request().method() === 'DELETE'
+    && new URL(r.url()).pathname.startsWith(`/space/${spaceId}/items/`));
+  await confirm.getByRole('button', { name: 'Remove', exact: true }).click();
+  const response = await deleted;
+  ok('creator can remove the joiner item', response.status() === 200, `HTTP ${response.status()}`);
+  await Promise.all([A.page, B.page].map(p => p.getByText('hello from device B', { exact: true })
+    .waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})));
+  ok('creator removal propagates to both devices',
+    await A.page.getByText('hello from device B', { exact: true }).count() === 0
+    && await B.page.getByText('hello from device B', { exact: true }).count() === 0);
+
+  // Participants without a manage key must still remove their own items.
+  await B.page.getByTestId('space-composer').fill('participant-owned item');
+  await B.page.getByTestId('space-send').click();
+  const ownItem = B.page.getByTestId('space-item').filter({ hasText: 'participant-owned item' });
+  await ownItem.getByRole('button', { name: 'Remove', exact: true }).click();
+  const ownDeletion = B.page.waitForResponse(r => r.request().method() === 'DELETE'
+    && new URL(r.url()).pathname.startsWith(`/space/${spaceId}/items/`));
+  await B.page.getByRole('dialog', { name: 'Remove this?', exact: true })
+    .getByRole('button', { name: 'Remove', exact: true }).click();
+  ok('participant can still remove their own item', (await ownDeletion).status() === 200);
+  await ownItem.waitFor({ state: 'hidden' });
 
   // unknown-code path in the UI
   const C = await mk();

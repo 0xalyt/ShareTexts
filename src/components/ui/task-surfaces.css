@@ -172,15 +172,22 @@
   .st-room-start { padding: 20px; }
   .st-space [data-testid='space-empty'] { padding: 24px; }
   .st-pair-guide { gap: 12px; }
-  /* Identity and actions get separate rows; the title never has to compete
-     with four fixed-width controls for a few remaining characters. */
-  .st-space-header { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; height: auto; min-height: 56px; padding-block: 8px; gap: 8px; }
+}
+/* Below the full desktop budget, use the phone's two-row hierarchy rather
+   than squeezing creator metadata between fixed-width actions. The fourth
+   column gives the code and device count separate places on tablet widths. */
+@media (max-width: 1023px) {
+  .st-space-header { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px; height: auto; min-height: 56px; padding-block: 8px; gap: 8px; }
   .st-space-header > a { grid-column: 1; grid-row: 1; }
-  .st-space-identity { grid-column: 2; grid-row: 1; }
+  .st-space-identity { grid-column: 2 / span 2; grid-row: 1; }
   .st-space-identity h1 { white-space: normal; overflow-wrap: anywhere; }
-  .st-space-header .st-space-close { grid-column: 3; grid-row: 1; }
-  .st-space-header [data-testid='space-members'] { grid-column: 1 / span 2; grid-row: 2; justify-self: start; }
-  .st-space-header .st-space-share { grid-column: 3; grid-row: 2; padding-inline: 0; }
+  .st-space-header .st-space-close { grid-column: 4; grid-row: 1; }
+  .st-space-header [data-testid='space-members'] { grid-column: 1 / span 3; grid-row: 2; justify-self: start; }
+  .st-space-header .st-space-share { grid-column: 4; grid-row: 2; padding-inline: 0; }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .st-space-header [data-testid='space-code-chip'] { grid-column: 1 / span 2; grid-row: 2; justify-self: start; }
+  .st-space-header [data-testid='space-members'] { grid-column: 3; }
 }
 @media (max-height: 620px) {
   .st-pair-guide { display: none; }
