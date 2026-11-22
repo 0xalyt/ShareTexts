@@ -51,7 +51,7 @@ function ConfirmActions({
         className={
           destructive
             ? 'w-full min-h-[46px] rounded-[12px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-medium text-white transition-colors active:scale-[0.97] disabled:opacity-60'
-            : 'w-full min-h-[46px] rounded-[12px] bg-ember-ink hover:bg-brand-strong text-[15px] font-medium text-white transition-colors active:scale-[0.97] disabled:opacity-60'
+            : 'w-full min-h-[46px] rounded-[12px] bg-ember-ink hover:bg-ember-ink-hover text-[15px] font-medium text-white transition-colors active:scale-[0.97] disabled:opacity-60'
         }
       >
         {confirmLabel}

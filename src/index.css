@@ -71,6 +71,7 @@
      ember BUTTON backing on light — measured 4.78:1 as text on #fbfbfd
      and 4.94:1 behind white labels (docs/design-tokens.md §4). */
   --color-ember-ink: #c04b09;
+  --color-ember-ink-hover: #a83f08;
   --color-honey: #feab30;
   --gradient-ember: linear-gradient(165deg, #feab30 0%, #f97b3d 55%, #f06413 100%);
   --gradient-ember-dark: linear-gradient(165deg, #ffc25c 0%, #fb9243 55%, #fb7a2e 100%);

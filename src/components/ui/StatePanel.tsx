@@ -101,7 +101,7 @@ export function StatePanel({
           type="button"
           onClick={action.onClick}
           data-testid={action.testId}
-          className="press mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-ember-ink px-5 text-[13px] font-medium text-white transition-colors hover:bg-brand-strong"
+          className="press mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-ember-ink px-5 text-[13px] font-medium text-white transition-colors hover:bg-ember-ink-hover"
         >
           {action.label}
         </button>
