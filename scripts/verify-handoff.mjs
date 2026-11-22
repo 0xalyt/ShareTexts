@@ -178,6 +178,10 @@ try {
         check(`${locale}/${width}: desktop QR is visible without a click`, await handoff.getByTestId('qr-art').isVisible() && !await websiteQr.isVisible());
         if (locale === 'en') check('desktop QR opens this website without room credentials', await decodeWebsiteQr(page) === new URL(BASE).origin);
       }
+      // The proof now precedes this lazy-loaded strip. Scroll it into view
+      // before checking decoded images; Firefox does not preload this far down.
+      await browsers.scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => [...document.querySelectorAll('.landing-browser-list:first-child img')].every(img => img.complete && img.naturalWidth > 0));
       check(`${locale}/${width}: the logo-only browser strip stays inside the viewport`, await browsers.locator('.landing-browser-list:not([aria-hidden]) img[alt]').count() === 8 && await browsers.evaluate(el => {
         const bounds = el.getBoundingClientRect();
         const logos = [...el.querySelectorAll('.landing-browser-list:first-child img')];
