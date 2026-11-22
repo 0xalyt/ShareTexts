@@ -72,14 +72,23 @@ async function open(): Promise<IDBDatabase> {
   });
 }
 
-async function putRecord(record: InboxItem, blob?: Blob): Promise<void> {
+/* Bytes, not a Blob: WebKit private windows refuse to store a Blob in
+   IndexedDB. `blob` is how records written before this change read back. */
+interface PayloadRecord {
+  key: string;
+  bytes?: ArrayBuffer;
+  type?: string;
+  blob?: Blob;
+}
+
+async function putRecord(record: InboxItem, payload?: { bytes: ArrayBuffer; type: string }): Promise<void> {
   const db = await open();
   try {
     await new Promise<void>((resolve, reject) => {
-      const stores = blob ? [ITEMS, PAYLOADS] : [ITEMS];
+      const stores = payload ? [ITEMS, PAYLOADS] : [ITEMS];
       const t = db.transaction(stores, 'readwrite');
       t.objectStore(ITEMS).put(record);
-      if (blob) t.objectStore(PAYLOADS).put({ key: record.key, blob });
+      if (payload) t.objectStore(PAYLOADS).put({ key: record.key, ...payload } satisfies PayloadRecord);
       t.oncomplete = () => resolve();
       t.onerror = () => reject(t.error);
     });
@@ -124,12 +133,13 @@ export async function hasInboxItem(circleId: string, itemId: string): Promise<bo
 export async function inboxBlob(key: string): Promise<Blob | null> {
   const db = await open();
   try {
-    const rec = await new Promise<{ key: string; blob: Blob } | undefined>((resolve, reject) => {
+    const rec = await new Promise<PayloadRecord | undefined>((resolve, reject) => {
       const t = db.transaction(PAYLOADS, 'readonly');
       const r = t.objectStore(PAYLOADS).get(key);
-      r.onsuccess = () => resolve(r.result as { key: string; blob: Blob } | undefined);
+      r.onsuccess = () => resolve(r.result as PayloadRecord | undefined);
       r.onerror = () => reject(r.error);
     });
+    if (rec?.bytes) return new Blob([rec.bytes], { type: rec.type ?? '' });
     return rec?.blob ?? null;
   } finally {
     db.close();
@@ -304,11 +314,11 @@ export async function pullInbox(): Promise<PullResult[]> {
           seen: false,
           text,
         };
-        const blob = text === undefined
-          ? new Blob([opened.payload], { type: opened.header.mime ?? 'application/octet-stream' })
+        const payload = text === undefined
+          ? { bytes: opened.payload.slice().buffer, type: opened.header.mime ?? 'application/octet-stream' }
           : undefined;
         // Disk first, ACK second. This order is the module's whole promise.
-        await putRecord(record, blob);
+        await putRecord(record, payload);
         received += 1;
         try {
           await client.ack(circle.circleId, meta.itemId);

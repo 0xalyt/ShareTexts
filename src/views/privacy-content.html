@@ -1,0 +1,53 @@
+<div class="legal-sections">
+  <section id="the-short-version" class="legal-section" aria-labelledby="the-short-version-title">
+    <div class="legal-section-heading"><h2 id="the-short-version-title">The short version</h2></div>
+    <div class="legal-section-copy">
+      <p>You can use ShareTexts without an account. What happens to your content depends on how you share it:</p>
+      <ul>
+        <li><strong>Live rooms:</strong> transfers are encrypted in transit, directly when possible or through an encrypted relay. The service creates the room secret and could use it to read transfers. Do not use live rooms for secrets you cannot entrust to the service.</li>
+        <li><strong>Temporary Spaces:</strong> content is stored on our servers so people can return later. Access ends when the creator closes the space or its chosen lifetime ends, from 6 hours to 7 days. Deletion runs after closure and may need to retry.</li>
+        <li><strong>Hop, your linked devices:</strong> encrypted copies wait on the server for your devices to collect. The browser encrypts content before uploading it. The server stores device membership and delivery information, but not the content's decryption key.</li>
+        <li><strong>Saved Items:</strong> items you choose to save stay in that browser. They are separate from Hop and do not sync to your other devices.</li>
+      </ul>
+      <p>Closing a room or space cannot remove copies someone has already downloaded or saved.</p>
+    </div>
+  </section>
+  <section id="what-you-do-not-need-to-provide" class="legal-section" aria-labelledby="what-you-do-not-need-to-provide-title">
+    <div class="legal-section-heading"><h2 id="what-you-do-not-need-to-provide-title">What you do not need to provide</h2></div>
+    <div class="legal-section-copy">
+      <p>There is no sign-up form. ShareTexts does not ask for your name, email address, phone number, contacts, or location permission. You can choose a device name; avoid using personal information if you do not want to share it.</p>
+      <p>Sharing still needs a network connection. The service receives connection information such as your IP address, as described below.</p>
+    </div>
+  </section>
+  <section id="what-the-connection-server-sees" class="legal-section" aria-labelledby="what-the-connection-server-sees-title">
+    <div class="legal-section-heading"><h2 id="what-the-connection-server-sees-title">What the connection server sees</h2></div>
+    <div class="legal-section-copy">
+      <p>The connection service helps devices find and connect to one another. It receives IP addresses, room identifiers and secrets, pairing codes, connection setup information, transfer sizes, and times. When a direct connection is unavailable, encrypted transfer data also passes through the relay.</p>
+      <p>Encryption in transit protects a transfer on its way between devices. It does not mean the service cannot access it: the service issues the room secret used to derive the encryption key. Live-room content is not kept as a server-side message history.</p>
+      <p>Temporary Spaces are different. The service stores their content, device membership, and access credentials. Anyone with a working space code or link can join while the space is open. Share those invitations only with people you trust.</p>
+      <p>Hop keeps encrypted items in a server mailbox, with a 30-day item lifetime. Expired items stop being served; cleanup happens when the mailbox is accessed. Membership records, public keys, item sizes, and delivery acknowledgments help route content to linked devices.</p>
+    </div>
+  </section>
+  <section id="what-stays-on-your-device" class="legal-section" aria-labelledby="what-stays-on-your-device-title">
+    <div class="legal-section-heading"><h2 id="what-stays-on-your-device-title">What stays on your device</h2></div>
+    <div class="legal-section-copy">
+      <p>Your browser keeps room credentials, recent messages, unsent drafts, and preferences such as theme, language, and device name. Closing a room clears its room entry. Hop also keeps device keys, linked-device information, and local copies used for sending and receiving.</p>
+      <p>Saved Items are copies you explicitly save in this browser's database. They have no automatic expiry. Remove individual items, clear the library, or clear the browser's site data to remove them. ShareTexts adds no separate encryption to the Saved Items library; anyone using the same browser profile may be able to open it.</p>
+      <p>Clearing site data can remove local content and the keys needed for linked devices. Private browsing, browser storage limits, or device cleanup can also remove local data. Keep a separate copy of anything you need.</p>
+    </div>
+  </section>
+  <section id="cookies-and-trackers" class="legal-section" aria-labelledby="cookies-and-trackers-title">
+    <div class="legal-section-heading"><h2 id="cookies-and-trackers-title">Cookies and trackers</h2></div>
+    <div class="legal-section-copy">
+      <p>ShareTexts sets no tracking cookies and loads no third-party analytics scripts. It uses browser storage to remember settings and support the features above.</p>
+      <p>The service counts aggregate activity, including rooms created, connection methods, completed transfers, failures, and use of Temporary Spaces. Product-event requests contain an allowed event name, not message text or file contents. As with other network requests, the receiving service can see the connection's IP address.</p>
+      <p>If you enable a Temporary Space reminder, your browser asks for notification permission. The service stores the subscription needed to send that reminder. You can turn off notifications in your browser's site settings.</p>
+    </div>
+  </section>
+  <section id="changes-to-this-policy" class="legal-section" aria-labelledby="changes-to-this-policy-title">
+    <div class="legal-section-heading"><h2 id="changes-to-this-policy-title">Changes to this policy</h2></div>
+    <div class="legal-section-copy">
+      <p>Changes are published here with an updated date. For questions about this policy or your data, contact <a href="https://x.com/0xalyt" target="_blank" rel="noopener noreferrer">@0xalyt on X</a>. Avoid including private files, room links, or access codes in a public message.</p>
+    </div>
+  </section>
+</div>

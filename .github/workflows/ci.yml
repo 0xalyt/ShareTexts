@@ -100,6 +100,12 @@ jobs:
         if: matrix.browsers != 'webkit'
         run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-nearby-accept.mjs
 
+      - name: Hop (My devices) link once, send any time
+        # Two devices on one loopback IP; start from a fresh Worker's quotas.
+        run: |
+          node scripts/start-ci-worker.mjs --restart
+          BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-hop.mjs
+
       - name: Composer geometry gate
         # Earlier browser gates share one loopback IP and spend its quotas.
         # Give this independent gate a fresh Worker, not weaker limits.

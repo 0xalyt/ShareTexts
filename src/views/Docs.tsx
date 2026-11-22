@@ -1,22 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PageHeader } from '../components/PageHeader';
-import { FaqSection } from '../components/marketing/FaqSection';
 import { PlatformStrip } from '../components/marketing/PlatformStrip';
 import { SiteFooter } from '../components/marketing/SiteFooter';
 import { useI18n } from '../lib/i18n';
 import { ReadingLanguageNote } from '../components/ReadingLanguageNote';
 import './reading-pages.css';
-// lucide icons under the local names this file already uses (all icons are
-// lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
-import {
-  Send as Send, Inbox as Inbox, Copy, Download,
-  Share2, QrCode, Link as Link2, Shield, Zap,
-  Monitor as Monitor, Smartphone, Terminal, Key, Clock,
-  RefreshCw, CircleAlert as AlertCircle, Check, Lock,
-  ArrowLeft, ArrowRight, ChevronDown, Radio,
+import docsFaq from './docs-faq.json';
+import { Send, QrCode, Shield, Monitor, Smartphone, Terminal, Key, Clock,
+  RefreshCw, CircleAlert as AlertCircle, ArrowLeft, ArrowRight, ChevronDown, Radio,
 } from 'lucide-react';
 
-type Section = 'overview' | 'transfer' | 'pairing' | 'nearby' | 'troubleshooting' | 'privacy' | 'devices' | 'faq' | 'developer' | 'api';
+type Section = 'overview' | 'transfer' | 'pairing' | 'nearby' | 'spaces' | 'hop' | 'troubleshooting' | 'privacy' | 'devices' | 'faq' | 'developer' | 'api';
 
 interface NavItem {
   id: Section;
@@ -31,6 +25,8 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'transfer', label: 'How to Transfer', icon: <Send className="w-4 h-4" />, group: 'user' },
   { id: 'pairing', label: 'Pairing & QR', icon: <QrCode className="w-4 h-4" />, group: 'user' },
   { id: 'nearby', label: 'Nearby Devices', icon: <Radio className="w-4 h-4" />, group: 'user' },
+  { id: 'spaces', label: 'Temporary Spaces', icon: <Clock className="w-4 h-4" />, group: 'user' },
+  { id: 'hop', label: 'Linked Devices (Hop)', icon: <Monitor className="w-4 h-4" />, group: 'user' },
   { id: 'troubleshooting', label: 'Troubleshooting', icon: <RefreshCw className="w-4 h-4" />, group: 'user' },
   { id: 'privacy', label: 'Privacy & Security', icon: <Shield className="w-4 h-4" />, group: 'user' },
   { id: 'devices', label: 'Supported Devices', icon: <Smartphone className="w-4 h-4" />, group: 'user' },
@@ -74,573 +70,196 @@ function CodeBlock({ code, language = 'bash' }: { code: string; language?: strin
   );
 }
 
-function StepCard({ number, title, description, icon }: { number: number; title: string; description: string; icon: React.ReactNode }) {
-  return (
-    <div className="flex gap-4 items-start">
-      <div className="shrink-0 w-10 h-10 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center">
-        <span className="text-[16px] font-semibold text-ember dark:text-azure-400">{number}</span>
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          {icon}
-          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white">{title}</h3>
-        </div>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">{description}</p>
-      </div>
-    </div>
-  );
+function Chapter({ title, intro, children }: { title: string; intro: string; children: React.ReactNode }) {
+  return <div className="docs-copy"><header><h2 className="st-display text-[34px]">{title}</h2><p>{intro}</p></header>{children}</div>;
+}
+
+function Steps({ items }: { items: { title: string; text: string }[] }) {
+  return <ol className="docs-steps">{items.map(item => <li key={item.title}><h3>{item.title}</h3><p>{item.text}</p></li>)}</ol>;
 }
 
 function OverviewSection() {
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">A little guidance.<br />A lot less back and forth.</h1>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
-          That link on your phone. The photo your laptop needs. Bring them across in the browser you already have. Start with a code, a QR scan, or a link.
-        </p>
+    <div className="docs-copy">
+      <header>
+        <h1 className="st-display text-[34px]">Move something to your other device.</h1>
+        <p>A link on your phone, a photo for your laptop, a file for someone else. Choose how you want to share.</p>
+      </header>
+      <div className="guide-shortcuts">
+        <a href="#transfer"><Send size={20} aria-hidden /><span><strong>Send it now</strong><small>Open a live room on both devices</small></span><ArrowRight size={16} aria-hidden /></a>
+        <a href="#spaces"><Clock size={20} aria-hidden /><span><strong>Leave it for later</strong><small>Keep a Temporary Space open for hours or days</small></span><ArrowRight size={16} aria-hidden /></a>
+        <a href="#hop"><Monitor size={20} aria-hidden /><span><strong>Share with your own devices</strong><small>Link them once with Hop</small></span><ArrowRight size={16} aria-hidden /></a>
       </div>
-
       <div className="guide-start">
-        <div className="reading-eyebrow">Your first transfer</div>
-        <ol>
-          <li><span>01</span><div><h2>Open on both devices</h2><p>Visit ShareTexts on the device you have, and the one you need.</p></div></li>
-          <li><span>02</span><div><h2>Bring them together</h2><p>Choose Send on one, Receive on the other. Enter the six digits.</p></div></li>
-          <li><span>03</span><div><h2>Send something across</h2><p>Paste a link, type a note, or attach a file. Keep both tabs open.</p></div></li>
-        </ol>
+        <div className="reading-eyebrow">Your first live transfer</div>
+        <Steps items={[
+          { title: 'Open ShareTexts on both devices', text: 'Use a browser on the device sending and the device receiving. Both need internet access.' },
+          { title: 'Connect with the six-digit code', text: 'Choose Send on one device. On the other, choose Receive and enter the code shown.' },
+          { title: 'Send, then save what you need', text: 'Type a note, paste a link, or attach a file. Keep both tabs open until it finishes. Download the file on the receiving device.' },
+        ]} />
         <a className="reading-text-link" href="/#main-content">Open ShareTexts <ArrowRight size={16} aria-hidden /></a>
       </div>
-      <div className="guide-shortcuts">
-        <a href="#pairing"><QrCode size={20} aria-hidden /><span><strong>Find your way to connect</strong><small>Codes, QR scans, and links</small></span><ArrowRight size={16} aria-hidden /></a>
-        <a href="#privacy"><Shield size={20} aria-hidden /><span><strong>Know what stays where</strong><small>Rooms, spaces, and saved items</small></span><ArrowRight size={16} aria-hidden /></a>
-        <a href="#troubleshooting"><RefreshCw size={20} aria-hidden /><span><strong>Get a transfer unstuck</strong><small>A few things worth checking</small></span><ArrowRight size={16} aria-hidden /></a>
-      </div>
+      <p>Stuck at a code or a progress bar? <a href="#troubleshooting">Find the next step in troubleshooting.</a> For device-specific instructions, <a href="/guides">browse the guides.</a></p>
       <PlatformStrip />
     </div>
   );
 }
 
 function TransferSection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">How it works</h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60">Three steps. Ten seconds.</p>
-      </div>
-
-      <div className="space-y-4">
-        {[
-          { n: '1', title: 'Open on both devices', desc: 'Go to sharetexts.online on both.' },
-          { n: '2', title: 'Connect', desc: 'Tap Send on one device, Receive on the other. Enter the 6-digit code — or, if the other device is nearby and open, just tap it under Nearby devices.' },
-          { n: '3', title: 'Transfer', desc: 'Type, paste, or attach. It appears instantly on the other device.' },
-        ].map((s, i) => (
-          <div key={i} className="flex gap-4 items-start">
-            <div className="shrink-0 w-9 h-9 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center">
-              <span className="text-[16px] font-bold text-ember dark:text-azure-400">{s.n}</span>
-            </div>
-            <div>
-              <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{s.title}</h3>
-              <p className="text-[16px] text-apple-ink-muted dark:text-white/60">{s.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {['Text', 'Links', 'Photos', 'Files'].map((t) => (
-          <span key={t} className="px-3 py-1.5 rounded-full bg-ember/8 dark:bg-ember/10 text-[13px] font-medium text-ember dark:text-azure-400">{t}</span>
-        ))}
-      </div>
-    </div>
-  );
+  return <Chapter title="Send text, photos, or files" intro="Use a live room when both devices are available now. You do not need the same operating system or Wi-Fi network.">
+    <Steps items={[
+      { title: 'Connect the devices', text: 'Open ShareTexts on each device. Choose Send on one and Receive on the other, then enter the six-digit code. A QR scan or room link works too.' },
+      { title: 'Choose what to send', text: 'Type or paste text into the message box, or use the attachment control to choose a file. On a computer, you can also drag a file into the room.' },
+      { title: 'Wait for completion', text: 'Keep both tabs open and devices awake. A file still showing progress has not finished. Use Retry if the transfer reports a failure.' },
+      { title: 'Keep a copy', text: 'Download the file on the receiving device. To keep a message in ShareTexts, save it to Saved Items in that browser. Check the saved copy before deleting the original.' },
+    ]} />
+    <h3>Original files, not converted copies</h3>
+    <p>ShareTexts transfers the file you select without compressing or converting it. Your photo picker may offer an original or converted version before ShareTexts receives it.</p>
+    <h3>Large files need more care</h3>
+    <p>Browser memory, available storage, and the connection affect what can finish. Start with a small file to check the connection. For a large transfer, keep the screens awake and avoid switching apps on a phone.</p>
+    <p><a href="#pairing">Other ways to connect</a> · <a href="#troubleshooting">Fix a stalled transfer</a></p>
+  </Chapter>;
 }
 
 function PairingSection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Pairing & QR</h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
-          ShareTexts uses a 6-digit pairing code to connect two devices. The code refreshes automatically and expires after a short time for security.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="st-h3 text-apple-ink dark:text-white">How pairing works</h3>
-        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
-          <p><strong className="text-apple-ink dark:text-white">Sender:</strong> Click <strong>Send</strong> to create a room. You'll see a 6-digit code and a QR code.</p>
-          <p><strong className="text-apple-ink dark:text-white">Receiver:</strong> Click <strong>Receive</strong> and enter the 6-digit code, or scan the QR code with your camera.</p>
-          <p>Once both devices are connected, the pairing screen is replaced by the transfer workspace.</p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="st-h3 text-apple-ink dark:text-white">QR code</h3>
-        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
-          <p>The QR code contains the pairing link. Scan it with the other device's camera to connect automatically.</p>
-          <p>If the QR code doesn't scan, you can always type the 6-digit code manually.</p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="st-h3 text-apple-ink dark:text-white">Code expiry</h3>
-        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
-          <p>The pairing code refreshes automatically. If it expires before the other device connects, a new code is generated.</p>
-          <p>Share link: You can also share the room link directly. The receiver opens the link and connects automatically.</p>
-        </div>
-      </div>
-    </div>
-  );
+  return <Chapter title="Connect with a code, QR scan, or link" intro="Each method opens the same live room. Choose the one that fits the devices in front of you.">
+    <h3>Enter the six-digit code</h3>
+    <p>Choose Send on the first device. On the other, choose Receive and enter the current code. Codes refresh automatically; use the digits on screen, not an older screenshot.</p>
+    <h3>Scan the QR code</h3>
+    <p>Show the QR code on the sending device. Scan it with the receiving phone's camera and open the link. If you scan inside the browser, allow camera access when asked. You can enter the code instead.</p>
+    <h3>Open the room link</h3>
+    <p>Copy the room's share link and open it on the receiving device. Treat the link and QR code as invitations: anyone holding one may join while the room is available.</p>
+    <h3>Check the other device</h3>
+    <p>When the room opens, check that the expected device has connected before sending private content. Only share a code or invitation with the intended recipient.</p>
+    <p>A live room uses six digits. A <a href="#spaces">Temporary Space uses eight characters</a>; enter that code on the space join page, not the live-room screen.</p>
+  </Chapter>;
 }
-
-
 
 function NearbySection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Nearby Devices</h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
-          Open ShareTexts on another device. If both devices are on the same supported local network, the other device can appear automatically — tap it to start a transfer.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="st-h3 text-apple-ink dark:text-white">How it works</h3>
-        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
-          <p><strong className="text-apple-ink dark:text-white">Open ShareTexts on both devices.</strong> When another ShareTexts device is nearby and idle, it appears under the Send and Receive buttons on your home screen.</p>
-          <p><strong className="text-apple-ink dark:text-white">Tap the device.</strong> The other device gets an invitation and must accept. Once accepted, the connection is established exactly like any other ShareTexts connection.</p>
-          <p>Prefer a code? The 6-digit code, QR code, and share link always remain available as alternative methods.</p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="st-h3 text-apple-ink dark:text-white">Privacy</h3>
-        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
-          <p>Nearby discovery is <strong className="text-apple-ink dark:text-white">not a global device list</strong>. A device is only visible when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network; it disappears when those 10 minutes end or when you turn it off. Devices are not Bluetooth scans, and nothing is broadcast over your local network.</p>
-          <p>Other devices only ever see a temporary label such as "Windows PC" or "iPhone". No IP addresses, account information, or permanent identifiers are shared. A device that is already connected to a room is not listed.</p>
-          <p>Discovery only identifies a candidate device. Selecting one sends an invitation, and the connection uses the same encryption in transit as code, QR, and link connections.</p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="st-h3 text-apple-ink dark:text-white">Limits</h3>
-        <div className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
-          <p>Nearby discovery works between devices that reach the same ShareTexts signaling service. Two devices on completely different networks (for example, separate mobile carriers) will not see each other — use the code, QR, or share link instead.</p>
-          <p>This feature requires the standard signaling deployment. It is not available on every hosting configuration; when unavailable, the home screen simply shows the hint line without a device list, and every other method works unchanged.</p>
-        </div>
-      </div>
-    </div>
-  );
+  return <Chapter title="Find a device with Nearby" intro="Nearby can save you typing a code. It is optional and depends on both devices' network and service configuration.">
+    <Steps items={[
+      { title: 'Make the receiving device visible', text: 'Open ShareTexts on the device you want to send to. Turn Nearby on for 10 minutes. Opening the website alone does not make a device visible.' },
+      { title: 'Select it on the sending device', text: 'Open ShareTexts on the other device, on the same network. Look for the receiving device in Nearby and select it.' },
+      { title: 'Accept on the receiving device', text: 'Check the invitation and accept only if you recognize the sender. Then use the room to share.' },
+    ]} />
+    <h3>If the device does not appear</h3>
+    <p>Check that Nearby is still on and neither device is already in a room. Some guest networks, VPNs, or hosting configurations prevent discovery. Use a <a href="#pairing">code, QR scan, or room link</a> instead; these do not depend on Nearby.</p>
+    <h3>What other devices can see</h3>
+    <p>Nearby shows a temporary device label while visibility is on. It is not a list of everyone using ShareTexts, and it does not use Bluetooth or request location permission. Turn Nearby off when you no longer need it.</p>
+  </Chapter>;
 }
 
-function TroubleshootingSection() {  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Troubleshooting</h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
-          Most issues resolve by checking your internet connection and trying again.
-        </p>
-      </div>
+function SpacesSection() {
+  return <Chapter title="Leave content in a Temporary Space" intro="Use a space when people will open it at different times. Unlike a live room, its content is stored on the server.">
+    <Steps items={[
+      { title: 'Create a space', text: 'Open the space creation page. Choose or generate an eight-character code and choose a lifetime, from 6 hours to 7 days.' },
+      { title: 'Share its code or link', text: 'Give the invitation only to people you want in the space. They can open the space join page and enter the eight-character code.' },
+      { title: 'Add content and save copies', text: 'Members can add text and links. File uploads are not currently available in Temporary Spaces; use a live room to send a file. Copy anything you need before the space closes. The creator does not need to keep a tab open.' },
+    ]} />
+    <p><a href="/space/create">Create a space</a> · <a href="/space/join">Join with a space code</a></p>
+    <h3>Access ends when the space closes</h3>
+    <p>The creator can close it early. Otherwise, it closes at the chosen expiry. The code and link stop working, and server content enters deletion. Copies already downloaded or saved on a device remain.</p>
+    <p>A space invitation is access, not a private contact list. Anyone holding a working code or link can join. Do not use a space as your only copy or for secrets you cannot entrust to the service.</p>
+    <a className="reading-text-link" href="/guides/temporary-spaces.html">Read the space guide <ArrowRight size={16} aria-hidden /></a>
+  </Chapter>;
+}
 
-      <div className="space-y-6">
-        {[
-          { problem: "Can't create a room", solution: "Check your internet connection. If the problem persists, the service may be temporarily unavailable. Try again in a moment." },
-          { problem: 'Code expired', solution: 'The pairing code refreshes automatically. If the other device can\'t connect in time, create a new room to get a fresh code.' },
-          { problem: "Code doesn't work", solution: 'Enter the current 6-digit code shown on the other device. Check that you are using a different device or browser profile, not another tab in the same browser.' },
-          { problem: 'QR code won\'t scan', solution: 'Make sure the camera has permission. If scanning still fails, type the 6-digit code manually instead.' },
-          { problem: 'Connection dropped', solution: 'The other device may have closed their tab or lost internet. On the sending device, a new pairing code is available to reconnect.' },
-          { problem: 'Transfer failed', solution: 'The connection was interrupted. Tap Retry to send again. The file was not marked as complete.' },
-          { problem: 'File won\'t download', solution: 'Check that your browser allows downloads. On mobile, try long-pressing the file and selecting Save.' },
-        ].map((item, i) => (
-          <div key={i} className="p-5 rounded-[16px] st-card">
-            <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">{item.problem}</h3>
-            <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">{item.solution}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+function HopSection() {
+  return <Chapter title="Link your own devices with Hop" intro="Hop remembers your devices so you do not need to enter a room code for each handoff. It uses a different storage model from live rooms.">
+    <Steps items={[
+      { title: 'Open Hop on your first device', text: 'Choose Hop from the home screen, then use its option to link another device.' },
+      { title: 'Open the invitation on your other device', text: 'Scan the displayed QR code or open the link there. Keep the first device available to approve the request.' },
+      { title: 'Compare before approving', text: 'Check that both screens show the same four emoji. Approve only a device you recognize. If the comparison differs, stop and create a new invitation.' },
+    ]} />
+    <h3>Send after linking</h3>
+    <p>Open Hop to send text or a file to your linked devices. A device can collect waiting items when it returns online. Check the delivery state rather than assuming an offline device has received the item.</p>
+    <h3>What waits on the server</h3>
+    <p>The browser encrypts Hop content before uploading it. Encrypted copies wait in a server mailbox with a 30-day item lifetime. Hop is not permanent storage. Device keys and local copies stay in your browser, so clearing site data can require linking again.</p>
+    <p><a href="#privacy">Compare all storage modes</a> · <a href="#troubleshooting">Fix a linking problem</a></p>
+  </Chapter>;
+}
+
+function TroubleshootingSection() {
+  return <Chapter title="Get a transfer moving again" intro="Start with the symptom below. Keep your original file, and copy any unsent text before refreshing a tab.">
+    {[
+      ['The room will not open', 'Check that both devices can load other websites. If room creation still fails, the service may be unavailable. Wait and try again rather than repeatedly creating rooms.'],
+      ['The code is not accepted', 'Use the current six digits on the sending device. An eight-character code belongs on the Temporary Space join page. Use separate devices or browser profiles, not two tabs in the same profile.'],
+      ['Nearby is empty', 'Turn Nearby on on the receiving device for 10 minutes and check the network. If nothing appears, connect with a code or room link instead.'],
+      ['The transfer stops progressing', 'Bring both tabs to the foreground, keep the devices awake, and check the connection. If a transfer reports failure, use Retry. Try a small file to separate connection trouble from file size or storage limits.'],
+      ['A received file is not in Downloads', 'Receiving is not the same as saving. Use the file download control, then check your browser downloads or Files app. Allow downloads if the browser asks.'],
+      ['A space code no longer works', 'Check that it is the eight-character code and ask the creator whether the space has closed. Closed or expired spaces cannot be reopened with an old invitation.'],
+      ['Hop will not link or deliver', 'Keep both devices online for linking, compare the four emoji, and approve on the first device. Check the device clock if requests fail. Clearing site data can remove keys; link again if needed.'],
+    ].map(([title, text]) => <section key={title}><h3>{title}</h3><p>{text}</p></section>)}
+    <p>Still stuck? <a href="https://x.com/0xalyt" target="_blank" rel="noopener noreferrer">Report the problem to @0xalyt</a> with your browser, device, and the message you see. Never post a room link, secret, access code, or private file publicly.</p>
+  </Chapter>;
 }
 
 function PrivacySection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-1">Privacy & Security</h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-lg">
-          Different ways of sharing keep content in different places. Here is the distinction.
-        </p>
-      </div>
-
-      <div className="space-y-3">
-        {[
-          { icon: <Lock className="w-4 h-4" />, title: 'Live rooms', desc: 'Transfers are encrypted in transit, directly when possible, with an encrypted relay fallback. The service issues the room secret, so this is not zero knowledge.' },
-          { icon: <Shield className="w-4 h-4" />, title: 'Saved items stay here', desc: 'Items you explicitly save stay in this browser until you remove them or clear site data. They are not synced to your other devices.' },
-          { icon: <Clock className="w-4 h-4" />, title: 'Temporary Spaces store for later', desc: 'Space content is stored server-side until the chosen expiry, from 6 hours to 7 days, or until the space closes early.' },
-          { icon: <Check className="w-4 h-4" />, title: 'Verified transfers', desc: 'SHA-256 on every transfer. What you send is exactly what arrives.' },
-        ].map((item, i) => (
-          <div key={i} className="flex gap-3.5 p-4 rounded-[12px] st-card">
-            <div className="text-status-success shrink-0 mt-0.5">{item.icon}</div>
-            <div>
-              <p className="text-[16px] font-semibold text-apple-ink dark:text-white mb-0.5">{item.title}</p>
-              <p className="text-[13px] text-apple-ink-muted dark:text-white/55 leading-snug">{item.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <a href="/privacy" className="reading-text-link">Read the privacy policy <ArrowRight size={16} aria-hidden /></a>
-    </div>
-  );
+  return <Chapter title="Know where your content stays" intro="Encryption and storage are different questions. Choose the sharing mode that fits what you are sending.">
+    <h3>Live rooms: share while both devices are open</h3>
+    <p>Transfers are encrypted in transit, directly when possible or through an encrypted relay. The service issues the room secret and could derive the same encryption key. This is not a zero-knowledge system. Live-room content is not kept as a server-side message history.</p>
+    <h3>Temporary Spaces: stored for later</h3>
+    <p>Space content is stored on the server for the chosen lifetime, from 6 hours to 7 days, or until the creator closes it. Anyone with a working space code or link can join. Closure ends access; deletion runs afterward.</p>
+    <h3>Hop: an encrypted mailbox for linked devices</h3>
+    <p>Your browser encrypts items before uploading them. The server stores encrypted copies and delivery information with a 30-day item lifetime, not the content's decryption key.</p>
+    <h3>Saved Items: a copy in this browser</h3>
+    <p>Saving is an explicit action. These copies do not sync to your other devices and have no automatic expiry. Remove them from Saved Items or clear site data. Someone using the same browser profile may be able to read them.</p>
+    <p>Closing a room or space does not erase downloaded or saved copies on another device. Keep invitations private and approve only devices you recognize.</p>
+    <a href="/privacy" className="reading-text-link">Read the full Privacy Policy <ArrowRight size={16} aria-hidden /></a>
+  </Chapter>;
 }
 
 function DevicesSection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">Supported Devices</h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
-          ShareTexts works in any modern browser. No app installation required.
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">Browsers</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {['Chrome', 'Safari', 'Firefox', 'Edge', 'Brave', 'Arc', 'Samsung Internet', 'Opera / Vivaldi'].map((b) => (
-              <div key={b} className="flex items-center gap-2 text-[16px] text-apple-ink-muted dark:text-white/60">
-                <Check className="w-4 h-4 text-status-success" />{b}
-              </div>
-            ))}
-          </div>
-          <p className="text-[13px] text-apple-ink-muted dark:text-white/50 leading-relaxed mt-3">
-            Tor Browser works when WebRTC is enabled. If a browser can't run ShareTexts, you'll see a clear explanation instead of a broken page.
-          </p>
-        </div>
-        <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">Operating Systems</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {['iOS / iPadOS', 'Android', 'Windows', 'macOS', 'Linux', 'ChromeOS'].map((os) => (
-              <div key={os} className="flex items-center gap-2 text-[16px] text-apple-ink-muted dark:text-white/60">
-                <Check className="w-4 h-4 text-status-success" />{os}
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="p-5 rounded-[16px] st-tile">
-          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2">Requirements</h3>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed">Both devices need an internet connection and a browser that supports WebRTC. No special permissions are required for text transfers. Camera permission is needed for QR scanning.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AgentSection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">
-          For AI Agents
-        </h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
-          ShareTexts supports programmatic access for trusted tools. Send text or files into an active room
-          using the temporary agent send permission.
-        </p>
-      </div>
-
-      <div className="p-5 rounded-[16px] bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-[16px] font-semibold text-amber-800 dark:text-amber-200 mb-1">Security Notice</h3>
-            <p className="text-[16px] text-amber-700 dark:text-amber-300">
-              The agent send permission is a temporary, room-scoped token. It expires automatically and can be revoked.
-              Never share this token publicly or store it in logs.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Getting the Agent Token</h3>
-        <ol className="space-y-3 text-[16px] text-apple-ink-muted dark:text-white/60">
-          <li className="flex gap-3">
-            <span className="shrink-0 w-6 h-6 rounded-full bg-azure-600/10 flex items-center justify-center text-[12px] font-semibold text-ember">1</span>
-            <span>Open ShareTexts and create a room (click "Send")</span>
-          </li>
-          <li className="flex gap-3">
-            <span className="shrink-0 w-6 h-6 rounded-full bg-azure-600/10 flex items-center justify-center text-[12px] font-semibold text-ember">2</span>
-            <span>Click the <Terminal className="w-4 h-4 inline" /> icon in the header to open the agent panel</span>
-          </li>
-          <li className="flex gap-3">
-            <span className="shrink-0 w-6 h-6 rounded-full bg-azure-600/10 flex items-center justify-center text-[12px] font-semibold text-ember">3</span>
-            <span>Copy the curl command or use the token directly</span>
-          </li>
-        </ol>
-      </div>
-
-      <div>
-        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Send Text</h3>
-        <CodeBlock
-          language="bash"
-          code={`curl -X POST https://sharetexts.online/api/push \\
-  -H "Authorization: Bearer YOUR_TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '{"roomId":"ROOM_ID","text":"Hello from my computer"}'`}
-        />
-      </div>
-
-      <div>
-        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Send File</h3>
-        <CodeBlock
-          language="bash"
-          code={`curl -X POST https://sharetexts.online/api/push?roomId=ROOM_ID \\
-  -H "Authorization: Bearer YOUR_TOKEN" \\
-  -H "Content-Type: application/octet-stream" \\
-  -H "X-File-Name: notes.txt" \\
-  --data-binary @notes.txt`}
-        />
-      </div>
-
-      <div>
-        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Response Format</h3>
-        <CodeBlock
-          language="json"
-          code={`{
-  "success": true,
-  "messageId": "msg_abc123"
-}`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function APISection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">
-          API Reference
-        </h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
-          ShareTexts exposes a minimal REST API for agent integration.
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        <div className="p-5 rounded-[16px] st-card">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="px-2 py-0.5 rounded-[8px] bg-green-100 dark:bg-green-900/30 text-[12px] font-semibold text-green-700 dark:text-green-400">POST</span>
-            <code className="text-[16px] font-mono text-apple-ink dark:text-white">/api/push</code>
-          </div>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60 mb-4">
-            Send text or a file to an active room.
-          </p>
-          <div className="space-y-3">
-            <div>
-              <h4 className="text-[13px] font-semibold text-apple-ink dark:text-white mb-2">Headers</h4>
-              <div className="space-y-1 text-[13px] font-mono text-apple-ink-muted dark:text-white/60">
-                <div><span className="text-ember">Authorization:</span> Bearer {'<token>'}</div>
-                <div><span className="text-ember">Content-Type:</span> application/json or application/octet-stream</div>
-                <div><span className="text-ember">X-File-Name:</span> (optional) filename for file transfers</div>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-[13px] font-semibold text-apple-ink dark:text-white mb-2">Body (JSON)</h4>
-              <div className="space-y-1 text-[13px] font-mono text-apple-ink-muted dark:text-white/60">
-                <div><span className="text-ember">roomId:</span> string (required)</div>
-                <div><span className="text-ember">text:</span> string (for text transfers)</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-5 rounded-[16px] st-card">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="px-2 py-0.5 rounded-[8px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
-            <code className="text-[16px] font-mono text-apple-ink dark:text-white">/health</code>
-          </div>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Health check endpoint. Returns server status.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-[16px] st-card">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="px-2 py-0.5 rounded-[8px] bg-azure-100 dark:bg-azure-900/30 text-[12px] font-semibold text-azure-700 dark:text-azure-400">GET</span>
-            <code className="text-[16px] font-mono text-apple-ink dark:text-white">/stats</code>
-          </div>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Returns approximate live user count. No room-level information.
-          </p>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="st-h3 text-apple-ink dark:text-white mb-4">Error Responses</h3>
-        <div className="space-y-2">
-          {[
-            { code: '401', message: 'Invalid or expired token' },
-            { code: '403', message: 'Origin not allowed' },
-            { code: '404', message: 'Room not found' },
-            { code: '429', message: 'Rate limited' },
-            { code: '500', message: 'Server error' },
-          ].map((err) => (
-            <div key={err.code} className="flex items-center gap-3 text-[16px]">
-              <code className="px-2 py-0.5 rounded-[8px] bg-red-100 dark:bg-red-900/30 text-[12px] font-mono text-red-700 dark:text-red-400">{err.code}</code>
-              <span className="text-apple-ink-muted dark:text-white/60">{err.message}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SecuritySection() {
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="st-display text-[34px] text-apple-ink dark:text-white mb-4">
-          Security
-        </h2>
-        <p className="text-[16px] text-apple-ink-muted dark:text-white/60 leading-relaxed max-w-2xl">
-          ShareTexts is designed with privacy and security as core principles.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="p-5 rounded-[16px] st-card">            <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
-            <Lock className="w-4 h-4 text-status-success" />
-            Encrypted in the browser
-          </h3>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Live transfers are encrypted in transit. The service issues the room secret, so this is not zero knowledge. ShareTexts is designed for handoffs, not permanent storage.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-status-success" />
-            Different ways to keep things
-          </h3>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Live rooms expire unless you enable Stay Connected. Temporary Spaces store content server-side for 6 hours to 7 days, or until closed early. Saved items stay in this browser until you remove them or clear site data.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-status-success" />
-            Verified Transfers
-          </h3>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Every file transfer is verified with SHA-256. What you send is exactly what arrives.
-          </p>
-        </div>
-
-        <div className="p-5 rounded-[16px] st-card">
-          <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-2 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-status-warning" />
-            Agent Tokens
-          </h3>
-          <p className="text-[16px] text-apple-ink-muted dark:text-white/60">
-            Agent send permissions are temporary, room-scoped, and can be revoked. They expire automatically.
-          </p>
-        </div>
-      </div>
-
-      <div className="p-5 rounded-[16px] st-tile">
-        <h3 className="text-[16px] font-semibold text-apple-ink dark:text-white mb-3">What each mode keeps</h3>
-        <ul className="space-y-2 text-[16px] text-apple-ink-muted dark:text-white/60">
-          <li className="flex items-start gap-2">
-            <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            Live-room content is not stored server-side
-          </li>
-          <li className="flex items-start gap-2">
-            <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            Temporary Space content is stored server-side until closed or expired
-          </li>
-          <li className="flex items-start gap-2">
-            <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            Saved items stay in this browser until removed or site data is cleared
-          </li>
-          <li className="flex items-start gap-2">
-            <Check className="w-4 h-4 text-status-success shrink-0 mt-0.5" />
-            The service handles room state and connection metadata; no account is required
-          </li>
-        </ul>
-      </div>
-    </div>
-  );
+  return <Chapter title="Choose a browser that can connect" intro="Use an up-to-date Chrome, Safari, Firefox, or Edge browser. Devices do not need to run the same system.">
+    <p>ShareTexts is designed for iPhone, iPad, Android, Windows, macOS, Linux, and ChromeOS. A browser must support the connection and storage features used by the mode you choose. Not every browser, extension, or private-browsing setup behaves the same.</p>
+    <h3>Open links in your main browser</h3>
+    <p>A browser inside a social or messaging app may block transfers or downloads. Open the ShareTexts link in your regular browser if a connection fails there.</p>
+    <h3>Allow only the permissions you need</h3>
+    <p>Text transfers do not need your contacts or location. Scanning inside the browser asks for camera access. Notifications are optional for space reminders. If you decline the camera, enter the code instead.</p>
+    <h3>Keep mobile transfers in view</h3>
+    <p>Phones can suspend background tabs. Keep ShareTexts visible and the device awake until the transfer finishes. Check available storage before receiving a large file.</p>
+    <p><a href="/guides/supported-devices.html">Read the device guide</a> · <a href="#troubleshooting">Troubleshoot your browser</a></p>
+  </Chapter>;
 }
 
 function FAQSection() {
-  // The questions live here (the Docs page owns this content, and
-  // index.html publishes the same list as FAQPage structured data);
-  // FaqSection is only the reading experience.
-  const faqs: { q: string; a: string }[] = [
-    {
-      q: 'What is ShareTexts?',
-      a: 'ShareTexts moves text, links, photos, videos, and files between devices in the browser. No app or account is required. Live rooms are temporary; Temporary Spaces hold content for their chosen lifetime, and items you save stay in your browser.'
-    },
-    {
-      q: 'How do devices discover each other?',
-      a: 'There are four ways to connect: Nearby, the 6-digit code, the QR code, and the share link. For Nearby, turn it on on the device you want to send to, for 10 minutes — it then appears on devices on the same network. Tap it, the other device accepts, and the connection starts. The code, QR, and link work over any connection.'
-    },
-    {
-      q: 'Is nearby discovery private?',
-      a: 'Yes. Your device appears only when you turn Nearby on, for 10 minutes at a time, and only to devices on the same network. It disappears when the 10 minutes end or when you turn it off. Those devices see only a coarse label like "iPhone · Safari" — never your IP, accounts, or any permanent identifier. Devices already connected to a room are not listed, and this is never a global list of ShareTexts users.'
-    },
-    {
-      q: 'Is it free?',
-      a: 'Yes. ShareTexts is completely free to use.'
-    },
-    {
-      q: 'Is it private?',
-      a: 'Live room transfers are encrypted in transit, but the service issues the room secret and is not zero knowledge. Temporary Spaces store content server-side until they close or expire. Saved items remain in your browser. Read the privacy policy for the full distinction.'
-    },
-    {
-      q: 'What if my internet drops mid-transfer?',
-      a: 'If the connection is interrupted, ShareTexts will tell you whether the transfer can be retried. For large files, we recommend a stable connection.'
-    },
-    {
-      q: 'How long does the pairing code last?',       a: 'The code refreshes every 90 seconds. If it expires, a new one appears automatically.'
-    },
-    {
-      q: 'Can an AI agent send text into my room?',
-      a: 'Yes. The connect screen offers a temporary send permission for trusted tools. It expires automatically and can be revoked anytime.'
-    },
-    {
-      q: 'What file types are supported?',
-      a: 'Any file type. ShareTexts transfers the original bytes without conversion. Images, videos, audio, documents, archives, code, and more.'
-    },
-    {
-      q: 'Is there a file size limit?',
-      a: 'ShareTexts has been tested with large files. Actual limits depend on your browser, device memory, and network stability. For very large files, a stable connection is recommended.'
-    },
-    {
-      q: 'Does it work on mobile?',
-      a: 'Yes. ShareTexts works in any modern mobile browser. No app download required.'
-    },
-    {
-      q: 'Can I transfer between iPhone and Android?',
-      a: 'Yes. ShareTexts works across all platforms and devices with a modern browser.'
-    },
-    {
-      q: 'What is a Host?',
-      a: 'A Host is a shared shelf that lives for a set time — 6 hours up to 7 days. You create it, get an 8-character space code, and share that code instead of files. Anyone with the code can add text, links, photos, or files, and everyone in the space sees them. When the time is up, the space closes and the content is deleted.'
-    },
-    {
-      q: 'How do I join a Host with a code?',
-      a: 'Open sharetexts.online/space/join, enter the 8-character code the creator gave you, and tap Join space. You can also paste a full space link — it carries the same access. Both the code and the link stop working when the space closes.'
-    },
-  ];
+  return <Chapter title="Before you share" intro="Answers to the questions that change which sharing mode you should use.">
+    {docsFaq.map(({ question, answer }) => <section key={question}><h3>{question}</h3><p>{answer}</p></section>)}
+    <p><a href="/guides">Browse step-by-step guides</a> · <a href="/privacy">Read the Privacy Policy</a></p>
+  </Chapter>;
+}
 
-  return <FaqSection items={faqs} heading="Frequently Asked Questions" />;
+function AgentSection() {
+  return <Chapter title="Send from a trusted script" intro="The push API can send into an active live room. It is a developer integration, not a separate account or a way to retrieve room history.">
+    <h3>Use the room's credentials carefully</h3>
+    <p>Requests need the room ID and its secret as a bearer credential. This is the room secret, not a separate, revocable agent token. Do not put it in a public repository, logs, screenshots, or a shared chat. Close the room if its credentials are exposed.</p>
+    <h3>Use the active connection service</h3>
+    <p>Send the request to the signaling service that owns the room. On a self-hosted setup, use that deployment's base URL. The public website and the connection service are not necessarily the same origin.</p>
+    <p>Keep a receiving device connected. A successful API response means the service accepted the send, not that someone downloaded or read it.</p>
+    <a className="reading-text-link" href="#api">Request formats and limits <ArrowRight size={16} aria-hidden /></a>
+  </Chapter>;
+}
+
+function APISection() {
+  return <Chapter title="Push API reference" intro="POST /api/push sends text or a small file into an active room. Replace the placeholders below with the connection-service URL and credentials for that room.">
+    <h3>Send text</h3>
+    <CodeBlock code={`curl "$SIGNALING_URL/api/push" \\
+  -H "Authorization: Bearer $ROOM_SECRET" \\
+  -H "Content-Type: application/json" \\
+  --data "{\\"roomId\\":\\"$ROOM_ID\\",\\"text\\":\\"Hello from my script\\"}"`} />
+    <h3>Send a binary file</h3>
+    <CodeBlock code={`curl "$SIGNALING_URL/api/push?roomId=$ROOM_ID" \\
+  -H "Authorization: Bearer $ROOM_SECRET" \\
+  -H "Content-Type: application/octet-stream" \\
+  -H "X-File-Name: notes.txt" \\
+  -H "X-File-Mime: text/plain" \\
+  --data-binary @notes.txt`} />
+    <p>Text is limited to 256 KB and files to 8 MB on this endpoint. These are push API limits, not live browser-transfer limits. Requests are rate-limited; wait before retrying a 429 response.</p>
+    <h3>Read the response</h3>
+    <CodeBlock language="json" code={'{ "ok": true, "messageId": "example-message-id" }'} />
+    <p>A 401 response means the credential is missing or wrong; 404 means the room is unavailable. A 413 response means the request is too large. Do not retry an unauthorized request in a loop.</p>
+    <p>Requests pass through the service. Do not treat the push API as a channel that hides content from the server.</p>
+  </Chapter>;
 }
 
 const SECTION_IDS = NAV_ITEMS.map(i => i.id) as string[];
@@ -690,6 +309,8 @@ export function Docs() {
       case 'transfer': return <TransferSection />;
       case 'pairing': return <PairingSection />;
       case 'nearby': return <NearbySection />;
+      case 'spaces': return <SpacesSection />;
+      case 'hop': return <HopSection />;
       case 'troubleshooting': return <TroubleshootingSection />;
       case 'privacy': return <PrivacySection />;
       case 'devices': return <DevicesSection />;
