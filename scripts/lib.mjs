@@ -73,6 +73,18 @@ export async function launchBrowser(extraArgs = []) {
 
 export const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+export async function gotoPage(page, url, options = {}) {
+  try {
+    return await page.goto(url, options);
+  } catch (error) {
+    if (error?.name !== 'TimeoutError' || page.context().browser()?.browserType().name() !== 'firefox' || page.url() !== 'about:blank') throw error;
+    const loaded = await page.evaluate(target => location.href === new globalThis.URL(target).href && document.readyState === 'complete', url).catch(() => false);
+    if (!loaded) throw error;
+    // Juggler can miss navigationCommitted across a COOP process switch.
+    return page.goto(url, options);
+  }
+}
+
 export async function readLiveCode(page) {
   // Scope to the pairing-code group and require a stable read: the digit
   // tiles animate code rotation (AnimatePresence popLayout briefly renders
