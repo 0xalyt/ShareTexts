@@ -36,6 +36,16 @@ const KEEP = has('--keep');
 // STEP 4 turns this on: the reaction strip becomes a required check.
 const REACTIONS = false;
 
+// A local origin does not imply local signaling: production bundles otherwise
+// default to the live Worker. Pin both the build and server, and reject an
+// accidental production override before starting either one.
+const localWorker = process.env.VITE_SIGNALING_URL || 'http://localhost:8787';
+if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+\/?$/.test(localWorker)) {
+  throw new Error('smoke:local requires a private local Worker; run npm run worker:dev');
+}
+process.env.VITE_CI_LOCAL_WORKER = '1';
+process.env.VITE_SIGNALING_URL = localWorker;
+
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const LOG_DIR = `${ROOT.replace(/\/$/, '')}/audit/tmp`;
 mkdirSync(LOG_DIR, { recursive: true });
@@ -131,6 +141,18 @@ try {
   browser = await launchBrowser();
   const ctxA = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'en' });
   const ctxB = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'en' });
+  // Also protect --skip-build from a stale bundle with a baked-in live URL.
+  let productionRequests = 0;
+  for (const context of [ctxA, ctxB]) {
+    await context.route(/^https?:\/\/[^/]+\.workers\.dev(?:[/:]|$)/i, route => {
+      productionRequests++;
+      return route.abort('blockedbyclient');
+    });
+    await context.routeWebSocket(/^wss?:\/\/[^/]+\.workers\.dev(?:[/:]|$)/i, socket => {
+      productionRequests++;
+      socket.close();
+    });
+  }
   const A = await ctxA.newPage();
   const B = await ctxB.newPage();
   const sink = [];
@@ -268,6 +290,7 @@ try {
   const warnings = sink.filter((l) => !errors.includes(l));
   if (warnings.length) console.log(`note: ${warnings.length} console warning(s):\n${warnings.join('\n')}`);
   out(errors.length === 0, 'no console errors', errors.length ? errors.slice(0, 3).join(' | ') : '');
+  out(productionRequests === 0, 'private Worker only', `${productionRequests} blocked production requests`);
   lap('console');
 
   await ctxA.close();
