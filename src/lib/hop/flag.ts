@@ -20,6 +20,8 @@ export interface HopCache {
   /** The other devices in the circle; this one is never listed. */
   devices: HopDevice[];
   unread: number;
+  /** The name this device last introduced itself with; a rename sends a fresh hello. */
+  introducedAs?: string;
 }
 
 export function readHopCache(): HopCache | null {

@@ -191,14 +191,19 @@ export async function refreshDevices(): Promise<HopDevice[]> {
   }
   const previous = readHopCache();
   let devices = previous?.circleId === circleId ? previous.devices : [];
+  let introducedAs = previous?.circleId === circleId ? previous.introducedAs : undefined;
   try {
     const { identity, client } = await ctx();
     const { members } = await client.members(circleId);
     const labels = await labelsFromInbox(circleId);
     const others = members.filter((m) => m.deviceId !== identity.deviceId);
     const known = new Set(devices.map((d) => d.deviceId));
-    if (others.some((m) => !known.has(m.deviceId))) void hello(circleId).catch(() => {});
-    labels.set(identity.deviceId, myLabel(identity));
+    const mine = myLabel(identity);
+    if (others.length && (others.some((m) => !known.has(m.deviceId)) || introducedAs !== mine)) {
+      void hello(circleId).catch(() => {});
+    }
+    introducedAs = mine;
+    labels.set(identity.deviceId, mine);
     const named = distinctLabels(members.map((m) => ({
       ...m,
       label: labels.get(m.deviceId) ?? devices.find((d) => d.deviceId === m.deviceId)?.raw ?? '',
@@ -208,7 +213,7 @@ export async function refreshDevices(): Promise<HopDevice[]> {
     // Offline: the last known list is still the truth as far as we know.
   }
   const unread = (await inboxItems(circleId)).filter((i) => i.mime !== HELLO_MIME && !i.seen).length;
-  writeHopCache({ circleId, devices, unread });
+  writeHopCache({ circleId, devices, unread, introducedAs });
   return devices;
 }
 
