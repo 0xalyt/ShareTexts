@@ -916,9 +916,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const taskChrome = isTaskScreen ? (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20">
       <div aria-hidden className="h-[52px] w-full bg-gradient-to-b from-apple-canvas via-apple-canvas/80 to-transparent dark:from-night-950 dark:via-night-950/80" />
-      <div className="absolute left-4 top-2 pointer-events-auto sm:left-6 lg:left-8">
+      <div className="absolute start-4 top-2 pointer-events-auto sm:start-6 lg:start-8">
         <GlassCircleButton label={t('cancel')} onClick={cancelTask} testId="task-back">
-          <AlloSymbol name="left" size={20} />
+          <AlloSymbol name="left" size={20} className="rtl:-scale-x-100" />
         </GlassCircleButton>
       </div>
     </div>
