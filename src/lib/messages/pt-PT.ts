@@ -93,8 +93,8 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   // Hop — linked devices (My devices)
   "hop.title": "Os meus dispositivos",
   "hop.row.hint": "Associe uma vez, envie quando quiser",
-  "hop.intro.title": "Associe os seus dispositivos uma vez",
-  "hop.intro.body": "Depois disso, o que enviar fica à espera no outro dispositivo quando este abrir o ShareTexts. Pode estar fechado ou offline no momento do envio.",
+  "hop.intro.title": "Associe os seus dispositivos",
+  "hop.intro.body": "Envie agora. Aceda mais tarde.",
   "hop.intro.show": "Mostrar um código para ler",
   "hop.intro.scan": "Ler um código",
   "hop.intro.note": "Sem conta. Cada item é encriptado neste dispositivo antes de sair, e o servidor guarda apenas essa cópia encriptada, no máximo 30 dias.",
@@ -108,6 +108,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   "hop.join.body": "Verifique que o seu outro dispositivo mostra estes quatro e confirme lá.",
   "hop.join.starting": "A associar…",
   "hop.scan.title": "Ler um código",
+  "hop.scan.noCamera": "Câmara indisponível. Mostre um código aqui ou abra uma ligação do outro dispositivo.",
   "hop.scan.body": "Aponte a câmara para o código no seu outro dispositivo.",
   "hop.linked": "Associado. Envie o que quiser, quando quiser.",
   "hop.devices.add": "Associar outro",

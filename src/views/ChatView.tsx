@@ -8,6 +8,7 @@ import { useOverscroll } from '../lib/useOverscroll';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { motion, AnimatePresence } from 'motion/react';
 import { AttachmentPanel, AttachmentTrigger } from '../components/AttachmentPanel';
+import { MessageComposer } from '../components/MessageComposer';
 import { TransferFlight } from '../components/TransferFlight';
 // lucide icons under the local names this file already uses (all icons are
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
@@ -1817,16 +1818,15 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 send circle must hold the bottom edge it had at one line.
                 Centring it in a grown row walked it 65px up the screen the
                 longer the message got (verify-composer measures this). */}
-            <div className="flex items-end gap-1.5 pl-2.5 pr-[5px] relative">
-              <textarea
-                ref={textareaRef}
-                data-testid="composer"
-                value={inputText}
-                rows={1}
-                onChange={(e) => { setComposerTouched(true); setInputText(e.target.value); typingSender.current?.pulse(); }}
-                onBlur={() => typingSender.current?.stop()}
-                onPaste={(e) => { setComposerTouched(true); handlePaste(e); }}
-                onKeyDown={(e) => {
+            <MessageComposer
+              inputRef={textareaRef}
+              input={{
+                'data-testid': 'composer',
+                value: inputText,
+                onChange: (e) => { setComposerTouched(true); setInputText(e.target.value); typingSender.current?.pulse(); },
+                onBlur: () => typingSender.current?.stop(),
+                onPaste: (e) => { setComposerTouched(true); handlePaste(e); },
+                onKeyDown: (e) => {
                   // Formatting shortcuts, the ones every editor shares.
                   if ((e.metaKey || e.ctrlKey) && !e.altKey) {
                     const k = e.key.toLowerCase();
@@ -1842,27 +1842,19 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     e.preventDefault();
                     handleSend(e);
                   }
-                }}
+                },
                 // Compact widths get a SHORT placeholder: the full one wraps
                 // to two lines on a 360px phone and clips behind the send
                 // arrow. One idea per width — the promise stays the same.
-                placeholder={(textareaRef.current?.clientWidth ?? 400) < 300 ? t('composer.placeholderShort') : t('composer.placeholder')}
-                aria-label={t('composer.aria')}
-                title={t('composer.title')}
-                className="flex-1 min-w-0 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
-              />
-              <button
-                type="button"
-                data-testid="send"
-                onClick={handleSend}
-                disabled={(!inputText.trim() && attachments.length === 0) || (!session.partnerConnected && !(recipients.length > 0) && !isMultiRoom)}
-                aria-label={t('composer.send')}
-                className="st-send-button w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 text-white bg-ember hover:bg-brand-strong disabled:bg-apple-hairline dark:disabled:bg-white/15 disabled:shadow-none disabled:text-apple-ink-muted/60 dark:disabled:text-white/30 shadow-[0_1px_3px_rgba(240,100,19,0.35)]"
-              >
-                <ArrowUp className="w-5 h-5" strokeWidth={2.4} aria-hidden />
-              </button>
-
-            </div>
+                placeholder: (textareaRef.current?.clientWidth ?? 400) < 300 ? t('composer.placeholderShort') : t('composer.placeholder'),
+                'aria-label': t('composer.aria'),
+                title: t('composer.title'),
+              }}
+              onSend={handleSend}
+              sendDisabled={(!inputText.trim() && attachments.length === 0) || (!session.partnerConnected && !(recipients.length > 0) && !isMultiRoom)}
+              sendLabel={t('composer.send')}
+              sendTestId="send"
+            />
 
             </motion.div>
           {/* Anchored to this row (absolute, above the +) — mounts instantly

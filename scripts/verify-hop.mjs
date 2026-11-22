@@ -103,6 +103,18 @@ try {
   await openLanding(A);
   ok((await A.getByTestId('home-hop').textContent()).includes('Link once'), 'an unlinked device is told what linking is for');
   await A.getByTestId('home-hop').click();
+  const privacy = A.locator('.hop-privacy summary');
+  await privacy.waitFor();
+  await A.getByTestId('hop-scan').focus();
+  await A.keyboard.press('Tab');
+  const privacyFocused = await privacy.evaluate((el) => el === document.activeElement);
+  ok(privacyFocused, 'Privacy is reachable in the sheet keyboard cycle');
+  if (privacyFocused) {
+    await A.keyboard.press('Space');
+    ok(await A.locator('.hop-privacy').evaluate((el) => el.open), 'Space expands the privacy disclosure');
+    await A.keyboard.press('Enter');
+    ok(!(await A.locator('.hop-privacy').evaluate((el) => el.open)), 'Enter closes the privacy disclosure');
+  }
   await A.getByTestId('hop-show-code').click();
   const qr = A.getByTestId('hop-qr');
   await qr.waitFor({ timeout: SLOW });
