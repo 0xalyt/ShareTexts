@@ -3,32 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy and Security — ShareTexts</title>
-  <meta name="description" content="How ShareTexts protects your data. Encrypted live rooms, server-stored Temporary Spaces, browser-local saved items, temporary connections. Learn about WebRTC security and what happens to your files." />
+  <title>Know where your content stays — ShareTexts</title>
+  <meta name="description" content="A practical guide to live rooms, server-stored spaces, Hop, and the copies saved in your browser." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://sharetexts.online/guides/privacy.html" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="ShareTexts" />
-  <meta property="og:title" content="Privacy and Security — ShareTexts" />
-  <meta property="og:description" content="How ShareTexts protects your data. Encrypted live rooms, server-stored Temporary Spaces, browser-local saved items, temporary connections." />
+  <meta property="og:title" content="Know where your content stays — ShareTexts" />
+  <meta property="og:description" content="A practical guide to live rooms, server-stored spaces, Hop, and the copies saved in your browser." />
   <meta property="og:url" content="https://sharetexts.online/guides/privacy.html" />
   <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-icon-v6.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:type" content="image/png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Privacy and Security — ShareTexts" />
-  <meta name="twitter:description" content="How ShareTexts protects your data. Encrypted live rooms, server-stored Temporary Spaces, browser-local saved items." />
+  <meta name="twitter:title" content="Know where your content stays — ShareTexts" />
+  <meta name="twitter:description" content="A practical guide to live rooms, server-stored spaces, Hop, and the copies saved in your browser." />
   <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v6.jpg" />
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Privacy and Security — ShareTexts",
-    "description": "How ShareTexts protects your data. Encrypted live rooms, server-stored Temporary Spaces, browser-local saved items, temporary connections.",
-    "publisher": { "@id": "https://sharetexts.online/#organization" }
-  }
-  </script>
+
     <link rel="icon" href="/favicon.ico?v=22" sizes="32x32" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=21" />
@@ -100,32 +92,8 @@
     html.dark .st-crumb [aria-current] { color: #888888; }
     @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #888888; } }
   </style>
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "ShareTexts",
-      "item": "https://sharetexts.online/"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Guides",
-      "item": "https://sharetexts.online/guides"
-    },
-    {
-      "@type": "ListItem",
-      "position": 3,
-      "name": "Privacy and Security",
-      "item": "https://sharetexts.online/guides/privacy.html"
-    }
-  ]
-}
-  </script>
+
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ShareTexts","item":"https://sharetexts.online/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://sharetexts.online/guides"},{"@type":"ListItem","position":3,"name":"Know where your content stays","item":"https://sharetexts.online/guides/privacy.html"}]}</script>
 </head>
 <body>
   <header class="header"><div class="header-inner">
@@ -143,61 +111,20 @@
       <span aria-hidden="true">›</span>
       <a href="/guides">Guides</a>
       <span aria-hidden="true">›</span>
-      <span aria-current="page">Privacy and Security</span>
+      <span aria-current="page">Know where your content stays</span>
     </nav>
-    <h1>How ShareTexts Protects Your Data</h1>
-    <p class="subtitle">ShareTexts is designed around a simple principle: your data moves between your devices, not through ours. Here's exactly what that means.</p>
-
-    <div class="callout"><p><strong>In short:</strong> Live-room transfers are encrypted in transit. The service issues the room secret, so this is not zero knowledge. Temporary Spaces store content server-side. Saved items remain in your browser. The <a href="/privacy">privacy policy</a> explains these distinctions.</p></div>
-
-    <h2>What Happens to Your Content</h2>
-    <div class="green-card">
-      <p style="margin:0;"><strong>Live rooms:</strong> Content travels directly when possible, with an encrypted relay fallback. Live-room content is not stored server-side. Closing a room does not remove files or items already saved on a device.</p>
-    </div>
-    <div class="green-card">
-      <p style="margin:0;"><strong>Temporary Spaces:</strong> Content is stored server-side for the chosen lifetime, from 6 hours to 7 days, or until closed early. Keep your own copy of anything you need.</p>
-    </div>
-    <div class="green-card">
-      <p style="margin:0;"><strong>Saved items:</strong> Items you explicitly save remain in this browser until you remove them or clear site data. They do not sync to other devices.</p>
-    </div>
-
-    <h2>What the Service Sees</h2>
-    <p>The service handles room state and connection metadata, including identifiers, IP addresses, sizes, and times. Temporary Space content is stored server-side; it is not covered by live-room content-storage claims. See the <a href="/privacy#what-the-connection-server-sees">privacy policy</a> for the current model.</p>
-
-    <h2>How Encryption Works</h2>
-    <p>ShareTexts uses WebRTC, which encrypts all data in transit using DTLS (Datagram Transport Layer Security). This is the same encryption used by video calling and other secure browser applications.</p>
-    <ul>
-      <li>All data between devices is encrypted</li>
-      <li>Each transfer uses a unique encryption key</li>
-      <li>The pairing code authenticates both devices before any data is shared</li>
-    </ul>
-
-    <h2>Temporary Does Not Mean Nothing Remains</h2>
-    <p>Live rooms expire unless you enable Stay Connected. Temporary Spaces last for the chosen lifetime or until closed early. Neither closing a room nor closing a space removes copies already saved on a device.</p>
-    <p>No account, email address, or phone number is required. ShareTexts does not use advertising trackers. Those facts do not mean that the service sees no data or keeps no state.</p>
-
-    <h2>Limitations</h2>
-    <p>No system is perfect. Here's what to be aware of:</p>
-    <ul>
-      <li><strong>Both devices must be online</strong> during the transfer — there is no offline mode.</li>
-      <li><strong>Signaling server sees metadata</strong> — the service handles identifiers, IP addresses, sizes, and times. It also issues the room secret, so this is not zero knowledge.</li>
-      <li><strong>Relay fallback</strong> — if a direct peer-to-peer connection isn't possible, traffic routes through a TURN relay server. The data stays encrypted in transit; the relay only forwards encrypted packets.</li>
-      <li><strong>IP addresses are used for rate limiting</strong> — the service uses connection information to prevent abuse. See the privacy policy rather than assuming that metadata is never retained.</li>
-      <li><strong>No protection against screenshot/screen recording</strong> — the receiving device can capture content after it arrives.</li>
-      <li><strong>No protection against a compromised browser</strong> — if your browser is compromised, the encryption cannot protect you.</li>
-    </ul>
-
-    <div style="text-align:center; margin: 40px 0;"><a href="/" class="cta">Try ShareTexts Free →</a></div>
-
-    <section class="related">
-      <h2>Related</h2>
-      <div class="related-links">
-        <a href="/guides/browser-file-transfer.html">How Browser Transfer Works</a>
-        <a href="/guides/supported-devices.html">Supported Devices</a>
-        <a href="/guides/troubleshooting.html">Troubleshooting</a>
-        <a href="/guides/how-to-transfer-files-between-devices.html">How to Transfer Files</a>
-      </div>
-    </section>
+    <h1>Know where your content stays</h1>
+    <p class="subtitle">A practical guide to live rooms, server-stored spaces, Hop, and the copies saved in your browser.</p>
+    <h2>Start with how you are sharing</h2>
+<p>A live room, Temporary Space, Hop mailbox, and Saved Items library do different jobs. Do not assume they store content the same way.</p>
+<ul><li><strong>Live room:</strong> share while devices are connected. Transfers are encrypted in transit, with a relay when needed. The service issues the room secret and could derive its key.</li><li><strong>Temporary Space:</strong> server-stored content for later, from 6 hours to 7 days or until the creator closes it. Anyone holding a working code or link can join.</li><li><strong>Hop:</strong> encrypted items wait for linked devices in a server mailbox with a 30-day item lifetime. Your browser encrypts content before uploading it.</li><li><strong>Saved Items:</strong> an explicit local copy in the browser where you saved it. These items do not sync to your other devices.</li></ul>
+<h2>Choose what you keep</h2>
+<p>Download a received file to keep it outside ShareTexts. Remove Saved Items you no longer need, or clear the library. Clearing browser site data can remove local history, saved copies, and device keys.</p>
+<p>Keep your original file until you have opened the received copy. Browser storage can be cleared by private browsing, storage pressure, or device cleanup.</p>
+<h2>Choose who gets access</h2>
+<p>Share codes and links only with intended recipients. Accept Nearby invitations from devices you recognize. When linking Hop, compare the same four emoji on both screens before approving.</p>
+<p>Closing a room or space stops that access but cannot delete copies someone already saved. For the full policy, including connection information and activity counters, read the <a href="/privacy">Privacy Policy</a>.</p>
+    <div class="related"><h2>Keep going</h2><div class="related-links"><a href="/docs">Full documentation</a><a href="/guides">All guides</a><a href="/">Open ShareTexts</a></div></div>
   </article></main>
 
   <footer class="footer-rich">

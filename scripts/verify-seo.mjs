@@ -170,7 +170,7 @@ async function browserChecks() {
   await page.goto(BASE + '/docs', { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
   const docsH1 = await page.locator('h1').first().textContent().catch(() => '');
-  ok('docs route renders the React Docs view', docsH1.includes('ShareTexts'), String(docsH1));
+  ok('docs route renders the React Docs view', docsH1.includes('Move something to your other device'), String(docsH1));
   ok('no page errors on home+docs', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   await browser.close();

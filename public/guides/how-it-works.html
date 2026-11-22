@@ -3,37 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How ShareTexts Works — Technical Explanation</title>
-  <meta name="description" content="Detailed explanation of how ShareTexts transfers files between devices using WebRTC, encrypted peer-to-peer connections, and temporary pairing rooms." />
+  <title>Choose how to share — ShareTexts</title>
+  <meta name="description" content="Use a live room for a handoff now, a Temporary Space for later, or Hop for your linked devices." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://sharetexts.online/guides/how-it-works.html" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="ShareTexts" />
-  <meta property="og:title" content="How ShareTexts Works — Technical Explanation" />
-  <meta property="og:description" content="How ShareTexts transfers files between devices using WebRTC and encrypted peer-to-peer connections." />
+  <meta property="og:title" content="Choose how to share — ShareTexts" />
+  <meta property="og:description" content="Use a live room for a handoff now, a Temporary Space for later, or Hop for your linked devices." />
   <meta property="og:url" content="https://sharetexts.online/guides/how-it-works.html" />
   <meta property="og:image" content="https://sharetexts.online/og/sharetext-og-icon-v6.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:type" content="image/png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="How ShareTexts Works" />
-  <meta name="twitter:description" content="How ShareTexts transfers files between devices using WebRTC and encrypted peer-to-peer connections." />
+  <meta name="twitter:title" content="Choose how to share — ShareTexts" />
+  <meta name="twitter:description" content="Use a live room for a handoff now, a Temporary Space for later, or Hop for your linked devices." />
   <meta name="twitter:image" content="https://sharetexts.online/og/sharetext-og-icon-v6.jpg" />
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    "name": "How ShareTexts Works",
-    "description": "How ShareTexts transfers files between devices using WebRTC, encrypted peer-to-peer connections, and temporary pairing rooms.",
-    "step": [
-      { "@type": "HowToStep", "name": "Open ShareTexts", "text": "Visit sharetexts.online on both devices." },
-      { "@type": "HowToStep", "name": "Pair devices", "text": "One device generates a 6-digit code. The other enters it. Devices connect via WebRTC." },
-      { "@type": "HowToStep", "name": "Transfer", "text": "Files and text move directly between devices, encrypted in transit." },
-      { "@type": "HowToStep", "name": "Close", "text": "Close the live room when done. Items you saved remain on your device." }
-    ]
-  }
-  </script>
+
     <link rel="icon" href="/favicon.ico?v=22" sizes="32x32" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=21" />
@@ -99,33 +86,9 @@
     html.dark .st-crumb [aria-current] { color: #888888; }
     @media (prefers-color-scheme: dark) { html:not(.light):not(.dark) .st-crumb [aria-current] { color: #888888; } }
   </style>
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "ShareTexts",
-      "item": "https://sharetexts.online/"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Guides",
-      "item": "https://sharetexts.online/guides"
-    },
-    {
-      "@type": "ListItem",
-      "position": 3,
-      "name": "How ShareTexts Works",
-      "item": "https://sharetexts.online/guides/how-it-works.html"
-    }
-  ]
-}
-  </script>
+
   <link rel="stylesheet" href="/guides/_template.css" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ShareTexts","item":"https://sharetexts.online/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://sharetexts.online/guides"},{"@type":"ListItem","position":3,"name":"Choose how to share","item":"https://sharetexts.online/guides/how-it-works.html"}]}</script>
 </head>
 <body>
   <header class="header"><div class="header-inner">
@@ -143,130 +106,24 @@
       <span aria-hidden="true">›</span>
       <a href="/guides">Guides</a>
       <span aria-hidden="true">›</span>
-      <span aria-current="page">How ShareTexts Works</span>
+      <span aria-current="page">Choose how to share</span>
     </nav>
-    <h1>How ShareTexts Works</h1>
-    <p class="subtitle">A detailed explanation of how ShareTexts transfers files between devices — from pairing to encrypted transfer to completion.</p>
-
-    <div class="callout"><p><strong>The simple version:</strong> Open ShareTexts on both devices. Connect with a code. Send your file in a live room, directly when possible, with an encrypted relay fallback. Live-room content is not stored server-side. Temporary Spaces store content for later; saved items stay in your browser.</p></div>
-
-    <h2>The Transfer Flow</h2>
-    <div class="flow">
-      <div class="step-box">
-        <div class="num">1</div>
-        <h3>Open ShareTexts on both devices</h3>
-        <p>Visit <a href="/" class="accent">sharetexts.online</a> in a browser on each device. No app download. No account creation.</p>
-      </div>
-      <div class="flow-line"></div>
-      <div class="step-box">
-        <div class="num">2</div>
-        <h3>Create a room (Device A)</h3>
-        <p>On the sending device, tap "Send something." ShareTexts creates a temporary room and generates a 6-digit pairing code. The room exists only for this session.</p>
-      </div>
-      <div class="flow-line"></div>
-      <div class="step-box">
-        <div class="num">3</div>
-        <h3>Join the room (Device B)</h3>
-        <p>On the receiving device, tap "Receive something" and enter the 6-digit code. Alternatively, scan the QR code or open a share link. The two devices now know about each other.</p>
-      </div>
-      <div class="flow-line"></div>
-      <div class="step-box">
-        <div class="num">4</div>
-        <h3>WebRTC connection established</h3>
-        <p>The browsers negotiate a direct peer-to-peer connection using WebRTC. The signaling server helps them find each other. Data travels directly when possible, with an encrypted relay fallback when needed.</p>
-      </div>
-      <div class="flow-line"></div>
-      <div class="step-box">
-        <div class="num">5</div>
-        <h3>Transfer data</h3>
-        <p>Type text, paste a link, or attach a file. The data is chunked into 64KB pieces, sent over the encrypted DataChannel, and reassembled on the other side. Progress is shown in real time.</p>
-      </div>
-      <div class="flow-line"></div>
-      <div class="step-box">
-        <div class="num">6</div>
-        <h3>Verify and complete</h3>
-        <p>Each file is verified using SHA-256 checksum. If the checksums match, the transfer is confirmed. The receiver can save or download the received content.</p>
-      </div>
-      <div class="flow-line"></div>
-      <div class="step-box">
-        <div class="num">7</div>
-        <h3>Close the room</h3>
-        <p>Live rooms expire unless you enable Stay Connected. Closing a room does not remove files or items already saved on a device. Temporary Spaces store content server-side for 6 hours to 7 days, or until closed early. See the <a href="/privacy">privacy policy</a> for connection metadata.</p>
-      </div>
-    </div>
-
-    <h2>What Happens Technically</h2>
-
-    <h3>Room Creation</h3>
-    <p>When you click "Send something," the frontend calls the signaling server to create a room. The server generates a unique room ID and a TOTP-based pairing code. The room has a limited lifetime and closes automatically if not used.</p>
-
-    <h3>Pairing Code</h3>
-    <p>The 6-digit pairing code is derived from a time-based one-time password (TOTP) algorithm. It rotates periodically for security. The code is displayed on Device A and entered on Device B to prove they're intended partners.</p>
-
-    <h3>WebRTC Connection</h3>
-    <p>WebRTC is a browser technology that enables direct peer-to-peer connections. Here's what happens:</p>
-    <ol>
-      <li><strong>Offer/Answer:</strong> Device A creates a connection offer. The signaling server relays it to Device B. Device B creates an answer.</li>
-      <li><strong>ICE Candidates:</strong> Both devices discover their network addresses (local, public, and relay) and share them through the signaling server.</li>
-      <li><strong>Connection:</strong> The browsers establish a direct connection using the best available path — typically a direct peer-to-peer connection.</li>
-      <li><strong>Encryption:</strong> The connection is encrypted using DTLS (Datagram Transport Layer Security), the same protocol used by secure web browsing.</li>
-    </ol>
-
-    <h3>Data Transfer</h3>
-    <p>Once connected, data flows through a WebRTC DataChannel:</p>
-    <ul>
-      <li>Text messages are sent as structured JSON messages</li>
-      <li>Files are split into 64KB chunks and sent sequentially</li>
-      <li>Each chunk is tracked for progress reporting</li>
-      <li>The receiver reassembles chunks into the original file</li>
-      <li>SHA-256 checksums verify integrity after transfer</li>
-    </ul>
-
-    <h3>Relay Fallback</h3>
-    <p>If a direct peer-to-peer connection isn't possible (e.g., both devices are behind strict firewalls), ShareTexts uses a TURN relay server as a fallback. The data remains encrypted — the relay only forwards encrypted packets and cannot read the content.</p>
-
-    <h2>Encryption Details</h2>
-    <div class="card">
-      <p style="margin-bottom:8px;"><strong>Protocol:</strong> <span class="tech">DTLS-SRTP</span> over WebRTC DataChannel</p>
-      <p style="margin-bottom:8px;"><strong>Scope:</strong> All data between devices is encrypted in transit</p>
-      <p style="margin-bottom:8px;"><strong>Key exchange:</strong> DTLS handshake during connection setup</p>
-      <p style="margin:0;"><strong>Server visibility:</strong> The service sees connection metadata and issues the room secret. This is not zero knowledge; Temporary Space content is stored server-side.</p>
-    </div>
-
-    <h2>File Integrity</h2>
-    <p>Every file transfer includes a SHA-256 checksum verification. The sender computes the checksum before sending. The receiver computes it after receiving. If they match, the file arrived intact. If they don't match, ShareTexts flags the discrepancy.</p>
-
-    <h2>Session Lifecycle</h2>
-    <ul>
-      <li><strong>Room creation:</strong> Temporary, with a limited lifetime</li>
-      <li><strong>Pairing code:</strong> Rotates periodically, expires after a short window</li>
-      <li><strong>Active session:</strong> Exists only while both devices are connected</li>
-      <li><strong>Disconnection:</strong> If one device disconnects, the other can wait for reconnection</li>
-      <li><strong>Closure:</strong> When the tab closes or the session expires, the room is destroyed</li>
-    </ul>
-
-    <h2>Limitations</h2>
-    <ul>
-      <li>Both devices must be online during the transfer</li>
-      <li>ShareTexts connects two devices only (no group transfers)</li>
-      <li>File size is limited by browser memory, not by ShareTexts</li>
-      <li>Some network configurations may require the relay fallback (slightly slower)</li>
-      <li>The pairing code expires — a new code must be generated for reconnection</li>
-    </ul>
-
-    <div style="text-align:center; margin: 40px 0;"><a href="/" class="cta">Try ShareTexts Free →</a></div>
-
-    <section class="related">
-      <h2>Related</h2>
-      <div class="related-links">
-        <a href="/guides/about.html">About ShareTexts</a>
-        <a href="/guides/privacy.html">Privacy &amp; Security</a>
-        <a href="/guides/browser-file-transfer.html">Browser File Transfer</a>
-        <a href="/guides/how-to-transfer-files-between-devices.html">How to Transfer Files</a>
-        <a href="/docs">API Documentation</a>
-        <a href="/guides/troubleshooting.html">Troubleshooting</a>
-      </div>
-    </section>
+    <h1>Choose how to share</h1>
+    <p class="subtitle">Use a live room for a handoff now, a Temporary Space for later, or Hop for your linked devices.</p>
+    <h2>Both devices are ready now</h2>
+<p>Open ShareTexts on each device. Choose <strong>Send</strong> on the first and <strong>Receive</strong> on the other. Enter the current six-digit code, scan the QR code, or open the room link.</p>
+<p>Type a note, paste a link, or attach a file. Keep both tabs open and the devices awake until it finishes. Download the file on the receiving device before closing.</p>
+<h2>Someone will open it later</h2>
+<p><a href="/space/create">Create a Temporary Space</a> with a lifetime from 6 hours to 7 days. Share its eight-character code or link. Members can return to add or copy content without the creator keeping a browser open.</p>
+<p>A space stores content on the server. Anyone with a working invitation can join. Access ends at closure; server deletion runs afterward. Keep copies of anything you need.</p>
+<h2>You share with your own devices regularly</h2>
+<p>Open Hop from the home screen and link your other device. Compare the same four emoji on both screens before approving. Hop can keep encrypted items waiting while a linked device is offline, with a 30-day item lifetime.</p>
+<h2>What happens during a live transfer</h2>
+<p>The connection service introduces the devices. They try a direct browser-to-browser connection. If that route is unavailable, an encrypted relay carries the transfer. A shared Wi-Fi network is not required for code or link pairing.</p>
+<p>The service issues the room secret and could derive its encryption key. Encryption in transit does not mean the service cannot read a live transfer. Read the <a href="/privacy">Privacy Policy</a> before sharing sensitive content.</p>
+<h2>Save is a separate step</h2>
+<p>A received item is not automatically a file in Downloads. Use its download control, or explicitly save it in ShareTexts's Saved Items library. Saved Items stay in that browser and are not a backup across devices.</p>
+    <div class="related"><h2>Keep going</h2><div class="related-links"><a href="/docs">Full documentation</a><a href="/guides">All guides</a><a href="/">Open ShareTexts</a></div></div>
   </article></main>
 
   <footer class="footer-rich">
