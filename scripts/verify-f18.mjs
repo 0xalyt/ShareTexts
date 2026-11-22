@@ -203,14 +203,14 @@ try {
   await pa.screenshot({ path: path.join(OUT, '07-room-rail.png'), fullPage: false });
   await pb.screenshot({ path: path.join(OUT, '08-room-chat.png') });
 
-  // Empty-room starters: the room tells the user what to do instead of
-  // waiting. (Checked on B, which has received nothing yet.)
-  const starters = await pb.evaluate(() => ({
-    hi: !!document.querySelector('[data-testid="chat.suggest.hi"]'),
-    photo: !!document.querySelector('[data-testid="chat.suggest.photo"]'),
-    link: !!document.querySelector('[data-testid="chat.suggest.link"]'),
+  // One writing action: the empty room explains the destination without
+  // repeating the composer with a second set of starter buttons.
+  const emptyRoom = await pb.evaluate(() => ({
+    guide: !!document.querySelector('[data-testid="room-empty"] h2')?.textContent,
+    composer: !!document.querySelector('[data-testid="composer"]'),
+    duplicateActions: document.querySelectorAll('[data-testid="room-empty"] button').length,
   }));
-  out('empty room offers three one-tap starters', starters.hi && starters.photo && starters.link, JSON.stringify(starters));
+  out('empty room explains the destination and leads to the composer', emptyRoom.guide && emptyRoom.composer && emptyRoom.duplicateActions === 0, JSON.stringify(emptyRoom));
 
   // ── The slide has to be DRAGGED: a tap must not disconnect ──────────────
   const slideBox = await pa.locator('[data-testid="end-session"]').boundingBox();

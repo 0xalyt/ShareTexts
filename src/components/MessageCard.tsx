@@ -355,7 +355,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
     );
   }
   return (
-    <span data-testid="msg-state" data-state="sent" className="flex items-center gap-1 text-apple-ink-muted">
+    <span data-testid="msg-state" data-state="sent" className="flex items-center gap-1 text-apple-ink-muted dark:text-white/65">
       <motion.span
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -608,7 +608,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 ? // Code / table shape: monospace + pre + horizontal scroll.
                   // overflow-x keeps columns aligned instead of wrapping and
                   // mangling the table the user pasted. break-words is OFF here.
-                  "font-mono text-[13px] whitespace-pre overflow-x-auto overscroll-x-contain"
+                  "font-sans text-[13px] whitespace-pre overflow-x-auto overscroll-x-contain"
                 : "break-words",
             )}
           >
@@ -656,7 +656,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               </>
             ) : (
               <>
-                <span className="min-w-0 flex-1 text-[12px] font-medium flex flex-wrap items-center gap-x-1 text-apple-ink-muted">
+                <span className="min-w-0 flex-1 text-[12px] font-medium flex flex-wrap items-center gap-x-1 text-apple-ink-muted dark:text-white/65">
                   {isMe ? (
                     // One state word, one bubble: the newest own message carries
                     // the receipt; older ones stay silent unless they failed.

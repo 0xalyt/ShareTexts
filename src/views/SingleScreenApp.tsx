@@ -258,6 +258,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [showQROverlay, setShowQROverlay] = useState(false);
   const reduceMotion = useReducedMotion();
   const [showQRScan, setShowQRScan] = useState(false);
+  const returnToCodeRef = useRef(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   // ACCEPTED BEAT: the server said yes — hold the code capsule green for a
@@ -560,8 +561,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   }, [session.roomId, session.isCreator, session.partnerConnected, session.partnerConnecting, session.connectionType]);
 
   // Focus traps for QR overlays
-  const qrScanTrapRef = useFocusTrap(showQRScan, () => setShowQRScan(false));
+  const qrScanTrapRef = useFocusTrap(showQRScan, () => setShowQRScan(false), () => {
+    if (!returnToCodeRef.current) return null;
+    returnToCodeRef.current = false;
+    return document.querySelector<HTMLInputElement>('[data-testid="receive-screen"] input');
+  });
   const qrDisplayTrapRef = useFocusTrap(showQROverlay, () => setShowQROverlay(false));
+  const returnToCode = () => {
+    returnToCodeRef.current = true;
+    setShowQRScan(false);
+  };
 
   /* --- handlers --- */
   const [retryCount, setRetryCount] = useState(0);
@@ -907,9 +916,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const taskChrome = isTaskScreen ? (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20">
       <div aria-hidden className="h-[52px] w-full bg-gradient-to-b from-apple-canvas via-apple-canvas/80 to-transparent dark:from-night-950 dark:via-night-950/80" />
-      <div className="absolute left-4 top-2 pointer-events-auto sm:left-6 lg:left-8">
+      <div className="absolute start-4 top-2 pointer-events-auto sm:start-6 lg:start-8">
         <GlassCircleButton label={t('cancel')} onClick={cancelTask} testId="task-back">
-          <AlloSymbol name="left" size={20} />
+          <AlloSymbol name="left" size={20} className="rtl:-scale-x-100" />
         </GlassCircleButton>
       </div>
     </div>
@@ -1855,11 +1864,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 <ThisDeviceIcon className="w-4 h-4" />
               </span>
               <span className="text-[13px] font-medium text-apple-ink dark:text-white truncate max-w-[110px]">{session.deviceName}</span>
-              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0 text-apple-ink-muted dark:text-white/30" />
+              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0 text-apple-ink-muted dark:text-white/65" />
               <span className={cn(
                 "relative flex items-center justify-center w-7 h-7 rounded-[8px] shrink-0 transition-colors",
                 session.connectionType === 'disconnected'
-                  ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/30"
+                  ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/65"
                   : session.connectionType === 'connecting'
                     ? "bg-status-warning/10 border border-status-warning/25 text-status-warning"
                     : "bg-status-success/10 border border-status-success/20 text-status-success"
@@ -2267,13 +2276,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </div>
                 }
               >
-                <QRScanner onScan={handleQRScan} onErrorFallback={() => { setShowQRScan(false); }} />
+                <QRScanner onScan={handleQRScan} onErrorFallback={returnToCode} />
               </Suspense>
-              {/* Underlined always, not on hover: a touch screen has no hover,
-                  so the only escape from a dead camera looked like a caption. */}
+              {/* A real recovery action, with the same touch target as Scan. */}
               <button
-                onClick={() => setShowQRScan(false)}
-                className="mt-4 text-[13px] font-medium text-apple-ink-muted underline underline-offset-2 hover:text-apple-ink dark:hover:text-white transition-colors"
+                onClick={returnToCode}
+                className="mt-4 min-h-[44px] px-3 rounded-full text-[13px] font-medium text-apple-ink dark:text-white bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors"
               >
                 {t('qr.scan.typeCode')}
               </button>
@@ -2333,7 +2341,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         open={showSettings}
         editDeviceName={settingsEditName}
         onClose={() => { setShowSettings(false); setSettingsEditName(false); }}
-        onOpenSaved={() => { setShowSettings(false); setSettingsEditName(false); setShowSaved(true); }}
+        onOpenSaved={() => { setSettingsEditName(false); setShowSaved(true); }}
       />
       </Suspense>
       {hopMounted && (

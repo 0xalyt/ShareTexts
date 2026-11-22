@@ -43,6 +43,8 @@ import { useI18n } from '../lib/i18n';
 import { fmtDayHeading, fmtShortDate, fmtTime } from '../lib/format';
 import { applyFormat, type FormatKind } from '../lib/richText';
 
+const SavedItemsOverlay = React.lazy(() => import('../components/SavedItemsOverlay').then(m => ({ default: m.SavedItemsOverlay })));
+
 /** Shortcut hint glyph for tooltips and kbd chips — ⌘ on Apple platforms,
  *  Ctrl everywhere else (the handlers accept either). */
 const modKey = /Mac|iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '⌘' : 'Ctrl';
@@ -115,6 +117,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // The settings overlay — one surface for theme, language, stay connected,
   // and reconnection, on desktop and mobile alike.
   const [showSettings, setShowSettings] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
   const startEditName = () => { setDraftName(session.deviceName); setEditingName(true); };
   const saveName = () => {
     const clean = sanitizeDeviceName(draftName);
@@ -1068,13 +1071,13 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   : t('chat.online')}
             </span>
           </span>
-          <ArrowRightLeft className="hidden sm:block w-3.5 h-3.5 shrink-0 text-apple-ink-muted dark:text-white/30" />
+          <ArrowRightLeft className="hidden sm:block w-3.5 h-3.5 shrink-0 text-apple-ink-muted dark:text-white/65" />
           {/* The status is steady once connected. Only an in-progress
               connection earns motion; a healthy room stays quiet to read. */}
           <span className={cn(
             "relative shrink-0 flex items-center justify-center w-8 h-8 rounded-[12px] transition-colors",
             disconnected
-              ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/30"
+              ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/65"
               : session.connectionType === 'connecting'
                 ? "bg-status-warning/10 border border-status-warning/25 text-status-warning"
                 : "bg-status-success/10 border border-status-success/20 text-status-success"
@@ -1174,11 +1177,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           testId="devices-sheet"
         >
           <div className="flex flex-col">
-              {/* Named, not anonymous: the sheet owns the ✕ and Escape, so the
-                  heading only has to say what this is and that it's safe. */}
               <h2 id="devices-title" className="mb-3 flex items-center gap-2 pr-9 text-[17px] font-medium tracking-[-0.01em] text-apple-ink dark:text-white">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-status-success" aria-hidden />
-                {t('details.secure')}
+                {t('details.aria')}
               </h2>
               {/* The two devices — tap your name to rename; the other device
                   sees the change immediately. */}
@@ -1221,6 +1222,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/65">{t('chat.otherDevice')}</span>
                 </div>
               </div>
+              <PairingMini secret={session.secret} createdAt={session.createdAt} className="mt-4" />
+              <StayConnectedToggle className="mt-3" />
               <div className="mt-3 text-[13px] text-apple-ink-muted dark:text-white/60 leading-relaxed">
                 {session.connectionType === 'relay' ? t('details.relay') :
                   session.connectionType === 'local' ? t('details.local') :
@@ -1253,13 +1256,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   </button>
                 </div>
               )}
-              {/* Stay Connected: flip it here, both devices' badges follow
-                  (server echoes room-wide). Exempts the room from expiry. */}
-              <StayConnectedToggle className="mt-3" />
-              {/* The pairing code lives here, not on screen: it\u2019s only
-                  needed if the other device drops and has to rejoin, so it\u2019s
-                  one tap away instead of always visible. */}
-              <PairingMini secret={session.secret} createdAt={session.createdAt} className="mt-3" />
           </div>
         </OverlaySheet>
       </div>
@@ -1310,7 +1306,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 <span
                   data-testid="banner-rejoin-code"
                   title={t('details.rejoinNote')}
-                  className="hidden sm:flex shrink-0 items-center gap-1.5 font-mono tnum text-[13px] font-medium tracking-widest whitespace-nowrap text-apple-ink dark:text-white bg-status-warning/15 rounded-full px-2.5 py-1"
+                  className="hidden sm:flex shrink-0 items-center gap-1.5 font-sans tnum text-[13px] font-medium tracking-widest whitespace-nowrap text-apple-ink dark:text-white bg-status-warning/15 rounded-full px-2.5 py-1"
                 >
                   <LiveRejoinCode secret={session.secret} createdAt={session.createdAt} />
                 </span>
@@ -1436,38 +1432,14 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   </p>
                 </div>
               ) : (
-                <div className="st-room-start flex flex-col items-start max-w-[520px]" data-motion-enter={entranceMotion}>
-                  <span className="st-room-arrival-art"><SceneEmptyRoom size={88} className="text-apple-ink dark:text-white" /></span>
-                  {session.partnerName && (
-                    <p className="text-[18px] font-normal tracking-[-0.01em] text-apple-ink dark:text-white mt-4 max-w-[380px] leading-snug">
-                      {t('chat.empty.dest', { name: session.partnerName })}
-                    </p>
-                  )}
-                  <p className="text-[13px] text-apple-ink-muted dark:text-white/60 max-w-[360px] leading-relaxed mt-1.5">
+                <div className="st-room-start" data-motion-enter={entranceMotion} data-testid="room-empty">
+                  <span className="st-room-arrival-art" aria-hidden><SceneEmptyRoom size={64} className="text-apple-ink dark:text-white" /></span>
+                  <h2>
+                    {isMultiRoom ? t('chat.empty.title') : t('chat.empty.dest', { name: session.partnerName || t('chat.pairedDevice') })}
+                  </h2>
+                  <p>
                     {t('chat.empty.body')}
                   </p>
-                  {/* The same three starters, with explicit hit areas. Each does exactly
-                      what it says: the greeting is TYPED for them to edit
-                      (never auto-sent), the photo starter opens the picker,
-                      the link starter puts the caret in the field. */}
-                  <div className="st-room-starters">
-                    {([
-                      { key: 'chat.suggest.hi', run: () => { setInputText(t('chat.suggest.hi')); requestAnimationFrame(() => textareaRef.current?.focus()); } },
-                      { key: 'chat.suggest.photo', run: () => imageInputRef.current?.click() },
-                      { key: 'chat.suggest.link', run: () => textareaRef.current?.focus() },
-                    ] as const).map(s => (
-                      <button
-                        key={s.key}
-                        type="button"
-                        data-testid={s.key}
-                        onClick={s.run}
-                        className="st-tap"
-                      >
-                        {s.key === 'chat.suggest.hi' ? <Pencil className="h-3.5 w-3.5" aria-hidden /> : s.key === 'chat.suggest.photo' ? <Plus className="h-3.5 w-3.5" aria-hidden /> : <Link2 className="h-3.5 w-3.5" aria-hidden />}
-                        {t(s.key)}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
             </div>
@@ -1496,7 +1468,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     <React.Fragment key={msg.id}>
                       {showSep && (
                         <div aria-hidden="true" className="flex justify-center mt-4 mb-1">
-                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-medium tracking-wide text-apple-ink-muted dark:text-white/65">
+                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-medium tracking-wide text-apple-ink-muted dark:text-white/60">
                             {sepLabel}
                           </span>
                         </div>
@@ -1793,7 +1765,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     {([
                       ['bold', t('edit.bold'), <span key="b" className="text-[16px] font-bold leading-none">B</span>, [modKey, 'B']],
                       ['italic', t('edit.italic'), <span key="i" className="text-[16px] font-medium italic leading-none">I</span>, [modKey, 'I']],
-                      ['code', t('edit.code'), <span key="c" className="font-mono text-[12px] leading-none">{'</>'}</span>, [modKey, 'E']],
+                      ['code', t('edit.code'), <span key="c" className="font-sans text-[12px] leading-none">{'</>'}</span>, [modKey, 'E']],
                       ['list', t('edit.list'), <span key="l" className="text-[16px] leading-none">≡</span>, [modKey, '⇧', 'L']],
                     ] as const).map(([kind, label, glyph, keys]) => (
                       <Tooltip key={kind} label={label} keys={[...keys]}>
@@ -1883,7 +1855,12 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         </form>
       </div>
       {/* Settings — theme, language, stay connected, reconnection. */}
-      <SettingsOverlay open={showSettings} onClose={() => setShowSettings(false)} />
+      {/* Keep the parent sheet mounted so Saved can return focus to its
+          opener, just like Settings' other nested sheets. */}
+      <SettingsOverlay open={showSettings} onClose={() => setShowSettings(false)} onOpenSaved={() => setShowSaved(true)} />
+      <React.Suspense fallback={null}>
+        <SavedItemsOverlay open={showSaved} onClose={() => setShowSaved(false)} />
+      </React.Suspense>
       {/* Apple-style bottom-sheet confirmation before really ending the session. */}
       <ConfirmSheet
         open={confirmDisconnect}
