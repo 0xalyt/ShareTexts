@@ -49,12 +49,13 @@ function Fixture() {
   const [menu, setMenu] = useState(false);
   const [selected, setSelected] = useState('');
   const [surface, setSurface] = useState(false);
+  const [slowSurface, setSlowSurface] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const trigger = useRef(null);
   const feed = useRef(null);
   const resolve = useRef(null);
-  window.contracts = { setNumber, setProgress, setComplete, setConnected, setSurface,
+  window.contracts = { setNumber, setProgress, setComplete, setConnected, setSurface, setSlowSurface,
     pickerToSheet() { setPickerOpen(false); setOpen(true); },
     async seedSavedImage() {
       const blob = await (await fetch('/icon-192.png')).blob();
@@ -69,7 +70,7 @@ function Fixture() {
       <button id="picker-open" onClick={() => setPickerOpen(true)}>Open recipients</button>
       <AnimatePresence>{pickerOpen && <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}><DevicePicker peers={[{ id: 'phone', name: 'Phone', platform: 'phone', link: 'connected' }]} selected={[]} onToggle={() => {}} onSelectAll={() => {}} onClear={() => {}} onClose={() => setPickerOpen(false)} /></motion.div>}</AnimatePresence>
       <SavedItemsOverlay open={savedOpen} onClose={() => setSavedOpen(false)} />
-      <AnimatePresence>{surface && <MotionSurface id="surface" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 14 }} transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}><button id="surface-close" onClick={() => setSurface(false)}>Close surface</button></MotionSurface>}</AnimatePresence>
+      <AnimatePresence>{surface && <MotionSurface id="surface" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 14 }} transition={slowSurface ? { type: 'tween', duration: 10, ease: 'linear' } : { type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}><button id="surface-close" onClick={() => setSurface(false)}>Close surface</button></MotionSurface>}</AnimatePresence>
       <span id="ticker"><NumberTicker value={number} /></span>
       <MorphButton label="Copy" doneLabel="Copied" loadingLabel="Copying" data-testid="morph"
         onPress={() => { setCalls(n => n + 1); return new Promise(done => { resolve.current = done; }); }} />
@@ -165,12 +166,31 @@ try {
         assert.equal(await surface.evaluate(el => el.getAnimations().length), 0);
         await page.locator('#surface-close').click();
         await surface.waitFor({ state: 'detached' });
+        // A ten-second entrance cannot finish naturally during this check.
+        // Sample two painted frames after the actual media-change event,
+        // not after a polling window that also permits normal completion.
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await page.evaluate(() => window.contracts.setSlowSurface(true));
         await page.locator('#surface-open').click();
         await surface.waitFor();
+        assert.ok(Number(await surface.evaluate(el => getComputedStyle(el).opacity)) < 0.5, 'Slow entrance already finished before preference changed');
+        await page.evaluate(() => {
+          window.preferenceFrame = new Promise(resolve => {
+            matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => {
+              requestAnimationFrame(() => requestAnimationFrame(() => {
+                const style = getComputedStyle(document.getElementById('surface'));
+                resolve({ opacity: style.opacity, transform: style.transform });
+              }));
+            }, { once: true });
+          });
+        });
         await page.emulateMedia({ reducedMotion: 'reduce' });
-        await until(() => surface.evaluate(el => getComputedStyle(el).opacity), opacity => opacity === '1', 'Mounted surface ignored live reduced motion');
+        const preferenceFrame = await page.evaluate(() => window.preferenceFrame);
+        assert.equal(preferenceFrame.opacity, '1', `Live reduced motion did not settle active entrance within two frames: ${JSON.stringify(preferenceFrame)}`);
+        assert.ok(['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(preferenceFrame.transform), 'Live reduced motion retained entrance travel');
         await page.locator('#surface-close').click();
         await until(() => surface.count(), count => count === 0, 'Quiet surface retained an exit delay');
+        await page.evaluate(() => window.contracts.setSlowSurface(false));
         await page.emulateMedia({ reducedMotion });
         await page.locator('#surface-open').click();
         await surface.waitFor();
