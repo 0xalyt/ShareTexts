@@ -9,7 +9,10 @@ const health = async () => {
 };
 if (process.argv.includes('--restart')) {
   const pid = Number(readFileSync('audit/worker.pid', 'utf8'));
-  process.kill(-pid, 'SIGTERM');
+  try { process.kill(-pid, 'SIGTERM'); }
+  catch (error) {
+    if (error.code !== 'ESRCH') throw error;
+  }
   for (let i = 0; i < 30 && await health(); i++) await delay(1000);
   if (await health()) throw new Error('Previous CI Worker did not stop');
 }
