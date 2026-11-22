@@ -965,6 +965,66 @@ async function runSpace() {
   void SPACE_TTL_CAP;
 }
 
+async function runSpaceHibernation() {
+  const ctx = new FakeCtx();
+  const registry = new Registry(new FakeCtx(), {});
+  const env = { REGISTRY: { idFromName: name => name, get: () => ({ fetch: request => registry.fetch(request) }) } };
+  let space = new Space(ctx, env);
+  const sid = uuid();
+  const request = (path, method, credential, body) => space.fetch(new Request(`https://internal/space/${sid}${path}`, {
+    method,
+    headers: { 'content-type': 'application/json', 'x-device-key': 'creator', ...(credential ? { authorization: `Bearer ${credential}` } : {}) },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  }));
+  const { token, manageKey } = await (await request('/create', 'POST', null, { durationMs: 6 * 3600_000 })).json();
+  const open = async (name, authorized = true) => {
+    await space.fetch(new Request(`https://internal/space-ws?space=${sid}`, { headers: { Upgrade: 'websocket' } }));
+    const { client, server } = lastPair;
+    const frames = [];
+    client.onmessage = event => frames.push(JSON.parse(event.data));
+    if (authorized) await space.webSocketMessage(server, JSON.stringify({ v: 1, event: 'join_space', payload: { token, name, deviceKey: name } }));
+    return { client, server, frames };
+  };
+  const a = await open('creator');
+  const b = await open('joiner');
+  const unauthorized = await open('unauthorized', false);
+  const legacy = await open('legacy', false);
+  legacy.server.serializeAttachment(null);
+  const both = (event, predicate = () => true) => [a, b].every(peer => peer.frames.some(frame => frame.event === event && predicate(frame.payload)));
+  check('Space sockets authorize and receive initial sync', both('space_sync'));
+  const immediate = await (await request('/items/text', 'POST', token, { text: 'before hibernation' })).json();
+  check('Space broadcasts before hibernation', both('item_added', payload => payload.item.id === immediate.item.id));
+
+  space = new Space(ctx, env);
+  const added = await request('/items/text', 'POST', token, { text: 'after hibernation' });
+  const { item } = await added.json();
+  check('Space REST wake persists the item', added.status === 200);
+  check('Space REST wake broadcasts item_added to both original sockets', both('item_added', payload => payload.item.id === item.id));
+  check('Space wake never authorizes an unjoined socket', unauthorized.frames.length === 0);
+  check('Space legacy socket is asked to reauthorize without receiving content', legacy.frames.length === 1 && legacy.frames[0].event === 'space_auth_failed');
+  check('Space socket attachments contain no raw credential', [a, b].every(peer => !JSON.stringify(peer.server.deserializeAttachment()).includes(token)));
+
+  space = new Space(ctx, env);
+  await space.webSocketMessage(b.server, JSON.stringify({ v: 1, event: 'heartbeat' }));
+  check('Space WebSocket wake retains authorization without join_space', b.frames.some(frame => frame.event === 'heartbeat_ack'));
+  await space.webSocketMessage(legacy.server, JSON.stringify({ v: 1, event: 'join_space', payload: { token, deviceKey: 'legacy' } }));
+  check('Space legacy socket can reauthorize on the same transport', legacy.frames.some(frame => frame.event === 'space_sync'));
+  space = new Space(ctx, env);
+  const deleted = await request('/items/' + item.id, 'DELETE', manageKey);
+  check('Space REST wake broadcasts item_deleted', deleted.status === 200 && both('item_deleted', payload => payload.itemId === item.id));
+
+  await space.webSocketMessage(b.server, JSON.stringify({ v: 1, event: 'join_space', payload: { token: 'wrong' } }));
+  check('Space invalid reauthorization closes the socket', b.client.closedCode === 4001);
+  space = new Space(ctx, env);
+  const last = await (await request('/items/text', 'POST', token, { text: 'only authorized sockets' })).json();
+  check('Space wake excludes rejected and unjoined sockets', a.frames.some(frame => frame.event === 'item_added' && frame.payload.item.id === last.item.id)
+    && !b.frames.some(frame => frame.event === 'item_added' && frame.payload.item.id === last.item.id) && unauthorized.frames.length === 0);
+
+  space = new Space(ctx, env);
+  await request('/close', 'POST', manageKey, {});
+  check('Space close after wake broadcasts and closes surviving sockets', a.frames.some(frame => frame.event === 'space_closed') && a.client.closedCode === 1000 && unauthorized.client.closedCode === 1000);
+}
+
 async function runCorsPreflight() {
   const clients = [
     ['space', '/space/example/join', 'POST', ['content-type', 'authorization', 'x-device-key', 'x-device-name']],
@@ -1029,6 +1089,7 @@ await runConnectionReclaims();
 await runRegistry();
 await runMetrics();
 await runSpace();
+await runSpaceHibernation();
 
 rmSync(tmp, { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);
