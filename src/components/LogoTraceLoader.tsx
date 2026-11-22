@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { useReducedMotion } from 'motion/react';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { cn } from '../lib/utils';
 
 /**
@@ -116,7 +116,7 @@ export function LogoTraceLoader({
   ariaLabel,
   onDone,
 }: LogoTraceLoaderProps) {
-  const reduce = useReducedMotion();
+  const reduce = useMotionPreference();
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [phase, setPhase] = useState<LoaderPhase>('loop');
   const announced = useRef(false);

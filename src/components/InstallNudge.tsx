@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { MotionSurface } from './ui/MotionSurface';
+import { DUR, SPRING } from '../lib/motion/tokens';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { X, Share2, Download } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
@@ -66,7 +69,7 @@ const SELF_RETIRE_MS = 26_000;
  */
 export function InstallNudge() {
   const { t } = useI18n();
-  const reduced = useReducedMotion();
+  const reduced = useMotionPreference();
   const [visible, setVisible] = useState(false);
   const [manual, setManual] = useState(false);
   const shownRef = useRef(false);
@@ -165,13 +168,13 @@ export function InstallNudge() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <MotionSurface
           role="status"
           data-testid="install-nudge"
           initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
           animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
           exit={reduced ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
           className={cn(
             'fixed z-[80] flex items-start gap-3 rounded-[16px] border border-black/[0.08] bg-white p-3.5 pr-2.5',
             'shadow-[0_16px_44px_-16px_rgba(20,16,10,0.35)]',
@@ -202,7 +205,7 @@ export function InstallNudge() {
                   the instruction in the body IS the action. A fake button
                   would be worse than none. */}
               {manual ? (
-                <span className="inline-flex min-h-[36px] items-center gap-1.5 text-[12px] font-semibold text-ember dark:text-azure-400">
+                <span className="inline-flex min-h-[44px] items-center gap-1.5 text-[12px] font-semibold text-ember dark:text-azure-400">
                   <Share2 className="h-3.5 w-3.5" aria-hidden />
                   Share › Add to Home Screen
                 </span>
@@ -215,7 +218,7 @@ export function InstallNudge() {
                     if (!shown) silenceInstall(true);
                     setVisible(false);
                   }}
-                  className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-ember px-3.5 text-[12px] font-semibold text-white transition-transform active:scale-[0.96]"
+                  className="inline-flex min-h-[44px] min-w-[44px] items-center gap-1.5 rounded-full bg-ember px-3.5 text-[12px] font-semibold text-white transition-transform active:scale-[0.96]"
                 >
                   <Download className="h-3.5 w-3.5" aria-hidden />
                   {t('install.cta')}
@@ -225,7 +228,7 @@ export function InstallNudge() {
                 type="button"
                 data-testid="install-snooze"
                 onClick={() => close(false)}
-                className="inline-flex min-h-[36px] items-center px-2 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/45 dark:hover:text-white"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/45 dark:hover:text-white"
               >
                 {t('install.later')}
               </button>
@@ -233,7 +236,7 @@ export function InstallNudge() {
                 type="button"
                 data-testid="install-never"
                 onClick={() => close(true)}
-                className="inline-flex min-h-[36px] items-center px-1.5 text-[12px] font-medium text-apple-ink-muted/70 transition-colors hover:text-apple-ink dark:text-white/30 dark:hover:text-white/70"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 text-[12px] font-medium text-apple-ink-muted/70 transition-colors hover:text-apple-ink dark:text-white/30 dark:hover:text-white/70"
               >
                 {t('install.never')}
               </button>
@@ -248,7 +251,7 @@ export function InstallNudge() {
           >
             <X className="h-3.5 w-3.5" aria-hidden />
           </button>
-        </motion.div>
+        </MotionSurface>
       )}
     </AnimatePresence>
   );

@@ -67,7 +67,7 @@ function DisconnectToast({ reason, onDone }: { reason: string, onDone: () => voi
       <button
         onClick={onDone}
         aria-label={t('details.close')}
-        className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:text-apple-ink dark:text-white/40 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+        className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:text-apple-ink dark:text-white/40 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
       >
         <X className="w-3.5 h-3.5" />
       </button>

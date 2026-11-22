@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence, useIsPresent } from 'motion/react';
 import {
   Smartphone, Monitor, Tablet, Search, Check, Users, CircleDashed,
   CircleSlash, RefreshCw, X,
@@ -95,8 +95,11 @@ export function DevicePicker({
   // Outside pointer press dismisses the popover — the picker is an overlay
   // of the composer, not a destination of its own.
   const rootRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!onClose) return;
+  const isPresent = useIsPresent();
+  // Exit pixels may linger, but their global input handlers must not.
+  // Release capture before another sheet can claim keyboard/focus ownership.
+  useLayoutEffect(() => {
+    if (!onClose || !isPresent) return;
     const onPointer = (e: PointerEvent) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) onClose();
     };
@@ -109,7 +112,7 @@ export function DevicePicker({
       document.removeEventListener('pointerdown', onPointer, true);
       window.removeEventListener('keydown', onKey, true);
     };
-  }, [onClose]);
+  }, [onClose, isPresent]);
   const others = useMemo(() => peers.filter(p => !p.isSelf), [peers]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -153,7 +156,7 @@ export function DevicePicker({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1.5 text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
+            className="rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
             aria-label={t('common.close')}
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -253,7 +256,7 @@ export function DevicePicker({
           <button
             type="button"
             onClick={onSelectAll}
-            className="rounded-full px-3 py-1.5 text-xs font-medium text-[--ember] hover:bg-[--ember]/10"
+            className="min-h-[44px] min-w-[44px] rounded-full px-3 py-1.5 text-xs font-medium text-[--ember] hover:bg-[--ember]/10"
           >
             {t('picker.selectAll', { count: String(selectable.length) })}
           </button>
@@ -261,7 +264,7 @@ export function DevicePicker({
             <button
               type="button"
               onClick={onClear}
-              className="rounded-full px-3 py-1.5 text-xs font-medium text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
+              className="min-h-[44px] min-w-[44px] rounded-full px-3 py-1.5 text-xs font-medium text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/8"
             >
               {t('picker.clear')}
             </button>
@@ -294,7 +297,7 @@ export function RecipientSummary({
       <button
         type="button"
         onClick={onOpen}
-        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 -my-2 min-h-[40px] text-xs font-medium text-neutral-700 transition-colors hover:bg-white dark:border-white/12 dark:bg-white/8 dark:text-neutral-200 dark:hover:bg-white/12"
+        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 -my-2 min-h-[44px] min-w-[44px] text-xs font-medium text-neutral-700 transition-colors hover:bg-white dark:border-white/12 dark:bg-white/8 dark:text-neutral-200 dark:hover:bg-white/12"
       >
         <Users className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
         {selected.length === 0
@@ -316,7 +319,7 @@ export function RecipientSummary({
             <button
               type="button"
               onClick={() => onRemove(id)}
-              className="rounded-full p-1.5 -m-1 hover:bg-black/10 dark:hover:bg-white/15"
+              className="rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center -my-1 hover:bg-black/10 dark:hover:bg-white/15"
               aria-label={t('picker.remove', { name: nameOf(id) })}
             >
               <X className="h-3 w-3" aria-hidden="true" />
@@ -328,7 +331,7 @@ export function RecipientSummary({
         <button
           type="button"
           onClick={onOpen}
-          className="rounded-full bg-[--ember]/12 px-3 -my-2 min-h-[40px] text-xs font-medium text-[--ember] dark:bg-[--ember]/20"
+          className="rounded-full bg-[--ember]/12 px-3 -my-2 min-h-[44px] min-w-[44px] text-xs font-medium text-[--ember] dark:bg-[--ember]/20"
         >
           {t('composer.moreDevices', { count: String(rest) })}
         </button>

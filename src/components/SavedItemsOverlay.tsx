@@ -15,7 +15,8 @@
  * blobs get object URLs that are revoked when their view unmounts.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { MotionSurface } from './ui/MotionSurface';
 import {
   X, Search, Trash2, Copy, Check, Download, ExternalLink,
   Bookmark, FileText, Link as Link2, ChevronDown, ChevronUp,
@@ -25,6 +26,7 @@ import { useI18n } from '../lib/i18n';
 import { fmtDateTime } from '../lib/format';
 import type { I18nApi } from '../lib/i18n';
 import { useScrollFade } from '../lib/useScrollFade';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import { DUR } from '../lib/motion/tokens';
 import { Sheet } from './ui/Sheet';
 import { StatePanel, StateSkeletonRow } from './ui/StatePanel';
@@ -83,27 +85,28 @@ function triggerDownload(item: SavedItem): void {
 
 /* ----------------------------- image viewer ------------------------------ */
 
-function SavedImageViewer({ item, onClose }: { item: SavedItem; onClose: () => void }) {
+function SavedImageViewer({ item, onClose, focusRef }: {
+  item: SavedItem;
+  onClose: () => void;
+  focusRef: React.RefObject<HTMLDivElement | null>;
+}) {
   const { t } = useI18n();
   const url = useBlobUrl(item.blob);
-  const closeRef = React.useRef<HTMLButtonElement>(null);
 
   // Same contract as the chat's ImageViewer: while a photo owns the screen,
   // the app's Escape handler must not fire its own layer (disconnect confirm).
   useEffect(() => {
     const w = window as Window & { __stImageViewerOpen?: boolean };
     w.__stImageViewerOpen = true;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } };
-    window.addEventListener('keydown', onKey);
     return () => {
       w.__stImageViewerOpen = false;
-      window.removeEventListener('keydown', onKey);
     };
-  }, [onClose]);
+  }, []);
 
   return (
-    <motion.div
+    <MotionSurface
+      ref={focusRef}
+      tabIndex={-1}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -129,16 +132,15 @@ function SavedImageViewer({ item, onClose }: { item: SavedItem; onClose: () => v
       <div className="mt-3 flex items-center gap-3 max-w-full">
         <span className="text-[13px] text-white/70 truncate">{item.filename || ''}</span>
         <button
-          ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label={t('common.close')}
-          className="shrink-0 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+          className="shrink-0 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
-    </motion.div>
+    </MotionSurface>
   );
 }
 
@@ -220,9 +222,7 @@ function RowAction({
   return (
     <button type="button" onClick={onClick} className={cls} data-testid={testId} title={label} aria-label={label}>
       {icon}
-      {/* Label swaps in place (Copy → Copied). FitWidth springs the button to
-          the new label's width so the action row beside it reflows *with* the
-          animation instead of one frame after it — the container never snaps. */}
+      {/* Frequent action labels update immediately without a width tween. */}
       <FitWidth><span>{label}</span></FitWidth>
     </button>
   );
@@ -286,12 +286,7 @@ function SavedRow({
   const longText = item.kind === 'text' && (item.text?.length ?? 0) > 240;
 
   return (
-    <motion.li
-      layout
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.18, ease: 'easeOut' } }}
-      transition={{ type: 'spring', stiffness: 480, damping: 36 }}
+    <li
       className="st-card rounded-[16px] p-3 flex gap-3"
       data-testid="saved-row"
       data-kind={item.kind}
@@ -336,7 +331,7 @@ function SavedRow({
                 type="button"
                 aria-expanded={expanded}
                 onClick={() => setExpanded((v) => !v)}
-                className="mt-1 flex items-center gap-1 text-[13px] font-semibold text-apple-blue active:opacity-70"
+                className="mt-1 flex min-h-[44px] min-w-[44px] items-center gap-1 text-[13px] font-semibold text-apple-blue active:opacity-70"
               >
                 {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 {expanded ? t('msg.collapse') : t('msg.showFull')}
@@ -411,7 +406,7 @@ function SavedRow({
           />
         </div>
       </div>
-    </motion.li>
+    </li>
   );
 }
 
@@ -430,6 +425,9 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [viewing, setViewing] = useState<SavedItem | null>(null);
+  // Keep the trap in this mounted owner so closing the animated viewer
+  // releases Escape immediately and restores View even with zero-duration exit.
+  const viewerTrap = useFocusTrap(open && viewing !== null, () => setViewing(null));
 
   const items = snapshot.items;
 
@@ -548,23 +546,17 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
           </p>
         )}
         <ul className="px-4 flex flex-col gap-2.5 list-none">
-          {/* popLayout: a filtered-out row is pulled from flow the instant it
-              starts leaving, so the rows beneath glide up *with* its exit
-              instead of jumping the moment it unmounts. propagate: closing the
-              whole sheet also animates the rows out with their sheet, rather
-              than the sheet sliding down over rows that vanish pre-frame. */}
-          <AnimatePresence mode="popLayout" propagate>
+          {/* Reading and search results update in place, not as an entrance. */}
             {shown.map((item) => (
               <SavedRow key={item.id} item={item} onRemove={handleRemove} onView={setViewing} setError={setActionError} />
             ))}
-          </AnimatePresence>
         </ul>
         {filtered.length > limit && (
           <div className="flex justify-center pt-3 pb-1">
             <button
               type="button"
               onClick={() => setLimit((n) => n + 60)}
-              className="px-4 min-h-[40px] rounded-full bg-black/[0.045] dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white"
+              className="px-4 min-h-[44px] min-w-[44px] rounded-full bg-black/[0.045] dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white"
               data-testid="saved-show-more"
             >
               {t('saved.showMore')}
@@ -611,7 +603,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
             onClick={onClose}
             aria-label={t('common.close')}
             data-testid="saved-close"
-            className="shrink-0 -mt-1 -mr-1 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+            className="shrink-0 -mt-1 -mr-1 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -633,7 +625,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
               type="button"
               onClick={() => setConfirmClear(true)}
               disabled={clearing}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[40px] rounded-full text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[44px] min-w-[44px] rounded-full text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
               data-testid="saved-clear"
             >
               <Trash2 className="w-3.5 h-3.5" aria-hidden />
@@ -656,7 +648,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
 
       {/* Full-screen photo view, only while one is open. */}
       <AnimatePresence>
-        {open && viewing && <SavedImageViewer item={viewing} onClose={() => setViewing(null)} />}
+        {open && viewing && <SavedImageViewer item={viewing} focusRef={viewerTrap} onClose={() => setViewing(null)} />}
       </AnimatePresence>
     </>
   );

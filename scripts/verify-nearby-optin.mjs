@@ -44,7 +44,7 @@ try {
         if (typeof payload !== 'string') return;
         try {
           const message = JSON.parse(payload.replace(/^42\d*/, ''));
-          if (Array.isArray(message) ? message[0] === 'presence_list' : message.event === 'presence_list' || message.type === 'ack') received[index].push(message);
+          if (Array.isArray(message) ? message[0] === 'presence_list' : message.event === 'presence_list' || message.type === 'ack') received[index].push(Array.isArray(message) ? message[0] : message.event || message.type);
         } catch { /* transport heartbeat */ }
       });
     });
@@ -98,6 +98,16 @@ try {
   assert.equal(count(1, 'presence_announce'), 3, 'expiry must not announce again');
   assert.deepEqual(errors, []);
   console.log('PASS Nearby expiry: elapsed deadline withdraws and stays hidden; no page errors');
+  await b.clock.setFixedTime(Date.now());
+  await b.getByTestId('nearby-visibility-toggle').click();
+  await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).waitFor({ state: 'visible', timeout: 10_000 });
+  await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).click();
+  await b.getByTestId('nearby-detect-primary').click();
+  for (const page of [a, b]) {
+    await page.getByTestId('nearby-sheet').waitFor({ state: 'hidden', timeout: 10_000 });
+    assert.equal(await page.locator('#main-content').evaluate(el => el.closest('[inert]') === null), true, 'pairing must release the discovery sheet input lock');
+  }
+  console.log('PASS Nearby accepted handoff: both discovery sheets close and release input before the room takes over');
 } finally {
   console.log(`Nearby sent events: ${JSON.stringify(sent)}`);
   console.log(`Nearby received: ${JSON.stringify(received)}`);

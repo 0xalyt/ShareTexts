@@ -52,7 +52,7 @@ export function PresenceDock({ entries, title, subtitle, className }: PresenceDo
             key={entry.id}
             title={entry.label}
             className={cn(
-              'relative flex items-center justify-center w-9 h-9 rounded-[12px] border',
+              'relative flex items-center justify-center w-11 h-11 rounded-[12px] border',
               'bg-white dark:bg-apple-tile-2 border-apple-divider dark:border-white/10',
               'text-apple-ink-muted dark:text-white/70',
               entry.isSelf && 'text-ember dark:text-azure-400 border-ember/25 dark:border-azure-400/25',

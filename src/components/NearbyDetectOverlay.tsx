@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { EASE } from '../lib/motion/tokens';
+import { DUR, SPRING, STAGGER_STEP } from '../lib/motion/tokens';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { MotionSurface } from './ui/MotionSurface';
 import { Search, X, Infinity as InfinityIcon } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { useFocusTrap } from '../lib/useFocusTrap';
@@ -85,8 +86,7 @@ function BroadcastGlyph({ className }: { className?: string }) {
   );
 }
 
-/** One device floating on a ring: bubble + name label, spring entrance,
- *  gentle bob. The target pops louder than the bystanders. */
+/** The discovered identity arrives once, then stays still for reading. */
 function RadarBubble({ device, slot, index, target, stayBadge }: {
   key?: React.Key;
   device: DetectOverlayDevice;
@@ -97,19 +97,15 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
 }) {
   const { t } = useI18n();
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: EASE.out, delay: 0.12 + index * 0.11 }}
+    <MotionSurface
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+      transition={{ duration: DUR.short / 1000, delay: index * STAGGER_STEP / 1000 }}
       className="absolute flex flex-col items-center gap-1.5"
       style={{ left: slot.left, top: slot.top, transform: 'translate(-50%, -50%)' }}
     >
-      {/* The bob — slow, tiny, staggered per bubble so the field breathes
-          instead of pulsing in unison (MotionConfig flattens it for
-          reduced-motion users). */}
-      <motion.div
-        animate={{ y: [0, -5, 0] }}
-        transition={{ duration: 3.6 + index * 0.4, repeat: Infinity, ease: 'easeInOut', delay: index * 0.5 }}
+      {/* No idle bob: these are real devices, not ongoing scan progress. */}
+      <div
+
         className={cn(
           'rounded-full flex items-center justify-center border',
           target
@@ -118,7 +114,7 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
         )}
       >
         <DeviceArt kind={device.kind} model={device.model} gpu={device.gpu} size={target ? 56 : 42} mark={target} />
-      </motion.div>
+      </div>
       <span className={cn(
         'max-w-[120px] truncate px-2 py-0.5 rounded-full leading-tight',
         'bg-white/70 dark:bg-black/40 border border-black/[0.05] dark:border-white/10',
@@ -133,7 +129,7 @@ function RadarBubble({ device, slot, index, target, stayBadge }: {
           </span>
         )}
       </span>
-    </motion.div>
+    </MotionSurface>
   );
 }
 
@@ -199,13 +195,12 @@ export function NearbyDetectOverlay({
   return createPortal(
     <AnimatePresence>
       {open && shown && (
-        <motion.div
+        <MotionSurface
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: DUR.short / 1000 }}
           key="nearby-detect"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.22 }}
-          className="fixed inset-0 z-[90] cursor-default"
+
+          className="st-discovery fixed inset-0 z-[90] cursor-default"
           role="dialog"
           aria-modal="true"
           aria-label={mode === 'incoming' ? t('nearby.inviteTitle', { name: shown.name }) : t('nearby.overlay.title')}
@@ -215,7 +210,6 @@ export function NearbyDetectOverlay({
               Warm cream lit from the core in light, deep graphite at
               night; the ember ambience at center ties it to the brand. */}
           <div className="absolute inset-0 bg-[radial-gradient(125%_95%_at_50%_16%,#fffaf3_0%,#fdeee0_48%,#f6e2ce_100%)] dark:bg-[radial-gradient(125%_95%_at_50%_16%,#201f26_0%,#16151a_55%,#0f0f13_100%)]" />
-          <div className="absolute inset-0 st-ambient pointer-events-none" />
 
           {/* ── THE RADAR — decorative, so aria-hidden. Sized as one square
               box, centered on the UPPER portion of the viewport so the
@@ -227,20 +221,16 @@ export function NearbyDetectOverlay({
               <span className="absolute inset-[9%] rounded-full border border-ember/20 dark:border-azure-400/20" />
               <span className="absolute inset-[19%] rounded-full border border-ember/[0.14] dark:border-azure-400/[0.14]" />
               <span className="absolute inset-[33%] rounded-full border border-ember/[0.09] dark:border-azure-400/[0.09]" />
-              {/* Two ping rings, one staggered pair on a 3s cycle: exactly
-                  one wave is always mid-flight — the calm radar read. */}
-              <span className="absolute inset-[9%] rounded-full border border-ember/40 dark:border-azure-400/40 st-radar-ping" />
-              <span className="absolute inset-[9%] rounded-full border border-ember/40 dark:border-azure-400/40 st-radar-ping [animation-delay:1.5s]" />
+              {/* One finite discovery wave; static rings keep the spatial context. */}
+              <span className="absolute inset-[9%] rounded-full border border-ember/40 dark:border-azure-400/40 st-discovery-wave" />
               {/* Core glow + the broadcast glyph. */}
               <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-ember/10 dark:bg-azure-400/10 blur-xl" />
-              <motion.span
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.26, ease: EASE.out }}
+              <span
+
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
               >
                 <BroadcastGlyph className="w-12 h-12 text-ember dark:text-azure-400 drop-shadow-[0_2px_10px_rgba(240,100,19,0.35)]" />
-              </motion.span>
+              </span>
               {/* The discovered device(s). The target takes slot 0. */}
               <RadarBubble device={shown} slot={BUBBLE_SLOTS[0]} index={0} target stayBadge={stayBadge} />
               {others.slice(0, 3).map((d, i) => (
@@ -252,12 +242,13 @@ export function NearbyDetectOverlay({
           {/* ── THE CARD — frosted glass, docked at the bottom on mobile
               (thumb reach), centered on ≥sm. */}
           <div className="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-center sm:justify-center sm:p-6">
-            <motion.div
+            <MotionSurface
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
               ref={trapRef}
-              initial={{ y: 60, opacity: 0, scale: 0.98 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 40, opacity: 0, scale: 0.98, transition: { duration: 0.18, ease: 'easeIn' } }}
-              transition={{ type: 'spring', stiffness: 340, damping: 32 }}
+
               className="w-full sm:max-w-[400px]"
               data-testid="nearby-detect-overlay"
             >
@@ -270,7 +261,7 @@ export function NearbyDetectOverlay({
                   type="button"
                   onClick={onCancel}
                   aria-label={t('nearby.overlay.cancel')}
-                  className="absolute top-3 right-3 z-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                  className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -280,51 +271,41 @@ export function NearbyDetectOverlay({
                       card's left column. pr-9 reserves the top-right corner
                       so the absolute ✕ never lands on the device art. */}
                   <div className="flex items-center gap-3.5 pr-9">
-                    <motion.span
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.24, ease: EASE.out, delay: 0.05 }}
+                    <span
+
                       className="shrink-0 w-12 h-12 rounded-[16px] flex items-center justify-center bg-ember/10 dark:bg-azure-400/12 border border-ember/20 dark:border-azure-400/20"
                       aria-hidden
                     >
                       <BroadcastGlyph className="w-7 h-7 text-ember dark:text-azure-400" />
-                    </motion.span>
+                    </span>
                     <div className="flex-1 min-w-0">
                       {/* The brand line, mirroring the AirDrop card's
                           "AirDrop" title — the scene already says what's
                           happening; the card says who and what. */}
-                      <motion.p
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.06, duration: 0.25 }}
+                      <p
+
                         className="text-[12px] font-bold uppercase tracking-[0.08em] text-ember dark:text-azure-400"
                       >
                         ShareTexts
-                      </motion.p>
-                      <motion.p
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1, duration: 0.28 }}
+                      </p>
+                      <p
+
                         className="mt-0.5 text-[17px] font-bold text-apple-ink dark:text-white leading-tight text-balance"
                       >
                         {mode === 'incoming' ? t('nearby.inviteTitle', { name: shown.name }) : shown.name}
-                      </motion.p>
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.15, duration: 0.28 }}
+                      </p>
+                      <p
+
                         className="mt-0.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 leading-snug"
                       >
                         {mode === 'incoming' ? t('nearby.inviteBody') : subLine}
-                      </motion.p>
+                      </p>
                     </div>
                     {/* The device itself — authored platform art, the same
                         tile the landing rows use (the card's "preview"
                         slot). */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.92 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.22, ease: EASE.out, delay: 0.12 }}
+                    <div
+
                       className="shrink-0"
                     >
                       <DeviceArt
@@ -332,19 +313,17 @@ export function NearbyDetectOverlay({
                         model={shown.model}
                         gpu={shown.gpu}
                         size={56}
-                        pulse={mode === 'detected' && !busy}
+                        pulse={false}
                       />
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* META ROW — the honest chips: browser · model · ∞.
                       (The stay badge also rides the radar bubble; here it
                       reads as a promise chip next to the specs.) */}
                   {(metaChips.length > 0 || stayBadge) && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.18, duration: 0.25 }}
+                    <div
+
                       className="mt-3 flex flex-wrap items-center gap-1.5"
                     >
                       {metaChips.map((chip) => (
@@ -356,7 +335,7 @@ export function NearbyDetectOverlay({
                           {t('stay.badge')}
                         </span>
                       )}
-                    </motion.div>
+                    </div>
                   )}
                 </div>
 
@@ -379,12 +358,11 @@ export function NearbyDetectOverlay({
                       pill into a round loader while the handshake runs. The
                       arm → commit two-step, the live-region sentence and the
                       "Yes"/"Connect" accessible names are unchanged. */}
-                  <motion.div
+                  <div
                     /* The arming beat: a small bounce — the Duolingo
                        "something just happened" confirmation — so the
                        two-step never feels like a dead first tap. */
-                    animate={armed && !busy ? { scale: [1, 1.045, 1] } : { scale: 1 }}
-                    transition={{ duration: 0.32, ease: 'easeOut' }}
+
                     className="flex-[1.5] flex"
                   >
                     <MorphButton
@@ -406,7 +384,7 @@ export function NearbyDetectOverlay({
                       )}
                       data-testid="nearby-detect-primary"
                     />
-                  </motion.div>
+                  </div>
                 </div>
                 {/* SECONDARY — stay on the landing page and browse the
                     discovery list instead of committing to this one device. */}
@@ -417,7 +395,7 @@ export function NearbyDetectOverlay({
                       data-testid="nearby-detect-more"
                       disabled={busy}
                       onClick={onFindMore}
-                      className="min-h-[40px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.96] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                      className="min-h-[44px] min-w-[44px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.96] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                     >
                       <Search className="w-3.5 h-3.5" aria-hidden />
                       {t('nearby.overlay.more')}
@@ -425,9 +403,9 @@ export function NearbyDetectOverlay({
                   </div>
                 )}
               </div>
-            </motion.div>
+            </MotionSurface>
           </div>
-        </motion.div>
+        </MotionSurface>
       )}
     </AnimatePresence>,
     typeof document !== 'undefined' ? document.body : null

@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { MotionSurface } from './ui/MotionSurface';
+import { useMotionPreference } from '../lib/useMotionPreference';
+import { DUR, SPRING } from '../lib/motion/tokens';
 // Gravity UI icons aliased onto the names this file already uses (the
 // slashed wifi glyph is the one Gravity has no equivalent for).
 import { ArrowRight, Zap, Eye, EyeOff, RefreshCw, Search, Check, X, QrCode, Link as Link2 } from 'lucide-react';
@@ -129,8 +132,10 @@ function ToggleRow({ icon, active, title, hint, onClick, ariaLabel, testId, rowT
   );
 }
 
-export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => void }) {
+export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: string | null) => void; onPairingStart?: () => void }) {
   const { t } = useI18n();
+  const reduced = useMotionPreference();
+  const quiet = reduced || (typeof document !== 'undefined' && document.documentElement.dataset.motionIntent !== 'pointer');
   const { session, createSession, joinWithLink } = useSession();
   const idle = !session.roomId;
 
@@ -237,6 +242,12 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
   }, [devices.length]);
 
   /* --- tracker lift-up -------------------------------------------------- */
+  // The engine stays mounted, but its discovery sheet must release the room
+  // when acceptance hides this content — including a still-pending link join.
+  useEffect(() => {
+    if (!idle || phase.kind === 'connecting') onPairingStart?.();
+  }, [idle, phase.kind, onPairingStart]);
+
   // Only TRANSIENT connection states claim the activity line — the discovery
   // result itself is communicated by the device rows, and the hero's lifetime
   // counter must keep its place.
@@ -592,7 +603,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
   const suggestStrip = (
       <AnimatePresence initial={false}>
         {suggest && (
-          <motion.div
+          <MotionSurface
             key={suggest.id}
             data-testid="nearby-suggest"
             /* Announced, because it is the only part of discovery that arrives
@@ -605,7 +616,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.28 }}
+            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
             className="mb-2 flex w-full items-center gap-3 rounded-[16px] bg-ember/[0.06] px-3 py-2.5 text-left dark:bg-azure-400/[0.09]"
           >
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-ember shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:bg-white/[0.10] dark:text-azure-400">
@@ -619,10 +630,10 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               type="button"
               onClick={connectSuggestion}
               data-testid="nearby-suggest-connect"
-              /* 40px tall, not the pill's visual 28: this is the one control in
+              /* 44px tall, not the pill's visual 28: this is the one control in
                  the strip that commits something, so it has to meet the repo's
                  tap-target floor rather than inherit the label's line height. */
-              className="press inline-flex min-h-[40px] shrink-0 items-center rounded-full bg-ember px-3.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
+              className="press inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center rounded-full bg-ember px-3.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
             >
               {t('nearby.accept')}
             </button>
@@ -631,11 +642,11 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               onClick={dismissSuggestion}
               aria-label={t('common.close')}
               data-testid="nearby-suggest-dismiss"
-              className="press grid h-10 w-10 shrink-0 place-items-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 dark:text-white/45 dark:hover:bg-white/[0.08]"
+              className="press grid h-11 w-11 shrink-0 place-items-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 dark:text-white/45 dark:hover:bg-white/[0.08]"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
             </button>
-          </motion.div>
+          </MotionSurface>
         )}
       </AnimatePresence>
   );
@@ -647,13 +658,13 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
       {/* Nearby device rows */}
       <AnimatePresence>
         {devices.length > 0 && (
-          <motion.div
+          <MotionSurface
             key="nearby-devices"
             data-testid="nearby-devices"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
             className="mt-4 w-full"
           >
             <p className="st-eyebrow mb-2.5">
@@ -667,7 +678,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                 const trusted = isTrustedToken(d.id);
                 const busy = busyId === d.id || busyName === d.name;
                 return (
-                  <motion.button
+                  <button
                     key={d.id}
                     type="button"
                     data-testid="nearby-device-row"
@@ -678,10 +689,10 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                        replayed every time mDNS found a device, which is
                        every few seconds. Now the list arrives as one motion:
                        220ms, 6px, opacity only, no stagger. */
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, transition: { duration: 0.14 } }}
-                    transition={{ type: 'spring', bounce: 0, duration: 0.22 }}
+
+
+
+
                     onClick={() => handleInvite(d)}
                     disabled={phase.kind !== 'idle'}
                     aria-label={t('nearby.connectAria', { name: d.name })}
@@ -745,11 +756,11 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                         />
                       </span>
                     )}
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
-          </motion.div>
+          </MotionSurface>
         )}
       </AnimatePresence>
 
@@ -758,12 +769,12 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
           "last seen" instead of pretending they're around. */}
       <AnimatePresence>
         {recentRows.length > 0 && (
-          <motion.div
+          <MotionSurface
             key="recent-devices"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
             className="mt-4 w-full"
           >
             <p className="st-eyebrow mb-2.5">
@@ -773,13 +784,12 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               {recentRows.map((r) => (
                 /* UNAVAILABLE = sunk: the same block, dropped INTO the
                    page. Tone alone says “not here right now”. */
-                <motion.div
+                <MotionSurface
                   key={r.token + r.name}
-                  layout
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
-                  transition={{ type: 'spring', bounce: 0, duration: 0.32 }}
+                  exit={{ opacity: 0, scale: 0.97, transition: { duration: DUR.micro / 1000 } }}
+                  transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
                   className="group flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[16px] text-left st-tile opacity-90 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                 >
                   <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/40">
@@ -799,10 +809,10 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
-                </motion.div>
+                </MotionSurface>
               ))}
             </div>
-          </motion.div>
+          </MotionSurface>
         )}
       </AnimatePresence>
 
@@ -810,7 +820,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
           while the pool is empty; the hint names the one fix that matters. */}
       <AnimatePresence>
         {waiting && (
-          <motion.div
+          <MotionSurface
             key="nearby-searching"
             data-testid="nearby-searching"
             initial={{ opacity: 0 }}
@@ -844,7 +854,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                   : t('nearby.waitingOther')}
               </span>
             </span>
-          </motion.div>
+          </MotionSurface>
         )}
       </AnimatePresence>
 
@@ -854,12 +864,12 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
           device" will look. Rows, not cards — settings, not actions. */}
       <AnimatePresence>
         {waiting && (
-          <motion.div
+          <MotionSurface
             key="nearby-controls"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: quiet ? 0 : DUR.micro / 1000 }}
             className="mt-2 w-full px-1"
           >
             <ToggleRow
@@ -884,7 +894,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               ariaLabel={t('nearby.autoTitle')}
               onClick={() => { setAutoOn(v => { setAutoConnectEnabled(!v); return !v; }); }}
             />
-          </motion.div>
+          </MotionSurface>
         )}
       </AnimatePresence>
 
@@ -892,16 +902,13 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
           ways out. Never a bare "Connection failed." */}
       <AnimatePresence>
         {phase.kind === 'error' && (
-          <motion.div
+          <MotionSurface
             key={`error:${phase.text}`}
             initial={{ opacity: 0, y: 6 }}
-            /* Visual haptic: the card answers a failed invite with the same
-               horizontal head-shake the code input uses for a wrong code —
-               one denial language across the app. Stripped under
-               reduced-motion by the global MotionConfig. */
-            animate={{ opacity: 1, y: 0, x: [0, -7, 7, -5, 5, 0] }}
+            /* Actual error state stays readable; no repeated denial shake. */
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.3, x: { duration: 0.45, ease: 'easeInOut' } }}
+            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
             role="alert"
             data-testid="nearby-failure-card"
             className="mt-2.5 w-full px-3.5 py-3 rounded-[12px] bg-status-danger/[0.06] dark:bg-status-danger/[0.08] border border-status-danger/25"
@@ -926,7 +933,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                         type="button"
                         data-testid="nearby-fail-retry"
                         onClick={() => { void handleInvite(failedDevice); }}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] min-h-[44px]"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] min-h-[44px] min-w-[44px]"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> {t('nearby.failRetry')}
                       </button>
@@ -943,7 +950,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                 )}
               </div>
             </div>
-          </motion.div>
+          </MotionSurface>
         )}
       </AnimatePresence>
 
@@ -957,10 +964,10 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             data-testid="nearby-why-toggle"
             aria-expanded={whyOpen}
             onClick={() => { setWhyOpen(o => !o); }}
-            className="flex items-center gap-1.5 px-1.5 -mx-1.5 my-1 min-h-[44px] text-[13px] font-semibold text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-1.5 -mx-1.5 my-1 min-h-[44px] min-w-[44px] text-[13px] font-semibold text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
           >
             {t('nearby.whyTitle')}
-            <motion.span animate={{ rotate: whyOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className="inline-flex" aria-hidden>
+            <motion.span animate={{ rotate: whyOpen ? 180 : 0 }} transition={{ duration: quiet ? 0 : DUR.micro / 1000 }} className="inline-flex" aria-hidden>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </motion.span>
           </button>
@@ -971,7 +978,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                transition={quiet ? { duration: 0 } : { duration: DUR.short / 1000 }}
                 className="overflow-hidden"
               >
                 <div className="mt-1.5 px-3.5 py-3 rounded-[12px] bg-apple-parchment/60 dark:bg-white/[0.03] border border-apple-divider/40 dark:border-white/[0.06]">

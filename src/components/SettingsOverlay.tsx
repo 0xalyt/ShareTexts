@@ -6,7 +6,6 @@ import { Segmented } from './ui/Segmented';
 import { useI18n, LANGS, type Lang } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { useSession } from '../lib/SessionContext';
-import { useFocusTrap } from '../lib/useFocusTrap';
 import { readNoGlassPreference, setNoGlass } from '../lib/device';
 import { HAPTICS_IOS, HAPTICS_STORE, haptic } from '../lib/haptics';
 import { isPresenceHidden, setPresenceHidden } from '../lib/nearby';
@@ -87,16 +86,19 @@ function Switch({ checked, onChange, label, testId }: { checked: boolean; onChan
   );
 }
 
-function Group({ title, children, testId }: { title: string; children: React.ReactNode; testId?: string }) {
+function Group({ title, children, testId, collapsible = false }: { title: string; children: React.ReactNode; testId?: string; collapsible?: boolean }) {
+  const Tag = collapsible ? 'details' : 'section';
+  const Heading = collapsible ? 'summary' : 'h4';
   return (
-    <section className="st-task-settings-group mt-5 first:mt-2" data-testid={testId}>
-      <h4 className="px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55">
+    <Tag className="st-task-settings-group group mt-5 first:mt-2" data-testid={testId}>
+      <Heading className={cn(collapsible && "flex cursor-pointer list-none min-h-[44px] items-center justify-between", "px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55")}>
         {title}
-      </h4>
+        {collapsible && <ChevronRight className="h-4 w-4 group-open:rotate-90" aria-hidden />}
+      </Heading>
       <div className="overflow-hidden rounded-[16px] bg-white/80 dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/10">
         {children}
       </div>
-    </section>
+    </Tag>
   );
 }
 
@@ -114,7 +116,8 @@ export function SettingsOverlay({
   const { t, lang, auto, setLang, useDeviceLanguage } = useI18n();
   const { choice, setChoice } = useTheme();
   const { session, setDeviceName } = useSession();
-  const trapRef = useFocusTrap(open, onClose);
+  // Sheet owns the trap. Follow the actual column only for its focus handoff.
+  const columnRef = useRef<HTMLDivElement>(null);
 
   const [languageOpen, setLanguageOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -160,14 +163,14 @@ export function SettingsOverlay({
     if (languageOpen) {
       wasLanguageOpen.current = true;
       const raf = requestAnimationFrame(() => {
-        trapRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-back"]')?.focus();
+        columnRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-back"]')?.focus();
       });
       return () => cancelAnimationFrame(raf);
     }
     if (!wasLanguageOpen.current) return;
     wasLanguageOpen.current = false;
     const raf = requestAnimationFrame(() => {
-      trapRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-row"]')?.focus();
+      columnRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-row"]')?.focus();
     });
     return () => cancelAnimationFrame(raf);
   }, [languageOpen, open]);
@@ -211,12 +214,12 @@ export function SettingsOverlay({
                   the sheet slides and the list is replaced, so Back (or this
                   chevron) is one gesture, in the same surface. */}
               {languageOpen ? (
-                <div className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4" data-testid="settings-language-list" data-sheet-scroll>
+                <div ref={columnRef} className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4" data-testid="settings-language-list" data-sheet-scroll>
                   <button
                     type="button"
                     onClick={() => setLanguageOpen(false)}
                     data-testid="settings-language-back"
-                    className="flex min-h-[44px] items-center gap-1 px-1 text-[16px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
+                    className="flex min-h-[44px] min-w-[44px] items-center gap-1 px-1 text-[16px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
                   >
                     <ChevronRight className="h-4 w-4 rotate-180" aria-hidden /> {t('settings.title')}
                   </button>
@@ -249,7 +252,7 @@ export function SettingsOverlay({
                   </div>
                 </div>
               ) : (
-                <div className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4 room-scroll" data-sheet-scroll>
+                <div ref={columnRef} className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4 room-scroll" data-sheet-scroll>
                   {/* ── Device ─────────────────────────────────────── */}
                   <Group title={t('settings.device')} testId="settings-device">
                     <Row first as="div" className="justify-between">
@@ -325,7 +328,7 @@ export function SettingsOverlay({
                   </Group>
 
                   {/* ── Feedback ───────────────────────────────────── */}
-                  <Group title={t('settings.feedback')} testId="settings-feedback">
+                  <Group title={t('settings.feedback')} testId="settings-feedback" collapsible>
                     <Row first as="div" className="justify-between">
                       <span className="flex flex-col">
                         <span>{t('settings.haptics')}</span>

@@ -104,10 +104,10 @@ export function InlineConfirm({
       aria-live="polite"
       aria-label={armed ? confirmLabel : label}
       className={cn(
-        'relative overflow-hidden select-none rounded-full font-semibold transition-colors',
+        'relative min-w-[44px] overflow-hidden select-none rounded-full font-semibold transition-colors',
         'flex items-center justify-center gap-1.5 active:scale-[0.96] transition-transform',
         size === 'sm'
-          ? 'min-h-[40px] px-3 text-[12px]'
+          ? 'min-h-[44px] px-3 text-[12px]'
           : 'min-h-[44px] px-3.5 text-[13px]',
         armed
           ? 'text-white'

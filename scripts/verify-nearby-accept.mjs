@@ -48,8 +48,10 @@ try {
       await row.evaluate(el => el.click());
       await b.getByTestId('nearby-detect-primary').click();
       for (const page of pages) {
-        await page.getByTestId('composer').first().waitFor({ state: 'attached', timeout: 25_000 });
-        await page.keyboard.press('Escape');
+        await page.getByTestId('nearby-sheet').waitFor({ state: 'hidden', timeout: 25_000 });
+        const composer = page.getByTestId('composer').first();
+        await composer.waitFor({ state: 'visible', timeout: 25_000 });
+        assert.equal(await composer.evaluate(el => el.closest('[inert]') === null), true, 'accepted room composer must be released by discovery');
       }
       for (const [from, to, text] of [[a, b, 'Nearby A to B'], [b, a, 'Nearby B to A']]) {
         await from.getByTestId('composer').first().fill(text);
@@ -58,10 +60,22 @@ try {
       }
       await delay(1500);
       console.log(`Nearby accept ${browser.browserType().name()} ${reducedMotion}: joins=${JSON.stringify(joins)}, two-way text delivered`);
+      // The handoff must leave the next sheet's keyboard path usable too.
+      await a.locator('[data-testid="open-settings"]:visible').first().click();
+      await a.getByTestId('settings-language-row').click();
+      await a.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'settings-language-back', null, { timeout: 5000 });
+      await a.getByTestId('settings-language-back').click();
+      await a.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'settings-language-row', null, { timeout: 5000 });
+      await a.getByTestId('settings-language-row').click();
+      await a.getByTestId('language-en').click();
+      await a.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'settings-language-row', null, { timeout: 5000 });
+      await a.keyboard.press('Escape');
+      await a.getByTestId('settings-overlay').waitFor({ state: 'hidden' });
+
       assert.equal(joins[0], 1, 'one inviter join per acceptance');
       assert.equal(joins[1], 0, 'invitee creates rather than joins the room');
       assert.deepEqual(errors, []);
-      console.log(`PASS Nearby accept ${browser.browserType().name()} ${reducedMotion}: decline never joins; composers usable, two-way delivery, one inviter join`);
+      console.log(`PASS Nearby accept ${browser.browserType().name()} ${reducedMotion}: decline never joins; composers usable, two-way delivery, one inviter join; Settings Language focus in/back/select`);
     } finally {
       console.log(`Nearby join counts: ${JSON.stringify(joins)}`);
       await Promise.all(contexts.map(context => context.close()));

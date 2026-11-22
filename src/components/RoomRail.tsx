@@ -64,7 +64,7 @@ export function RoomRail({ className = '' }: { className?: string }) {
       <a
         href="/"
         data-testid="rail-new-room"
-        className="flex min-h-[36px] items-center gap-1.5 rounded-[8px] px-2.5 text-[13px] font-medium text-apple-ink-muted transition-colors hover:bg-black/[0.04] hover:text-apple-ink dark:text-white/60 dark:hover:bg-white/[0.06] dark:hover:text-white"
+        className="flex min-h-[44px] items-center gap-1.5 rounded-[8px] px-2.5 text-[13px] font-medium text-apple-ink-muted transition-colors hover:bg-black/[0.04] hover:text-apple-ink dark:text-white/60 dark:hover:bg-white/[0.06] dark:hover:text-white"
       >
         <AlloSymbol name="plus" size={14} />
         {t('rail.newRoom')}

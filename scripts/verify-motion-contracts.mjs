@@ -4,6 +4,9 @@
  * BROWSERS=chromium,firefox,webkit tests the same contracts across engines.
  * The fixture exists only in this test server, never in the shipped app. */
 import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createServer, transformWithEsbuild } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -12,7 +15,9 @@ import * as engines from 'playwright';
 const fixture = `
 import React, { useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MotionConfig } from 'motion/react';
+import { MotionConfig, AnimatePresence, motion } from 'motion/react';
+import { MotionSurface } from '/src/components/ui/MotionSurface';
+import { DUR, SPRING } from '/src/lib/motion/tokens';
 import { I18nProvider } from '/src/lib/i18n';
 import { NumberTicker } from '/src/components/NumberTicker';
 import { MorphButton } from '/src/components/MorphButton';
@@ -24,6 +29,9 @@ import { PairingGuide } from '/src/components/ui/PairingGuide';
 import { ConnectHandshake } from '/src/components/ConnectHandshake';
 import { TransferStamp } from '/src/components/TransferStamp';
 import { AttachmentPanel, AttachmentTrigger } from '/src/components/AttachmentPanel';
+import { SavedItemsOverlay } from '/src/components/SavedItemsOverlay';
+import { DevicePicker } from '/src/components/DevicePicker';
+import { saveItem } from '/src/lib/savedStore';
 import { initMotionIntent } from '/src/lib/motionIntent';
 import '/src/index.css';
 import '/src/styles/apple-dna.css';
@@ -40,12 +48,29 @@ function Fixture() {
   const [connected, setConnected] = useState(false);
   const [menu, setMenu] = useState(false);
   const [selected, setSelected] = useState('');
+  const [surface, setSurface] = useState(false);
+  const [slowSurface, setSlowSurface] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const trigger = useRef(null);
   const feed = useRef(null);
   const resolve = useRef(null);
-  window.contracts = { setNumber, setProgress, setComplete, setConnected };
+  window.contracts = { setNumber, setProgress, setComplete, setConnected, setSurface, setSlowSurface,
+    pickerToSheet() { setPickerOpen(false); setOpen(true); },
+    async seedSavedImage() {
+      const blob = await (await fetch('/icon-192.png')).blob();
+      await saveItem({ originKey: 'motion-photo', kind: 'image', createdAt: Date.now(),
+        filename: 'motion-photo.png', mimeType: blob.type, size: blob.size, blob });
+    },
+  };
   return <MotionConfig reducedMotion="user"><I18nProvider>
     <main style={{ padding: 16, width: 320 }}>
+      <button id="surface-open" onClick={() => setSurface(true)}>Open surface</button>
+      <button id="saved-open" onClick={() => setSavedOpen(true)}>Open library</button>
+      <button id="picker-open" onClick={() => setPickerOpen(true)}>Open recipients</button>
+      <AnimatePresence>{pickerOpen && <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}><DevicePicker peers={[{ id: 'phone', name: 'Phone', platform: 'phone', link: 'connected' }]} selected={[]} onToggle={() => {}} onSelectAll={() => {}} onClear={() => {}} onClose={() => setPickerOpen(false)} /></motion.div>}</AnimatePresence>
+      <SavedItemsOverlay open={savedOpen} onClose={() => setSavedOpen(false)} />
+      <AnimatePresence>{surface && <MotionSurface id="surface" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 14 }} transition={slowSurface ? { type: 'tween', duration: 10, ease: 'linear' } : { type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}><button id="surface-close" onClick={() => setSurface(false)}>Close surface</button></MotionSurface>}</AnimatePresence>
       <span id="ticker"><NumberTicker value={number} /></span>
       <MorphButton label="Copy" doneLabel="Copied" loadingLabel="Copying" data-testid="morph"
         onPress={() => { setCalls(n => n + 1); return new Promise(done => { resolve.current = done; }); }} />
@@ -109,10 +134,16 @@ try {
   await server.listen();
   const url = `http://127.0.0.1:${server.httpServer.address().port}/__motion_contracts`;
   for (const engine of (process.env.BROWSERS || 'chromium').split(',')) {
-    const browser = await engines[engine].launch({ headless: true });
+    // A disposable normal profile exercises real Saved bytes. WebKit's
+    // ephemeral/private contexts reject IndexedDB Blob writes outright.
+    const profile = await mkdtemp(join(tmpdir(), 'sharetexts-motion-'));
+    const context = await engines[engine].launchPersistentContext(profile, {
+      headless: true, viewport: { width: 390, height: 844 },
+    });
     try {
       for (const reducedMotion of ['no-preference', 'reduce']) {
-        const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion });
+        const page = await context.newPage();
+        await page.emulateMedia({ reducedMotion });
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
         await page.goto(url);
@@ -123,6 +154,49 @@ try {
           await page.evaluate(() => window.contracts.setNumber(103));
           await until(() => page.locator('#ticker > span > [aria-hidden]').innerText(), text => text === '103', 'Static digits must update');
         }
+
+        // Keyboard surfaces are immediate, and a later pointer never replays
+        // their entry. Every exiting surface releases focus and hit-testing.
+        await page.locator('#surface-open').focus();
+        await page.keyboard.press('Enter');
+        const surface = page.locator('#surface');
+        assert.equal(await surface.evaluate(el => getComputedStyle(el).opacity), '1');
+        assert.equal(await surface.getAttribute('data-motion-entry'), 'quiet');
+        await page.locator('#surface-close').hover();
+        assert.equal(await surface.evaluate(el => el.getAnimations().length), 0);
+        await page.locator('#surface-close').click();
+        await surface.waitFor({ state: 'detached' });
+        // A ten-second entrance cannot finish naturally during this check.
+        // Sample two painted frames after the actual media-change event,
+        // not after a polling window that also permits normal completion.
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await page.evaluate(() => window.contracts.setSlowSurface(true));
+        await page.locator('#surface-open').click();
+        await surface.waitFor();
+        assert.ok(Number(await surface.evaluate(el => getComputedStyle(el).opacity)) < 0.5, 'Slow entrance already finished before preference changed');
+        await page.evaluate(() => {
+          window.preferenceFrame = new Promise(resolve => {
+            matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => {
+              requestAnimationFrame(() => requestAnimationFrame(() => {
+                const style = getComputedStyle(document.getElementById('surface'));
+                resolve({ opacity: style.opacity, transform: style.transform });
+              }));
+            }, { once: true });
+          });
+        });
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        const preferenceFrame = await page.evaluate(() => window.preferenceFrame);
+        assert.equal(preferenceFrame.opacity, '1', `Live reduced motion did not settle active entrance within two frames: ${JSON.stringify(preferenceFrame)}`);
+        assert.ok(['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(preferenceFrame.transform), 'Live reduced motion retained entrance travel');
+        await page.locator('#surface-close').click();
+        await until(() => surface.count(), count => count === 0, 'Quiet surface retained an exit delay');
+        await page.evaluate(() => window.contracts.setSlowSurface(false));
+        await page.emulateMedia({ reducedMotion });
+        await page.locator('#surface-open').click();
+        await surface.waitFor();
+        await page.locator('#surface-close').click();
+        if (await surface.count()) assert.equal(await surface.evaluate(el => el.inert && getComputedStyle(el).pointerEvents === 'none'), true, 'Exiting surface still owns input');
+        await surface.waitFor({ state: 'detached' });
 
         // No synthetic 520ms loading hold; success must be interruptible.
         await page.locator('[data-testid="morph"]').click();
@@ -160,6 +234,13 @@ try {
         await knob.dispatchEvent('pointercancel', { pointerId, pointerType: 'mouse' });
         await page.mouse.up();
         assert.equal(await page.locator('#confirmed').innerText(), '0');
+
+        // A keyboard dismissal must unmount a pointer-opened sheet, even
+        // when its non-animating outer wrapper changes input modality.
+        await page.locator('#open').click();
+        await page.getByTestId('sheet').waitFor();
+        await page.keyboard.press('Escape');
+        await page.getByTestId('sheet').waitFor({ state: 'detached', timeout: 1500 });
 
         // Direct manipulation remains available with the OS animation toggle off.
         await page.locator('#open').click();
@@ -239,10 +320,36 @@ try {
         assert.equal(await menu.evaluate(el => getComputedStyle(el).opacity), '1');
         await page.keyboard.press('Escape');
         await menu.waitFor({ state: 'detached' });
+        // A saved photo owns its own layer: one Escape must return to the
+        // library, not also dismiss it. Real IndexedDB bytes, no mocked view.
+        await page.evaluate(() => window.contracts.seedSavedImage());
+        await page.locator('#saved-open').focus();
+        await page.keyboard.press('Enter');
+        const library = page.getByTestId('saved-overlay');
+        const view = library.getByRole('button', { name: 'View', exact: true });
+        await view.focus();
+        await page.keyboard.press('Enter');
+        const photo = page.getByRole('dialog', { name: 'motion-photo.png', exact: true });
+        await photo.waitFor();
+        await page.waitForFunction(() => document.querySelector('[role="dialog"][aria-label="motion-photo.png"] img')?.naturalWidth > 0);
+        await page.keyboard.press('Escape');
+        await photo.waitFor({ state: 'detached' });
+        assert.equal(await library.isVisible(), true, 'Photo Escape dismissed its Saved library');
+        await until(() => view.evaluate(el => el === document.activeElement), Boolean, 'Photo Escape must restore View focus');
+        await page.keyboard.press('Escape');
+        await library.waitFor({ state: 'detached' });
         assert.deepEqual(errors, []);
-        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/immediate reopen/keyboard return`);
+        await page.locator('#picker-open').click();
+        await page.evaluate(() => window.contracts.pickerToSheet());
+        await page.getByTestId('sheet').waitFor();
+        await page.keyboard.press('Escape');
+        await until(() => page.getByTestId('sheet').count(), count => count === 0, 'Departing recipient picker swallowed the next sheet Escape');
+        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/immediate reopen/keyboard return, layered Saved Escape/focus, departing recipient Escape release`);
         await page.close();
       }
-    } finally { await browser.close(); }
+    } finally {
+      await context.close();
+      await rm(profile, { recursive: true, force: true });
+    }
   }
 } finally { await server.close(); }

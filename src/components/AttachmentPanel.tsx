@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence, useIsPresent } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MotionSurface as PresenceLayer } from './ui/MotionSurface';
 import { Plus, Image as ImageIcon, File as FileIcon, Video as VideoIcon, Music, Type as TypeIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
@@ -55,15 +56,6 @@ interface AttachmentPanelProps {
   onFormatting?: () => void;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
 }
-
-// An exiting layer may still be visible, but must release pointer/focus input
-// immediately so the next press can reopen the picker during its exit.
-const PresenceLayer = React.forwardRef<HTMLDivElement, React.ComponentProps<typeof motion.div>>(
-  function PresenceLayer({ style, ...props }, ref) {
-    const present = useIsPresent();
-    return <motion.div {...props} ref={ref} inert={!present} style={{ ...style, pointerEvents: present ? style?.pointerEvents : 'none' }} />;
-  },
-);
 
 /**
  * The attachment menu — deliberately simple, and RELIABLE.

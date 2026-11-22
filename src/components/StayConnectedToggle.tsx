@@ -47,7 +47,7 @@ export function StayConnectedToggle({ className }: { className?: string }) {
           hapticTick();
           setStayConnected(!on);
         }}
-        className="flex min-w-0 flex-1 items-center gap-3 rounded-[12px] text-left outline-none"
+        className="flex min-h-[44px] min-w-0 flex-1 items-center gap-3 rounded-[12px] text-left outline-none"
       >
         <span
           className={cn(

@@ -67,7 +67,7 @@ export function PageHeader({
             <a
               key={l.href}
               href={l.href}
-              className="hidden sm:inline-flex text-[13px] font-medium text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white transition-colors"
+              className="hidden min-h-[44px] min-w-[44px] items-center justify-center sm:inline-flex text-[13px] font-medium text-apple-ink-muted dark:text-white/60 hover:text-apple-ink dark:hover:text-white transition-colors"
             >
               {l.label}
             </a>

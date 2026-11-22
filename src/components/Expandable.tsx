@@ -16,12 +16,11 @@
  *     is a layout value, so we zero the transition ourselves here.
  */
 import React from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion } from 'motion/react';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { useMeasure } from '../lib/useMeasure';
 import { cn } from '../lib/utils';
-
-/** Snappy, single-beat size catch-up — the same curve the FAQ panels use. */
-const SIZE_EASE = [0.22, 1, 0.36, 1] as const;
+import { DUR, EASE } from '../lib/motion/tokens';
 
 /**
  * Animates its own height to its content's height — always.
@@ -40,7 +39,7 @@ export function Expandable({
   open,
   children,
   className,
-  duration = 0.26,
+  duration = DUR.short / 1000,
 }: {
   open?: boolean;
   children: React.ReactNode;
@@ -49,47 +48,26 @@ export function Expandable({
   duration?: number;
 }) {
   const [ref, bounds] = useMeasure();
-  const reduced = useReducedMotion();
+  const reduced = useMotionPreference();
   const fit = bounds.height > 0 ? bounds.height : 'auto';
   return (
     <motion.div
       className={cn('overflow-hidden', className)}
       initial={false}
       animate={{ height: open === false ? 0 : fit }}
-      transition={reduced ? { duration: 0 } : { duration, ease: SIZE_EASE }}
+      transition={reduced || (typeof document !== 'undefined' && document.documentElement.dataset.motionIntent !== 'pointer') ? { duration: 0 } : { duration, ease: EASE.out }}
     >
       <div ref={ref}>{children}</div>
     </motion.div>
   );
 }
 
-/**
- * Animates its own WIDTH to fit a label that changes in place — buttons whose
- * text swaps between states (Copy → Copied, Retry → Retrying). The outer div
- * slides to the new measured width; the label crossfades. Without it the
- * button jumps and everything beside it reflows one frame late.
- */
-export function FitWidth({
-  children,
-  className,
-  duration = 0.28,
-}: {
+/** Frequent action labels update in place: never interpolate layout width. */
+export function FitWidth({ children, className }: {
   children: React.ReactNode;
   className?: string;
+  /** Retained for caller compatibility; width updates are immediate. */
   duration?: number;
 }) {
-  const [ref, bounds] = useMeasure();
-  const reduced = useReducedMotion();
-  return (
-    <motion.span
-      className={cn('inline-block overflow-hidden whitespace-nowrap', className)}
-      initial={false}
-      animate={{ width: bounds.width > 0 ? bounds.width : 'auto' }}
-      transition={reduced ? { duration: 0 } : { duration, ease: SIZE_EASE }}
-    >
-      <span ref={ref} className="inline-block">
-        {children}
-      </span>
-    </motion.span>
-  );
+  return <span className={cn('inline-block whitespace-nowrap', className)}>{children}</span>;
 }
