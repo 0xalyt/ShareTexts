@@ -445,6 +445,7 @@
   h1, h2, h3 {
     font-family: var(--font-display);
     font-optical-sizing: auto;
+    font-variation-settings: "opsz" 32;
     letter-spacing: -0.012em;
     text-wrap: balance;
   }
@@ -504,18 +505,18 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Size-specific tracking, standard semibold weights and automatic optical
-     sizing. Keep the established size ramp and the layout around it. */
-  .st-display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.015em; line-height: 1.06; text-wrap: balance; }
-  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 600; letter-spacing: -0.012em; line-height: 1.12; text-wrap: balance; }
-  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; }
-  .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
-  .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; }
-  .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; }
-  .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: 0; line-height: 1.55; text-wrap: pretty; }
-  .st-support { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.45; }
-  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.4; }
-  .st-wordmark { font-family: var(--font-display); }
+  /* Explicit optical roles keep WebKit's metrics aligned with other engines.
+     Preserve the responsive size ramp and size-specific tracking. */
+  .st-display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.015em; line-height: 1.06; text-wrap: balance; font-variation-settings: "opsz" 32; }
+  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 600; letter-spacing: -0.012em; line-height: 1.12; text-wrap: balance; font-variation-settings: "opsz" 32; }
+  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; font-variation-settings: "opsz" 22; }
+  .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; font-variation-settings: "opsz" 16; }
+  .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; font-variation-settings: "opsz" 13; }
+  .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; font-variation-settings: "opsz" 13; }
+  .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: 0; line-height: 1.55; text-wrap: pretty; font-variation-settings: "opsz" 16; }
+  .st-support { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.45; font-variation-settings: "opsz" 13; }
+  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.4; font-variation-settings: "opsz" 12; }
+  .st-wordmark { font-family: var(--font-display); font-variation-settings: "opsz" 20; }
   /* Numbers get their own role because they are read differently: counts, sizes,
      timers and codes must not reflow when a digit changes. Tabular figures are
      the whole point of the role — a proportional 1 is narrower than a 6, and a
@@ -548,7 +549,7 @@
   /* Quiet section labels use sentence case and a small size step rather than
      shouting in all caps. One weight, tracking, and color across the app.
      Tracking opens to +0.06em — the small-size end of the optical ladder. */
-  .st-eyebrow  { font-size: 12px;   font-weight: 600; letter-spacing: 0.06em; line-height: 1.2; color: var(--color-eyebrow, #6e6e73); }
+  .st-eyebrow  { font-size: 12px;   font-weight: 600; letter-spacing: 0.06em; line-height: 1.2; color: var(--color-eyebrow, #6e6e73); font-variation-settings: "opsz" 12; }
 
   /* Elevation utilities — the three levels above, as classes. Dark mode
      swaps the drop for a tone-and-hairline lift: shadows on near-black

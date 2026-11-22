@@ -61,7 +61,7 @@ Rules:
 ## 4. Type
 - Allo is the text face on every platform, per Garv's latest direction. This supersedes the historical SF/Inter ordering below. Never ship Apple font files.
 - `public/typography.css` defines the face once for the app, static guides and generated HTML. `allo-crisp.woff2` fixes roundness at 0 while retaining all characters, optical sizes 9–32 and weights 100–900. Rebuild with `python3 scripts/build-allo-fonts.py`; OFL.txt remains beside the fonts.
-- Use automatic optical sizing and semibold headings, not a roundness axis or heavy weight everywhere. `ss02` distinguishes I/l/1; verbatim user content disables contextual substitution.
+- Use explicit optical sizes by role and semibold headings, not a roundness axis or heavy weight everywhere. WebKit ignores automatic opsz in some versions. `ss02` distinguishes I/l/1; contextual substitution is off by default so user text stays literal.
 - The eight decorative control marks use a 1.4 KB Allo symbol cut at weight 500 / optical size 20. Detailed QR, file, device, copy and share pictograms remain Lucide; accessible labels stay on their controls.
 - Real Allo obliques load only for italic content. The first-paint fallback is the local system font, not a second webfont request.
 - Hindi, Arabic, Japanese and Chinese use coherent script-specific local stacks through :lang(). Preserve RTL and embedded Latin text.

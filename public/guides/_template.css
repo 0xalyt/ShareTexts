@@ -120,6 +120,7 @@ body {
 
 h1, h2, h3 {
   font-optical-sizing: auto;
+  font-variation-settings: "opsz" 32;
   text-wrap: balance;
 }
 p, li { text-wrap: pretty; }
