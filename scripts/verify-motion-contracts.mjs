@@ -15,7 +15,7 @@ import * as engines from 'playwright';
 const fixture = `
 import React, { useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MotionConfig, AnimatePresence } from 'motion/react';
+import { MotionConfig, AnimatePresence, motion } from 'motion/react';
 import { MotionSurface } from '/src/components/ui/MotionSurface';
 import { DUR, SPRING } from '/src/lib/motion/tokens';
 import { I18nProvider } from '/src/lib/i18n';
@@ -30,6 +30,7 @@ import { ConnectHandshake } from '/src/components/ConnectHandshake';
 import { TransferStamp } from '/src/components/TransferStamp';
 import { AttachmentPanel, AttachmentTrigger } from '/src/components/AttachmentPanel';
 import { SavedItemsOverlay } from '/src/components/SavedItemsOverlay';
+import { DevicePicker } from '/src/components/DevicePicker';
 import { saveItem } from '/src/lib/savedStore';
 import { initMotionIntent } from '/src/lib/motionIntent';
 import '/src/index.css';
@@ -49,10 +50,12 @@ function Fixture() {
   const [selected, setSelected] = useState('');
   const [surface, setSurface] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const trigger = useRef(null);
   const feed = useRef(null);
   const resolve = useRef(null);
   window.contracts = { setNumber, setProgress, setComplete, setConnected, setSurface,
+    pickerToSheet() { setPickerOpen(false); setOpen(true); },
     async seedSavedImage() {
       const blob = await (await fetch('/icon-192.png')).blob();
       await saveItem({ originKey: 'motion-photo', kind: 'image', createdAt: Date.now(),
@@ -63,6 +66,8 @@ function Fixture() {
     <main style={{ padding: 16, width: 320 }}>
       <button id="surface-open" onClick={() => setSurface(true)}>Open surface</button>
       <button id="saved-open" onClick={() => setSavedOpen(true)}>Open library</button>
+      <button id="picker-open" onClick={() => setPickerOpen(true)}>Open recipients</button>
+      <AnimatePresence>{pickerOpen && <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}><DevicePicker peers={[{ id: 'phone', name: 'Phone', platform: 'phone', link: 'connected' }]} selected={[]} onToggle={() => {}} onSelectAll={() => {}} onClear={() => {}} onClose={() => setPickerOpen(false)} /></motion.div>}</AnimatePresence>
       <SavedItemsOverlay open={savedOpen} onClose={() => setSavedOpen(false)} />
       <AnimatePresence>{surface && <MotionSurface id="surface" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 14 }} transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}><button id="surface-close" onClick={() => setSurface(false)}>Close surface</button></MotionSurface>}</AnimatePresence>
       <span id="ticker"><NumberTicker value={number} /></span>
@@ -314,7 +319,12 @@ try {
         await page.keyboard.press('Escape');
         await library.waitFor({ state: 'detached' });
         assert.deepEqual(errors, []);
-        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/immediate reopen/keyboard return, layered Saved Escape/focus`);
+        await page.locator('#picker-open').click();
+        await page.evaluate(() => window.contracts.pickerToSheet());
+        await page.getByTestId('sheet').waitFor();
+        await page.keyboard.press('Escape');
+        await until(() => page.getByTestId('sheet').count(), count => count === 0, 'Departing recipient picker swallowed the next sheet Escape');
+        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/immediate reopen/keyboard return, layered Saved Escape/focus, departing recipient Escape release`);
         await page.close();
       }
     } finally {

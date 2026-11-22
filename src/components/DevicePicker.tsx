@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence, useIsPresent } from 'motion/react';
 import {
   Smartphone, Monitor, Tablet, Search, Check, Users, CircleDashed,
   CircleSlash, RefreshCw, X,
@@ -95,8 +95,11 @@ export function DevicePicker({
   // Outside pointer press dismisses the popover — the picker is an overlay
   // of the composer, not a destination of its own.
   const rootRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!onClose) return;
+  const isPresent = useIsPresent();
+  // Exit pixels may linger, but their global input handlers must not.
+  // Release capture before another sheet can claim keyboard/focus ownership.
+  useLayoutEffect(() => {
+    if (!onClose || !isPresent) return;
     const onPointer = (e: PointerEvent) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) onClose();
     };
@@ -109,7 +112,7 @@ export function DevicePicker({
       document.removeEventListener('pointerdown', onPointer, true);
       window.removeEventListener('keydown', onKey, true);
     };
-  }, [onClose]);
+  }, [onClose, isPresent]);
   const others = useMemo(() => peers.filter(p => !p.isSelf), [peers]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
