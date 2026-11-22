@@ -172,13 +172,12 @@ function wrap(value: string, start: number, end: number, marker: string): Edit {
       selEnd: end - m,
     };
   }
-  const current = value.slice(start, end);
-  const retyped = current.match(new RegExp(`^\\${marker}([\\s\\S]+)\\${marker}$`));
-  if (sel && retyped) {
+  if (sel.length > m * 2 && sel.startsWith(marker) && sel.endsWith(marker)) {
+    const unwrapped = sel.slice(m, -m);
     return {
-      value: before + retyped[1] + after,
+      value: before + unwrapped + after,
       selStart: start,
-      selEnd: start + retyped[1].length,
+      selEnd: start + unwrapped.length,
     };
   }
 
