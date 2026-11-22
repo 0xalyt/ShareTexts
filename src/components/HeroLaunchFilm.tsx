@@ -2,7 +2,7 @@ import React, { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExte
 import { Pause, Play } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../lib/i18n';
-import { heroFilmAssets, heroFilmDarkAssets } from '../lib/heroFilmAssets';
+import { heroFilmAssets, heroFilmDarkAssets, heroFilmPhoneMedia } from '../lib/heroFilmAssets';
 import './landing/hero-film.css';
 
 type Connection = EventTarget & { saveData?: boolean };
@@ -15,23 +15,36 @@ const subscribeTheme = (notify: () => void) => {
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   return () => observer.disconnect();
 };
+const phoneFraming = () => window.matchMedia(heroFilmPhoneMedia).matches;
+const subscribeFraming = (notify: () => void) => {
+  const media = window.matchMedia(heroFilmPhoneMedia);
+  media.addEventListener('change', notify);
+  return () => media.removeEventListener('change', notify);
+};
+
+// The landing swaps its mobile/desktop trees. Keep only playback intent and
+// position in their common parent, so a layout change cannot restart a film.
+export type HeroFilmPlayback = { phase: number; choice: 'auto' | 'play' | 'pause'; loaded: boolean };
 
 /** Pre-rendered film; no media request until visible. Motion/data preferences
  * require explicit play. Visibility pauses preserve the visitor's choice. */
-export function HeroLaunchFilm({ className }: { className?: string }) {
+export function HeroLaunchFilm({ className, playback }: { className?: string; playback: React.RefObject<HeroFilmPlayback> }) {
   const dark = useSyncExternalStore(subscribeTheme, darkTheme, () => false);
-  const { movie: MOVIE, poster: POSTER } = dark ? heroFilmDarkAssets : heroFilmAssets;
+  const phone = useSyncExternalStore(subscribeFraming, phoneFraming, () => false);
+  const assets = dark ? heroFilmDarkAssets : heroFilmAssets;
+  const { movie: MOVIE, poster: POSTER } = phone ? assets.mobile : assets;
+  const dimensions = { width: phone ? 960 : 1440, height: phone ? 720 : 810 };
   const { t } = useI18n();
   const summaryId = useId();
   const root = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
-  const phase = useRef(0);
+  const restoredVideo = useRef<HTMLVideoElement | null>(null);
   const [visible, setVisible] = useState(false);
   const [pageVisible, setPageVisible] = useState(() => !document.hidden);
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [saveData, setSaveData] = useState(() => Boolean(connection()?.saveData));
-  const [choice, setChoice] = useState<'auto' | 'play' | 'pause'>('auto');
-  const [loaded, setLoaded] = useState(false);
+  const [choice, setChoice] = useState(() => playback.current.choice);
+  const [loaded, setLoaded] = useState(() => playback.current.loaded);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
   const permitted = choice === 'play' || (choice === 'auto' && !reduced && !saveData);
@@ -61,9 +74,15 @@ export function HeroLaunchFilm({ className }: { className?: string }) {
 
   useEffect(() => { if (shouldPlay) setLoaded(true); }, [shouldPlay]);
   useLayoutEffect(() => {
+    playback.current.choice = choice;
+    playback.current.loaded = loaded;
+  }, [choice, loaded, playback]);
+  useLayoutEffect(() => {
     const previous = video.current;
-    return () => { if (previous) phase.current = previous.currentTime; };
-  }, [MOVIE]);
+    // One resize can swap the cut and then the entire landing tree. An
+    // intermediate, not-yet-restored video must not replace the saved phase.
+    return () => { if (previous && restoredVideo.current === previous) playback.current.phase = previous.currentTime; };
+  }, [MOVIE, playback]);
   useEffect(() => { setFailed(false); setPlaying(false); }, [MOVIE]);
   useEffect(() => {
     const el = video.current;
@@ -86,15 +105,17 @@ export function HeroLaunchFilm({ className }: { className?: string }) {
     <figure ref={root} className={cn('hero-film', className)} data-testid="hero-demo" data-state="film" aria-label={t('film.title')}>
       <div className="hero-film-picture">
         <video key={MOVIE} ref={video} src={loaded ? MOVIE : undefined} poster={POSTER}
-          muted loop playsInline preload={loaded ? 'metadata' : 'none'} width="1440" height="810"
+          muted loop playsInline preload={loaded ? 'metadata' : 'none'} {...dimensions}
           aria-label={t('film.title')} aria-describedby={summaryId}
           onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)}
           onLoadedMetadata={event => {
             const el = event.currentTarget;
-            if (phase.current > 0 && el.duration > 0) el.currentTime = phase.current % el.duration;
+            const phase = playback.current.phase;
+            if (phase > 0 && el.duration > 0) el.currentTime = phase % el.duration;
+            restoredVideo.current = el;
           }}
           onError={() => { setFailed(true); setPlaying(false); }} />
-        {failed && <img className="hero-film-fallback" src={POSTER} alt="" width="1440" height="810" />}
+        {failed && <img className="hero-film-fallback" src={POSTER} alt="" {...dimensions} />}
       </div>
       <div className="hero-film-controls">
         {!failed && <button className="hero-film-play" type="button" onClick={toggle} aria-label={t(playing ? 'film.pause' : 'film.play')} title={t(playing ? 'film.pause' : 'film.play')}>

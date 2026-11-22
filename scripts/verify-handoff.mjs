@@ -126,12 +126,13 @@ try {
           // ratios (a measured 0.000015px overlap at 390px). Ignore only that
           // sub-layout-unit noise; preserve the actual 44/48px target contract.
           clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom - .05 || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
-          widescreen: Math.abs(picture.width / picture.height - 16 / 9) < .02,
+          framing: Math.abs(picture.width / picture.height - (innerWidth <= 639 ? 4 / 3 : 16 / 9)) < .02 &&
+            el.querySelector('video').poster.includes('-mobile-') === (innerWidth <= 639),
           backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
         };
       });
-      check(`${locale}/${width}: 16:9 film has its own backdrop and tappable controls below the picture`, facts.widescreen && facts.backdrop && !facts.clipped && !facts.overflow);
+      check(`${locale}/${width}: the correctly framed film has its own backdrop and tappable controls below the picture`, facts.framing && facts.backdrop && !facts.clipped && !facts.overflow);
       const guidePair = page.getByTestId('landing-guide-pair');
       const guideSend = page.getByTestId('landing-guide-send');
       check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
@@ -301,7 +302,7 @@ try {
       const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster }));
       check(`${name}: movie and still use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4'));
       // Full exports remain downloadable assets, not landing controls.
-      for (const url of [assets.movie, assets.poster.replace('-poster.jpg', '-full.mp4')]) {
+      for (const url of [assets.movie, assets.poster.replace(/(?:-mobile)?-poster\.jpg$/, '-full.mp4')]) {
         const file = await page.request.get(url, { headers: { Range: 'bytes=0-63' } });
         check(`${name}: the encoded movie exists (${new URL(url).pathname})`, file.ok() && /video\/mp4/.test(file.headers()['content-type'] || ''));
       }
@@ -438,6 +439,23 @@ try {
   await page.waitForTimeout(1200);
   check('manual play is available, and pause holds the film', await demo.locator('video').evaluate((el, time) => el.paused && Math.abs(el.currentTime - time) < 0.1, pausedAt));
   check('decoding the film causes no layout shift', Math.abs((await demo.boundingBox()).height - filmHeight) < 2);
+
+  // Both encodes tell the same story at the same time. Resizing must not
+  // restart it, override Pause (even with autoplay now permitted), or preload
+  // the wrong composition. 1024 also swaps the entire landing layout.
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  for (const width of [639, 640, 1023, 1024, 390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.waitForFunction(({ phone, at }) => {
+      const video = document.querySelector('[data-testid="hero-demo"] video');
+      const preload = [...document.querySelectorAll('link[rel~="preload"][as="image"]')]
+        .find(link => new URL(link.href).pathname.startsWith('/film/'));
+      return video.poster.includes('-mobile-') === phone && preload?.href === video.poster &&
+        video.readyState >= 2 && video.paused && Math.abs(video.currentTime - at) < .12;
+    }, { phone: width <= 639, at: pausedAt });
+    check(`${width}: framing changes preserve the paused phase and matching preload`, true);
+  }
+  await page.emulateMedia({ reducedMotion: 'reduce' });
 
   await page.keyboard.press('Control+k');
   await page.getByRole('combobox').fill('Device name');

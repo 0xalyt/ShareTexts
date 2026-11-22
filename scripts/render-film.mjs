@@ -1,5 +1,6 @@
 /**
- * render-film.mjs — the ShareTexts hero film rig.
+ * render-film.mjs — the legacy ShareTexts V2/V3 film rig.
+ * Current V5 authoring: render-launch-film.mjs; budget: DESIGN.md §20b.
  *
  * There is no 3D package here, so the film is shot rather than simulated: the
  * real product UI (LaptopApp / PhoneApp in src/film/FilmUI.tsx) is driven by a
@@ -303,9 +304,9 @@ function webBrag() {
     .readdirSync(BRAG_FRAMES)
     .filter((name) => name.endsWith('.png')).length;
   const fps = frameCount > 0 ? Math.round(frameCount / BRAG) : FPS;
-  // CRF 27, not 22. This is the hero's only image on a phone, and DESIGN §20b
-  // caps landing media at 1.2 MB; 22 shipped 2.0 MB for a cut whose frames are
-  // type on a still field. At 1:1 the two encodes are indistinguishable, and a
+  // Legacy flat-type cut: CRF 27, not 22. Its original target was 1.2 MB;
+  // current cinematic hero limits live in DESIGN §20b and verify:bundle.
+  // 22 shipped 2.0 MB for type on a still field. The two encodes are alike, and a
   // half-megabyte of text does not care about 5 more CRF points.
   ff([
     '-framerate', String(fps), '-i', path.join(BRAG_FRAMES, 'f%05d.png'),
@@ -343,7 +344,7 @@ function heroWeb() {
   const frames = fs.readdirSync(HERO_FRAMES).filter((n) => n.endsWith('.png')).length;
   const fps = frames > 0 ? Math.round(frames / HERO) : HERO_FPS;
   // CRF 26 against flat UI on a dark ground: indistinguishable at 1:1 from 20,
-  // and this file is the hero's only image on a phone (cap 1.2 MB).
+  // retaining this legacy cut's target; not the current cinematic hero cap.
   ff([
     '-framerate', String(fps), '-i', path.join(HERO_FRAMES, 'f%05d.png'),
     '-an', '-c:v', 'libx264', '-preset', 'slower', '-crf', '26',

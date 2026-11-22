@@ -175,12 +175,15 @@
             var picture = document.createElement('link');
             picture.rel = 'preload'; picture.as = 'image';
             picture.setAttribute('fetchpriority', 'high');
+            var filmViewport = matchMedia(film.getAttribute('data-phone-media'));
             var syncFilmPoster = function () {
-              var poster = film.getAttribute(document.documentElement.classList.contains('dark') ? 'data-dark' : 'data-light');
+              var theme = document.documentElement.classList.contains('dark') ? 'data-dark' : 'data-light';
+              var poster = film.getAttribute(theme + (filmViewport.matches ? '-mobile' : ''));
               if (picture.getAttribute('href') !== poster) picture.setAttribute('href', poster);
             };
             syncFilmPoster(); document.head.appendChild(picture);
             new MutationObserver(syncFilmPoster).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            filmViewport.addEventListener('change', syncFilmPoster);
           }
         } catch (e) { /* a preload must never block app boot */ }
         // A tab that reloads inside a linked room boots straight back into

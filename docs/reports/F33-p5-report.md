@@ -1,5 +1,8 @@
 # F33 — P5 "Front door"
 
+Historical report: the byte figures below describe the short feature loops,
+not today's cinematic hero. Current separate budgets are in DESIGN.md §20b.
+
 Branch `main`, straight through. Tagged `before-p5` before the first commit.
 Every push was preceded by `git pull --rebase`; nothing was force-pushed.
 
