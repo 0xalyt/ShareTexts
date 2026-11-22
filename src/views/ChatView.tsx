@@ -1791,10 +1791,11 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     handleSend(e);
                   }
                 },
-                // Compact widths get a SHORT placeholder: the full one wraps
-                // to two lines on a 360px phone and clips behind the send
-                // arrow. One idea per width — the promise stays the same.
-                placeholder: (textareaRef.current?.clientWidth ?? 400) < 300 ? t('composer.placeholderShort') : t('composer.placeholder'),
+                // The destination is the only hint a quiet two-device room
+                // needs. Multi-device rooms keep a neutral short invitation.
+                placeholder: !isMultiRoom && session.partnerName
+                  ? t('composer.to', { name: session.partnerName })
+                  : t('composer.placeholderShort'),
                 'aria-label': t('composer.aria'),
                 title: t('composer.title'),
               }}
