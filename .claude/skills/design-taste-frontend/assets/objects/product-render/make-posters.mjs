@@ -74,7 +74,7 @@ if (bad || opt('check')) process.exit(bad ? 1 : 0);
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.css': 'text/css' };
 const server = http.createServer((req, res) => {
   const p = path.join(root, decodeURIComponent(new URL(req.url, 'http://x').pathname));
-  if (!p.startsWith(root) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { res.writeHead(404); res.end(); return; }
+  if (!(p === root || p.startsWith(root + path.sep)) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'content-type': MIME[path.extname(p)] || 'application/octet-stream', 'cache-control': 'no-store' });
   fs.createReadStream(p).pipe(res);
 });
