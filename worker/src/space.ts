@@ -38,9 +38,8 @@ import { normalizeSpaceCode, isValidSpaceCode, generateSpaceCode } from './space
  *   sub:<n>          → PushSubscription (bounded per space)
  *   member:<id>      → MemberRecord (per-device names)
  *
- * Live updates: WebSocket Hibernation API. After a hibernation wake the
- * socket comes back unauthorized; the client re-sends `join_space`
- * automatically (it handles `space_auth_failed` by re-joining).
+ * Live updates: WebSocket Hibernation API. Socket attachments preserve
+ * authorization and device identity across hibernation wakes.
  */
 
 export const SPACE_TTL_CAP = 7 * 24 * 60 * 60 * 1000;          // hard max: 7 days
@@ -207,9 +206,6 @@ function log(...parts: unknown[]) {
 export class Space extends DurableObject<Env> {
   private space: SpaceState | null = null;
   private urlSpaceId: string | null = null;
-  /** Authorized-socket metadata. Rebuilt lazily after a hibernation wake —
-   *  sockets re-authorize with a join_space frame (see webSocketMessage). */
-  private conns = new Map<string, ConnMeta>();
   /** Set while handling a request that carries the test clock header, so
    *  async helpers (alarm timing) can share the same injected time. */
   private testNow: number | null = null;
@@ -380,7 +376,7 @@ export class Space extends DurableObject<Env> {
     const [client, server] = Object.values(pair);
     const cid = crypto.randomUUID();
     this.ctx.acceptWebSocket(server, [cid]);
-    this.conns.set(cid, { authorized: false, participantId: null });
+    server.serializeAttachment({ authorized: false, participantId: null } satisfies ConnMeta);
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -390,31 +386,23 @@ export class Space extends DurableObject<Env> {
     return tags.length ? tags[0] : null;
   }
 
-  private socketOf(cid: string): WebSocket | null {
-    for (const ws of this.ctx.getWebSockets(cid)) {
-      if (ws.readyState === 1) return ws;
-    }
-    return null;
-  }
-
-  /** Adopt (or re-adopt) a socket's metadata. After a hibernation wake the
-   *  in-memory map is empty; sockets come back unauthorized and must
-   *  re-send join_space — the client does this automatically. */
-  private adopt(cid: string): ConnMeta {
-    let meta = this.conns.get(cid);
-    if (!meta) {
-      meta = { authorized: false, participantId: null };
-      this.conns.set(cid, meta);
-    }
-    return meta;
+  private connectionOf(ws: WebSocket): ConnMeta {
+    return ws.deserializeAttachment() ?? { authorized: false, participantId: null };
   }
 
   private broadcast(event: string, payload: unknown) {
     const frame = JSON.stringify({ type: 'event', event, payload });
-    for (const [cid, meta] of this.conns) {
+    for (const ws of this.ctx.getWebSockets()) {
+      if (ws.readyState !== 1) continue;
+      const meta = ws.deserializeAttachment() as ConnMeta | null;
+      if (!meta) {
+        // Sockets accepted before attachments were introduced must rejoin.
+        ws.serializeAttachment({ authorized: false, participantId: null } satisfies ConnMeta);
+        try { ws.send(JSON.stringify({ type: 'event', event: 'space_auth_failed' })); } catch { /* dead socket */ }
+        continue;
+      }
       if (!meta.authorized) continue;
-      const ws = this.socketOf(cid);
-      if (ws) { try { ws.send(frame); } catch { /* dead socket */ } }
+      try { ws.send(frame); } catch { /* dead socket */ }
     }
   }
 
@@ -426,7 +414,7 @@ export class Space extends DurableObject<Env> {
 
     const cid = this.cidOf(ws);
     if (!cid) return;
-    const meta = this.adopt(cid);
+    const meta = this.connectionOf(ws);
 
     await this.loadSpace();
     const now = this.nowMs();
@@ -442,12 +430,14 @@ export class Space extends DurableObject<Env> {
       }
       if (!hash) {
         meta.authorized = false;
+        ws.serializeAttachment(meta);
         try { ws.send(JSON.stringify({ type: 'event', event: 'space_auth_failed' })); } catch { /* noop */ }
         try { ws.close(4001, 'unauthorized'); } catch { /* noop */ }
         return;
       }
       meta.authorized = true;
       meta.participantId = await pidFor(hash, deviceKeyOfWebSocket(msg.payload));
+      ws.serializeAttachment(meta);
       const joinerIsMember = timingSafeEqual(hash, this.space!.tokenHash);
       const devName = typeof msg.payload?.name === 'string' ? msg.payload.name : null;
       if (joinerIsMember) await this.registerMember(meta.participantId, devName, now);
@@ -484,9 +474,9 @@ export class Space extends DurableObject<Env> {
   async webSocketClose(ws: WebSocket) {
     const cid = this.cidOf(ws);
     if (!cid) return;
-    const meta = this.conns.get(cid);
-    this.conns.delete(cid);
-    if (meta?.authorized) {
+    const meta = this.connectionOf(ws);
+    if (meta.authorized) {
+      await this.loadSpace();
       this.broadcast('members_changed', { memberCount: this.liveMemberCount(), members: rosterOf(this.space?.members ?? {}) });
     }
   }
@@ -979,11 +969,9 @@ export class Space extends DurableObject<Env> {
     await this.ctx.storage.delete('space-code');
     await this.saveSpace();
     this.broadcast('space_closed', { reason, expiresAt: s.expiresAt });
-    for (const cid of [...this.conns.keys()]) {
-      const ws = this.socketOf(cid);
-      if (ws) { try { ws.close(1000, 'space_closed'); } catch { /* noop */ } }
+    for (const ws of this.ctx.getWebSockets()) {
+      try { ws.close(1000, 'space_closed'); } catch { /* noop */ }
     }
-    this.conns.clear();
     await this.ctx.storage.setAlarm(Date.now() + CLEANUP_DELAY_MS);
   }
 

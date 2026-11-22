@@ -97,6 +97,9 @@ export class FakeCtx {
     this.sockets.push(ws);
     if (tags) this.tags.set(ws, tags);
   }
+  getTags(ws: FakeWebSocket): string[] {
+    return this.tags.get(ws) ?? [];
+  }
   getWebSockets(tag?: string | string[]): FakeWebSocket[] {
     if (tag === undefined) return this.sockets;
     const list = Array.isArray(tag) ? tag : [tag];
