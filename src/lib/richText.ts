@@ -165,7 +165,7 @@ function wrap(value: string, start: number, end: number, marker: string): Edit {
   // Already formatted? Take it off — the same button toggles, which is what
   // people expect from a B button.
   const outer = value.slice(Math.max(0, start - m), start) === marker && value.slice(end, end + m) === marker;
-  if (sel && outer) {
+  if (outer) {
     return {
       value: value.slice(0, start - m) + sel + value.slice(end + m),
       selStart: start - m,

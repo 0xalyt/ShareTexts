@@ -36,6 +36,11 @@ assert.deepEqual(
   { value: 'hello****', selStart: 7, selEnd: 7 },
   'a collapsed caret lands between the new bold markers',
 );
+assert.deepEqual(
+  applyFormat('hello****', 7, 7, 'bold'),
+  { value: 'hello', selStart: 5, selEnd: 5 },
+  'pressing Bold again at the collapsed caret removes the empty marker pair',
+);
 for (const [kind, marker] of [['italic', '*'], ['code', '`']] as const) {
   const edit = applyFormat('hello', 0, 5, kind);
   assert.equal(edit.value, `${marker}hello${marker}`, `${kind} still wraps plain text`);
@@ -43,6 +48,12 @@ for (const [kind, marker] of [['italic', '*'], ['code', '`']] as const) {
     applyFormat(edit.value, 0, edit.value.length, kind),
     { value: 'hello', selStart: 0, selEnd: 5 },
     `${kind} toggles off when the complete phrase is selected`,
+  );
+  const empty = applyFormat('', 0, 0, kind);
+  assert.deepEqual(
+    applyFormat(empty.value, empty.selStart, empty.selEnd, kind),
+    { value: '', selStart: 0, selEnd: 0 },
+    `${kind} also toggles off an empty marker pair`,
   );
 }
 assert.match(renderToStaticMarkup(renderRichText(bold.value)), /<strong\b[^>]*>hello<\/strong>/, 'the receiver renders the bold phrase semantically');
