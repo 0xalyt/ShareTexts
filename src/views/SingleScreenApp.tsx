@@ -33,7 +33,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { SendScreen } from '../components/send/SendScreen';
 import { ReceiveScreen, type ReceiveError } from '../components/receive/ReceiveScreen';
 import { AnimatedIcon } from '../components/AnimatedIcon';
-import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
+import { DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
 import { UploadFolder } from '../components/ui/Detent';
 import { ShuffleHeading } from '../components/ShuffleHeading';
@@ -74,7 +74,8 @@ import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/error
 import { HeroLaunchFilm, type HeroFilmPlayback } from '../components/HeroLaunchFilm';
 import '../components/landing/landing-page.css';
 import { XProfileLink } from '../components/XProfileLink';
-import { ThreeThings, LandingFaq, BrowserCompatibility, WebsiteHandoff } from '../components/marketing/LandingSections';
+import { ThreeThings, LandingFaq, BrowserCompatibility } from '../components/marketing/LandingSections';
+import { LandingActivity } from '../components/landing/LandingActivity';
 import { useSavedCount } from '../lib/savedItems';
 import { useOverscroll } from '../lib/useOverscroll';
 import { ConfirmSheet } from '../components/ConfirmSheet';
@@ -101,7 +102,6 @@ import {
   Compass, ShieldCheck, FileText,
 } from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages, MonitorSmartphone } from 'lucide-react';
-import { HOP } from '../lib/brand';
 import { HOP_EVENT, parseHopLink, readHopCache, readSharedText, type HopLink } from '../lib/hop/flag';
 // Hop (linked devices) carries WebCrypto and IndexedDB code: it loads when a
 // person opens it or already has linked devices, never for a first visit.
@@ -223,6 +223,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [hopSheet, setHopSheet] = useState(() => Boolean(hopArrival.link || hopArrival.shared));
   const [hopMounted, setHopMounted] = useState(hopSheet);
   const [hop, setHop] = useState(readHopCache);
+  useEffect(() => {
+    const arrive = () => {
+      const link = parseHopLink(window.location.hash);
+      if (!link) return;
+      // A same-tab invite changes only the fragment, so the initial state
+      // reader does not run again. Consume the secret before opening it.
+      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+      setHopShared(null);
+      setHopLink(link);
+      setHopMounted(true);
+      setHopSheet(true);
+    };
+    arrive();
+    window.addEventListener('hashchange', arrive);
+    return () => window.removeEventListener('hashchange', arrive);
+  }, []);
   useEffect(() => {
     const sync = () => setHop(readHopCache());
     window.addEventListener(HOP_EVENT, sync);
@@ -862,6 +878,31 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     void handleCodeComplete(code);
   }, [handleReceive, handleCodeComplete]);
 
+  // Body-level paste is a shortcut, never a clipboard read on page load.
+  // Editors and open sheets keep their normal paste behavior.
+  useEffect(() => {
+    if (panelMode !== 'idle' || showSaved || showSettings || showMore || cmdOpen ||
+        hopSheet || nearbySheet || spaceSheet || showQROverlay || showQRScan) return;
+    const paste = (event: ClipboardEvent) => {
+      // Nested controls (for example the footer language sheet) own their
+      // open state, so also check the active modal boundary at event time.
+      if (event.defaultPrevented || creatingRef.current || document.querySelector('[role="dialog"][aria-modal="true"], dialog[open], [aria-haspopup="listbox"][aria-expanded="true"]') ||
+          (event.target instanceof Element && event.target.closest('input, textarea, [contenteditable], [role="textbox"]'))) return;
+      const files = Array.from(event.clipboardData?.files ?? []);
+      const text = event.clipboardData?.getData('text/plain') ?? '';
+      if (!files.length && !text.trim()) return;
+      event.preventDefault();
+      const pending = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+      // A clipboard image can also carry its filename as text: queue the
+      // image once, not an unwanted filename message beside it.
+      if (files.length) { pending.__stHomeDropFiles = files; delete pending.__stPendingIntentText; }
+      else { pending.__stPendingIntentText = text; delete pending.__stHomeDropFiles; }
+      void handleSend();
+    };
+    document.addEventListener('paste', paste);
+    return () => document.removeEventListener('paste', paste);
+  }, [panelMode, showSaved, showSettings, showMore, cmdOpen, hopSheet, nearbySheet, spaceSheet, showQROverlay, showQRScan, handleSend]);
+
   const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
@@ -873,6 +914,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     // happened (caught by verify-nav: Send → Back → Send). The abandoned
     // attempt still closes its own room when it resolves (thisAttempt check).
     creatingRef.current = false;
+    const pending = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+    delete pending.__stHomeDropFiles;
+    delete pending.__stPendingIntentText;
     clearAcceptBeat();
     setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); setIsJoining(false);
   }, [abandonSession, clearAcceptBeat]);
@@ -1073,6 +1117,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             three controls on the narrowest screen, which is the Hick limit.
             Everything else the capsule used to carry moves into More. */}
         <div className="flex items-center gap-2">
+          {panelMode === 'idle' ? (
+            <nav className="landing-nav hidden items-center sm:flex" aria-label={t('nav.more')}>
+              <a href="/docs" className="landing-nav-link">{t('nav.docs')}</a>
+              <button type="button" className="landing-nav-link" aria-label={savedNavLabel} onClick={() => setShowSaved(true)} data-testid="open-saved">
+                {t('nav.saved')}{savedCount > 0 && <bdi className="tnum">{fmtNumber(lang, savedCount)}</bdi>}
+              </button>
+              <LanguageMenu />
+              <ThemeToggle />
+            </nav>
+          ) : (
           <div className="hidden items-center gap-2.5 sm:flex">
             {/* Docs leaves the glyph capsule and becomes the one NAMED thing
                 in the header. Four unlabeled icons in a row is a guessing
@@ -1112,6 +1166,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </GlassCapsule>
             {panelMode !== 'connected' && <ThemeToggle />}
           </div>
+          )}
           <div className="flex items-center gap-2 sm:hidden">
             {/* ONE instrument cluster on a phone: More and the theme control
                 share a capsule, split by a hairline. Two separate objects
@@ -1152,6 +1207,70 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const here = typeof window !== 'undefined' ? window.location.pathname : '';
   const inApp = React.useMemo(() => detectInApp(), []);
   const showInAppNotice = inApp.inApp && !inAppDismissed && (inApp.limited || inApp.ios || inApp.android);
+
+  const moreWaysNode = (
+    <section className="landing-more w-full" aria-labelledby="more-ways-title">
+      <h2 id="more-ways-title" className="st-h2">{t('home.moreWays')}</h2>
+      <div>
+              <div className="landing-shortcut w-full">
+                <IntentField
+                  onCreate={handleIntentCreate}
+                  onJoin={handleIntentJoin}
+                  busy={isCreating || isJoining}
+                />
+              </div>
+
+              {/* The two quiet doors (§18): lists, not cards. Nearby says what
+                  it is doing in the subtitle (same words the discovery row
+                  used), Temporary Space opens a chooser instead of putting two
+                  buttons and a recents rail in the hero. */}
+              <div className="landing-utilities flex w-full flex-col" data-testid="home-rows">
+                {/* My devices comes first: for anyone who has linked a device
+                    it is the shortest path on the page. */}
+                <ListRow
+                  title={t('hop.title')}
+                  subtitle={hop?.devices.length
+                    ? hop.devices.map(d => d.label || t('hop.devices.unnamed')).join(', ')
+                    : t('hop.row.hint')}
+                  trailing={hop?.unread ? (
+                    <span className="rounded-full bg-ember/12 px-2 py-0.5 text-[12px] font-semibold text-ember-ink dark:text-ember" data-testid="home-hop-new">
+                      {t('hop.row.new', { count: hop.unread })}
+                    </span>
+                  ) : undefined}
+                  leading={<MonitorSmartphone className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
+                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(false); openHop(); }}
+                  testId="home-hop"
+                />
+                <ListRow
+                  title={t('nearby.title')}
+                  subtitle={nearbyStatus || undefined}
+                  leading={(
+                    <span className="relative flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
+                      <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/35" />
+                      <span className="relative h-1.5 w-1.5 rounded-full bg-status-success" />
+                    </span>
+                  )}
+                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }}
+                  testId="home-nearby"
+                />
+                {/* Retention is a fact, not a sentence: it sits in the
+                    trailing slot, so the row reads in one glance. */}
+                <ListRow
+                  title={t('space.entryTitle')}
+                  trailing={(
+                    <span className="text-[13px] font-medium tabular-nums text-apple-ink-muted dark:text-white/45">
+                      {t('space.retention')}
+                    </span>
+                  )}
+                  leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
+                  onClick={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('choose'); }}
+                  testId="home-space"
+                />
+              </div>
+
+      </div>
+    </section>
+  );
 
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
@@ -1226,12 +1345,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* One tactile family, with Send as the filled primary and
                     Receive as its quieter surface companion. Both retain
                     immediate press feedback and the same target geometry. */}
-                <GlossyButton onClick={handleSend} data-testid="home-send" className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</GlossyButton>
+                <GlossyButton onClick={handleSend} data-testid="home-send" className="w-full" icon={<AlloSymbol name="right" size={20} style={{ transform: 'rotate(-45deg)' }} />} disabled={isCreating}>{t('home.send')}</GlossyButton>
                 <GlossyButton
                   onClick={handleReceive}
                   data-testid="home-receive"
-                  className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]"
-                  icon={<ReceiveCircleIcon size={18} />}
+                  className="w-full"
+                  icon={<AlloSymbol name="left" size={20} style={{ transform: 'rotate(-45deg)' }} />}
                 >
                   {t('home.receive')}
                 </GlossyButton>
@@ -1240,13 +1359,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   heading → sharing actions → film → secondary tools. */}
               <div className="landing-hero-film st-hide-landscape order-5 w-full">
                 <HeroLaunchFilm playback={filmPlayback} />
-              </div>
-              <div className="landing-shortcut order-6 w-full">
-                <IntentField
-                  onCreate={handleIntentCreate}
-                  onJoin={handleIntentJoin}
-                  busy={isCreating || isJoining}
-                />
               </div>
               {/* Stay Connected re-entry: the room this device promised to
                   keep alive is one tap away — history included. Only shown
@@ -1326,55 +1438,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* The rating moved OFF the landing (slop inventory #12):
                   feedback now lives in Settings, reachable but never
                   mid-marketing-page. */}
-              {/* The two quiet doors (§18): lists, not cards. Nearby says what
-                  it is doing in the subtitle (same words the discovery row
-                  used), Temporary Space opens a chooser instead of putting two
-                  buttons and a recents rail in the hero. */}
-              <div className="landing-utilities order-8 flex w-full flex-col" data-testid="home-rows">
-                {/* My devices comes first: for anyone who has linked a device
-                    it is the shortest path on the page. */}
-                <ListRow
-                  title={t('hop.title')}
-                  subtitle={hop?.devices.length
-                    ? hop.devices.map(d => d.label || t('hop.devices.unnamed')).join(', ')
-                    : t('hop.row.hint')}
-                  trailing={hop?.unread ? (
-                    <span className="rounded-full bg-ember/12 px-2 py-0.5 text-[12px] font-medium text-ember-ink dark:text-ember" data-testid="home-hop-new">
-                      {t('hop.row.new', { count: hop.unread })}
-                    </span>
-                  ) : (
-                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/65">{HOP}</span>
-                  )}
-                  leading={<MonitorSmartphone className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
-                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(false); openHop(); }}
-                  testId="home-hop"
-                />
-                <ListRow
-                  title={t('nearby.title')}
-                  subtitle={nearbyStatus || undefined}
-                  leading={(
-                    <span className="relative flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
-                      <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/35" />
-                      <span className="relative h-1.5 w-1.5 rounded-full bg-status-success" />
-                    </span>
-                  )}
-                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }}
-                  testId="home-nearby"
-                />
-                {/* Retention is a fact, not a sentence: it sits in the
-                    trailing slot, so the row reads in one glance. */}
-                <ListRow
-                  title={t('space.entryTitle')}
-                  trailing={(
-                    <span className="text-[13px] font-medium tabular-nums text-apple-ink-muted dark:text-white/65">
-                      {t('space.retention')}
-                    </span>
-                  )}
-                  leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
-                  onClick={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('choose'); }}
-                  testId="home-space"
-                />
-              </div>
               {createError && (
                 <SystemAlert
                   className="mt-4"
@@ -1676,7 +1739,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     </div>
   );
   const footerNode = (
-    <footer className="shrink-0 mt-4 border-t border-black/[0.06] px-5 pt-8 pb-[max(env(safe-area-inset-bottom),24px)] dark:border-white/[0.08] sm:px-6 sm:pt-10 sm:pb-8 lg:px-8 2xl:px-12">
+    <footer data-testid="landing-footer" className="shrink-0 mt-4 border-t border-black/[0.06] px-6 pt-8 pb-[max(env(safe-area-inset-bottom),24px)] dark:border-white/[0.08] sm:pt-10 sm:pb-8 lg:px-8 2xl:px-12">
       {/* The front door's footer (DESIGN.md §20d): text links only. No icon
           row, no social buttons, no marketing band. Every link keeps a 44px
           hit area even though the label is 13px — that is what closes B20.
@@ -1687,9 +1750,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           the link row is a real <nav> with a name that describes it — it
           used to be labelled with the footer.language string, which told a
           screen reader the wrong thing about the links inside it. */}
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-7 sm:gap-8">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
-          <div className="flex min-w-0 flex-col gap-2.5">
+          <div className="flex min-w-0 flex-col gap-3">
             <BrandLockup className="self-start" />
             <p className="max-w-[34ch] text-[13px] font-normal leading-relaxed text-apple-ink-muted dark:text-white/65">
               {t('footer.trust')}
@@ -1702,11 +1765,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               iPhone · Android · Windows · macOS · Linux
             </p>
           </div>
-          {/* On a phone the five links are one even band across the column,
-              not a left-hugging cluster with a ragged tail — the same width
-              the brand block occupies, so the footer reads as one grid. From
-              sm up they go back to a tight right-aligned group. */}
-          <nav aria-label={t('footer.read')} className="flex w-full items-center justify-between gap-x-3 sm:w-auto sm:justify-end sm:gap-x-4">
+          {/* A two-column phone grid gives translated labels room to wrap
+              without squeezing targets. Desktop links form a quiet group. */}
+          <nav aria-label={t('footer.read')} className="grid w-full grid-cols-2 gap-x-6 sm:flex sm:w-auto sm:max-w-[55%] sm:flex-wrap sm:justify-end sm:gap-x-6">
             {[
               { label: t('nav.docs'), href: '/docs' },
               { label: t('nav.guides'), href: '/guides' },
@@ -1717,22 +1778,20 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <a
                 key={item.href}
                 href={item.href}
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-[13px] font-medium text-apple-ink-muted decoration-[1px] underline-offset-[5px] transition-colors hover:text-apple-ink hover:underline dark:text-white/60 dark:hover:text-white"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center text-[13px] font-medium text-apple-ink-muted decoration-[1px] underline-offset-[5px] transition-colors hover:text-apple-ink hover:underline dark:text-white/60 dark:hover:text-white"
               >
-                {item.label}
+                <span className="min-w-0 break-words [hyphens:auto]">{item.label}</span>
               </a>
             ))}
           </nav>
         </div>
-        {/* Language and copyright share one row at every width. Stacked on a
-            phone the globe sat alone above the ©, which read as a stray icon
-            rather than a footer baseline — and cost 44px of height for it. */}
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-black/[0.05] pt-4 dark:border-white/[0.06]">
+        {/* Let the utility row wrap naturally; never compress its targets. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 border-t border-black/[0.05] pt-4 dark:border-white/[0.06]">
           <div className="flex flex-wrap items-center gap-x-5">
             {/* The current language, named, opening the same sheet the header
                 uses — so a visitor never has to hunt for the switcher. */}
             <span className="inline-flex min-h-[44px] items-center">
-              <LanguageMenu />
+              <LanguageMenu inline />
             </span>
             {/* The maker sits with the language control, not across the row
                 with the copyright: both are "who and how you read this
@@ -2127,9 +2186,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 Keep the same source order as the phone, not a CSS reorder. */}
             <div className="w-full min-w-0">{idleHeroNode}</div>
           </div>
+          <LandingActivity />
+          <ThreeThings />
           <BrowserCompatibility />
-          <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
-          <WebsiteHandoff />
+          {moreWaysNode}
           <LandingFaq />
           {/* No repeat CTA down here. The hero already owns Send / Receive,
               and a second pair at the foot of the page made the same two
@@ -2242,9 +2302,10 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </ScreenStack>
                   {panelMode === 'idle' && (
                     <div className="w-full">
+                      <LandingActivity />
+                      <ThreeThings />
                       <BrowserCompatibility />
-                      <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
-                      <WebsiteHandoff />
+                      {moreWaysNode}
                       <LandingFaq />
                     </div>
                   )}

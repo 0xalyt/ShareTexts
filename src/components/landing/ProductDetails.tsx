@@ -33,7 +33,7 @@ export function TransferDetail() {
       <div className="landing-receipt-note">{t('demo.handoff.note')}</div>
       <div className="landing-receipt-files">
         <div className="landing-file-paper"><FileText /><span>PDF</span></div>
-        <div className="landing-file-photo"><img src="/demo/photo-4x3.jpg" alt="" width="480" height="360" loading="lazy" decoding="async" /></div>
+        <div className="landing-file-paper landing-link-paper"><Link /><span>sharetexts.online</span></div>
       </div>
       <div className="landing-receipt-status"><Check /><span>{t('demo.handoff.received')}</span></div>
     </div>
