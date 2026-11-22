@@ -11,6 +11,9 @@ export const RoomFileGroup: React.FC<{ messages: ChatMessage[]; children: React.
   const { t } = useI18n();
   const [downloadStarted, setDownloadStarted] = useState(false);
   const grouped = messages.length > 1;
+  // Plain messages keep their original flex/overlay geometry; only an actual
+  // file run needs another layout box around its cards.
+  if (!grouped) return <>{children}</>;
   const photos = messages.every(m => m.attachment?.type === 'image');
   const media = messages.every(m => m.attachment?.type === 'image' || m.attachment?.type === 'video');
   const ready = messages.every(m => m.attachment?.status === 'complete' && m.attachment.url);
