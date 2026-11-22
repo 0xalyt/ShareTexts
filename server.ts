@@ -24,7 +24,7 @@ const isProd = process.env.NODE_ENV === 'production';
 function inlineScriptPins(): string[] {
   const pins: string[] = [];
   const seen = new Set<string>();
-  for (const rel of ['index.html', 'guides/about.html']) {
+  for (const rel of ['index.html', 'guides/index.html']) {
     let html: string;
     try {
       html = readFileSync(path.join(__dirname, rel), 'utf8');
@@ -63,7 +63,7 @@ const securityOptions = {
       // The hash whitelists ONLY hashable inline scripts (sha256 of each
       // exact body): (1) the index.html pre-paint script — theme bootstrap +
       // slow-boot escalation; it must run before first paint or dark users
-      // get a white flash on every reload; (2) the guides/about year stamp.
+      // get a white flash on every reload; (2) the static guides' year stamp.
       // JSON-LD blocks never execute, so they need no hash. Hash-pinning
       // keeps the CSP strict; 'unsafe-inline' would defeat the whole policy.
       // If either inline script changes, re-pin its hash (scripts/verify-seo.mjs
@@ -72,7 +72,7 @@ const securityOptions = {
         ? [
             "'self'",
             // index.html boot script (theme class + meta before first paint)
-            // and the guides/about year stamp — hashed from the shipped HTML
+            // and the static guides' year stamp — hashed from the shipped HTML
             // above, never by hand.
             ...inlineScriptPins(),
           ]
@@ -99,7 +99,7 @@ const securityOptions = {
         "ws:",
         "wss:",
         "https:",
-        ...(isProd ? [] : ["http://localhost:*", "ws://localhost:*"]),
+        ...(isProd ? (process.env.VITE_CI_LOCAL_WORKER === '1' && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(process.env.VITE_SIGNALING_URL || '') ? [process.env.VITE_SIGNALING_URL!] : []) : ["http://localhost:*", "ws://localhost:*"]),
       ],
       frameAncestors: ["'none'"],
     }
@@ -1756,19 +1756,12 @@ io.on('connection', (socket) => {
 });
 
 async function start() {
+  app.get('/guides/about.html', (_req, res) => res.redirect(308, '/about'));
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: { server: httpServer } },
       appType: "spa",
-    });
-    // Dev parity with production routing: the About page is a static SEO
-    // guide served at its canonical URL (vercel.json rewrites it there, and
-    // the prod branch maps it explicitly). Registered BEFORE Vite's SPA
-    // fallback, which would otherwise serve the app shell and the client
-    // would render its 404 view on a 200 status.
-    app.get('/about', (_req, res) => {
-      res.sendFile(path.join(process.cwd(), 'public', 'guides', 'about.html'));
     });
     // The guides hub at its canonical extensionless URL, before Vite's SPA
     // fallback (which would otherwise serve the app shell and the client
@@ -1831,9 +1824,8 @@ async function start() {
     // 404 — this prevents search engines from indexing nonexistent pages
     // as HTTP 200.
     app.get('*', (req, res) => {
-      // The About page is a static SEO guide served at its canonical URL.
       if (req.path === '/about') {
-        return res.sendFile(path.join(distPath, 'guides', 'about.html'));
+        return res.sendFile(path.join(distPath, 'seo', 'about.html'));
       }
       // Prerendered route shells (scripts/seo-routes.mjs): crawlers and
       // no-JS visitors get real content with per-route metadata; the same

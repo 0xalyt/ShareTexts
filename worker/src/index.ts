@@ -140,7 +140,7 @@ export default {
           // sender withdrew), plus the signature headers it signs with.
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers':
-            'content-type, x-st-device, x-st-time, x-st-nonce, x-st-sig, x-st-chunks, x-st-epoch, x-st-size',
+            'content-type, authorization, x-device-key, x-device-name, x-st-device, x-st-time, x-st-nonce, x-st-sig, x-st-chunks, x-st-epoch, x-st-size',
           'Access-Control-Max-Age': '86400',
           'Vary': 'Origin',
         },
@@ -254,7 +254,11 @@ export default {
         body: JSON.stringify({ code: body.code }),
       });
       const id = env.SPACES.idFromName(found.spaceId.toLowerCase());
-      return env.SPACES.get(id).fetch(internal);
+      const res = await env.SPACES.get(id).fetch(internal);
+      const out = new Response(res.body, res);
+      for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+      out.headers.set('Access-Control-Expose-Headers', 'x-space-token');
+      return out;
     }
 
     if (path.startsWith('/space/')) {
@@ -286,7 +290,11 @@ export default {
         internal = new Request('https://internal' + path + url.search, request);
       }
       const id = env.SPACES.idFromName(m[1].toLowerCase());
-      return env.SPACES.get(id).fetch(internal);
+      const res = await env.SPACES.get(id).fetch(internal);
+      const out = new Response(res.body, res);
+      for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+      out.headers.set('Access-Control-Expose-Headers', 'x-space-token');
+      return out;
     }
 
     // ── Circle (M3): linked-device mailbox ─────────────────────────────

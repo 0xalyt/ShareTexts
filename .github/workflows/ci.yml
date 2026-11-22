@@ -8,6 +8,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      VITE_CI_LOCAL_WORKER: '1'
+      VITE_SIGNALING_URL: http://localhost:8787
+      WRANGLER_SEND_METRICS: 'false'
     # P6: the core flow has to hold in all three engines. Chromium is the fast
     # path people actually use; WebKit is iPhone Safari; Firefox is the one
     # engine with different flexbox, focus and backdrop-filter behaviour.
@@ -32,11 +36,23 @@ jobs:
       - name: Typecheck worker
         run: npm run worker:typecheck
 
+      - name: Block production signaling
+        run: |
+          echo '0.0.0.0 sharetext-signaling.alighttt.workers.dev' | sudo tee -a /etc/hosts
+          if curl --noproxy '*' -fsS --connect-timeout 3 --max-time 5 https://sharetext-signaling.alighttt.workers.dev/health; then
+            echo 'Production signaling must be unreachable'
+            exit 1
+          fi
+          test "$(getent ahostsv4 sharetext-signaling.alighttt.workers.dev | head -1 | cut -d' ' -f1)" = '0.0.0.0'
+
       - name: Worker protocol suite (emulator)
-        run: npm run worker:test
+        run: npm run worker:test && node scripts/verify-worker-endpoint.mjs
 
       - name: Build
         run: npm run build
+
+      - name: Start local signaling Worker
+        run: node scripts/start-ci-worker.mjs
 
       - name: Install Playwright browsers
         # The composer geometry gate launches Chromium in every matrix job.
@@ -53,8 +69,14 @@ jobs:
           tail -40 /tmp/sharetext-server.log
           exit 1
 
+      - name: Motion and reduced-motion contracts
+        run: BROWSERS=${{ matrix.browsers }} node scripts/verify-motion-contracts.mjs
+
       # P7: the P4 composer incident, as a rectangle check. Text-level gates
       # cannot see a Send circle that walks 65px up a grown row.
+      - name: Verify local signaling in built app
+        run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-ci-worker.mjs
+
       - name: Composer geometry gate
         run: URL=http://localhost:3311 node scripts/verify-composer.mjs
 
@@ -63,35 +85,19 @@ jobs:
 
       - name: Browser E2E (create → join → transfer → reconnect → rejoin)
         id: browser_e2e
-        run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
-
-      # A failed delivery must be compared with main on this exact runner,
-      # not another provider/region. This control never changes the PR result.
-      - name: Main control on the same failed WebKit runner
-        if: ${{ failure() && steps.browser_e2e.outcome == 'failure' && matrix.browsers == 'webkit' && github.event_name == 'pull_request' }}
-        env:
-          BASELINE_REF: ${{ github.event.pull_request.base.sha }}
+        # Handoff opens dozens of contexts on one loopback IP, exhausting the
+        # Worker's per-IP socket budget. Reset volatile limits, not production defaults.
         run: |
-          BASELINE_DIR="$RUNNER_TEMP/sharetexts-main-control"
-          git fetch --depth=1 origin "$BASELINE_REF"
-          git worktree add --detach "$BASELINE_DIR" FETCH_HEAD
-          npm ci --prefix "$BASELINE_DIR"
-          npm run build --prefix "$BASELINE_DIR"
-          PORT=3312 npm run start --prefix "$BASELINE_DIR" > "$RUNNER_TEMP/sharetexts-main-control-server.log" 2>&1 &
-          ready=false
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:3312/health > /dev/null; then ready=true; break; fi
-            sleep 1
-          done
-          if [ "$ready" != true ]; then
-            cat "$RUNNER_TEMP/sharetexts-main-control-server.log"
-            exit 1
-          fi
-          BROWSER=webkit URL=http://localhost:3312 node scripts/e2e.mjs
+          node scripts/start-ci-worker.mjs --restart
+          BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
 
       - name: Screenshots (this engine)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs
         continue-on-error: true
+
+      - name: Worker diagnostics on failure
+        if: failure()
+        run: cat audit/worker.log
 
       - name: Upload evidence
         if: always()

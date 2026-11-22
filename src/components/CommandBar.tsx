@@ -7,12 +7,11 @@ import { fmtTime, localeOf } from '../lib/format';
 import { NumberTicker } from './NumberTicker';
 import { cn, shortCodeOf } from '../lib/utils';
 import { DUR, SPRING } from '../lib/motion/tokens';
-// lucide icons under the local names this file already uses (all icons are
-// lucide since Phase 3; strokeWidth comes from the app's shared default).
+import { AlloSymbol } from './AlloSymbol';
 import {
   Send, Download, QrCode, Link as Link2, Copy,
   RefreshCw, LogOut, Smartphone,
-  Sun, Moon, FileText, ChevronLeft, Check, Search,
+  Sun, Moon, FileText,
   Info, Clock,
 } from 'lucide-react';
 import { Gauge, Activity, Languages } from 'lucide-react';
@@ -378,7 +377,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                     onClick={() => setSubOpen(false)}
                     className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
                   >
-                    <ChevronLeft className="w-4 h-4" /> {t('command.title')}
+                    <AlloSymbol name="left" size={16} /> {t('command.title')}
                   </button>
                 </div>
                 <div role="listbox" aria-label={t('lang.menu')} ref={langListRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-2">
@@ -395,7 +394,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                       )}
                     >
                       <span>{l.native}</span>
-                      {l.code === lang && <Check className="w-4 h-4 text-ember dark:text-ember" />}
+                      {l.code === lang && <AlloSymbol name="check" size={16} className="text-ember dark:text-ember" />}
                     </button>
                   ))}
                 </div>
@@ -403,7 +402,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
             ) : (
               <>
                 <div className="flex items-center gap-3 px-4 border-b border-black/[0.05] dark:border-white/[0.06]">
-                  <Search className="w-[18px] h-[18px] text-apple-ink-muted/60 dark:text-white/35 shrink-0" />
+                  <AlloSymbol name="search" size={18} className="text-apple-ink-muted/60 dark:text-white/35" />
                   <input
                     ref={inputRef}
                     value={query}
@@ -455,7 +454,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                             {cmd.hint && (
                               <span className="shrink-0 text-[12px] text-apple-ink-muted/60 dark:text-white/30">{cmd.hint}</span>
                             )}
-                            {cmd.opensSub && <ChevronLeft className="w-3.5 h-3.5 rotate-180 text-apple-ink-muted/60 dark:text-white/30" />}
+                            {cmd.opensSub && <AlloSymbol name="next" size={14} className="text-apple-ink-muted/60 dark:text-white/30" />}
                           </button>
                         );
                       })}
@@ -504,7 +503,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
           onClick={onBack}
           className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" /> {t('command.title')}
+          <AlloSymbol name="left" size={16} /> {t('command.title')}
         </button>
       </div>
       <div ref={bodyRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-4 flex flex-col gap-4">
@@ -574,7 +573,7 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
           onClick={onBack}
           className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" /> {t('command.title')}
+          <AlloSymbol name="left" size={16} /> {t('command.title')}
         </button>
         <button
           type="button"

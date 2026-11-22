@@ -41,6 +41,7 @@ const tmp = mkdtempSync(path.join(os.tmpdir(), 'sharetext-worker-'));
 const shimPath = path.join(root, 'worker', 'test', 'cf-shim.ts');
 const out = await build({
   entryPoints: {
+    index: path.join(root, 'worker', 'src', 'index.ts'),
     room: path.join(root, 'worker', 'src', 'room.ts'),
     registry: path.join(root, 'worker', 'src', 'registry.ts'),
     metrics: path.join(root, 'worker', 'src', 'metrics.ts'),
@@ -63,6 +64,7 @@ const { Room, ROOM_TTL } = await import(pathToFileURL(path.join(tmp, 'room.js'))
 const { Registry } = await import(pathToFileURL(path.join(tmp, 'registry.js')).href + cacheBust);
 const { Metrics } = await import(pathToFileURL(path.join(tmp, 'metrics.js')).href + cacheBust);
 const { Space, SPACE_TTL_CAP } = await import(pathToFileURL(path.join(tmp, 'space.js')).href + cacheBust);
+const { default: worker } = await import(pathToFileURL(path.join(tmp, 'index.js')).href + cacheBust);
 
 // Capture the pair created inside each DO fetch.
 let lastPair = null;
@@ -914,6 +916,56 @@ async function runSpace() {
   void SPACE_TTL_CAP;
 }
 
+async function runCorsPreflight() {
+  const clients = [
+    ['space', '/space/example/join', 'POST', ['content-type', 'authorization', 'x-device-key', 'x-device-name']],
+    ['mailbox', '/circle/example/items/example/0', 'PUT', ['content-type', 'x-st-device', 'x-st-time', 'x-st-nonce', 'x-st-sig', 'x-st-chunks', 'x-st-epoch', 'x-st-size']],
+    ['lookup', '/lookup', 'POST', ['content-type']],
+  ];
+  for (const origin of ['https://sharetexts.online', 'http://localhost:3311', 'http://127.0.0.1:49123']) {
+    for (const [client, pathname, method, headers] of clients) {
+      const res = await worker.fetch(new Request(`https://worker.test${pathname}`, {
+        method: 'OPTIONS', headers: { origin, 'access-control-request-method': method, 'access-control-request-headers': headers.join(', ') },
+      }), {});
+      const allowed = (res.headers.get('access-control-allow-headers') || '').toLowerCase().split(/,\s*/);
+      check(`${client} preflight allows all client headers from ${origin}`, res.status === 204 && res.headers.get('access-control-allow-origin') === origin && headers.every(header => allowed.includes(header)));
+    }
+  }
+  const empty = await worker.fetch(new Request('https://worker.test/lookup', { method: 'OPTIONS' }), {});
+  check('originless preflight remains available', empty.status === 204);
+  const denied = await worker.fetch(new Request('https://worker.test/lookup', { method: 'OPTIONS', headers: { origin: 'https://untrusted.example' } }), {});
+  check('preflight still rejects untrusted origins', denied.status === 403 && !denied.headers.has('access-control-allow-origin'));
+}
+
+async function runSpaceCors() {
+  const registry = new Registry(new FakeCtx(), {});
+  const spaces = new Map();
+  const env = {
+    REGISTRY: { idFromName: name => name, get: () => registry },
+    SPACES: { idFromName: name => name, get: id => {
+      if (!spaces.has(id)) spaces.set(id, new Space(new FakeCtx(), env));
+      return spaces.get(id);
+    } },
+  };
+  const origin = 'https://sharetexts.online';
+  const id = uuid();
+  const post = (path, body, token) => worker.fetch(new Request(`https://worker.test${path}`, {
+    method: 'POST', headers: { origin, 'content-type': 'application/json', 'x-device-key': 'cors-device', 'x-device-name': 'Cors device', ...(token ? { authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(body),
+  }), env);
+  const created = await post(`/space/${id}/create`, { durationMs: 21600000 });
+  check('Space create response carries CORS through the router', created.status === 200 && created.headers.get('access-control-allow-origin') === origin);
+  const { token, code } = await created.json();
+  const joined = await post(`/space/${id}/join`, {}, token);
+  check('Space authenticated join response carries CORS', joined.status === 200 && joined.headers.get('access-control-allow-origin') === origin);
+  const denied = await post(`/space/${id}/join`, {}, 'wrong');
+  check('Space authorization errors carry CORS', denied.status === 401 && denied.headers.get('access-control-allow-origin') === origin);
+  const codeJoin = await post('/space/join-code', { code });
+  check('Space code join exposes its credential header to the allowed frontend', codeJoin.status === 200 && codeJoin.headers.get('access-control-allow-origin') === origin && !!codeJoin.headers.get('x-space-token') && codeJoin.headers.get('access-control-expose-headers') === 'x-space-token');
+}
+
+await runCorsPreflight();
+await runSpaceCors();
 await runRoomProtocol();
 await runRefreshCode();
 await runStayConnected();

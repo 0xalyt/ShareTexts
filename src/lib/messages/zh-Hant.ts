@@ -15,6 +15,23 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  'reading.englishOnly': "此頁面目前僅提供英文版本。",
+  'nav.docs': '說明文件',
+  'nav.about': '關於',
+  'nav.privacy': '隱私',
+  'nav.terms': '條款',
+  'nav.guides': '指南',
+  'footer.useIt': '開始使用',
+  'footer.read': '閱讀',
+  'footer.legal': '法律資訊',
+  'footer.open': '開啟 ShareTexts',
+  'footer.withCode': '使用代碼分享',
+  'footer.devs': '開發者資訊',
+  'footer.report': '回報問題',
+  'footer.noApp': '無需安裝應用程式',
+  'footer.noAccount': '無需帳號',
+  'footer.followAria': '在 X 上關注',
+  'footer.language': '語言',
   'space.emptyAction': '寫一則筆記',
   'footer.devices': '你的裝置',
   'demo.s7': '用完後關閉房間。',
@@ -73,7 +90,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   'action.copy': '複製',
   'msg.copy': '複製',
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "瀏覽器不同。傳遞一樣簡單。",
+  "home.browser.heading": "支援所有現代瀏覽器",
   "home.browser.body": "不需使用相同的瀏覽器。在兩台裝置上開啟 ShareTexts 即可。",
   "home.browser.open": "在另一台裝置上開啟",
   "home.browser.qr": "顯示網站 QR 碼",

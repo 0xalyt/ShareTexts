@@ -65,7 +65,7 @@ export function BrandLockup({
       </span>
       <span
         className={cn(
-          'font-display font-semibold tracking-[-0.035em] leading-none text-apple-ink select-none',
+          'st-wordmark font-display font-semibold tracking-[-0.025em] leading-none text-apple-ink select-none',
           compact ? 'text-[16px]' : 'text-[19px] sm:text-[20px]',
         )}
       >

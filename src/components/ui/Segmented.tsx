@@ -53,6 +53,7 @@ export function Segmented<T extends string>({
   const wrapRef = useRef<HTMLDivElement>(null);
   const [thumb, setThumb] = useState<{ x: number; w: number } | null>(null);
   const [placed, setPlaced] = useState(false);
+  const [animateThumb, setAnimateThumb] = useState(true);
 
   const measure = useCallback(() => {
     const wrap = wrapRef.current;
@@ -90,6 +91,8 @@ export function Segmented<T extends string>({
     else if (e.key === 'End') next = options.length - 1;
     if (next < 0) return;
     e.preventDefault();
+    // Repeated keyboard navigation is immediate, not a sequence to wait for.
+    setAnimateThumb(false);
     onChange(options[next].value);
     const tabs = wrapRef.current?.querySelectorAll<HTMLElement>('[role="tab"]');
     tabs?.[next]?.focus();
@@ -114,7 +117,7 @@ export function Segmented<T extends string>({
           width: thumb?.w ?? 0,
           // Paired with the mount guard above: no travel until there is a
           // previous position worth travelling from.
-          ...(placed ? {} : { transition: 'none' }),
+          ...(placed && animateThumb ? {} : { transition: 'none' }),
         }}
       />
       {options.map((o) => (
@@ -130,7 +133,10 @@ export function Segmented<T extends string>({
           aria-selected={o.value === value}
           aria-label={o.ariaLabel}
           tabIndex={o.value === value ? 0 : -1}
-          onClick={() => onChange(o.value)}
+          onClick={(event) => {
+            setAnimateThumb(event.detail > 0);
+            onChange(o.value);
+          }}
         >
           {o.label}
         </button>
