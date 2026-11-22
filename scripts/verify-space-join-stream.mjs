@@ -35,7 +35,7 @@ async function post(tail, body, token, device = 'creator') {
   const response = await fetch(`${base}/space/${sid}${tail}`, {
     method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10_000),
     headers: { 'content-type': 'application/json', 'x-device-key': device, ...(token ? { authorization: `Bearer ${token}` } : {}) },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(body === undefined ? {} : body instanceof ReadableStream ? { body, duplex: 'half' } : { body: JSON.stringify(body) }),
   });
   const text = await response.text();
   assert.equal(response.headers.get('content-type')?.includes('application/json'), true, `${tail} returned HTTP ${response.status}: ${text}`);
@@ -76,6 +76,25 @@ try {
   assert(!exited && await health(), 'empty and unauthorized joins must leave the Worker healthy');
   assert(!/Can.t read from request stream|Uncaught|\[ERROR\]/i.test(output), 'empty and unauthorized joins must not leave unread request streams');
   console.log('PASS empty-body join and unauthorized join: correct 200/401 responses, Worker healthy, no stream errors');
+  const size = 5 * 1024 * 1024;
+  let sent = 0;
+  const largeBody = new ReadableStream({
+    async pull(controller) {
+      await delay(20);
+      if (sent === size) { controller.close(); return; }
+      const chunk = new Uint8Array(Math.min(64 * 1024, size - sent));
+      sent += chunk.byteLength;
+      controller.enqueue(chunk);
+    },
+  });
+  const large = await post('/join', largeBody, 'wrong-token', 'joiner');
+  assert.equal(large.status, 401);
+  assert.equal(large.body.error, 'Unauthorized');
+  assert(sent < size, `unauthorized join must respond before buffering all 5 MiB (sent ${sent} bytes)`);
+  await delay(1500);
+  assert(!exited && await health(), 'large unauthorized join must leave the Worker healthy');
+  assert(!/Can.t read from request stream|Uncaught|\[ERROR\]/i.test(output), 'large unauthorized join must not cause stream errors');
+  console.log('PASS 5 MiB unauthorized join: 401 before full upload, body not buffered, Worker healthy, no stream errors');
 } catch (error) {
   await delay(1500);
   console.error(output);
