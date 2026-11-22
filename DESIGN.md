@@ -232,20 +232,35 @@ softened.
      "Free. No account. Works in your browser."
   6. **footer**.
 
-### 20b. Loops (product recordings)
+### 20b. Product recordings: hero film and short feature loops
 
 - A loop shows only behaviour the product has. No invented names, numbers,
   notifications or devices.
-- Rules: poster first; muted, loop, playsinline; `preload="none"`; plays only
+- Short feature-loop playback: poster first; muted, loop, playsinline;
+  `preload="none"`; plays only
   while at least 50% visible (IntersectionObserver) and pauses when hidden;
   under `prefers-reduced-motion` or `Save-Data` the poster is the final state
   and nothing downloads; width and height are always set, so the section never
   shifts.
-- Budget: at most 6 s at 30 fps, MP4 (H.264, no audio) at most 350 KB, WebM
-  (VP9) at most 300 KB, poster WebP at most 40 KB, all landing media at most
-  1.2 MB, and nothing loads before the visitor scrolls near it.
-- Recorded by one command (`npm run record-loops`), re-recorded whenever the
-  room UI changes. A missing recording is a build failure, not a blank box.
+- **Hero-film budget** (the cinematic brief in
+  `docs/design-playbook/PROMPTS.md` §5): a 15–25 s silent film, up to 60 fps,
+  with synchronized light/dark and phone/desktop cuts. Each inline H.264 MP4
+  must be **less than 3,000,000 bytes**; each JPEG poster at most **150,000
+  bytes**. One selected movie plus its poster is therefore under 3,150,000
+  bytes, not the sum of every alternative on disk. `npm run verify:bundle`
+  enforces those limits on the actual build and every selectable family.
+  A first visit preloads only the matching theme/framing poster, never an
+  alternate cut or a full/audio export. Loading the page does not wait for
+  the movie; its source remains visibility-gated. Full-resolution audio
+  exports are download-only and excluded from the inline budget.
+- **Short feature-loop budget**, not the hero: at most 6 s at 30 fps,
+  MP4 (H.264, no audio) at most 350 KiB, WebM (VP9) at most 300 KiB, poster
+  WebP at most 40 KiB, and all feature-loop variants together at most
+  1.2 MiB. Nothing loads before the visitor scrolls near it. Recorded by
+  `npm run record-loops`; this command does not measure or render the hero.
+- Re-record when the depicted room UI changes. Hero authoring and release
+  checks are in `film/README.md`; a missing recording is a build failure,
+  not a blank box.
 
 ### 20c. Illustration
 

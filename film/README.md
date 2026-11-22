@@ -41,6 +41,8 @@ Families are `public/film/sharetexts-launch-v5-{light,dark}.mp4`, `-full.mp4` an
 
 Keep the existing player contract: visibility-gated loading, muted inline looping, offscreen/hidden-document pause, explicit pause persistence, meaningful error poster, saved/OS theme selection and phase-preserving remount. Reduced-motion/Save-Data disable autoplay while explicit Play remains available. Below 640px the picture and preload use the 4:3 phone family; wider screens retain 16:9. Theme/framing changes preserve phase and the visitor's paused choice. The localized description stays hidden; the 44px phone pause target stays outside the picture. Surrounding page layout/control dock otherwise stays unchanged. Run local build, bundle isolation, media and player checks before release; do not bypass required gates.
 
+The cinematic hero budget is **< 3,000,000 bytes per inline MP4**, with each poster **<= 150,000 bytes** (DESIGN.md §20b). `npm run verify:bundle` checks every selectable phone/desktop and light/dark pair in the built output. Only one family is selected on a cold visit; full/audio downloads are never preloaded. The separate short feature-loop limit (six seconds and 1.2 MiB combined) does not apply to this film.
+
 ## Sources
 
 - Hardware and packet artwork are original; no manufacturer models/artwork are redistributed.

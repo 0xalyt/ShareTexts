@@ -90,7 +90,7 @@ Files: src/components/HeroLaunchFilm.tsx, src/lib/heroFilmAssets.ts, src/compone
 Make a 15–25s silent loop that shows real ShareTexts UI: open a room on a laptop, scan the QR with a phone, send a text, then a photo, a video and a PDF; each arrives on the other screen. Use the real components (render them with stageshow) rather than illustrations.
 - Shot list first: 6–8 shots, each one idea, 2–3s. Cuts on action. One peak moment (first file landing) with a slightly longer hold and a follow-through settle; end on the ShareTexts mark.
 - Camera moves ease in-out, never linear; arcs for items travelling between devices.
-- Ship AV1/H.264 MP4 + WebM, light and dark, < 3MB each, poster frames, muted playsinline autoplay, no controls overlay text next to the film. Respect prefers-reduced-motion and save-data: show the poster with a play button.
+- Ship H.264 MP4, light and dark, phone and desktop, < 3,000,000 bytes per inline cut, with poster frames <= 150,000 bytes each (DESIGN.md §20b; enforced by npm run verify:bundle). AV1/WebM alternatives are optional; H.264 keeps older browsers supported. Preload only the selected poster, never the alternate cuts or full/audio exports. Muted playsinline autoplay, no controls overlay text next to the film. Respect prefers-reduced-motion and save-data: show the poster with a play button. The six-second/1.2 MiB short-feature-loop budget is not the hero-film budget.
 ```
 
 ## 6. Sending and receiving: the peak moment

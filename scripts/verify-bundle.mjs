@@ -8,7 +8,8 @@
 //      §13 target 110 KB),
 //   2. a non-English dictionary is reachable statically from the entry,
 //   3. status.generated.ts is stale against the dictionaries,
-//   4. any chunk carries a `?v=`-less or missing asset the page preloads.
+//   4. any chunk carries a `?v=`-less or missing asset the page preloads,
+//   5. any selected hero MP4 is >=3,000,000 B or poster is >150,000 B.
 //
 // It prints the whole table every run, pass or fail: a number nobody reads is
 // the reason this gate exists.
@@ -106,6 +107,25 @@ const rendererChunks = files.filter(file =>
   /\b(?:WebGLRenderer|GLTFLoader|RGBELoader)\b|\/film\/out\//.test(readFileSync(join(ASSETS, file), 'utf8')));
 out(filmEntries.length === 0 && rendererChunks.length === 0,
   'offline film renderer stays out of production JavaScript', [...filmEntries, ...rendererChunks].join(', '));
+
+// DESIGN §20b: the cinematic hero has its own budget, distinct from the
+// six-second feature loops. Inspect every selectable pair, not download-only
+// full/audio exports or the sum of mutually exclusive theme/framing variants.
+const heroSource = readFileSync(join(ROOT, 'src/lib/heroFilmAssets.ts'), 'utf8');
+const heroMovies = [...heroSource.matchAll(/\bmovie:\s*['"]/g)];
+const heroPairs = [...heroSource.matchAll(/\bmovie:\s*['"]([^'"]+\.mp4)['"][\s\S]*?\bposter:\s*['"]([^'"]+)['"]/g)];
+out(heroPairs.length > 0 && heroPairs.length === heroMovies.length,
+  'every selectable hero movie has a budgeted poster pair');
+for (const [, movie, poster] of heroPairs) {
+  const movieFile = join(ROOT, 'dist', movie);
+  const posterFile = join(ROOT, 'dist', poster);
+  const present = existsSync(movieFile) && existsSync(posterFile);
+  const movieBytes = present ? statSync(movieFile).size : 0;
+  const posterBytes = present ? statSync(posterFile).size : 0;
+  out(present && movieBytes < 3_000_000 && posterBytes <= 150_000,
+    `hero budget: ${movie.split('/').pop()}`,
+    present ? `${movieBytes} B MP4 (<3000000); ${posterBytes} B poster (<=150000)` : 'built movie or poster missing');
+}
 
 const css = readdirSync(ASSETS).filter((f) => f.endsWith('.css'))
   .map((f) => ({ f, gz: gzipSync(readFileSync(join(ASSETS, f))).length }));
