@@ -152,12 +152,12 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     let cancelled = false;
     void loadDraft(session.roomId).then((d) => {
       if (cancelled) return;
-      // What the user typed into the intent field on the way here is the
-      // thing they chose to move — it outranks a stale draft for this room
-      // (and is normally the only content there anyway).
+      // A phone share may open a restored room. Keep the user's existing
+      // draft alongside the new content, just as with a share arriving later.
       const carried = takeIntentText();
       if (carried) {
-        setInputText(carried);
+        setInputText(d?.text ? `${d.text}\n${carried}` : carried);
+        if (d) setAttachments(d.attachments.filter(a => a.file && a.file.size > 0));
         setComposerTouched(true);
         setDraftReady(true);
         return;
