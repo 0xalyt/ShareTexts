@@ -110,6 +110,18 @@ try {
   await openLanding(A);
   ok((await A.getByTestId('home-hop').textContent()).includes('Link once'), 'an unlinked device is told what linking is for');
   await A.getByTestId('home-hop').click();
+  const privacy = A.locator('.hop-privacy summary');
+  await privacy.waitFor();
+  await A.getByTestId('hop-scan').focus();
+  await A.keyboard.press('Tab');
+  const privacyFocused = await privacy.evaluate((el) => el === document.activeElement);
+  ok(privacyFocused, 'Privacy is reachable in the sheet keyboard cycle');
+  if (privacyFocused) {
+    await A.keyboard.press('Space');
+    ok(await A.locator('.hop-privacy').evaluate((el) => el.open), 'Space expands the privacy disclosure');
+    await A.keyboard.press('Enter');
+    ok(!(await A.locator('.hop-privacy').evaluate((el) => el.open)), 'Enter closes the privacy disclosure');
+  }
   await A.getByTestId('hop-show-code').click();
   const qr = A.getByTestId('hop-qr');
   await qr.waitFor({ timeout: SLOW });
@@ -122,6 +134,9 @@ try {
   ok(decoded === link, 'a camera reading the code gets exactly that link');
 
   const tJoin = Date.now();
+  // A copied link may target an already-open landing tab. That is a hash
+  // navigation, not a new document; it must still start linking.
+  await openLanding(B);
   await B.goto(link, { waitUntil: 'domcontentloaded', timeout: SLOW });
   await B.getByTestId('hop-emoji').waitFor({ timeout: SLOW });
   ok(!(await B.evaluate(() => location.hash)), 'the secret is removed from the address bar once read');
@@ -227,8 +242,37 @@ try {
   ok(!(await B.getByTestId('home-hop').textContent()).includes('Link once'), 'the link is still there after a reload');
   await B.getByTestId('home-hop').click();
   ok(await until(async () => (await texts(B, 'hop-in')).includes(T1), 20_000), 'and so is what was received');
+  await B.setViewportSize({ width: 640, height: 380 });
+  const unsent = 'A draft to keep\nwith several lines\nwhile checking devices\nand the unlink controls.';
+  await B.getByTestId('hop-input').fill(unsent);
+  await B.getByTestId('hop-file').setInputFiles({ name: 'too-big.bin', mimeType: 'application/octet-stream', buffer: Buffer.alloc(26 * 1024 * 1024) });
+  ok(await until(async () => /over 25 MB/.test((await B.getByTestId('hop-problem').textContent()) ?? ''), 10_000), 'the attachment error is available in the short-screen timeline');
+  for (const [selector, name] of [['.hop-composer > button', 'Add file'], ['[data-testid="hop-send"]', 'Send']]) {
+    const reachable = await B.locator(selector).evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const x = r.left + r.width / 2, y = r.top + r.height / 2;
+      return x > 0 && x < innerWidth && y > 0 && y < innerHeight && el.contains(document.elementFromPoint(x, y));
+    });
+    ok(reachable, `${name} stays reachable with a multiline draft on a short screen`);
+  }
   await B.getByTestId('hop-unlink').click();
-  await B.getByTestId('hop-unlink-confirm').click();
+  const confirmation = B.getByTestId('confirm-sheet');
+  await confirmation.waitFor();
+  const fullyVisible = (el) => {
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= innerHeight && el.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+  };
+  ok(await until(() => confirmation.locator('p').evaluate(fullyVisible), 3000), 'the entire unlink consequence is visible on a short screen');
+  for (const button of await confirmation.getByRole('button').all()) {
+    ok(await button.evaluate(fullyVisible), `short-screen confirmation action is reachable: ${await button.textContent()}`);
+  }
+  await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await confirmation.waitFor({ state: 'hidden' });
+  ok(await B.getByTestId('hop-input').inputValue() === unsent, 'canceling unlink preserves the multiline draft');
+  ok(await until(() => B.getByTestId('hop-unlink').evaluate((el) => el === document.activeElement), 3000), 'canceling returns keyboard focus to Unlink');
+  ok(await B.getByTestId('hop-unlink').evaluate(fullyVisible), 'the restored Unlink focus is fully visible');
+  await B.getByTestId('hop-unlink').click();
+  await confirmation.getByRole('button', { name: 'Unlink this device', exact: true }).click();
   ok(await until(async () => (await view(B)) === 'intro'), 'unlinking returns this device to the start');
   ok(await B.evaluate(() => localStorage.getItem('sharetext.hop.v1') === null), 'and leaves no link behind on it');
 
