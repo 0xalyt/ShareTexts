@@ -235,6 +235,14 @@ try {
   await deleteConfirm.getByRole('button', { name: 'Cancel', exact: true }).click();
   await deleteConfirm.waitFor({ state: 'detached' });
   ok('cancelled assistive deletion keeps the Space', await A.page.getByTestId('space-composer').isVisible());
+  await A.page.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'space-hold-delete', null, { timeout: 1500 }).catch(() => {});
+  ok('cancelled assistive deletion restores focus to its menu action', await hold.evaluateAll(buttons => buttons.some(button => button === document.activeElement)), await A.page.evaluate(() => document.activeElement?.outerHTML.slice(0, 180)));
+  if (await A.page.getByTestId('space-actions-sheet').isVisible()) {
+    await A.page.keyboard.press('Escape');
+    await A.page.getByTestId('space-actions-sheet').waitFor({ state: 'detached' });
+  }
+  await A.page.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'space-actions', null, { timeout: 1500 }).catch(() => {});
+  ok('closing the returned menu restores focus to More', await A.page.getByTestId('space-actions').evaluate(button => button === document.activeElement));
   await A.page.getByTestId('space-actions').click();
   const holdBox = await hold.boundingBox();
   await A.page.mouse.move(holdBox.x + holdBox.width / 2, holdBox.y + holdBox.height / 2);

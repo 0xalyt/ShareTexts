@@ -1241,7 +1241,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         <p className="mb-5 text-[13px] text-apple-ink-muted dark:text-white/65">{t('space.closeConfirmBody')}</p>
         {actionsOpen && <HoldToDelete
           onDelete={() => { setActionsOpen(false); client.closeNow().catch(() => showNotice(t('space.errClose'))); }}
-          onConfirm={() => { setActionsOpen(false); setCloseConfirm(true); }}
+          onConfirm={() => setCloseConfirm(true)}
         />}
       </OverlaySheet>
       <ConfirmSheet
@@ -1251,7 +1251,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         confirmLabel={t('space.closeConfirmCta')}
         cancelLabel={t('space.cancel')}
         onCancel={() => setCloseConfirm(false)}
-        onConfirm={() => { setCloseConfirm(false); client.closeNow().catch(() => showNotice(t('space.errClose'))); }}
+        onConfirm={() => { setCloseConfirm(false); setActionsOpen(false); client.closeNow().catch(() => showNotice(t('space.errClose'))); }}
       />
       <ConfirmSheet
         open={!!removeId}
