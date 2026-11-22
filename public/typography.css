@@ -4,6 +4,7 @@
 :root {
   --st-font-sans: "Allo", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-optical-sizing: auto;
+  font-synthesis: none;
   /* Literal arrows and punctuation stay literal in every draft and note. */
   font-feature-settings: "ss02" 1, "case" 1, "calt" 0;
 }

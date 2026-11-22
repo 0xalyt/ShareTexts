@@ -316,7 +316,7 @@
     /* Allo's optical axis handles small text and large headings separately. */
     font-optical-sizing: auto;
     font-feature-settings: "ss02" 1, "case" 1, "calt" 0;
-    font-synthesis-weight: none;
+    font-synthesis: none;
     font-variant-ligatures: common-ligatures no-contextual;
     text-rendering: optimizeLegibility;
     color: var(--color-text);
