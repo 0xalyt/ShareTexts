@@ -153,16 +153,8 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
     let cancelled = false;
     void loadDraft(session.roomId).then((d) => {
       if (cancelled) return;
-      // A phone share may open a restored room. Keep the user's existing
-      // draft alongside the new content, just as with a share arriving later.
-      const carried = takeIntentText();
-      if (carried) {
-        setInputText(d?.text ? `${d.text}\n${carried}` : carried);
-        if (d) setAttachments(d.attachments.filter(a => a.file && a.file.size > 0));
-        setComposerTouched(true);
-        setDraftReady(true);
-        return;
-      }
+      // Restore first. Pickup below adds a share's text AND files together,
+      // only once the full batch fits beside this saved draft.
       if (!d) { setDraftReady(true); return; }
       setInputText(d.text);
       setAttachments(d.attachments.filter(a => a.file && a.file.size > 0));
@@ -672,6 +664,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
         // draft. Removing/sending draft attachments retries this pickup.
         if (parked.length <= MAX_ATTACHMENTS && parked.length > MAX_ATTACHMENTS - attachments.length) {
           setErrorMsg(t('shareTarget.waiting'));
+          return; // Keep the caption with its waiting files, not this draft.
         } else {
           delete w.__stHomeDropFiles;
           // Classify every file independently, including mixed media.
