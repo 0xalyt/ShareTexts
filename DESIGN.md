@@ -59,13 +59,13 @@ Rules:
 - Toggle ON = success green, like iOS.
 
 ## 4. Type
-- Apple devices: the system font (SF) through -apple-system, restored by `html.apple-type` (`src/lib/device.ts` sets it only on a real Apple platform). Never add SF files to the repo: Apple's licence does not allow SF on websites.
-- The token lists Inter first, because `-apple-system` is NOT Apple-only: Blink resolves it on Windows too, and a stack that begins with it renders Arial there and never reaches Inter (P2 measurement, `audit/p2/fonts.txt`, bug B22). Order on the page: `html.apple-type` puts SF in front, everyone else gets Inter.
-- Everywhere else: **Allo** (screens-and-interfaces typeface, SIL OFL 1.1), self-hosted from `public/fonts/AlloVariableFriendly.woff2` (229 KB, the roundness-fixed cut; the full variable file is 442 KB and adds only the ROND axis), font-display: swap, size-adjusted fallback, and Inter kept behind it as the offline fallback. Licence text ships beside the file at `public/fonts/OFL.txt` — the OFL requires that.
-- Allo is used on purpose, not by default: `font-optical-sizing: auto` so a 12 px label and a 40 px headline are different drawings; `ss02` (serifed I, tailed l, footed 1, slashed zero) because six-digit codes and room ids are read character by character; `case` so punctuation beside capitals stops looking nudged; `calt` so a typed `->` becomes an arrow. To change the face, change one `@font-face` and the two tokens (`--font-sans`, `--font-display`) — nothing else names a font.
-- Hindi, Arabic, Japanese, Chinese, Korean and other scripts use system fonts through :lang(). Do not force Inter.
-- Scale (px): display 56/64 (650, -0.03em) · h2 32 · h3 22 (600) · title 16 · body 16/1.5 · support 13 · meta 12. Tighten letter-spacing only at 20px and above.
-- Codes, counts and progress use tabular numbers.
+- Allo is the text face on every platform, per Garv's latest direction. This supersedes the historical SF/Inter ordering below. Never ship Apple font files.
+- `public/typography.css` defines the face once for the app, static guides and generated HTML. `allo-crisp.woff2` fixes roundness at 0 while retaining all characters, optical sizes 9–32 and weights 100–900. Rebuild with `python3 scripts/build-allo-fonts.py`; OFL.txt remains beside the fonts.
+- Use automatic optical sizing and semibold headings, not a roundness axis or heavy weight everywhere. `ss02` distinguishes I/l/1; verbatim user content disables contextual substitution.
+- The eight decorative control marks use a 1.4 KB Allo symbol cut at weight 500 / optical size 20. Detailed QR, file, device, copy and share pictograms remain Lucide; accessible labels stay on their controls.
+- Real Allo obliques load only for italic content. The first-paint fallback is the local system font, not a second webfont request.
+- Hindi, Arabic, Japanese and Chinese use coherent script-specific local stacks through :lang(). Preserve RTL and embedded Latin text.
+- Keep the responsive size ramp and tabular codes/counts. Tighten large headings only; small labels need neutral or slightly open tracking.
 - Line length 60 characters or less. Headings text-wrap: balance. Paragraphs text-wrap: pretty.
 
 ## 5. Shape, space, depth

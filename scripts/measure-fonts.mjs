@@ -2,16 +2,12 @@
 /**
  * measure-fonts.mjs — proof for DESIGN.md §18 step 2e (typography).
  *
- * The contract: SF first on Apple (html.apple-type), self-hosted Inter
- * everywhere else. "Inter everywhere else" is only true if the woff2 files
- * actually contain the Latin glyphs — and they did not: the two committed
- * subsets were swapped (inter-latin.woff2 held the latin-EXT face, whose
- * unicode-range excludes ASCII), so every page silently rendered Arial while
- * the CSS looked perfect. Computed font-family cannot see that; only the
- * fonts Chromium actually used can.
+ * The contract: self-hosted crisp Allo on every platform.
+ * Computed font-family only proves what the CSS asked for, not what painted.
+ * A missing or mismatched WOFF2 can silently fall back to a different face.
  *
  * So this script asks CDP CSS.getPlatformFontsForNode which face painted each
- * glyph, and fails if the H1, a button, or body text is not Inter.
+ * glyph, and fails if the H1, a button, or body text is not Allo.
  *
  *   node scripts/measure-fonts.mjs            (dev server on :3010)
  *   URL=http://localhost:3022 node scripts/measure-fonts.mjs
@@ -84,14 +80,13 @@ for (const [label, selector] of shots) {
     continue;
   }
   const total = fonts.reduce((n, f) => n + f.glyphs, 0);
-  const inter = fonts.filter((f) => f.custom && f.family === 'Inter').reduce((n, f) => n + f.glyphs, 0);
-  const ok = total > 0 && inter === total;
+  const allo = fonts.filter((f) => f.custom && f.family.startsWith('Allo')).reduce((n, f) => n + f.glyphs, 0);
+  const ok = total > 0 && allo === total;
   if (!ok) failures++;
-  rows.push({ label, selector, fonts, ok, why: ok ? '' : `${inter}/${total} glyphs from Inter` });
+  rows.push({ label, selector, fonts, ok, why: ok ? '' : `${allo}/${total} glyphs from Allo` });
 }
 
-// The Apple branch cannot be exercised on Windows/Linux Chromium, but we can
-// still prove that the class reorders the token rather than being a no-op.
+// The legacy Apple class must not override the requested Allo face.
 const appleBranch = await page.evaluate(() => {
   const root = document.documentElement;
   const before = getComputedStyle(root).getPropertyValue('--font-sans').trim();
@@ -103,8 +98,8 @@ const appleBranch = await page.evaluate(() => {
   return { before, after, family, restored };
 });
 const appleOk =
-  appleBranch.after.startsWith('-apple-system') &&
-  appleBranch.family.startsWith('-apple-system') &&
+  appleBranch.after.replaceAll('"', '').startsWith('Allo,') &&
+  appleBranch.family.replaceAll('"', '').startsWith('Allo,') &&
   appleBranch.restored === appleBranch.before;
 if (!appleOk) failures++;
 
@@ -138,15 +133,14 @@ for (const r of rows) {
   lines.push('');
 }
 lines.push(
-  `${appleOk ? 'PASS' : 'FAIL'}  Apple branch: html.apple-type puts SF in front of the stack`,
+  `${appleOk ? 'PASS' : 'FAIL'}  Allo remains first with the legacy Apple platform class`,
   `      default  ${appleBranch.before}`,
   `      apple    ${appleBranch.after}`,
   `      h1       ${appleBranch.family}`,
   '',
   `Cumulative layout shift after first paint: ${shift.toFixed(4)}`,
   '',
-  'Note: this run is a Windows/Linux Chromium. The Apple branch is proven to',
-  'reorder the token, not to paint SF — that needs a real Apple device.',
+  'Note: real Apple, Windows and Android hardware is not covered by this run.',
 );
 
 mkdirSync('audit/p2', { recursive: true });

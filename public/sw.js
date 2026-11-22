@@ -48,6 +48,7 @@ const SHELL = [
   '/emoji-apple/folded-hands_1f64f.png',
 ];
 
+  '/typography.css',
 // The build writes dist/precache.json from the Vite manifest: every dynamic
 // entry (Room, QR scanner, Settings, Space) with its hash. A deploy renames
 // those files, and a tab opened under the previous build would ask for a chunk
