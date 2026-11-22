@@ -19,7 +19,7 @@ import { AnimatePresence } from 'motion/react';
 import { MotionSurface } from './ui/MotionSurface';
 import {
   X, Search, Trash2, Copy, Check, Download, ExternalLink,
-  Bookmark, FileText, Link as Link2, ChevronDown, ChevronUp,
+  FileText, Link as Link2, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import './ui/task-surfaces.css';
 import { useI18n } from '../lib/i18n';
@@ -30,7 +30,6 @@ import { useFocusTrap } from '../lib/useFocusTrap';
 import { DUR } from '../lib/motion/tokens';
 import { Sheet } from './ui/Sheet';
 import { StatePanel, StateSkeletonRow } from './ui/StatePanel';
-import { SceneSaved } from './art/Scenes';
 import { cn, formatBytes } from '../lib/utils';
 import { FileTypeIcon } from './FileTypeIcon';
 import { ConfirmSheet } from './ConfirmSheet';
@@ -516,16 +515,13 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
       );
     }
     if (items.length === 0) {
-      // Explain the real save action; closing this sheet doesn't start a room.
       return (
-        <StatePanel
-          kind="empty"
-          testId="saved-empty"
-          illustration={<SceneSaved size={112} />}
-          title={t('saved.emptyTitle')}
-          body={t('saved.emptyBody')}
-          secondary={{ label: t('saved.emptyCta'), onClick: onClose, testId: 'saved-empty-cta' }}
-        />
+        <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 px-6 py-8 text-center" data-testid="saved-empty">
+          <p className="text-[17px] font-medium text-apple-ink dark:text-white">{t('saved.emptyTitle')}</p>
+          <button type="button" onClick={onClose} data-testid="saved-empty-cta" className="min-h-[44px] rounded-full bg-black/[0.05] px-5 text-[15px] font-medium text-apple-ink transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]">
+            {t('saved.emptyCta')}
+          </button>
+        </div>
       );
     }
     return (
@@ -585,7 +581,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
         onClose={onClose}
         labelledBy="saved-title"
         maxWidth={460}
-        z={90}
+        z={92}
         closeButton={false}
         scroll="none"
         testId="saved-overlay"
@@ -594,12 +590,11 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
         <div className="px-6 pt-1 sm:pt-5 pb-1 flex items-start justify-between gap-3 shrink-0">
           <div className="min-w-0">
             <div className="st-task-sheet-heading">
-              <span className="st-task-sheet-mark" aria-hidden><Bookmark className="h-5 w-5" /></span>
               <h3 id="saved-title" className="st-task-sheet-title text-apple-ink dark:text-white">
                 {t('saved.title')}
               </h3>
             </div>
-            <p className="st-task-local-note">{t('saved.localNote')}</p>
+            {items.length > 0 && <p className="st-task-local-note">{t('saved.localNote')}</p>}
             {snapshot.status === 'ready' && items.length > 0 && (
               <p className="text-[12px] text-apple-ink-muted dark:text-white/65 tnum">{countLabel}</p>
             )}

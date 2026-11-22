@@ -103,6 +103,11 @@ jobs:
         if: matrix.browsers != 'webkit'
         run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-nearby-accept.mjs
 
+      - name: Responsive Settings preferences
+        run: |
+          node scripts/start-ci-worker.mjs --restart
+          BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-settings-preferences.mjs
+
       - name: Hop (My devices) link once, send any time
         # Two devices on one loopback IP; start from a fresh Worker's quotas.
         run: |
