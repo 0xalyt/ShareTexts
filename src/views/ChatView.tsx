@@ -13,7 +13,7 @@ import { TransferFlight } from '../components/TransferFlight';
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
   X as X, Plus, Copy, Check, Play, CircleAlert as AlertCircle,
-  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Monitor as Monitor, Pencil,
+  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Monitor as Monitor, MonitorSmartphone, Tablet, Users, Pencil,
   ArrowLeftRight as ArrowRightLeft, Info,
   RefreshCw, Link as Link2, FileText, Download,
 } from 'lucide-react';
@@ -95,7 +95,14 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     return /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
   })();
   const ThisDeviceIcon = isMobileDevice ? Smartphone : Monitor;
-  const PartnerDeviceIcon = isMobileDevice ? Monitor : Smartphone;
+  // The other device reports its own platform. It is not necessarily the
+  // opposite of this one (two computers and two phones are ordinary rooms).
+  const partnerPlatform = others[0]?.platform;
+  const PartnerDeviceIcon = isMultiRoom ? Users
+    : partnerPlatform === 'phone' ? Smartphone
+    : partnerPlatform === 'tablet' ? Tablet
+    : partnerPlatform === 'desktop' ? Monitor
+    : MonitorSmartphone;
   // Rename-this-device lives inside the connection details popover in
   // standalone mode (the paired screen owns it on desktop instead).
   const [editingName, setEditingName] = useState(false);
@@ -191,8 +198,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     if (session.nameAutoAdjusted) setNameNoticeOpen(true);
   }, [session.nameAutoAdjusted]);
-  const [showThatsIt, setShowThatsIt] = useState(false);
-  const [thatsItCopy, setThatsItCopy] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0);
@@ -486,28 +491,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       setAnnouncement(tr('chat.peerDisconnected'));
     }
   }, [partnerLinkHealthy, session.connectionType, session.roomId]);
-  // Post-transfer moment: after the very first transfer, a quiet "That's it."
-  // appears once, then the app gets out of the way. Direction-aware: sending
-  // and receiving tell different truths ("it's on the other device" vs "it
-  // arrived"). The baseline is the message count AT MOUNT, so a RESTORED
-  // session (refresh/rejoin with history) never replays the one-time moment
-  // for messages the user already saw — only a real 0→1 transition fires it.
-  const firstTransferShown = useRef(false);
-  const mountMessageCount = useRef<number | null>(null);
-  useEffect(() => {
-    if (mountMessageCount.current === null) {
-      mountMessageCount.current = session.messages.length;
-      return;
-    }
-    if (!firstTransferShown.current && mountMessageCount.current === 0 && session.messages.length >= 1) {
-      firstTransferShown.current = true;
-      const last = session.messages[session.messages.length - 1];
-      setThatsItCopy(last?.sender === 'me' ? tRef.current('thatsIt.sent') : tRef.current('thatsIt.received'));
-      setShowThatsIt(true);
-      const t = setTimeout(() => setShowThatsIt(false), 5000);
-      return () => clearTimeout(t);
-    }
-  }, [session.messages.length]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -1353,24 +1336,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Post-transfer moment — quiet, one-time */}
-      <div className="shrink-0 flex justify-center">
-        <AnimatePresence>
-          {showThatsIt && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
-            >
-              <p className="px-4 pt-3 pb-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 text-center">
-                {thatsItCopy}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
       {/* Active transfer strip — pinned between header and messages so
           "is it actually sending?" never scrolls away. Newest real
           transfer, lit from inside (st-glow) with a measured track and a

@@ -135,7 +135,15 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
   };
   if (disabled && entries.length === 0) return null;
   return (
-    <div className="relative mt-1.5 flex items-center gap-1 flex-wrap">
+    <div className={cn(
+      'flex items-center gap-1 flex-wrap',
+      // A reaction-free message needs no footer row. Keep its accessible
+      // picker beside the bubble, in the opposite-side gutter, rather than
+      // reserving 46px below a trigger that is invisible until hover.
+      entries.length === 0
+        ? cn('absolute top-0 bottom-0 w-11 justify-center', isMeSide(msg) ? 'left-0' : 'right-0')
+        : 'relative mt-1.5',
+    )}>
       {entries.map(([emoji, r]) => (
         <motion.button
           key={emoji}
@@ -144,16 +152,17 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.22, ease: EASE.out }}
           disabled={disabled}
-          onPointerDown={(e) => { e.preventDefault(); if (!disabled) pick(emoji); }}
+          onPointerDown={(e) => { if (!e.pointerType) return; e.preventDefault(); if (!disabled) pick(emoji); }}
+          onClick={(e) => { if (e.detail === 0 && !disabled) pick(emoji); }}
           aria-pressed={r.mine}
           aria-label={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           title={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           data-testid={`reaction-chip-${emoji}`}
-          className="group/chip flex items-center justify-center min-h-[40px] min-w-[40px] px-0.5 transition-motion active:scale-[0.96]"
+          className="group/chip flex items-center justify-center min-h-11 min-w-11 px-0.5 transition-motion active:scale-[0.96]"
         >
-          {/* The hit box is 40px; the VISIBLE pill stays 26px inside it. The
+          {/* The hit box is 44px; the VISIBLE pill stays 26px inside it. The
               touch contract and the visual weight are both satisfied — a
-              40px pill would out-shout the message it is attached to. */}
+              44px pill would out-shout the message it is attached to. */}
           <span
             className={cn(
               'flex items-center gap-1 h-[26px] pl-1.5 pr-2 rounded-full border text-[12px] font-semibold select-none transition-colors',
@@ -172,7 +181,7 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
           circle under every bubble; on touch (no hover) it stays visible,
           because there is no other way to find it. */}
       {!disabled && (
-        <span className="opacity-55 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/msg:opacity-100 [@media(hover:hover)]:focus-within:opacity-100">
+        <span className="opacity-55 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/msg:opacity-100 [@media(hover:hover)]:focus-within:opacity-100 has-[[aria-expanded=true]]:opacity-100">
           <EmojiReaction
             size="md"
             align={isMeSide(msg) ? 'right' : 'left'}
@@ -610,7 +619,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             {isLargeText && !expanded && (
               <button
                 onClick={() => setExpanded(true)}
-                className="mt-1.5 flex items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
+                className="mt-1.5 flex min-h-11 items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
               >
                 <ChevronDown className="w-4 h-4" /> {t('msg.showFull')}
               </button>
@@ -618,7 +627,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             {isLargeText && expanded && (
               <button
                 onClick={() => setExpanded(false)}
-                className="mt-1.5 flex items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
+                className="mt-1.5 flex min-h-11 items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
               >
                 <ChevronUp className="w-4 h-4" /> {t('msg.collapse')}
               </button>
@@ -626,7 +635,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           </div>
           )}
           {/* Footer: status line + copy, optically flush with the bubble's
-              right content edge. The copy button keeps its 40px hit box but
+              right content edge. The copy button keeps its 44px hit box but
               its negative margin equals half the box minus the icon, so the
               ICON's right edge lands exactly on the text edge above — the
               old -6px left the icon floating ~7px inside the bubble. */}
@@ -638,7 +647,8 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 </span>
                 <button
                   onPointerDown={(e) => { e.preventDefault(); void retryText(msg.id); }}
-                  className="st-tap flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-[0.96] bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
+                  onClick={(e) => { if (e.detail === 0) void retryText(msg.id); }}
+                  className="st-tap flex min-h-11 items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-[0.96] bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
                 >
                   <RefreshCw className="w-3 h-3" /> {t('action.retry')}
                 </button>
@@ -646,7 +656,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               </>
             ) : (
               <>
-                <span className="text-[12px] font-medium flex items-center gap-1 text-apple-ink-muted">
+                <span className="min-w-0 flex-1 text-[12px] font-medium flex flex-wrap items-center gap-x-1 text-apple-ink-muted">
                   {isMe ? (
                     // One state word, one bubble: the newest own message carries
                     // the receipt; older ones stay silent unless they failed.
@@ -660,21 +670,22 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   ) : (
                     /* Attribution beats a bare "Received": the message came
                         from a DEVICE — the name makes the bridge concrete. */
-                    <span className="font-semibold">{session.partnerName ? t('msg.fromDevice', { name: session.partnerName }) : t('msg.received')}</span>
+                    <span className="font-semibold max-w-full truncate">{session.partnerName ? t('msg.fromDevice', { name: session.partnerName }) : t('msg.received')}</span>
                   )}
                   {showMeta && (
-                    <>
-                      {' • '}<span data-testid="msg-time" className="whitespace-nowrap">{fmtTime(lang, msg.timestamp)}</span>
-                    </>
+                    <span className="whitespace-nowrap">
+                      {' • '}<span data-testid="msg-time">{fmtTime(lang, msg.timestamp)}</span>
+                    </span>
                   )}
                 </span>
                 <BookmarkButton msg={msg} />
                 <button
                   onPointerDown={() => handleCopy(msg.text)}
+                  onClick={(e) => { if (e.detail === 0) handleCopy(msg.text); }}
                   aria-label={t('msg.copyMessage')}
                   title={t('msg.copy')}
                   className={cn(
-                    "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] -mr-[13px] rounded-full transition-motion active:scale-[0.96]",
+                    "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] -mr-[15px] rounded-full transition-motion active:scale-[0.96]",
                     copied
                       ? "text-status-success"
                       : "text-apple-ink-muted hover:text-apple-ink dark:hover:text-white hover:bg-apple-divider/60 dark:hover:bg-apple-tile-3"
@@ -755,7 +766,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
       />
       {selectMode && <SelectionRing selected={selected} />}
       <div className={cn(
-        "flex flex-col gap-0 max-w-[85%] sm:max-w-[65%] w-full transition-shadow",
+        "flex flex-col gap-0 max-w-[calc(100%-3rem)] sm:max-w-[65%] w-full transition-shadow",
         selected && "ring-2 ring-ember/60",
         isMe ? "items-end" : "items-start"
       )}>
@@ -950,15 +961,15 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               )}
             </div>
             {/* Row 2: action buttons — separate row, never fights with text */}
-            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            <div className="flex items-center gap-1 sm:gap-1.5 mt-2 flex-wrap">
               {complete && (
                 <>
+                  <ActionButton icon={saved ? <Check /> : <Download />} label={t('action.download')} active={saved} onClick={() => handleDownload(a.url!, a.name)} primary onBlue={isMe} testId="transfer-download" />
                   {a.type === 'image' && (
-                    <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} onBlue={isMe} testId="transfer-copy" />
+                    <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} compact onBlue={isMe} testId="transfer-copy" />
                   )}
-                  <ActionButton icon={<Share2 />} label={shared ? t('action.shared') : t('action.share')} active={shared} onClick={() => { void handleShare(); }} onBlue={isMe} testId="transfer-share" />
                   <BookmarkAction msg={msg} onBlue={isMe} />
-                  <ActionButton icon={saved ? <Check /> : <Download />} label={saved ? t('action.saved') : t('action.save')} active={saved} onClick={() => handleDownload(a.url!, a.name)} primary onBlue={isMe} testId="transfer-download" />
+                  <ActionButton icon={<Share2 />} label={shared ? t('action.shared') : t('action.share')} active={shared} onClick={() => { void handleShare(); }} compact onBlue={isMe} testId="transfer-share" />
                 </>
               )}
               {(a.status === 'sending') && (
@@ -991,8 +1002,8 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               <LiveSpeed transferId={a.id} progressPct={a.progress || 0} />
             </>
           )}
-          <ReactionBar msg={msg} disabled={selectMode} />
         </div>
+        <ReactionBar msg={msg} disabled={selectMode} />
         {viewerOpen && complete && (
           <ImageViewer src={a.url!} name={a.name} onClose={() => setViewerOpen(false)} />
         )}
@@ -1083,7 +1094,7 @@ function useBookmarkToggle(msg: ChatMessage) {
   return { saved: !!existing, busy, status, error, toggle };
 }
 
-/** Icon-only bookmark for the text bubble footer — the same 40px slot
+/** Icon-only bookmark for the text bubble footer — the same 44px slot
  *  rhythm as the copy button beside it. Saved = FILLED bookmark (shape, not
  *  color alone) + aria-pressed + an accessible name that flips to the exact
  *  remove action; failure swaps the glyph to an alert so the error isn't
@@ -1103,7 +1114,7 @@ function BookmarkButton({ msg }: { msg: ChatMessage }) {
         disabled={bm.busy}
         data-testid="save-item"
         className={cn(
-          "flex items-center justify-center min-w-[40px] min-h-[40px] -my-[13px] rounded-full transition-motion active:scale-[0.96]",
+          "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.96]",
           bm.error
             ? "text-status-danger"
             : bm.saved
@@ -1135,12 +1146,13 @@ function BookmarkAction({ msg, onBlue }: { msg: ChatMessage; onBlue: boolean }) 
       <ActionButton
         icon={bm.error ? <AlertCircle className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
         activeIcon={<Bookmark className="w-3.5 h-3.5" fill="currentColor" />}
-        label={bm.saved && !bm.error ? t('action.saved') : t('action.save')}
+        label={bm.saved && !bm.error ? t('action.saved') : t('saved.save')}
         ariaLabel={name}
         pressed={bm.saved}
         active={bm.saved && !bm.error}
         disabled={bm.busy}
         viaClick
+        compact
         onClick={() => { void bm.toggle(); }}
         onBlue={onBlue}
         testId="save-item-attachment"
@@ -1150,7 +1162,7 @@ function BookmarkAction({ msg, onBlue }: { msg: ChatMessage; onBlue: boolean }) 
   );
 }
 
-function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, activeIcon, ariaLabel, pressed, disabled, viaClick }: { icon: React.ReactNode, label: string, onClick: () => void, active?: boolean, primary?: boolean, onBlue?: boolean, testId?: string, activeIcon?: React.ReactNode, ariaLabel?: string, pressed?: boolean, disabled?: boolean, viaClick?: boolean }) {
+function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, activeIcon, ariaLabel, pressed, disabled, viaClick, compact }: { icon: React.ReactNode, label: string, onClick: () => void, active?: boolean, primary?: boolean, onBlue?: boolean, testId?: string, activeIcon?: React.ReactNode, ariaLabel?: string, pressed?: boolean, disabled?: boolean, viaClick?: boolean, compact?: boolean }) {
   // OpenSourceUI CopyButton/DownloadButton keycap recipe (real sources,
   // spaceui registry notes): a raised key that SINKS on press — hairline
   // ring + downward drops + bottom shade at rest, inverts to a recess under
@@ -1159,14 +1171,16 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
   return (
     <button
       type="button"
-      onClick={viaClick ? onClick : undefined}
+      onClick={viaClick ? onClick : (e) => { if (e.detail === 0) onClick(); }}
       onPointerDown={viaClick ? undefined : (e) => { e.preventDefault(); onClick(); }}
       aria-label={ariaLabel}
+      title={ariaLabel ?? label}
       aria-pressed={pressed}
       disabled={disabled}
       data-testid={testId}
       className={cn(
-        "flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-[40px] select-none",
+        "flex shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
+        compact ? "justify-center w-11 sm:w-auto sm:px-3" : "px-2.5 sm:px-3",
         active
           ? "bg-status-success/15 text-status-success shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
           : primary
@@ -1184,7 +1198,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
       >
         {active ? (activeIcon ?? <Check />) : icon}
       </motion.span>
-      {label}
+      <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{label}</span>
     </button>
   );
 }
@@ -1286,6 +1300,7 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
       </div>
       <button
         onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
+        onClick={(e) => { if (e.detail === 0) onClose(); }}
         aria-label={t('common.close')}
         className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-[0.96]"
       >

@@ -1224,6 +1224,12 @@ html[st-theme-vt] {
   content-visibility: auto;
   contain-intrinsic-size: auto 72px;
 }
+/* An open reaction palette crosses its row's paint box. Keep virtualization
+   for the rest of the thread, but never clip or hide focus inside this row. */
+.room-scroll > * > *:has([data-slot="emoji-reaction"] [aria-expanded="true"]) {
+  content-visibility: visible;
+  z-index: 10;
+}
 /* The LANDING's grid is the exception. content-visibility:auto carries paint
    containment, and containment made "main is scrollable" (the promise in the
    landing's own comment) a lie: overflow past the fold was clipped at the

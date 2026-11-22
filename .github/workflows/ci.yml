@@ -73,6 +73,10 @@ jobs:
       - name: Nested overlay focus regression
         run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-overlay-focus.mjs
 
+      - name: Keyboard and pointer reaction regression
+        if: matrix.browsers == 'chromium'
+        run: URL=http://localhost:3311 npm run test:reactions
+
       - name: Motion and reduced-motion contracts
         run: BROWSERS=${{ matrix.browsers }} node scripts/verify-motion-contracts.mjs
 
