@@ -12,7 +12,7 @@
  */
 import { PNG } from 'pngjs';
 import jsQR from 'jsqr';
-import { launchBrowser, resolveEngine } from './lib.mjs';
+import { launchBrowser, resolveEngine, gotoPage } from './lib.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const SLOW = 240_000; // a cold dev server compiles the whole graph on first load
@@ -64,7 +64,7 @@ const stateOf = (page, text) => page.getByTestId('hop-out').evaluateAll(
   (els, t) => els.find((el) => el.textContent.includes(t))?.getAttribute('data-state') ?? null, text);
 
 async function openLanding(page) {
-  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: SLOW });
+  await gotoPage(page, BASE, { waitUntil: 'domcontentloaded', timeout: SLOW });
   await page.getByTestId('home-hop').waitFor({ timeout: SLOW });
 }
 /* What is on the clipboard now. Chromium reads it with the permission granted
@@ -122,7 +122,7 @@ try {
   ok(decoded === link, 'a camera reading the code gets exactly that link');
 
   const tJoin = Date.now();
-  await B.goto(link, { waitUntil: 'domcontentloaded', timeout: SLOW });
+  await gotoPage(B, link, { waitUntil: 'domcontentloaded', timeout: SLOW });
   await B.getByTestId('hop-emoji').waitFor({ timeout: SLOW });
   ok(!(await B.evaluate(() => location.hash)), 'the secret is removed from the address bar once read');
   await A.getByTestId('hop-emoji').waitFor({ timeout: 30_000 });
