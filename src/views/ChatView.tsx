@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import '../components/ui/task-surfaces.css';
-import { EASE } from '../lib/motion/tokens';
+import { DUR, EASE, SPRING, STAGGER_STEP } from '../lib/motion/tokens';
+import { useMotionPreference } from '../lib/useMotionPreference';
 import { SceneEmptyRoom, SceneRoomEnded } from '../components/art/Scenes';
 import { useSession } from '../lib/SessionContext';
 import { useOverscroll } from '../lib/useOverscroll';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { motion, AnimatePresence } from 'motion/react';
-import { AttachmentPanel } from '../components/AttachmentPanel';
+import { AttachmentPanel, AttachmentTrigger } from '../components/AttachmentPanel';
 import { TransferFlight } from '../components/TransferFlight';
 // lucide icons under the local names this file already uses (all icons are
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
   X as X, Plus, Copy, Check, Play, CircleAlert as AlertCircle,
-  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Monitor as Monitor, Pencil,
+  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Monitor as Monitor, MonitorSmartphone, Tablet, Users, Pencil,
   ArrowLeftRight as ArrowRightLeft, Info,
   RefreshCw, Link as Link2, FileText, Download,
 } from 'lucide-react';
@@ -32,7 +33,6 @@ import { MessageCard, pureLinkUrl } from '../components/MessageCard';
 import { TypingGhostBubble } from '../components/TypingIndicator';
 import { createTypingSender, typingIndicatorEnabled, TYPING_TIMING } from '../lib/typing';
 import { DeviceLinkIllustration, PacketTrain } from '../components/DeviceLinkIllustration';
-import { ShareTextsLogo } from '../components/ShareTextsLogo';
 import { SettingsOverlay } from '../components/SettingsOverlay';
 import { OverlaySheet } from '../components/OverlaySheet';
 import { Settings as SettingsIcon } from 'lucide-react';
@@ -71,6 +71,9 @@ function dateKeyOf(ts: number): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' } = {}) {
+  const reducedMotion = useMotionPreference();
+  const quietMotion = reducedMotion || document.documentElement.dataset.motionIntent === 'keyboard';
+  const entranceMotion = useRef(document.documentElement.dataset.motionIntent === 'pointer').current;
   const { t, lang } = useI18n();
   // Stable translator for effects: effects fire on session changes, not on
   // locale changes — routing through a ref means an announcement/toast that
@@ -92,7 +95,14 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     return /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
   })();
   const ThisDeviceIcon = isMobileDevice ? Smartphone : Monitor;
-  const PartnerDeviceIcon = isMobileDevice ? Monitor : Smartphone;
+  // The other device reports its own platform. It is not necessarily the
+  // opposite of this one (two computers and two phones are ordinary rooms).
+  const partnerPlatform = others[0]?.platform;
+  const PartnerDeviceIcon = isMultiRoom ? Users
+    : partnerPlatform === 'phone' ? Smartphone
+    : partnerPlatform === 'tablet' ? Tablet
+    : partnerPlatform === 'desktop' ? Monitor
+    : MonitorSmartphone;
   // Rename-this-device lives inside the connection details popover in
   // standalone mode (the paired screen owns it on desktop instead).
   const [editingName, setEditingName] = useState(false);
@@ -188,8 +198,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     if (session.nameAutoAdjusted) setNameNoticeOpen(true);
   }, [session.nameAutoAdjusted]);
-  const [showThatsIt, setShowThatsIt] = useState(false);
-  const [thatsItCopy, setThatsItCopy] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0);
@@ -483,31 +491,15 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       setAnnouncement(tr('chat.peerDisconnected'));
     }
   }, [partnerLinkHealthy, session.connectionType, session.roomId]);
-  // Post-transfer moment: after the very first transfer, a quiet "That's it."
-  // appears once, then the app gets out of the way. Direction-aware: sending
-  // and receiving tell different truths ("it's on the other device" vs "it
-  // arrived"). The baseline is the message count AT MOUNT, so a RESTORED
-  // session (refresh/rejoin with history) never replays the one-time moment
-  // for messages the user already saw — only a real 0→1 transition fires it.
-  const firstTransferShown = useRef(false);
-  const mountMessageCount = useRef<number | null>(null);
-  useEffect(() => {
-    if (mountMessageCount.current === null) {
-      mountMessageCount.current = session.messages.length;
-      return;
-    }
-    if (!firstTransferShown.current && mountMessageCount.current === 0 && session.messages.length >= 1) {
-      firstTransferShown.current = true;
-      const last = session.messages[session.messages.length - 1];
-      setThatsItCopy(last?.sender === 'me' ? tRef.current('thatsIt.sent') : tRef.current('thatsIt.received'));
-      setShowThatsIt(true);
-      const t = setTimeout(() => setShowThatsIt(false), 5000);
-      return () => clearTimeout(t);
-    }
-  }, [session.messages.length]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (showAttachmentMenu) {
+          e.preventDefault();
+          setShowAttachmentMenu(false);
+          plusButtonRef.current?.focus({ preventScroll: true });
+          return;
+        }
         // Layered exits: image viewer, then menus/sheets, then the room itself.
         // One press peels exactly ONE layer — dismissing a menu must never
         // simultaneously open the disconnect confirmation (that punished a
@@ -788,10 +780,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   const handleRootDrop = (e: React.DragEvent) => {
     handleDrop(e);
   };
-  // Send morph: after a send, the button's arrow becomes a checkmark for a
-  // beat (peak-end: the completion moment gets the reward animation), then
-  // settles back to the arrow.
-  const [sentPulse, setSentPulse] = useState(false);
+  // The composer confirms contact, not delivery. Receipts and the file's
+  // completion stamp own success; queueing locally must not earn a green tick.
   // Reconnect button feedback: true while the reconnect handshake is
   // running, so the button spins and relabels instead of going dead silent.
   // Bounded by a safety timer — requestReconnect's ack has no timeout, and a
@@ -858,8 +848,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     setAttachments([]);
     if (fanout) clearRecipients();
     void clearDraft(session.roomId);
-    setSentPulse(true);
-    setTimeout(() => setSentPulse(false), 900);
     // Dismiss the on-screen keyboard after sending — on TOUCH only. A
     // desktop click on the send button used to blur the textarea too,
     // killing the type → click → type flow.
@@ -1051,9 +1039,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           type="button"
           data-testid="connection-details"
           onPointerDown={() => setShowConnectionDetails(!showConnectionDetails)}
+          onClick={(e) => { if (e.detail === 0) setShowConnectionDetails(value => !value); }}
           aria-expanded={showConnectionDetails}
           aria-label={t('details.aria')}
-          className="flex items-center gap-2 min-w-0 max-w-full rounded-full px-1.5 py-1 -ml-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+          className="flex min-h-11 items-center gap-2 min-w-0 max-w-full rounded-full px-1.5 py-1 -ml-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
         >
           {/* Phones show only the PARTNER — the other device is the room's
               identity, and two truncated names + icons cannot share 375px
@@ -1100,13 +1089,13 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               seat read "4 devices / 1 connecting / Connected": three
               statements, two of them contradicting each other, in space for
               one. The count still exists, but as the same single suffix. */}
-          <span className="flex items-center gap-1.5 min-w-0">
+          <span className="flex flex-1 items-center gap-1.5 min-w-0">
             <motion.span
               key={session.partnerName || 'paired'}
               initial={session.partnerName ? { opacity: 0, y: 3 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 flex-1 max-w-[52vw] sm:max-w-[190px]"
+              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 shrink-0 max-w-[calc(100%_-_1rem)] sm:max-w-[190px]"
             >
               {others.length > 1
                 ? t('room.deviceCount', { count: String(others.length + 1) })
@@ -1122,11 +1111,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <span
               data-testid="room-device-count"
               className={cn(
-                // The state word never shrinks or breaks: at 320px the name
-                // yields first (an ellipsis on a device name is readable,
-                // "Disconne…" is not). Multi-device counts can truncate.
-                'text-[12px] font-medium',
-                others.length > 1 ? 'truncate min-w-0' : 'shrink-0 whitespace-nowrap',
+                // Keep the peer's identity readable before the secondary
+                // link status. Its complete wording remains in details.
+                'text-[12px] font-medium truncate min-w-0',
                 headerHealthy
                   ? 'text-apple-ink-muted dark:text-white/45'
                   : 'text-status-warning-ink dark:text-status-warning-ink-dark'
@@ -1174,7 +1161,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             data-testid="end-session"
             onClick={() => setConfirmDisconnect(true)}
             aria-label={t('common.disconnectAria')}
-            className="flex items-center gap-1.5 rounded-full font-semibold min-h-[40px] px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
+            className="flex min-w-11 min-h-11 items-center justify-center gap-1.5 rounded-full font-semibold px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
           >
             <DisconnectGlyph size={16} />
             <span className="hidden sm:inline">{t('common.disconnect')}</span>
@@ -1281,17 +1268,22 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       <AnimatePresence>
         {showConnected && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
+            initial={quietMotion ? false : { opacity: 0, transform: 'translateY(-6px)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px)' }}
+            exit={{ opacity: 0, transform: quietMotion ? 'none' : 'translateY(-6px)' }}
+            transition={{ duration: quietMotion ? 0 : DUR.short / 1000, ease: EASE.out }}
             role="status"
+            data-testid="connected-toast"
+            data-motion-enter={entranceMotion}
+            style={{ maxWidth: 'calc(100% - 32px)' }}
             className="absolute top-[76px] sm:top-[80px] left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float flex items-center gap-2 text-[13px] font-semibold whitespace-nowrap"
           >
-            <ShareTextsLogo size={16} motion="complete" mono />
+            <span className="st-linked-seal" aria-hidden="true">
+              <Monitor /><Smartphone /><span><Check strokeWidth={3} /></span>
+            </span>
             {/* The moment names the DEVICE: "Connected to iPhone" — a real
                 session with a real counterpart, never a generic ack. */}
-            {session.partnerName ? t('toast.connectedTo', { name: session.partnerName }) : t('toast.connected')}
+            <span className="truncate">{session.partnerName ? t('toast.connectedTo', { name: session.partnerName }) : t('toast.connected')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1343,24 +1335,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Post-transfer moment — quiet, one-time */}
-      <div className="shrink-0 flex justify-center">
-        <AnimatePresence>
-          {showThatsIt && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
-            >
-              <p className="px-4 pt-3 pb-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 text-center">
-                {thatsItCopy}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
       {/* Active transfer strip — pinned between header and messages so
           "is it actually sending?" never scrolls away. Newest real
           transfer, lit from inside (st-glow) with a measured track and a
@@ -1463,8 +1437,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   </p>
                 </div>
               ) : (
-                <div className="st-room-start flex flex-col items-start max-w-[520px]">
-                  <SceneEmptyRoom size={88} className="text-apple-ink dark:text-white" />
+                <div className="st-room-start flex flex-col items-start max-w-[520px]" data-motion-enter={entranceMotion}>
+                  <span className="st-room-arrival-art"><SceneEmptyRoom size={88} className="text-apple-ink dark:text-white" /></span>
                   {session.partnerName && (
                     <p className="text-[18px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white mt-4 max-w-[380px] leading-snug">
                       {t('chat.empty.dest', { name: session.partnerName })}
@@ -1692,18 +1666,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               full-screen backdrop while the menu is open, so the dismissal
               click is never eaten. */}
           <div className={cn("relative flex items-end gap-2", showAttachmentMenu ? "z-[45]" : "z-20")}>
-            <button
-              ref={plusButtonRef}
-              type="button"
-              data-testid="add-attachment"
-              onPointerDown={(e) => { e.preventDefault(); setShowAttachmentMenu(!showAttachmentMenu); }}
-              onContextMenu={(e) => e.preventDefault()}
-              aria-label={t('attach.add')}
-              aria-expanded={showAttachmentMenu}
-              className="min-w-[44px] min-h-[44px] w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 bg-white dark:bg-apple-tile-2 border border-apple-divider/70 dark:border-white/[0.08] shadow-sm text-apple-ink dark:text-white hover:bg-apple-parchment dark:hover:bg-apple-tile-3 transition-colors active:scale-[0.96] select-none [touch-action:manipulation] [-webkit-touch-callout:none]"
-            >
-              <Plus className={cn("w-5 h-5 transition-transform duration-200", showAttachmentMenu && "rotate-45")} />
-            </button>
+            <AttachmentTrigger isOpen={showAttachmentMenu} onToggle={() => setShowAttachmentMenu(open => !open)} buttonRef={plusButtonRef} />
             {/* No `layout` here: the pill resizes on every keystroke (auto-grow
                 textarea), and FLIP measurement per keystroke was real jank on
                 phones. Attachment previews keep their own small layout anims. */}
@@ -1725,10 +1688,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <AnimatePresence>
               {attachments.length > 0 && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0, filter: 'blur(4px)' }}
-                  transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+                  initial={quietMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: quietMotion ? 0 : DUR.short / 1000, ease: EASE.out }}
                   className="px-3 pt-5 origin-bottom overflow-hidden"
                 >
                   {/* pt-5 on the strip gives the corner-X room: the button
@@ -1737,13 +1700,16 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                       audit: X buttons sliced in half on staged files). */}
                   <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 -mx-1 px-1">
                     <AnimatePresence initial={false}>
-                      {attachments.map((a) => (
+                      {attachments.map((a, index) => (
                         <motion.div
                           key={a.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.92 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.18 } }}
+                          layout={quietMotion ? false : 'position'}
+                          initial={quietMotion ? false : { opacity: 0, y: 8, scale: .96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: quietMotion ? 0 : 8, scale: quietMotion ? 1 : .96, transition: quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, opacity: { duration: DUR.micro / 1000 }, delay: 0 } }}
+                          transition={quietMotion ? { duration: 0 } : { type: 'spring', ...SPRING.snap, delay: Math.min(index, 3) * STAGGER_STEP / 1000, opacity: { duration: DUR.short / 1000, ease: EASE.out } }}
+                          style={{ transformOrigin: 'left bottom' }}
+                          data-testid="staged-attachment"
                           className="relative shrink-0"
                         >
                           {a.type === 'video' && a.file && previewUrls.has(a.id) ? (
@@ -1883,7 +1849,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 placeholder={(textareaRef.current?.clientWidth ?? 400) < 300 ? t('composer.placeholderShort') : t('composer.placeholder')}
                 aria-label={t('composer.aria')}
                 title={t('composer.title')}
-                className="flex-1 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim"
+                className="flex-1 min-w-0 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
               />
               <button
                 type="button"
@@ -1891,37 +1857,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 onClick={handleSend}
                 disabled={(!inputText.trim() && attachments.length === 0) || (!session.partnerConnected && !(recipients.length > 0) && !isMultiRoom)}
                 aria-label={t('composer.send')}
-                className="w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 active:scale-[0.96] text-white bg-ember hover:bg-brand-strong disabled:bg-apple-hairline dark:disabled:bg-white/15 disabled:shadow-none disabled:text-apple-ink-muted/60 dark:disabled:text-white/30 shadow-[0_1px_3px_rgba(240,100,19,0.35)]"
+                className="st-send-button w-[44px] h-[44px] rounded-full flex items-center justify-center shrink-0 text-white bg-ember hover:bg-brand-strong disabled:bg-apple-hairline dark:disabled:bg-white/15 disabled:shadow-none disabled:text-apple-ink-muted/60 dark:disabled:text-white/30 shadow-[0_1px_3px_rgba(240,100,19,0.35)]"
               >
-                {/* Arrow ↔ check morph: the arrow lifts away, a check springs
-                    in — a real shape transition, not a crossfade. */}
-                <span className="relative flex items-center justify-center w-5 h-5">
-                  <AnimatePresence initial={false} mode="wait">
-                    {sentPulse ? (
-                      <motion.span
-                        key="check"
-                        initial={{ scale: 0.9, opacity: 0, rotate: -30 }}
-                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
-                        transition={{ duration: 0.18, ease: EASE.out }}
-                        className="absolute inset-0 flex items-center justify-center"
-                      >
-                        <Check className="w-5 h-5 text-status-success dark:text-status-success" strokeWidth={2.8} />
-                      </motion.span>
-                    ) : (
-                      <motion.span
-                        key="arrow"
-                        initial={{ y: 6, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -8, opacity: 0, transition: { duration: 0.14 } }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 26 }}
-                        className="absolute inset-0 flex items-center justify-center"
-                      >
-                        <ArrowUp className="w-5 h-5" strokeWidth={2.4} />
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </span>
+                <ArrowUp className="w-5 h-5" strokeWidth={2.4} aria-hidden />
               </button>
 
             </div>

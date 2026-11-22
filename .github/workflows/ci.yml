@@ -54,6 +54,14 @@ jobs:
       - name: Start local signaling Worker
         run: node scripts/start-ci-worker.mjs
 
+      - name: Space double-join request stream regression
+        if: matrix.browsers == 'chromium'
+        run: node scripts/verify-space-join-stream.mjs
+
+      - name: Space live updates after idle
+        if: matrix.browsers == 'chromium'
+        run: node scripts/verify-space-idle.mjs
+
       - name: Install Playwright browsers
         # The composer geometry gate launches Chromium in every matrix job.
         run: npx playwright install --with-deps chromium ${{ matrix.browsers }}
@@ -68,6 +76,17 @@ jobs:
           echo "server failed to start"
           tail -40 /tmp/sharetext-server.log
           exit 1
+
+      # Exercise the built app with the in-job Worker, never production.
+      - name: Nested overlay focus regression
+        run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-overlay-focus.mjs
+
+      - name: Keyboard and pointer reaction regression
+        if: matrix.browsers == 'chromium'
+        run: URL=http://localhost:3311 npm run test:reactions
+
+      - name: Motion and reduced-motion contracts
+        run: BROWSERS=${{ matrix.browsers }} node scripts/verify-motion-contracts.mjs
 
       # P7: the P4 composer incident, as a rectangle check. Text-level gates
       # cannot see a Send circle that walks 65px up a grown row.
@@ -88,13 +107,25 @@ jobs:
           node scripts/start-ci-worker.mjs --restart
           BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
 
+      - name: Three-device encrypted relay files
+        run: |
+          node scripts/start-ci-worker.mjs --restart
+          BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-relay-files.mjs
+
       - name: Screenshots (this engine)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs
         continue-on-error: true
 
       - name: Worker diagnostics on failure
         if: failure()
-        run: cat audit/worker.log
+        run: |
+          if [ -f audit/worker.log ]; then cat audit/worker.log; fi
+          for log in "$HOME"/.config/.wrangler/logs/*.log; do
+            if [ -f "$log" ]; then
+              echo "--- $log ---"
+              cat "$log"
+            fi
+          done
 
       - name: Upload evidence
         if: always()

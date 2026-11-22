@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const fr: Dict = {
+  'reading.englishOnly': "Cette page est actuellement disponible uniquement en anglais.",
   'film.download': "Télécharger le film",
   'film.from': "D’un écran",
   'film.to': "à l’autre.",
@@ -384,6 +385,7 @@ const fr: Dict = {
   'action.copy': 'Copier',
   'action.share': 'Partager',
   'action.save': 'Enregistrer',
+  'action.download': 'Télécharger',
   'action.copied': 'Copié',
   'action.shared': 'Partagé',
   'action.saved': 'Enregistré',
@@ -581,7 +583,7 @@ const fr: Dict = {
   'space.reopen': 'Ouvrir',
   'space.createTitle': 'Nouvel espace',
   'space.createHeading': 'Créer un espace temporaire',
-  'space.createSub': 'Une étagère partagée pour cet appareil et ceux que vous invitez. Elle se ferme d’elle-même.',
+  'space.createSub': 'Un espace partagé pour cet appareil et ceux que vous invitez. Il se ferme automatiquement.',
   'space.nameLabel': 'Nom (facultatif)',
   'space.namePlaceholder': 'Photos de voyage, fichiers du projet…',
   'space.durationLabel': 'Combien de temps doit-il rester ouvert ?',
@@ -608,7 +610,8 @@ const fr: Dict = {
   'space.empty': 'Rien ici pour l’instant',
   'space.emptyAction': 'Écrire une note',
   'space.emptyHint': 'Ajoutez du texte, des liens, des photos ou n’importe quel fichier ci-dessous.',
-  'space.composerPlaceholder': 'Ajoutez quelque chose — texte, lien…',
+  'space.defaultName': 'Espace partagé',
+  'space.composerPlaceholder': 'Écrire une note…',
   'space.addFile': 'Fichier',
   'space.textOnly': 'Pour l\'instant : du texte et des liens.',
   'space.addText': 'Ajouter',
@@ -845,7 +848,7 @@ const fr: Dict = {
   "saved.showMore": "Afficher plus",
   "saved.savedOn": "Enregistré le {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "Des navigateurs différents. Le même partage.",
+  "home.browser.heading": "Fonctionne dans tous les navigateurs modernes",
   "home.browser.body": "Pas besoin des mêmes navigateurs. Ouvrez simplement ShareTexts sur les deux.",
   "home.browser.open": "Ouvrir sur votre autre appareil",
   "home.browser.qr": "Afficher le QR du site",

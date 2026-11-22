@@ -54,7 +54,16 @@ export function browserDiagnostics(browser, name) {
               let timer;
               try {
                 entry.app = await Promise.race([
-                  page.evaluate(() => ({ events: window.__sharetextDiag?.snapshot() ?? null, rooms: window.__sharetextDiag?.roomDiags() ?? null, readyState: document.readyState })),
+                  page.evaluate(() => ({
+                    events: window.__sharetextDiag?.snapshot() ?? null,
+                    rooms: window.__sharetextDiag?.roomDiags() ?? null,
+                    readyState: document.readyState, visibilityState: document.visibilityState,
+                    film: Array.from(document.querySelectorAll('[data-testid="hero-demo"] video'), el => ({
+                      src: el.currentSrc, currentTime: el.currentTime, duration: el.duration,
+                      paused: el.paused, muted: el.muted, readyState: el.readyState, networkState: el.networkState,
+                      error: el.error && { code: el.error.code, message: el.error.message },
+                    })),
+                  })),
                   new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Diagnostic evaluation timed out')), 5000); }),
                 ]);
               } finally { clearTimeout(timer); }

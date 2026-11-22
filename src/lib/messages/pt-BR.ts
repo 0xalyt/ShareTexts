@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const pt: Dict = {
+  'reading.englishOnly': "Esta página está disponível apenas em inglês no momento.",
   'film.download': "Baixar o filme",
   'film.from': "De uma tela",
   'film.to': "para a outra.",
@@ -384,6 +385,7 @@ const pt: Dict = {
   'action.copy': 'Copiar',
   'action.share': 'Compartilhar',
   'action.save': 'Salvar',
+  'action.download': 'Baixar',
   'action.copied': 'Copiado',
   'action.shared': 'Compartilhado',
   'action.saved': 'Salvo',
@@ -581,7 +583,7 @@ const pt: Dict = {
   'space.reopen': 'Abrir',
   'space.createTitle': 'Novo espaço',
   'space.createHeading': 'Criar um espaço temporário',
-  'space.createSub': 'Uma prateleira partilhada para este dispositivo e os que convidar. Fecha-se sozinho.',
+  'space.createSub': 'Um espaço compartilhado para este dispositivo e os que você convidar. Ele fecha automaticamente.',
   'space.nameLabel': 'Nome (opcional)',
   'space.namePlaceholder': 'Fotos da viagem, ficheiros do projeto…',
   'space.durationLabel': 'Durante quanto tempo deve ficar aberto?',
@@ -608,7 +610,8 @@ const pt: Dict = {
   'space.empty': 'Ainda não há nada aqui',
   'space.emptyAction': 'Escrever uma nota',
   'space.emptyHint': 'Adicione texto, links, fotos ou qualquer ficheiro abaixo.',
-  'space.composerPlaceholder': 'Adicione algo — texto, um link…',
+  'space.defaultName': 'Espaço compartilhado',
+  'space.composerPlaceholder': 'Adicionar nota…',
   'space.addFile': 'Ficheiro',
   'space.textOnly': 'Por enquanto, textos e links.',
   'space.addText': 'Adicionar',
@@ -845,7 +848,7 @@ const pt: Dict = {
   "saved.showMore": "Mostrar mais",
   "saved.savedOn": "Salvo em {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "Navegadores diferentes. A mesma transferência.",
+  "home.browser.heading": "Funciona em todos os navegadores modernos",
   "home.browser.body": "Não precisam ser iguais. Basta abrir o ShareTexts nos dois.",
   "home.browser.open": "Abra no seu outro dispositivo",
   "home.browser.qr": "Mostrar QR do site",

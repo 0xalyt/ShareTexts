@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { get as getHTTP } from 'node:http';
 import { get as getHTTPS } from 'node:https';
-import { launchBrowser, clickStable, resolveEngine } from './lib.mjs';
+import { launchBrowser, clickStable, resolveEngine, gotoPage } from './lib.mjs';
 import jsQR from 'jsqr';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 
@@ -45,6 +45,37 @@ try {
   const directives = value => value.split(';').filter(s => s !== 'upgrade-insecure-requests').sort().join(';');
   check('loopback retains every other CSP directive', directives(local) === directives(external));
 
+  // Isolate capabilities from service-worker caching and the live worker's CORS.
+  const noRtc = await browser.newContext({ serviceWorkers: 'block' });
+  await noRtc.route('**/stats', route => route.fulfill({
+    json: { users: 0, roomsCreated: 0 },
+    headers: { 'access-control-allow-origin': '*' },
+  }));
+  await noRtc.route('**/api/event?*', route => route.fulfill({
+    status: 204,
+    headers: { 'access-control-allow-origin': '*' },
+  }));
+  await noRtc.addInitScript(() => {
+    for (const key of ['RTCPeerConnection', 'webkitRTCPeerConnection']) {
+      Object.defineProperty(window, key, { value: undefined, configurable: true });
+    }
+    localStorage.setItem('sharetext.locale', 'en');
+  });
+  const reader = await noRtc.newPage();
+  reader.setDefaultTimeout(10_000);
+  const readingErrors = [];
+  reader.on('pageerror', error => readingErrors.push(error.message));
+  for (const path of ['/about', '/docs', '/privacy', '/terms']) {
+    await reader.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
+    await reader.getByTestId('site-footer').waitFor();
+    check(`${path}: reading needs no WebRTC`, await reader.locator('main h1').count() === 1 && (await reader.locator('main').innerText()).length > 100);
+  }
+  await reader.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await reader.getByRole('heading', { name: "Your browser can't make device-to-device connections", exact: true }).waitFor();
+  check('unsupported transfer browsers still get an honest explanation', await reader.getByTestId('home-send').count() === 0);
+  assert.deepEqual(readingErrors, [], 'reading without WebRTC has no runtime errors');
+  await noRtc.close();
+
   for (const locale of ['en', 'es', 'ar']) {
     for (const width of [320, 360, 390, 1440]) {
       const ctx = await diagnostics.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
@@ -53,7 +84,7 @@ try {
       page.setDefaultTimeout(15_000);
       const errors = [];
       page.on('pageerror', e => errors.push(e.message));
-      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await gotoPage(page, BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       if (width < 1024) {
@@ -83,15 +114,24 @@ try {
       check(`${locale}/${width}: exactly one high-priority preload matches the player poster`,
         Boolean(poster.displayed) && poster.preloads.length === 1 &&
         poster.preloads[0].href === poster.displayed && poster.preloads[0].priority === 'high');
-      check(`${locale}/${width}: the film has a localized text alternative`, (await demo.locator('figcaption p').innerText()).length > 12);
+      check(`${locale}/${width}: the film retains its hidden localized description without a visible footer`,
+        await media.getAttribute('aria-describedby') === await demo.locator('figcaption.sr-only').getAttribute('id') &&
+        (await demo.locator('figcaption.sr-only').innerText()).length > 12 &&
+        await demo.locator('a').count() === 0);
       const facts = await demo.evaluate(el => {
         const r = el.getBoundingClientRect();
+        const picture = el.querySelector('.hero-film-picture').getBoundingClientRect();
         return {
-          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < r.left - 1 || br.right > r.right + 1 || br.width < 48 || br.height < 48; }),
+          // Firefox rounds adjacent DOMRects independently at fractional aspect
+          // ratios (a measured 0.000015px overlap at 390px). Ignore only that
+          // sub-layout-unit noise; preserve the actual 44/48px target contract.
+          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom - .05 || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
+          widescreen: Math.abs(picture.width / picture.height - 16 / 9) < .02,
+          backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
         };
       });
-      check(`${locale}/${width}: film controls fit and remain tappable`, !facts.clipped && !facts.overflow);
+      check(`${locale}/${width}: 16:9 film has its own backdrop and tappable controls below the picture`, facts.widescreen && facts.backdrop && !facts.clipped && !facts.overflow);
       const guidePair = page.getByTestId('landing-guide-pair');
       const guideSend = page.getByTestId('landing-guide-send');
       check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
@@ -121,23 +161,28 @@ try {
         });
       }));
       const browsers = page.locator('.landing-browsers');
+      const handoff = page.locator('.landing-browser-utility');
       const copyAddress = page.getByTestId('landing-copy-address');
       const defaultCopyLabel = await copyAddress.innerText();
       await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.__copiedWebsite = value; } } }));
       await copyAddress.click();
       await page.waitForFunction(() => Boolean(window.__copiedWebsite));
       check(`${locale}/${width}: copying the website uses the real origin without room credentials`, await page.evaluate(() => window.__copiedWebsite) === new URL(BASE).origin && await copyAddress.innerText() !== defaultCopyLabel);
-      const successFeedback = await browsers.getByRole('status').innerText();
+      const successFeedback = await handoff.getByRole('status').innerText();
       await page.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error('permission denied'); }; });
       await copyAddress.click();
-      check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await browsers.getByRole('status').innerText()).length > 12 && await browsers.getByRole('status').innerText() !== successFeedback);
+      check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await handoff.getByRole('status').innerText()).length > 12 && await handoff.getByRole('status').innerText() !== successFeedback);
       const websiteQr = page.getByTestId('landing-website-qr');
       const closedQrLabel = await websiteQr.innerText();
       await websiteQr.click();
-      await browsers.getByTestId('qr-art').waitFor();
-      check(`${locale}/${width}: website QR disclosure has a Hide action and stays inside the viewport with six readable browser names`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('li').count() === 6 && await browsers.evaluate(el => {
+      await handoff.getByTestId('qr-art').waitFor();
+      check(`${locale}/${width}: browser band contains no second-device tool`, await browsers.getByRole('heading').count() === 1 && await browsers.locator('.landing-browser-utility').count() === 0);
+      check(`${locale}/${width}: website QR has a Hide action and logo-only browser support stays inside the viewport`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('.landing-browser-list:not([aria-hidden]) img[alt]').count() === 8 && await browsers.evaluate(el => {
         const bounds = el.getBoundingClientRect();
-        return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
+        const logos = [...el.querySelectorAll('.landing-browser-list:first-child img')];
+        return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
+          logos.every(img => img.complete && img.naturalWidth > 0 && img.alt && getComputedStyle(img).filter.includes('grayscale(1)')) &&
+          [...el.querySelectorAll('.landing-browser-list')].every(list => list.textContent.trim() === '');
       }));
       if (locale === 'en' && width === 320) check('website QR decodes to the homepage, not a fake room', await decodeWebsiteQr(page) === new URL(BASE).origin);
       await websiteQr.focus();
@@ -206,12 +251,12 @@ try {
         // Firefox drops context-level color emulation on its first real
         // navigation. Prime plain text (not Firefox's JSON viewer), then establish the OS before
         // the first landing visit; no app/poster has been fetched yet.
-        await page.goto(new URL('/robots.txt', BASE).href, { waitUntil: 'domcontentloaded' });
+        await gotoPage(page, new URL('/robots.txt', BASE).href, { waitUntil: 'domcontentloaded' });
         await page.emulateMedia({ colorScheme: os, reducedMotion: 'reduce' });
       }
       const requests = [];
       page.on('request', request => { if (/\/film\/.*-poster\./.test(request.url())) requests.push(request.url()); });
-      await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+      await gotoPage(page, BASE, { waitUntil: 'domcontentloaded' });
       const demo = page.getByTestId('hero-demo');
       await demo.waitFor();
       const inspect = () => page.evaluate(() => {
@@ -225,6 +270,7 @@ try {
       const name = `${width}px OS=${os} saved=${saved || 'system'}`;
       check(`${name}: OS precondition is real`, await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches) === (os === 'dark'));
       check(`${name}: the shown theme wins`, state.dark === (expected === 'dark'));
+      check(`${name}: poster theme marker matches without pinning a film version`, new URL(state.poster).pathname.includes('-dark') === state.dark);
       check(`${name}: exactly one matching high-priority poster`, state.preload === state.poster && state.priority === 'high');
       check(`${name}: no opposite poster requested at boot`, requests.length > 0 && requests.every(url => url === state.poster));
       const brightness = await page.evaluate(async () => {
@@ -252,9 +298,10 @@ try {
       }
       await demo.locator('.hero-film-play').click();
       await page.waitForFunction(() => Boolean(document.querySelector('[data-testid="hero-demo"] video').getAttribute('src')));
-      const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster, full: el.querySelector('.hero-film-watch').href }));
-      check(`${name}: movie, still and full export use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4') && assets.full === assets.poster.replace('-poster.jpg', '-full.mp4'));
-      for (const url of [assets.movie, assets.full]) {
+      const assets = await demo.evaluate(el => ({ movie: el.querySelector('video').src, poster: el.querySelector('video').poster }));
+      check(`${name}: movie and still use the same cut`, assets.movie === assets.poster.replace('-poster.jpg', '.mp4'));
+      // Full exports remain downloadable assets, not landing controls.
+      for (const url of [assets.movie, assets.poster.replace('-poster.jpg', '-full.mp4')]) {
         const file = await page.request.get(url, { headers: { Range: 'bytes=0-63' } });
         check(`${name}: the encoded movie exists (${new URL(url).pathname})`, file.ok() && /video\/mp4/.test(file.headers()['content-type'] || ''));
       }
@@ -264,15 +311,18 @@ try {
 
   const laptop = await diagnostics.newContext({ viewport: { width: 1024, height: 700 }, reducedMotion: 'reduce' });
   const shortPage = await laptop.newPage();
-  await shortPage.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoPage(shortPage, BASE, { waitUntil: 'domcontentloaded' });
   await shortPage.getByTestId('hero-demo').waitFor();
   await shortPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const shortLayout = await shortPage.evaluate(() => {
     const send = document.querySelector('[data-testid="home-send"]').getBoundingClientRect();
-    const demo = document.querySelector('[data-testid="hero-demo"]').getBoundingClientRect();
-    return send.top >= 0 && send.bottom <= innerHeight && demo.top >= 0 && demo.bottom <= innerHeight;
+    const demo = document.querySelector('[data-testid="hero-demo"] .hero-film-picture').getBoundingClientRect();
+    const shortcut = document.querySelector('[data-testid="intent-input"]').getBoundingClientRect();
+    const heading = document.querySelector('.landing-heading').getBoundingClientRect();
+    return heading.bottom <= send.top && send.bottom <= demo.top && demo.bottom <= shortcut.top && send.top >= 0 && send.bottom <= innerHeight &&
+      demo.left >= 0 && demo.right <= innerWidth && Math.abs(demo.width / demo.height - 16 / 9) < .02;
   });
-  check('short laptop keeps sharing and the entire demo in the first viewport', shortLayout);
+  check('short laptop keeps actions in reach and the full-width film after the heading/actions', shortLayout);
   await shortPage.screenshot({ path: 'audit/tmp/landing-1024-700.png' });
   await laptop.close();
 
@@ -282,18 +332,25 @@ try {
     const typing = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme, reducedMotion: 'no-preference' });
     await typing.addInitScript(value => localStorage.setItem('sharetext.theme', value), theme);
     const entry = await typing.newPage();
-    await entry.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await gotoPage(entry, BASE, { waitUntil: 'domcontentloaded' });
     await entry.getByTestId('intent-input').waitFor();
     await entry.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     const input = entry.getByTestId('intent-input');
     const button = entry.getByTestId('intent-submit');
+    check(`${theme}: browser repeats cover the entire desktop lane at the loop boundary`, await entry.locator('.landing-browser-marquee').evaluate(lane => {
+      const track = lane.firstElementChild;
+      const cycle = track.firstElementChild.getBoundingClientRect().width;
+      return cycle > 0 && track.getBoundingClientRect().width - cycle >= lane.getBoundingClientRect().width;
+    }));
     for (const [value, label] of [['', 'Create room'], ['A note', 'Send this'], ['482716', 'Join room'], ['', 'Create room'], ['482', 'Send this'], ['482716', 'Join room'], ['', 'Create room']]) {
       await input.fill(value);
       for (const hover of [false, true]) {
         if (hover) await button.hover();
         else await entry.mouse.move(0, 0);
         const readable = await button.evaluate(async (el, expected) => {
-          const text = el.querySelector('span');
+          // Decorative font symbols are spans too. Measure the action label,
+          // not the mobile-only, aria-hidden glyph that precedes it.
+          const text = el.querySelector('[data-intent-label]');
           if (!text || text.textContent.trim() !== expected || el.getAttribute('aria-label') !== expected) return false;
           const canvas = document.createElement('canvas');
           canvas.width = canvas.height = 1;
@@ -332,7 +389,7 @@ try {
     const dark = await diagnostics.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark', reducedMotion: 'reduce' });
     await dark.addInitScript(() => localStorage.setItem('sharetext.theme', 'dark'));
     const darkPage = await dark.newPage();
-    await darkPage.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await gotoPage(darkPage, BASE, { waitUntil: 'domcontentloaded' });
     await darkPage.getByTestId('hero-demo').waitFor();
     await darkPage.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
     check(`${width}: dark landing retains its theme without overflow`, await darkPage.evaluate(() =>
@@ -344,11 +401,35 @@ try {
 
   const ctx = await diagnostics.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
-  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoPage(page, BASE, { waitUntil: 'domcontentloaded' });
   const demo = page.getByTestId('hero-demo');
   await demo.scrollIntoViewIfNeeded();
   await page.waitForTimeout(3600);
   check('reduced motion does not autoplay', await demo.locator('video').evaluate(el => el.paused && !el.getAttribute('src')));
+  // Reproduce a returning visitor's complete MP4 cache entry. WebKit asks for
+  // byte ranges after reading metadata; a cached 200 must not answer that seek.
+  // The local wrapper uses Vite (which does not auto-register the worker).
+  await page.evaluate(() => navigator.serviceWorker.register('/sw.js'));
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 15000 });
+  const range = await demo.locator('video').evaluate(async el => {
+    const movie = el.poster.replace(/-poster\.jpg$/, '.mp4');
+    const full = await fetch(movie);
+    if (!full.ok) throw new Error(`Film fixture returned ${full.status}`);
+    const expected = new Uint8Array(await full.clone().arrayBuffer()).slice(32, 64);
+    const fixture = 'film-range-regression';
+    try {
+      const cache = await caches.open(fixture);
+      await cache.put(movie, full);
+      const partial = await fetch(movie, { headers: { Range: 'bytes=32-63' } });
+      const bytes = new Uint8Array(await partial.arrayBuffer());
+      return {
+        status: partial.status, contentRange: partial.headers.get('content-range'),
+        matches: bytes.length === 32 && bytes.every((byte, i) => byte === expected[i]),
+      };
+    } finally { await caches.delete(fixture); }
+  });
+  check('cached films do not replace HTTP byte ranges with a whole 200 response',
+    range.status === 206 && /^bytes 32-63\/\d+$/.test(range.contentRange || '') && range.matches);
   await demo.getByRole('button', { name: 'Play film', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('[data-testid="hero-demo"] video')?.currentTime > 0.2);
   const filmHeight = (await demo.boundingBox()).height;
@@ -396,7 +477,7 @@ try {
 
   const phone = await diagnostics.newContext({ viewport: { width: 320, height: 720 }, reducedMotion: 'reduce' });
   const p = await phone.newPage();
-  await p.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await gotoPage(p, BASE, { waitUntil: 'domcontentloaded' });
   await p.getByTestId('home-receive').waitFor();
   await p.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
   const action = await p.getByTestId('home-receive').boundingBox();

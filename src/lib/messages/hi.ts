@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const hi: Dict = {
+  'reading.englishOnly': "यह पेज फ़िलहाल केवल अंग्रेज़ी में उपलब्ध है।",
   'film.download': "फ़िल्म डाउनलोड करें",
   'film.from': "एक स्क्रीन से",
   'film.to': "दूसरी स्क्रीन तक।",
@@ -384,6 +385,7 @@ const hi: Dict = {
   'action.copy': 'कॉपी करें',
   'action.share': 'साझा करें',
   'action.save': 'सेव करें',
+  'action.download': 'डाउनलोड करें',
   'action.copied': 'कॉपी हो गया',
   'action.shared': 'साझा हुआ',
   'action.saved': 'सेव हुआ',
@@ -580,7 +582,7 @@ const hi: Dict = {
   'space.reopen': 'खोलें',
   'space.createTitle': 'नया स्पेस',
   'space.createHeading': 'अस्थायी स्पेस बनाएँ',
-  'space.createSub': 'इस डिवाइस और आमंत्रित डिवाइस के लिए एक साझा शेल्फ़। यह अपने आप बंद हो जाता है।',
+  'space.createSub': 'इस डिवाइस और आमंत्रित डिवाइस के लिए एक साझा स्पेस। यह अपने आप बंद हो जाता है।',
   'space.nameLabel': 'नाम (वैकल्पिक)',
   'space.namePlaceholder': 'यात्रा की तस्वीरें, प्रोजेक्ट फ़ाइलें…',
   'space.durationLabel': 'यह कितनी देर खुला रहे?',
@@ -607,7 +609,8 @@ const hi: Dict = {
   'space.empty': 'अभी यहाँ कुछ नहीं है',
   'space.emptyAction': 'एक नोट लिखें',
   'space.emptyHint': 'नीचे टेक्स्ट, लिंक, तस्वीरें या कोई भी फ़ाइल जोड़ें।',
-  'space.composerPlaceholder': 'कुछ जोड़ें — टेक्स्ट, लिंक…',
+  'space.defaultName': 'साझा स्पेस',
+  'space.composerPlaceholder': 'नोट लिखें…',
   'space.addFile': 'फ़ाइल',
   'space.textOnly': 'अभी केवल टेक्स्ट और लिंक।',
   'space.addText': 'जोड़ें',
@@ -844,7 +847,7 @@ const hi: Dict = {
   "saved.showMore": "और दिखाएँ",
   "saved.savedOn": "{date} को सहेजा गया",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "ब्राउज़र अलग। भेजने का तरीका वही।",
+  "home.browser.heading": "सभी आधुनिक ब्राउज़र में काम करता है",
   "home.browser.body": "दोनों ब्राउज़र एक जैसे होना ज़रूरी नहीं। बस दोनों पर ShareTexts खोलें।",
   "home.browser.open": "अपने दूसरे डिवाइस पर खोलें",
   "home.browser.qr": "वेबसाइट का QR दिखाएँ",

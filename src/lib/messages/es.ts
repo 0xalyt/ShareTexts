@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const es: Dict = {
+  'reading.englishOnly': "Esta página solo está disponible en inglés por ahora.",
   'film.download': "Descargar película",
   'film.from': "De una pantalla",
   'film.to': "a la otra.",
@@ -384,6 +385,7 @@ const es: Dict = {
   'action.copy': 'Copiar',
   'action.share': 'Compartir',
   'action.save': 'Guardar',
+  'action.download': 'Descargar',
   'action.copied': 'Copiado',
   'action.shared': 'Compartido',
   'action.saved': 'Guardado',
@@ -581,7 +583,7 @@ const es: Dict = {
   'space.reopen': 'Abrir',
   'space.createTitle': 'Nuevo espacio',
   'space.createHeading': 'Crea un espacio temporal',
-  'space.createSub': 'Una estantería compartida para este dispositivo y los que invites. Se cierra sola.',
+  'space.createSub': 'Un espacio compartido para este dispositivo y los que invites. Se cierra solo.',
   'space.nameLabel': 'Nombre (opcional)',
   'space.namePlaceholder': 'Planes de viaje, notas del proyecto…',
   'space.durationLabel': '¿Cuánto tiempo debe quedar abierto?',
@@ -608,7 +610,8 @@ const es: Dict = {
   'space.empty': 'Todavía no hay nada',
   'space.emptyAction': 'Escribir una nota',
   'space.emptyHint': 'Añade texto, enlaces, fotos o cualquier archivo abajo.',
-  'space.composerPlaceholder': 'Añade algo: texto, un enlace…',
+  'space.defaultName': 'Espacio compartido',
+  'space.composerPlaceholder': 'Añade una nota…',
   'space.addFile': 'Archivo',
   'space.textOnly': 'Por ahora, texto y enlaces.',
   'space.addText': 'Añadir',
@@ -845,7 +848,7 @@ const es: Dict = {
   "saved.showMore": "Mostrar más",
   "saved.savedOn": "Guardado el {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "Navegadores distintos. El mismo envío.",
+  "home.browser.heading": "Funciona en todos los navegadores modernos",
   "home.browser.body": "No tienen que coincidir. Solo abre ShareTexts en ambos.",
   "home.browser.open": "Ábrelo en tu otro dispositivo",
   "home.browser.qr": "Mostrar QR del sitio",

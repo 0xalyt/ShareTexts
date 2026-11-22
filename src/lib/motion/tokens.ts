@@ -19,7 +19,9 @@
  * feel slower than the operation it describes. Long-running loops are
  * reserved for STATE (connecting, transferring) and are always frozen
  * under prefers-reduced-motion (MotionConfig reducedMotion="user" in
- * main.tsx zeroes the JS side; CSS guards the keyframe side).
+ * main.tsx makes positional transforms instant, but does NOT remove every
+ * duration, stagger, or CSS keyframe. Prefer static digits and anchored
+ * progress feedback; CSS guards the keyframe side).
  *
  * ── Springs vs easing ──────────────────────────────────────────────────
  * Springs (direct manipulation, sheets, cards, device selection) re-target
@@ -38,6 +40,9 @@ export const DUR = {
   medium: 280,
   long: 480,
 } as const;
+
+/** Overlap spacing, not an action delay. CSS mirrors --st-stagger-step. */
+export const STAGGER_STEP = 20;
 
 /** Easing curves — mirror of index.css --ease-* tokens. */
 export const EASE = {
@@ -64,6 +69,14 @@ export function settleSeconds(distance: number, velocityPxPerMs: number): number
   return Math.min(0.45, Math.max(0.18, Math.abs(distance) / speed));
 }
 
+/** iOS-like edge resistance: increasing pull gives diminishing travel.
+ * Approximation documented at preetsuthar.me/writing/the-maths-of-ios-scrolling.
+ * Unlike multiplying by a constant, it can never escape the view's extent. */
+export function rubberBand(distance: number, dimension: number): number {
+  if (dimension <= 0) return 0;
+  return Math.sign(distance) * dimension * (1 - 1 / (Math.abs(distance) * 0.55 / dimension + 1));
+}
+
 /**
  * Named spring presets — physical, interruptible, bounded (no overshoot
  * circus). motion/react retargets these on state change, so a sheet that
@@ -79,4 +92,4 @@ export const SPRING = {
 } as const;
 
 /** Fades use the standard curve with the short ladder — never a spring. */
-export const fade = (duration: number = DUR.short) => ({ duration, ease: EASE.out });
+export const fade = (duration: number = DUR.short) => ({ duration: duration / 1000, ease: EASE.out });

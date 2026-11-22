@@ -1,5 +1,6 @@
 import React from 'react';
-import { MessageSquare, Plus } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
+import { AlloSymbol } from './AlloSymbol';
 import { useI18n } from '../lib/i18n';
 import { useRoomList } from '../lib/useRoomList';
 import { useSession } from '../lib/SessionContext';
@@ -65,7 +66,7 @@ export function RoomRail({ className = '' }: { className?: string }) {
         data-testid="rail-new-room"
         className="flex min-h-[36px] items-center gap-1.5 rounded-[8px] px-2.5 text-[13px] font-medium text-apple-ink-muted transition-colors hover:bg-black/[0.04] hover:text-apple-ink dark:text-white/60 dark:hover:bg-white/[0.06] dark:hover:text-white"
       >
-        <Plus className="h-3.5 w-3.5" aria-hidden />
+        <AlloSymbol name="plus" size={14} />
         {t('rail.newRoom')}
       </a>
     </section>

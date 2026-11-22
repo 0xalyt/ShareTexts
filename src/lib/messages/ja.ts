@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  'reading.englishOnly': "このページは現在、英語のみで提供しています。",
   'film.download': "動画をダウンロード",
   'film.from': "ひとつの画面から",
   'film.to': "もうひとつの画面へ。",
@@ -384,6 +385,7 @@ const ja: Dict = {
   'action.copy': 'コピー',
   'action.share': '共有',
   'action.save': '保存',
+  'action.download': 'ダウンロード',
   'action.copied': 'コピーしました',
   'action.shared': '共有しました',
   'action.saved': '保存しました',
@@ -580,7 +582,7 @@ const ja: Dict = {
   'space.reopen': '開く',
   'space.createTitle': '新しいスペース',
   'space.createHeading': 'テンポラリースペースを作成',
-  'space.createSub': 'このデバイスと招待したデバイスで共有する棚。期限が来ると自動的に閉じます。',
+  'space.createSub': 'このデバイスと招待したデバイスで使う共有スペース。期限が来ると自動的に閉じます。',
   'space.nameLabel': '名前（省略可）',
   'space.namePlaceholder': '旅行の写真、プロジェクトのファイル…',
   'space.durationLabel': 'どのくらい開いておきますか？',
@@ -607,7 +609,8 @@ const ja: Dict = {
   'space.empty': 'まだ何もありません',
   'space.emptyAction': 'メモを書く',
   'space.emptyHint': '下からテキスト、リンク、写真、ファイルを追加できます。',
-  'space.composerPlaceholder': '追加する — テキストやリンク…',
+  'space.defaultName': '共有スペース',
+  'space.composerPlaceholder': 'メモを追加…',
   'space.addFile': 'ファイル',
   'space.textOnly': '今はテキストとリンクのみ。',
   'space.addText': '追加',
@@ -844,7 +847,7 @@ const ja: Dict = {
   "saved.showMore": "もっと見る",
   "saved.savedOn": "{date} に保存",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "違うブラウザでも。同じように受け渡し。",
+  "home.browser.heading": "すべての最新ブラウザで使えます",
   "home.browser.body": "同じブラウザでなくても大丈夫。両方でShareTextsを開くだけ。",
   "home.browser.open": "もう一方のデバイスで開く",
   "home.browser.qr": "サイトのQRを表示",

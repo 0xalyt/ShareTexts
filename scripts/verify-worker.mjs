@@ -96,7 +96,9 @@ async function connect(room, roomId, forceCid) {
   const server = lastPair.server;
   const inbox = [];
   const binary = [];
+  const frames = [];
   client.onmessage = (ev) => {
+    frames.push(ev.data);
     if (typeof ev.data === 'string') inbox.push(JSON.parse(ev.data));
     else binary.push(ev.data);
   };
@@ -119,7 +121,7 @@ async function connect(room, roomId, forceCid) {
     try { client.close(1000, 'test'); } catch { /* noop */ }
     try { room.webSocketClose(server); } catch { /* noop */ }
   };
-  return { client, server, inbox, binary, send, waitFor, cid, close };
+  return { client, server, inbox, binary, frames, send, waitFor, cid, close };
 }
 
 const codeFor = (secret, createdAt = 0) => new OTPAuth.TOTP({ issuer: 'ShareText', label: 'Session', algorithm: 'SHA1', digits: 6, period: 40, secret }).generate({ timestamp: Date.now() - createdAt });
@@ -139,6 +141,7 @@ async function runRoomProtocol() {
   const SECOND_PID = 'pid-second-device-00000000';
   const creator = await connect(room, roomId);
   const created = await creator.send('create_room', { pid: 'pid-creator-device-00000000' });
+  check('Worker advertises binary targeting on every room connection', creator.server.sent.some(frame => typeof frame === 'string' && JSON.parse(frame).event === 'relay_capabilities'));
   check('create_room ack', created.success === true && created.roomId === roomId, `room ${String(created.roomId).slice(0, 8)}`);
   check('creator roster + stable pid in ack', created.myParticipantId === 'pid-creator-device-00000000' && created.roster?.participants?.length === 1);
   const secret = created.secret;
@@ -299,6 +302,15 @@ async function runRoomProtocol() {
   await room.webSocketMessage(creator.server, chunk.buffer);
   const rb = await binPromise;
   check('relay_message (binary) forwarded intact', rb instanceof ArrayBuffer && new Uint8Array(rb)[21] === 98);
+  const binaryIndex = joiner.frames.indexOf(rb);
+  const label = JSON.parse(joiner.frames[binaryIndex - 1]);
+  check('binary sender label immediately precedes unchanged legacy frame', label.event === 'relay_binary' && label.payload.from === 'pid-creator-device-00000000');
+  const beforeLarge = joiner.binary.length;
+  await room.webSocketMessage(creator.server, new ArrayBuffer(131120));
+  await room.webSocketMessage(creator.server, new ArrayBuffer(132 * 1024));
+  await room.webSocketMessage(creator.server, new ArrayBuffer(132 * 1024 + 1));
+  await sleep(25);
+  check('legacy full encrypted chunk and cap boundary pass; oversized binary is dropped', joiner.binary.length === beforeLarge + 2 && joiner.binary.at(-2).byteLength === 131120 && joiner.binary.at(-1).byteLength === 132 * 1024);
 
   // abuse control: text frames over the per-connection rate limit are dropped
   const before = joiner.inbox.length;
@@ -313,6 +325,43 @@ async function runRoomProtocol() {
   const thirdRes = await third.send('join_with_code', { code, pid: 'pid-third-device-00000000' });
   check('third device joins the same room (no product cap)', thirdRes.success === true && thirdRes.myParticipantId === 'pid-third-device-00000000', thirdRes.error);
   check('roster holds all three participants', (ctx.storage.map.get('room')?.participants?.length ?? 0) === 3);
+  await third.send('signal', { to: 'pid-creator-device-00000000', signal: { type: 'answer', sdp: 'v=0 test' } });
+  const binaryBefore = [joiner.binary.length, third.binary.length];
+  await room.webSocketMessage(creator.server, chunk.buffer);
+  await sleep(25);
+  check('unaddressed binary reaches both peers despite unrelated targeted signal', joiner.binary.length === binaryBefore[0] + 1 && third.binary.length === binaryBefore[1] + 1);
+  check('legacy raw-binary consumer receives original bytes with new Worker', new Uint8Array(third.binary.at(-1))[21] === 98);
+  room.frameBuckets.clear();
+  const beforeTarget = [joiner.binary.length, third.binary.length];
+  const targeting = creator.send('relay_binary_target', { to: SECOND_PID });
+  check('binary target is attached synchronously and survives hibernation', creator.server.deserializeAttachment()?.relayTo === SECOND_PID);
+  await third.send('signal', { to: 'pid-creator-device-00000000', signal: { type: 'answer', sdp: 'v=0 interleaved' } });
+  await Promise.all([targeting, new Room(ctx, makeEnv()).webSocketMessage(creator.server, chunk.buffer)]);
+  check('binary target survives unrelated sender signaling; unselected peer receives no bytes', joiner.binary.length === beforeTarget[0] + 1 && third.binary.length === beforeTarget[1]);
+  await creator.send('relay_binary_target', { to: 'not-a-member' });
+  await room.webSocketMessage(creator.server, chunk.buffer);
+  check('unknown binary recipient fails closed', joiner.binary.length === beforeTarget[0] + 1 && third.binary.length === beforeTarget[1]);
+  const beforeText = [joiner.inbox.length, third.inbox.length];
+  await creator.send('relay_message', { to: SECOND_PID, data: 'enc:AAAA' });
+  check('targeted text reaches selected peer only', joiner.inbox.slice(beforeText[0]).some(m => m.event === 'relay_message') && !third.inbox.slice(beforeText[1]).some(m => m.event === 'relay_message'));
+  await creator.send('relay_message', { to: 'not-a-member', data: 'enc:AAAA' });
+  check('unknown text recipient fails closed', !third.inbox.slice(beforeText[1]).some(m => m.event === 'relay_message'));
+  await room.webSocketMessage(creator.server, chunk.buffer);
+  check('binary hint is one-shot; legacy broadcast still reaches all peers', joiner.binary.length === beforeTarget[0] + 2 && third.binary.length === beforeTarget[1] + 1);
+  room.frameBuckets.clear();
+  const beforeBurst = joiner.binary.length;
+  const burstStart = Date.now();
+  const burstFrames = [new ArrayBuffer(61476), new ArrayBuffer(61476), new ArrayBuffer(8256)];
+  for (let i = 0; i < 720; i++) {
+    await creator.send('relay_binary_target', { to: SECOND_PID });
+    await room.webSocketMessage(creator.server, burstFrames[i % 3]);
+  }
+  check('30 MiB relay burst: 720 hinted fragments pass within one quota window', Date.now() - burstStart < 10000 && joiner.binary.length === beforeBurst + 720, `${joiner.binary.length - beforeBurst}/720`);
+  check('paired target hints do not double-charge binary quota', room.frameBuckets.get(creator.cid)?.binCount === 720);
+  for (let i = 0; i < 80; i++) await creator.send('relay_binary_target', { to: SECOND_PID });
+  check('unpaired target hint flood is still metered', room.frameBuckets.get(creator.cid)?.binCount === 799);
+  creator.server.serializeAttachment(null);
+  room.frameBuckets.clear();
   // A FORGED roster claim — reusing another device's pid — is just a seat
   // reclaim (the room secret gates every action): the roster must not grow.
   const fourth = await connect(room, roomId);
@@ -1011,6 +1060,66 @@ async function runSpace() {
   void SPACE_TTL_CAP;
 }
 
+async function runSpaceHibernation() {
+  const ctx = new FakeCtx();
+  const registry = new Registry(new FakeCtx(), {});
+  const env = { REGISTRY: { idFromName: name => name, get: () => ({ fetch: request => registry.fetch(request) }) } };
+  let space = new Space(ctx, env);
+  const sid = uuid();
+  const request = (path, method, credential, body) => space.fetch(new Request(`https://internal/space/${sid}${path}`, {
+    method,
+    headers: { 'content-type': 'application/json', 'x-device-key': 'creator', ...(credential ? { authorization: `Bearer ${credential}` } : {}) },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  }));
+  const { token, manageKey } = await (await request('/create', 'POST', null, { durationMs: 6 * 3600_000 })).json();
+  const open = async (name, authorized = true) => {
+    await space.fetch(new Request(`https://internal/space-ws?space=${sid}`, { headers: { Upgrade: 'websocket' } }));
+    const { client, server } = lastPair;
+    const frames = [];
+    client.onmessage = event => frames.push(JSON.parse(event.data));
+    if (authorized) await space.webSocketMessage(server, JSON.stringify({ v: 1, event: 'join_space', payload: { token, name, deviceKey: name } }));
+    return { client, server, frames };
+  };
+  const a = await open('creator');
+  const b = await open('joiner');
+  const unauthorized = await open('unauthorized', false);
+  const legacy = await open('legacy', false);
+  legacy.server.serializeAttachment(null);
+  const both = (event, predicate = () => true) => [a, b].every(peer => peer.frames.some(frame => frame.event === event && predicate(frame.payload)));
+  check('Space sockets authorize and receive initial sync', both('space_sync'));
+  const immediate = await (await request('/items/text', 'POST', token, { text: 'before hibernation' })).json();
+  check('Space broadcasts before hibernation', both('item_added', payload => payload.item.id === immediate.item.id));
+
+  space = new Space(ctx, env);
+  const added = await request('/items/text', 'POST', token, { text: 'after hibernation' });
+  const { item } = await added.json();
+  check('Space REST wake persists the item', added.status === 200);
+  check('Space REST wake broadcasts item_added to both original sockets', both('item_added', payload => payload.item.id === item.id));
+  check('Space wake never authorizes an unjoined socket', unauthorized.frames.length === 0);
+  check('Space legacy socket is asked to reauthorize without receiving content', legacy.frames.length === 1 && legacy.frames[0].event === 'space_auth_failed');
+  check('Space socket attachments contain no raw credential', [a, b].every(peer => !JSON.stringify(peer.server.deserializeAttachment()).includes(token)));
+
+  space = new Space(ctx, env);
+  await space.webSocketMessage(b.server, JSON.stringify({ v: 1, event: 'heartbeat' }));
+  check('Space WebSocket wake retains authorization without join_space', b.frames.some(frame => frame.event === 'heartbeat_ack'));
+  await space.webSocketMessage(legacy.server, JSON.stringify({ v: 1, event: 'join_space', payload: { token, deviceKey: 'legacy' } }));
+  check('Space legacy socket can reauthorize on the same transport', legacy.frames.some(frame => frame.event === 'space_sync'));
+  space = new Space(ctx, env);
+  const deleted = await request('/items/' + item.id, 'DELETE', manageKey);
+  check('Space REST wake broadcasts item_deleted', deleted.status === 200 && both('item_deleted', payload => payload.itemId === item.id));
+
+  await space.webSocketMessage(b.server, JSON.stringify({ v: 1, event: 'join_space', payload: { token: 'wrong' } }));
+  check('Space invalid reauthorization closes the socket', b.client.closedCode === 4001);
+  space = new Space(ctx, env);
+  const last = await (await request('/items/text', 'POST', token, { text: 'only authorized sockets' })).json();
+  check('Space wake excludes rejected and unjoined sockets', a.frames.some(frame => frame.event === 'item_added' && frame.payload.item.id === last.item.id)
+    && !b.frames.some(frame => frame.event === 'item_added' && frame.payload.item.id === last.item.id) && unauthorized.frames.length === 0);
+
+  space = new Space(ctx, env);
+  await request('/close', 'POST', manageKey, {});
+  check('Space close after wake broadcasts and closes surviving sockets', a.frames.some(frame => frame.event === 'space_closed') && a.client.closedCode === 1000 && unauthorized.client.closedCode === 1000);
+}
+
 async function runCorsPreflight() {
   const clients = [
     ['space', '/space/example/join', 'POST', ['content-type', 'authorization', 'x-device-key', 'x-device-name']],
@@ -1077,6 +1186,7 @@ await runRateLease();
 await runRateLeaseIsolates();
 await runMetrics();
 await runSpace();
+await runSpaceHibernation();
 
 rmSync(tmp, { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);

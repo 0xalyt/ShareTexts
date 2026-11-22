@@ -1,6 +1,6 @@
 /* ShareText Guide Pages — Design System
  * Matches the main app's Apple-inspired visual language:
- * - SF Pro typography
+ * - Allo variable typography
  * - Ember brand (#f06413)
  * - Clean surfaces with subtle depth
  * - Layered dark mode (not inverted)
@@ -106,14 +106,31 @@ html.dark {
   }
 }
 
+@font-face {
+  font-family: Allo;
+  src: url('/fonts/AlloVariable.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-family: Allo, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: 'ROND' 0;
+  font-feature-settings: 'calt' 0;
   color: var(--text);
   background: var(--bg);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+h1, h2, h3 {
+  font-variation-settings: 'ROND' 0, 'opsz' 32;
+  text-wrap: balance;
+}
+p, li { text-wrap: pretty; }
 
 /* ── Header ──────────────────────────────────────────────────────────── */
 .header {
@@ -179,7 +196,7 @@ article { padding: 56px 0 96px; }
 h1 {
   font-size: 34px;
   font-weight: 650;
-  letter-spacing: -.035em;
+  letter-spacing: -.015em;
   line-height: 1.08;
   color: var(--text);
   margin-bottom: 10px;
@@ -202,7 +219,7 @@ h1 {
 h2 {
   font-size: 22px;
   font-weight: 600;
-  letter-spacing: -.025em;
+  letter-spacing: -.012em;
   color: var(--text);
   margin: 44px 0 14px;
 }

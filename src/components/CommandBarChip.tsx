@@ -7,7 +7,7 @@
  * lines; the palette is 6 KB gzip and only exists after a keypress or a click.
  * Splitting them lets the palette load on demand without changing either one.
  */
-import { Search } from 'lucide-react';
+import { AlloSymbol } from './AlloSymbol';
 import { IconButton3D } from './IconButton3D';
 import { useI18n } from '../lib/i18n';
 
@@ -16,7 +16,7 @@ export function CommandBarChip({ onClick }: { onClick: () => void }) {
   // The chip uses the same quiet 40px icon slot as the other header actions.
   return (
     <IconButton3D label={t('command.openAria')} onClick={onClick} className="hidden lg:flex">
-      <Search className="w-[18px] h-[18px]" strokeWidth={1.5} />
+      <AlloSymbol name="search" size={18} />
     </IconButton3D>
   );
 }

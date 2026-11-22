@@ -3,6 +3,7 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ar: Dict = {
+  'reading.englishOnly': "هذه الصفحة متاحة حاليًا باللغة الإنجليزية فقط.",
   'film.download': "تنزيل الفيلم",
   'film.from': "من شاشة",
   'film.to': "إلى أخرى.",
@@ -384,6 +385,7 @@ const ar: Dict = {
   'action.copy': 'نسخ',
   'action.share': 'مشاركة',
   'action.save': 'حفظ',
+  'action.download': 'تنزيل',
   'action.copied': 'تم النسخ',
   'action.shared': 'تمت المشاركة',
   'action.saved': 'تم الحفظ',
@@ -580,7 +582,7 @@ const ar: Dict = {
   'space.reopen': 'فتح',
   'space.createTitle': 'مساحة جديدة',
   'space.createHeading': 'إنشاء مساحة مؤقتة',
-  'space.createSub': 'رف مشترك لهذا الجهاز والأجهزة التي تدعوها. يُغلق من تلقاء نفسه.',
+  'space.createSub': 'مساحة مشتركة لهذا الجهاز والأجهزة التي تدعوها. تُغلق تلقائيًا.',
   'space.nameLabel': 'الاسم (اختياري)',
   'space.namePlaceholder': 'صور الرحلة، ملفات المشروع…',
   'space.durationLabel': 'كم يجب أن يبقى مفتوحًا؟',
@@ -607,7 +609,8 @@ const ar: Dict = {
   'space.empty': 'لا شيء هنا بعد',
   'space.emptyAction': 'اكتب ملاحظة',
   'space.emptyHint': 'أضف نصًا أو روابط أو صورًا أو أي ملف أدناه.',
-  'space.composerPlaceholder': 'أضف شيئًا — نصًا أو رابطًا…',
+  'space.defaultName': 'مساحة مشتركة',
+  'space.composerPlaceholder': 'أضف ملاحظة…',
   'space.addFile': 'ملف',
   'space.textOnly': 'نصوص وروابط في الوقت الحالي.',
   'space.addText': 'إضافة',
@@ -844,7 +847,7 @@ const ar: Dict = {
   "saved.showMore": "عرض المزيد",
   "saved.savedOn": "حُفظ في {date}",
   // Landing: open a second browser and explore an expiring example.
-  "home.browser.heading": "متصفحات مختلفة. والمشاركة نفسها.",
+  "home.browser.heading": "يعمل في جميع المتصفحات الحديثة",
   "home.browser.body": "لا يلزم استخدام المتصفح نفسه. افتح ShareTexts على الجهازين فحسب.",
   "home.browser.open": "افتحه على جهازك الآخر",
   "home.browser.qr": "إظهار رمز الموقع",

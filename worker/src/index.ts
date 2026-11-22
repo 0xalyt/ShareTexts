@@ -283,18 +283,19 @@ export default {
       // drive the DO or the Node dev backend directly, never this router.
       const m = path.match(/^\/space\/([0-9a-f-]{36})(\/.*)?$/i);
       if (!m) return json({ error: 'Not found' }, 404, cors);
-      // /close and /heartbeat authenticate via the bearer header and never
-      // read the request body. Drain it here (clients send a tiny '{}') and
+      // /join, /close and /heartbeat authenticate via the bearer header and never
+      // read the request body. Cancel it here (clients send a tiny '{}') and
       // rebuild the internal request — an end-to-end-unread body makes the
       // wrangler dev loopback proxy error after the response is sent (real
       // Cloudflare discards unread bodies; only the local proxy trips on it).
       let internal: Request;
-      if (request.method === 'POST' && /\/(close|heartbeat)$/.test(path)) {
-        const drained = await request.text().catch(() => '');
+      if (request.method === 'POST' && /\/(join|close|heartbeat)$/.test(path)) {
+        await request.body?.cancel();
+        const headers = new Headers(request.headers);
+        headers.delete('content-length');
         internal = new Request('https://internal' + path + url.search, {
           method: request.method,
-          headers: request.headers,
-          body: drained || undefined,
+          headers,
         });
       } else {
         // Rewrite the internal URL so the DO sees the per-space path tail.
