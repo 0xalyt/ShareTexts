@@ -229,7 +229,7 @@ export function Announcement({
       onPointerLeave={() => setNear(false)}
       onFocus={() => setNear(true)}
       onBlur={() => setNear(false)}
-      className={`st-announce group relative inline-flex h-9 max-w-full items-center rounded-full border border-black/[0.08] bg-white pl-1 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-20px_rgba(0,0,0,0.35)] transition-[border-color,box-shadow,transform] duration-200 active:scale-[0.96] dark:border-white/[0.13] dark:bg-white/[0.07] dark:shadow-[0_9px_26px_-18px_rgba(0,0,0,0.9)] ${className ?? ''}`}
+      className={`st-announce group relative inline-flex h-9 max-w-full items-center rounded-full border border-black/[0.08] bg-white pl-1 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_10px_28px_-20px_rgba(0,0,0,0.35)] transition-[border-color,box-shadow,transform] duration-200 active:scale-[0.97] dark:border-white/[0.13] dark:bg-white/[0.07] dark:shadow-[0_9px_26px_-18px_rgba(0,0,0,0.9)] ${className ?? ''}`}
     >
       <style>{RING_CSS}</style>
       <span
@@ -254,7 +254,7 @@ export function Announcement({
             than "Read", so the whole announcement, and the headline centred
             under it, shifted horizontally as you reached for it. A hover
             must never move the thing it is hovering. */}
-        <span className="grid h-7 shrink-0 place-items-center overflow-hidden rounded-full bg-apple-ink px-2.5 text-[12px] font-semibold text-white dark:bg-white/[0.16]">
+        <span className="grid h-7 shrink-0 place-items-center overflow-hidden rounded-full bg-apple-ink px-2.5 text-[12px] font-medium text-white dark:bg-white/[0.16]">
           {([['tag', tag], ['action', action]] as const).map(([key, label]) => {
             const active = (key === 'action') === near;
             return (
@@ -301,7 +301,7 @@ export function Announcement({
         {/* Two marks in one cell: the resting chevron, and the arrow that
             replaces it once the pill is being read. Both occupy the same box,
             so nothing shifts when they swap. */}
-        <span className="relative ml-0.5 grid h-3 w-3 shrink-0 place-items-center text-apple-ink-muted dark:text-white/45">
+        <span className="relative ml-0.5 grid h-3 w-3 shrink-0 place-items-center text-apple-ink-muted dark:text-white/65">
           <svg
             aria-hidden
             viewBox="0 0 24 24"
@@ -316,7 +316,7 @@ export function Announcement({
           </svg>
           <span
             aria-hidden
-            className={`[grid-area:1/1] text-[12px] font-semibold leading-none transition-opacity duration-150 ${near ? 'opacity-100' : 'opacity-0'}`}
+            className={`[grid-area:1/1] text-[12px] font-medium leading-none transition-opacity duration-150 ${near ? 'opacity-100' : 'opacity-0'}`}
           >
             →
           </span>

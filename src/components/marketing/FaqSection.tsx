@@ -71,7 +71,7 @@ export function FaqSection({
             {heading}
           </h2>
           {sub ? (
-            <p className="mt-2.5 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/55">
+            <p className="mt-2.5 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/65">
               {sub}
             </p>
           ) : null}
@@ -80,7 +80,7 @@ export function FaqSection({
         <div className="mb-5 flex items-baseline gap-3">
           <h2
             id="faq-title"
-            className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
+            className="text-[13px] font-medium tracking-normal text-apple-ink-muted dark:text-white/65"
           >
             Questions
           </h2>
@@ -96,7 +96,7 @@ export function FaqSection({
           const question = (
             <span
               className={cn(
-                'flex-1 text-[16px] font-semibold transition-colors',
+                'flex-1 text-[16px] font-medium transition-colors',
                 isOpen || pinned
                   ? 'text-apple-ink dark:text-white'
                   : 'text-apple-ink/80 group-hover:text-apple-ink dark:text-white/75 dark:group-hover:text-white',
@@ -129,7 +129,7 @@ export function FaqSection({
                   >
                     <ChevronRight
                       className={cn(
-                        'h-4 w-4 shrink-0 text-apple-ink-muted transition-transform duration-200 motion-reduce:transition-none dark:text-white/40',
+                        'h-4 w-4 shrink-0 text-apple-ink-muted transition-transform duration-200 motion-reduce:transition-none dark:text-white/65',
                         isOpen && 'rotate-90 text-ember dark:text-azure-400',
                       )}
                       aria-hidden
@@ -141,7 +141,7 @@ export function FaqSection({
               {pinned ? (
                 // Same measured line-height and indent as an expanded panel,
                 // so the first answer and the rest of the list share a rail.
-                <p id={id} className="pb-5 pl-7 pr-2 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/55">
+                <p id={id} className="pb-5 pl-7 pr-2 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/65">
                   {item.a}
                 </p>
               ) : (
@@ -156,7 +156,7 @@ export function FaqSection({
                       transition={{ duration: reduce ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
-                      <p className="pb-5 pl-7 pr-2 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/55">
+                      <p className="pb-5 pl-7 pr-2 text-[16px] leading-relaxed text-apple-ink-muted dark:text-white/65">
                         {item.a}
                       </p>
                     </motion.div>

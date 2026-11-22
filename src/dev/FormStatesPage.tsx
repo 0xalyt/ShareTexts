@@ -38,7 +38,7 @@ function Card({ label, children }: { label: string; children: ReactNode }) {
       data-testid="demo-card"
       data-label={label}
     >
-      <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-apple-ink-muted dark:text-white/50">
+      <p className="mb-1 text-[11px] font-semibold tracking-normal text-apple-ink-muted dark:text-white/65">
         {label}
       </p>
       {children}
@@ -106,7 +106,7 @@ export function FormStatesPage() {
           <Panel label="Request in flight" joining />
         </div>
 
-        <p className="mt-8 text-[12px] text-apple-ink-muted dark:text-white/50">
+        <p className="mt-8 text-[12px] text-apple-ink-muted dark:text-white/65">
           Dev only (/__kit/form). Not shipped in a production build.
         </p>
       </div>

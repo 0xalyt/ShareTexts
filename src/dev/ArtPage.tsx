@@ -36,7 +36,7 @@ export function ArtPage() {
               <div className="flex items-center justify-center rounded-[12px] border border-apple-divider bg-white p-3 text-apple-ink dark:border-white/10 dark:bg-night-800 dark:text-white">
                 <Scene />
               </div>
-              <figcaption className="text-[12px] leading-snug text-apple-ink-muted dark:text-white/55">
+              <figcaption className="text-[12px] leading-snug text-apple-ink-muted dark:text-white/65">
                 <span className="font-semibold text-apple-ink dark:text-white">{label}</span>
                 <br />
                 {where}
@@ -62,7 +62,7 @@ export function ArtPage() {
       </div>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-apple-ink-muted dark:text-white/40">
+        <h2 className="text-[13px] font-semibold tracking-normal text-apple-ink-muted dark:text-white/65">
           Half size
         </h2>
         <div className="flex flex-wrap items-center gap-4 text-apple-ink dark:text-white">

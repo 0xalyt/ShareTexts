@@ -165,20 +165,19 @@ function wrap(value: string, start: number, end: number, marker: string): Edit {
   // Already formatted? Take it off — the same button toggles, which is what
   // people expect from a B button.
   const outer = value.slice(Math.max(0, start - m), start) === marker && value.slice(end, end + m) === marker;
-  if (sel && outer) {
+  if (outer) {
     return {
       value: value.slice(0, start - m) + sel + value.slice(end + m),
       selStart: start - m,
       selEnd: end - m,
     };
   }
-  const current = value.slice(start, end);
-  const retyped = current.match(new RegExp(`^\\${marker}([\\s\\S]+)\\${marker}$`));
-  if (sel && retyped) {
+  if (sel.length > m * 2 && sel.startsWith(marker) && sel.endsWith(marker)) {
+    const unwrapped = sel.slice(m, -m);
     return {
-      value: before + retyped[1] + after,
+      value: before + unwrapped + after,
       selStart: start,
-      selEnd: start + retyped[1].length,
+      selEnd: start + unwrapped.length,
     };
   }
 

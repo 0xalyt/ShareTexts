@@ -33,6 +33,9 @@ jobs:
       - name: Typecheck client
         run: npm run lint
 
+      - name: Rich-text selection and toggle regression
+        run: npm run verify:richtext
+
       - name: Typecheck worker
         run: npm run worker:typecheck
 
@@ -99,6 +102,11 @@ jobs:
       - name: Nearby invite acceptance and two-way room
         if: matrix.browsers != 'webkit'
         run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-nearby-accept.mjs
+
+      - name: Responsive Settings preferences
+        run: |
+          node scripts/start-ci-worker.mjs --restart
+          BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-settings-preferences.mjs
 
       - name: Hop (My devices) link once, send any time
         # Two devices on one loopback IP; start from a fresh Worker's quotas.

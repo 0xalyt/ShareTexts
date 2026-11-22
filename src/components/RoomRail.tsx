@@ -26,7 +26,7 @@ export function RoomRail({ className = '' }: { className?: string }) {
     <section data-testid="room-rail" className={cn('flex flex-col gap-1.5', className)} aria-label={t('rail.title')}>
       {/* Sentence case, quiet: a tracked-out all-caps label is a designed
           shout, and this row is a caption for a list that already exists. */}
-      <p className="px-0.5 st-meta text-apple-ink-muted/90 dark:text-white/50">
+      <p className="px-0.5 st-meta text-apple-ink-muted dark:text-white/65">
         {t('rail.rooms')}
       </p>
       <ul className="flex flex-col gap-1">

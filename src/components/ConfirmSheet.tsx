@@ -37,7 +37,7 @@ function ConfirmActions({
       <button
         type="button"
         onClick={gate(onCancel)}
-        className="w-full min-h-[46px] rounded-[12px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[16px] font-semibold text-apple-ink dark:text-white transition-colors active:scale-[0.96] disabled:opacity-60"
+        className="w-full min-h-[46px] rounded-[12px] bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.11] text-[15px] font-medium text-apple-ink dark:text-white transition-colors active:scale-[0.97] disabled:opacity-60"
         disabled={!isPresent}
       >
         {cancelLabel}
@@ -50,8 +50,8 @@ function ConfirmActions({
         disabled={!isPresent}
         className={
           destructive
-            ? 'w-full min-h-[46px] rounded-[12px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.96] disabled:opacity-60'
-            : 'w-full min-h-[46px] rounded-[12px] bg-ember hover:bg-brand-strong text-[16px] font-semibold text-white transition-colors active:scale-[0.96] disabled:opacity-60'
+            ? 'w-full min-h-[46px] rounded-[12px] bg-status-danger hover:bg-status-danger-strong text-[16px] font-medium text-white transition-colors active:scale-[0.97] disabled:opacity-60'
+            : 'w-full min-h-[46px] rounded-[12px] bg-ember-ink hover:bg-ember-ink-hover text-[15px] font-medium text-white transition-colors active:scale-[0.97] disabled:opacity-60'
         }
       >
         {confirmLabel}
@@ -106,15 +106,15 @@ export function ConfirmSheet({
       onClose={onCancel}
       label={title}
       maxWidth={380}
-      z={90}
+      z={100}
       closeButton={false}
       scroll="none"
       testId="confirm-sheet"
     >
       <div className="px-6 pt-2 sm:pt-5 pb-1 text-center">
-        <h3 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">{title}</h3>
+        <h3 className="text-[17px] font-medium text-apple-ink dark:text-white tracking-[-0.01em]">{title}</h3>
         {body && (
-          <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{body}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/65">{body}</p>
         )}
       </div>
       <ConfirmActions

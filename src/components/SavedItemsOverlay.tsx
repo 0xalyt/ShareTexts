@@ -19,7 +19,7 @@ import { AnimatePresence } from 'motion/react';
 import { MotionSurface } from './ui/MotionSurface';
 import {
   X, Search, Trash2, Copy, Check, Download, ExternalLink,
-  Bookmark, FileText, Link as Link2, ChevronDown, ChevronUp,
+  FileText, Link as Link2, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import './ui/task-surfaces.css';
 import { useI18n } from '../lib/i18n';
@@ -135,7 +135,7 @@ function SavedImageViewer({ item, onClose, focusRef }: {
           type="button"
           onClick={onClose}
           aria-label={t('common.close')}
-          className="shrink-0 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+          className="shrink-0 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
         >
           <X className="w-4 h-4" />
         </button>
@@ -207,10 +207,10 @@ function RowAction({
   testId?: string;
 }) {
   const cls = cn(
-    'st-tap inline-flex shrink-0 items-center justify-center gap-1.5 min-h-[44px] rounded-full text-[12px] font-semibold transition-colors',
+    'st-tap inline-flex shrink-0 items-center justify-center gap-1.5 min-h-[44px] rounded-full text-[12px] font-medium transition-colors',
     compact ? 'w-11' : 'px-3',
     danger
-      ? 'text-apple-ink-muted dark:text-white/55 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10'
+      ? 'text-apple-ink-muted dark:text-white/65 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10'
       : 'bg-black/[0.045] text-apple-ink hover:bg-black/[0.08] dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.12]'
   );
   if (href) {
@@ -305,14 +305,14 @@ function SavedRow({
                 href={safeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-[13px] font-semibold text-apple-blue dark:text-azure-400 hover:underline truncate"
+                className="block text-[16px] font-medium text-apple-blue dark:text-azure-400 hover:underline truncate"
               >
                 {host || safeUrl}
               </a>
             ) : (
-              <span className="block text-[13px] font-semibold text-apple-ink dark:text-white truncate">{host || ''}</span>
+              <span className="block text-[16px] font-medium text-apple-ink dark:text-white truncate">{host || ''}</span>
             )}
-            <span className="block text-[12px] text-apple-ink-muted dark:text-white/45 break-all line-clamp-2">{item.url}</span>
+            <span className="block text-[12px] text-apple-ink-muted dark:text-white/65 break-all line-clamp-2">{item.url}</span>
           </div>
         ) : item.kind === 'text' ? (
           <div className="min-w-0">
@@ -322,7 +322,7 @@ function SavedRow({
                 button below rides down with it. */}
             <Expandable>
               <p className={cn(
-                'text-[13px] leading-snug text-apple-ink dark:text-white whitespace-pre-wrap break-words',
+                'text-[16px] leading-snug text-apple-ink dark:text-white whitespace-pre-wrap break-words',
                 !expanded && 'line-clamp-3'
               )}>
                 {item.text}
@@ -333,7 +333,7 @@ function SavedRow({
                 type="button"
                 aria-expanded={expanded}
                 onClick={() => setExpanded((v) => !v)}
-                className="mt-1 flex min-h-[44px] min-w-[44px] items-center gap-1 text-[13px] font-semibold text-apple-blue active:opacity-70"
+                className="mt-1 flex min-h-[44px] min-w-[44px] items-center gap-1 text-[14px] font-medium text-apple-blue active:opacity-70"
               >
                 {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 {expanded ? t('msg.collapse') : t('msg.showFull')}
@@ -341,12 +341,12 @@ function SavedRow({
             )}
           </div>
         ) : (
-          <span className="block text-[13px] font-semibold text-apple-ink dark:text-white break-words line-clamp-2">
+          <span className="block text-[16px] font-medium text-apple-ink dark:text-white break-words line-clamp-2">
             {item.kind === 'image' && (item.text || item.filename) ? (item.text || item.filename) : item.filename || kindLabel}
           </span>
         )}
 
-        <span className="text-[11px] text-apple-ink-muted dark:text-white/40 tnum">{meta}</span>
+        <span className="text-[13px] text-apple-ink-muted dark:text-white/65 tnum">{meta}</span>
       </div>
 
         {/* Actions — only what can actually work for this kind. */}
@@ -515,15 +515,13 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
       );
     }
     if (items.length === 0) {
-      // Explain the real save action; closing this sheet doesn't start a room.
       return (
-        <StatePanel
-          kind="empty"
-          testId="saved-empty"
-          title={t('saved.emptyTitle')}
-          body={t('saved.emptyBody')}
-          secondary={{ label: t('saved.emptyCta'), onClick: onClose, testId: 'saved-empty-cta' }}
-        />
+        <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 px-6 py-8 text-center" data-testid="saved-empty">
+          <p className="text-[17px] font-medium text-apple-ink dark:text-white">{t('saved.emptyTitle')}</p>
+          <button type="button" onClick={onClose} data-testid="saved-empty-cta" className="min-h-[44px] rounded-full bg-black/[0.05] px-5 text-[15px] font-medium text-apple-ink transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]">
+            {t('saved.emptyCta')}
+          </button>
+        </div>
       );
     }
     return (
@@ -531,7 +529,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
         {showSearch && (
           <div className="px-4 pb-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-apple-ink-muted dark:text-white/40" aria-hidden />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-apple-ink-muted dark:text-white/65" aria-hidden />
               <input
                 type="search"
                 value={query}
@@ -545,7 +543,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
           </div>
         )}
         {actionError && (
-          <p role="alert" className="mx-4 mb-2 rounded-[12px] bg-status-danger/10 text-status-danger text-[13px] font-medium px-3 py-2" data-testid="saved-action-error">
+          <p role="alert" className="mx-4 mb-2 rounded-[12px] bg-status-danger/10 text-status-danger text-[13px] font-normal px-3 py-2" data-testid="saved-action-error">
             {actionError}
           </p>
         )}
@@ -560,7 +558,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
             <button
               type="button"
               onClick={() => setLimit((n) => n + 60)}
-              className="px-4 min-h-[44px] min-w-[44px] rounded-full bg-black/[0.045] dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white"
+              className="px-4 min-h-[44px] min-w-[44px] rounded-full bg-black/[0.045] dark:bg-white/[0.07] text-[13px] font-medium text-apple-ink dark:text-white"
               data-testid="saved-show-more"
             >
               {t('saved.showMore')}
@@ -568,7 +566,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
           </div>
         )}
         {filtered.length === 0 && (
-          <p className="py-6 text-center text-[13px] text-apple-ink-muted dark:text-white/45">
+          <p className="py-6 text-center text-[13px] text-apple-ink-muted dark:text-white/65">
             {t('saved.search')}: “{query.trim()}”
           </p>
         )}
@@ -583,7 +581,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
         onClose={onClose}
         labelledBy="saved-title"
         maxWidth={460}
-        z={90}
+        z={92}
         closeButton={false}
         scroll="none"
         testId="saved-overlay"
@@ -592,14 +590,13 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
         <div className="px-6 pt-1 sm:pt-5 pb-1 flex items-start justify-between gap-3 shrink-0">
           <div className="min-w-0">
             <div className="st-task-sheet-heading">
-              <span className="st-task-sheet-mark" aria-hidden><Bookmark className="h-5 w-5" /></span>
               <h3 id="saved-title" className="st-task-sheet-title text-apple-ink dark:text-white">
                 {t('saved.title')}
               </h3>
             </div>
-            <p className="st-task-local-note">{t('saved.localNote')}</p>
+            {items.length > 0 && <p className="st-task-local-note">{t('saved.localNote')}</p>}
             {snapshot.status === 'ready' && items.length > 0 && (
-              <p className="text-[12px] text-apple-ink-muted dark:text-white/45 tnum">{countLabel}</p>
+              <p className="text-[12px] text-apple-ink-muted dark:text-white/65 tnum">{countLabel}</p>
             )}
           </div>
           <button
@@ -607,7 +604,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
             onClick={onClose}
             aria-label={t('common.close')}
             data-testid="saved-close"
-            className="shrink-0 -mt-1 -mr-1 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-apple-ink-muted/70 dark:text-white/40 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+            className="shrink-0 -mt-1 -mr-1 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.07] active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -629,7 +626,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
               type="button"
               onClick={() => setConfirmClear(true)}
               disabled={clearing}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[44px] min-w-[44px] rounded-full text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[44px] min-w-[44px] rounded-full text-[13px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
               data-testid="saved-clear"
             >
               <Trash2 className="w-3.5 h-3.5" aria-hidden />

@@ -139,7 +139,7 @@ export function LanguageMenu({
                   ? 'min-h-[52px] px-1 border-b border-apple-divider/70 last:border-0 dark:border-white/[0.08] rounded-none'
                   : 'min-h-[44px] py-2',
                 active
-                  ? 'bg-ember/[0.08] dark:bg-ember/[0.13] text-apple-ink dark:text-white font-semibold'
+                  ? 'bg-ember/[0.08] dark:bg-ember/[0.13] text-apple-ink dark:text-white font-medium'
                   : hovered
                     ? 'bg-apple-divider/40 dark:bg-white/[0.06] text-apple-ink dark:text-white'
                     : 'text-apple-ink dark:text-white/85',
@@ -149,7 +149,7 @@ export function LanguageMenu({
               {l.status !== 'reviewed' && (
                 <span
                   data-testid={`language-${l.code}-badge`}
-                  className="ms-auto shrink-0 rounded-full bg-apple-divider/70 px-1.5 py-[2px] text-[9px] font-semibold uppercase tracking-wide text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
+                  className="ms-auto shrink-0 rounded-full bg-apple-divider/70 px-1.5 py-[2px] text-[9px] font-medium tracking-normal text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
                 >
                   Beta
                 </span>
@@ -244,7 +244,7 @@ export function LanguageMenu({
             <div className="mb-2 flex items-center justify-between gap-3 pr-9">
               <h2
                 id="language-sheet-title"
-                className="text-[20px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white"
+                className="text-[20px] font-medium tracking-[-0.01em] text-apple-ink dark:text-white"
               >
                 {t('settings.language')}
               </h2>

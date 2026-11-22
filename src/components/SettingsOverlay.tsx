@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, ChevronRight, Settings2, X } from 'lucide-react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Check, ChevronRight, X } from 'lucide-react';
 import './ui/task-surfaces.css';
 import { Sheet } from './ui/Sheet';
 import { Segmented } from './ui/Segmented';
@@ -36,6 +36,11 @@ const APP_VERSION = (() => {
   const value = meta?.getAttribute('content') || '';
   return value || 'dev';
 })();
+
+function readHapticsPreference(): boolean {
+  try { return localStorage.getItem(HAPTICS_STORE) !== '0'; }
+  catch { return true; }
+}
 
 /** 52px row with an inset hairline above it (never under the last row). */
 function Row({
@@ -87,12 +92,12 @@ function Switch({ checked, onChange, label, testId }: { checked: boolean; onChan
   );
 }
 
-function Group({ title, children, testId }: { title: string; children: React.ReactNode; testId?: string }) {
+function Group({ title, children, testId }: { title?: string; children: React.ReactNode; testId?: string }) {
   return (
     <section className="st-task-settings-group mt-5 first:mt-2" data-testid={testId}>
-      <h4 className="px-4 pb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-apple-ink-muted dark:text-white/55">
+      {title && <h4 className="px-4 pb-2 text-[13px] font-normal tracking-normal text-apple-ink-muted dark:text-white/65">
         {title}
-      </h4>
+      </h4>}
       <div className="overflow-hidden rounded-[16px] bg-white/80 dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/10">
         {children}
       </div>
@@ -121,17 +126,21 @@ export function SettingsOverlay({
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState(session.deviceName || '');
   const [noGlass, setNoGlassState] = useState(() => readNoGlassPreference());
-  const [hapticsOn, setHapticsOn] = useState(() => {
-    try {
-      return localStorage.getItem(HAPTICS_STORE) !== '0';
-    } catch {
-      return true;
-    }
-  });
+  const [hapticsOn, setHapticsOn] = useState(readHapticsPreference);
   const [visible, setVisible] = useState(() => !isPresenceHidden());
   const [autoConnect, setAutoConnect] = useState(() => isAutoConnectEnabled());
   const [typingOn, setTypingOn] = useState(() => typingIndicatorEnabled());
 
+  // Mobile and desktop keep separate Settings instances mounted. Read the
+  // current preferences on entry, before painting another instance's defaults.
+  useLayoutEffect(() => {
+    if (!open) return;
+    setNoGlassState(readNoGlassPreference());
+    setHapticsOn(readHapticsPreference());
+    setVisible(!isPresenceHidden());
+    setAutoConnect(isAutoConnectEnabled());
+    setTypingOn(typingIndicatorEnabled());
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -195,14 +204,13 @@ export function SettingsOverlay({
     >
               <div className="flex items-center justify-between px-4 pt-2 pb-1">
                 <div className="st-task-sheet-heading">
-                  <span className="st-task-sheet-mark" aria-hidden><Settings2 className="h-5 w-5" /></span>
                   <h3 id="settings-title" className="st-task-sheet-title text-apple-ink dark:text-white">{t('settings.title')}</h3>
                 </div>
                 <button
                   type="button"
                   onClick={onClose}
                   aria-label={t('common.close')}
-                  className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full text-apple-ink-muted dark:text-white/70 active:scale-[0.96] transition-transform"
+                  className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full text-apple-ink-muted dark:text-white/70 active:scale-[0.97] transition-transform"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -217,7 +225,7 @@ export function SettingsOverlay({
                     type="button"
                     onClick={() => setLanguageOpen(false)}
                     data-testid="settings-language-back"
-                    className="flex min-h-[44px] min-w-[44px] items-center gap-1 px-1 text-[16px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
+                    className="flex min-h-[44px] min-w-[44px] items-center gap-1 px-1 text-[15px] font-medium text-[#9a3a08] dark:text-[#ffb340]"
                   >
                     <ChevronRight className="h-4 w-4 rotate-180" aria-hidden /> {t('settings.title')}
                   </button>
@@ -267,7 +275,7 @@ export function SettingsOverlay({
                           }}
                           maxLength={40}
                           aria-label={t('settings.deviceName')}
-                          className="min-w-0 flex-1 bg-transparent text-right text-[16px] font-semibold text-apple-ink dark:text-white outline-none"
+                          className="min-w-0 flex-1 bg-transparent text-right text-[16px] font-medium text-apple-ink dark:text-white outline-none"
                           data-testid="settings-device-input"
                         />
                       ) : (
@@ -277,7 +285,7 @@ export function SettingsOverlay({
                             setDraftName(session.deviceName || '');
                             setEditingName(true);
                           }}
-                          className="min-w-0 flex-1 truncate text-right min-h-[44px] text-[16px] font-semibold text-apple-ink dark:text-white"
+                          className="min-w-0 flex-1 truncate text-right min-h-[44px] text-[15px] font-medium text-apple-ink dark:text-white"
                           data-testid="settings-device-name"
                         >
                           {session.deviceName || t('common.connected')}
@@ -317,11 +325,11 @@ export function SettingsOverlay({
                   </Group>
 
                   {/* ── Language ───────────────────────────────────── */}
-                  <Group title={t('settings.language')} testId="settings-language">
+                  <Group testId="settings-language">
                     <Row first onClick={() => setLanguageOpen(true)} testId="settings-language-row">
                       <span className="flex-1">{t('settings.language')}</span>
                       <span className="truncate text-[13px] text-apple-ink-muted dark:text-white/70">{languageLabel}</span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                     </Row>
                   </Group>
 
@@ -349,10 +357,7 @@ export function SettingsOverlay({
                       />
                     </Row>
                     <Row as="div" className="justify-between">
-                      <span className="flex flex-col">
-                        <span>{t('settings.typing')}</span>
-                        <span className="mt-0.5 text-[12px] text-apple-ink-muted dark:text-white/60">{t('settings.typingHint')}</span>
-                      </span>
+                      <span>{t('settings.typing')}</span>
                       <Switch
                         checked={typingOn}
                         label={t('settings.typing')}
@@ -413,7 +418,7 @@ export function SettingsOverlay({
                         )}
                       >
                         <span className="flex-1">{label}</span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                       </a>
                     ))}
                     {/* P7: the maker's inbox. One row, X only — no repository
@@ -426,7 +431,7 @@ export function SettingsOverlay({
                       className="relative flex min-h-[52px] w-full items-center gap-3 px-4 text-[16px] text-apple-ink dark:text-white active:bg-black/[0.04] dark:active:bg-white/[0.06] before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-black/[0.07] dark:before:bg-white/10"
                     >
                       <span className="flex-1">{t('settings.messageMaker')}</span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                     </a>
                     <Row as="div" className="justify-between">
                       <span>{t('settings.version')}</span>
@@ -437,10 +442,10 @@ export function SettingsOverlay({
                   </Group>
 
                   {onOpenSaved && (
-                    <Group title={t('saved.title')} testId="settings-saved">
+                    <Group testId="settings-saved">
                       <Row first onClick={onOpenSaved} testId="settings-open-saved">
                         <span className="flex-1">{t('saved.title')}</span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/50" aria-hidden />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-apple-ink-muted dark:text-white/65" aria-hidden />
                       </Row>
                     </Group>
                   )}
@@ -460,7 +465,7 @@ function LanguageRow({ label, selected, onClick, testId, badge }: { label: strin
       data-testid={testId}
       className={cn(
         'flex min-h-[52px] w-full items-center gap-3 rounded-[12px] px-3 text-left text-[16px] transition-colors',
-        selected ? 'font-semibold text-apple-ink dark:text-white' : 'text-apple-ink dark:text-white/85',
+        selected ? 'font-medium text-apple-ink dark:text-white' : 'text-apple-ink dark:text-white/85',
         'active:bg-black/[0.04] dark:active:bg-white/[0.06]',
       )}
     >
@@ -468,7 +473,7 @@ function LanguageRow({ label, selected, onClick, testId, badge }: { label: strin
       {badge && (
         <span
           data-testid={testId ? `${testId}-badge` : undefined}
-          className="shrink-0 rounded-full bg-apple-divider/70 px-2 py-[3px] text-[10px] font-semibold uppercase tracking-wide text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
+          className="shrink-0 rounded-full bg-apple-divider/70 px-2 py-[3px] text-[10px] font-medium tracking-normal text-apple-ink-muted dark:bg-white/[0.10] dark:text-white/60"
         >
           {badge}
         </span>

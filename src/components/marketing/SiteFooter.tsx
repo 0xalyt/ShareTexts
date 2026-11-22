@@ -87,7 +87,7 @@ export function SiteFooter({ className }: { className?: string }) {
             {/* AA floors in BOTH themes: muted/80 (3.75:1) and white/40
                 (3.83:1) both failed the 4.5:1 bar — this is opaque muted
                 (5.79:1) and white/55 (6.18:1). */}
-            <p className="mt-3.5 flex items-center gap-2 text-[12px] font-medium text-apple-ink-muted dark:text-white/55">
+            <p className="mt-3.5 flex items-center gap-2 text-[12px] font-normal text-apple-ink-muted dark:text-white/65">
               <span className="h-1.5 w-1.5 rounded-full bg-status-success" aria-hidden />
               iPhone · Android · Windows · macOS · Linux
             </p>
@@ -98,7 +98,7 @@ export function SiteFooter({ className }: { className?: string }) {
                 column of small links. */}
             <a
               href="/"
-              className="mt-5 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-apple-ink px-4 text-[13px] font-semibold text-white transition-colors hover:bg-apple-ink/90 dark:bg-white dark:text-night-900 dark:hover:bg-white/90"
+              className="mt-5 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-apple-ink px-4 text-[13px] font-medium text-white transition-colors hover:bg-apple-ink/90 dark:bg-white dark:text-night-900 dark:hover:bg-white/90"
             >
               {t('footer.open')}
               <AlloSymbol name="right" size={14} />
@@ -145,7 +145,7 @@ export function SiteFooter({ className }: { className?: string }) {
               guides' footer uses, so the two footers read as one site.
               Reading left to right it says what the product is, then shows
               where the two things a reader might still want live. */}
-          <p className="min-w-0 text-[11.5px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55 sm:text-[12px]">
+          <p className="min-w-0 text-[11.5px] font-normal leading-relaxed text-apple-ink-muted dark:text-white/65 sm:text-[12px]">
             © {year} ShareTexts · {t('footer.noApp')} · {t('footer.noAccount')} · {t('footer.devices')}
           </p>
           <span className="flex items-center gap-x-4">

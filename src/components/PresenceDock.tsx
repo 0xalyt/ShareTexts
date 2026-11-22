@@ -71,8 +71,8 @@ export function PresenceDock({ entries, title, subtitle, className }: PresenceDo
         ))}
       </div>
       <div className="min-w-0">
-        <p className="text-[13px] font-semibold text-apple-ink dark:text-white truncate">{title}</p>
-        {subtitle && <p className="text-[12px] font-medium text-apple-ink-muted dark:text-white/45 truncate">{subtitle}</p>}
+        <p className="text-[13px] font-normal text-apple-ink dark:text-white truncate">{title}</p>
+        {subtitle && <p className="text-[12px] font-normal text-apple-ink-muted dark:text-white/65 truncate">{subtitle}</p>}
       </div>
     </div>
   );

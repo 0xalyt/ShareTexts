@@ -357,7 +357,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                   <button
                     type="button"
                     onClick={() => setSubOpen(false)}
-                    className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
+                    className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white transition-colors"
                   >
                     <AlloSymbol name="left" size={16} /> {t('command.title')}
                   </button>
@@ -371,7 +371,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                       className={cn(
                         'w-full flex items-center justify-between px-3.5 py-2.5 rounded-[12px] text-[16px] transition-colors',
                         l.code === lang
-                          ? 'bg-ember/[0.08] dark:bg-ember/[0.12] font-semibold text-apple-ink dark:text-white'
+                          ? 'bg-ember/[0.08] dark:bg-ember/[0.12] font-medium text-apple-ink dark:text-white'
                           : 'text-apple-ink dark:text-white/85 hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
                       )}
                     >
@@ -384,7 +384,7 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
             ) : (
               <>
                 <div className="flex items-center gap-3 px-4 border-b border-black/[0.05] dark:border-white/[0.06]">
-                  <AlloSymbol name="search" size={18} className="text-apple-ink-muted/60 dark:text-white/35" />
+                  <AlloSymbol name="search" size={18} className="text-apple-ink-muted dark:text-white/65" />
                   <input
                     ref={inputRef}
                     value={query}
@@ -395,17 +395,17 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                     role="combobox"
                     aria-expanded="true"
                     aria-controls="commandbar-list"
-                    className="w-full bg-transparent py-4 text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/25 outline-none"
+                    className="w-full bg-transparent py-4 text-[16px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted dark:placeholder:text-white/65 outline-none"
                   />
-                  <kbd className="shrink-0 px-1.5 py-0.5 rounded-[8px] border border-black/[0.08] dark:border-white/[0.09] text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/35">Esc</kbd>
+                  <kbd className="shrink-0 px-1.5 py-0.5 rounded-[8px] border border-black/[0.08] dark:border-white/[0.09] text-[12px] font-medium text-apple-ink-muted dark:text-white/65">Esc</kbd>
                 </div>
                 <div id="commandbar-list" role="listbox" ref={cmdListRef} className="st-scroll-fade-y max-h-[46vh] overflow-y-auto p-2">
                   {filtered.length === 0 && (
-                    <p className="px-3.5 py-8 text-[13px] text-apple-ink-muted/80 dark:text-white/35 text-center">{t('command.noResults')}</p>
+                    <p className="px-3.5 py-8 text-[13px] text-apple-ink-muted dark:text-white/65 text-center">{t('command.noResults')}</p>
                   )}
                   {groups.map(([group, cmds]) => (
                     <div key={group} role="group" aria-label={group} className="mb-1.5 last:mb-0">
-                      <p className="px-3 pt-2 pb-1.5 text-[12px] font-semibold tracking-[0.08em] uppercase text-apple-ink-muted/60 dark:text-white/30">{group}</p>
+                      <p className="px-3 pt-2 pb-1.5 text-[13px] font-normal tracking-normal text-apple-ink-muted dark:text-white/65">{group}</p>
                       {cmds.map((cmd) => {
                         flatIdx += 1;
                         const active = flatIdx === index;
@@ -428,15 +428,15 @@ export function CommandBar({ open: openProp, onOpenChange, onSpace, onEditDevice
                               'flex items-center justify-center w-8 h-8 rounded-[12px] shrink-0 transition-colors',
                               active
                                 ? 'bg-ember/[0.12] dark:bg-ember/[0.2] text-ember dark:text-azure-400'
-                                : 'bg-black/[0.045] dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/55'
+                                : 'bg-black/[0.045] dark:bg-white/[0.06] text-apple-ink-muted dark:text-white/65'
                             )}>
                               {cmd.icon}
                             </span>
                             <span className="flex-1 min-w-0 truncate">{cmd.label}</span>
                             {cmd.hint && (
-                              <span className="shrink-0 text-[12px] text-apple-ink-muted/60 dark:text-white/30">{cmd.hint}</span>
+                              <span className="shrink-0 text-[12px] text-apple-ink-muted dark:text-white/65">{cmd.hint}</span>
                             )}
-                            {cmd.opensSub && <AlloSymbol name="next" size={14} className="text-apple-ink-muted/60 dark:text-white/30" />}
+                            {cmd.opensSub && <AlloSymbol name="next" size={14} className="text-apple-ink-muted dark:text-white/65" />}
                           </button>
                         );
                       })}
@@ -473,7 +473,7 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
   const history = connMachine.transitions();
   const row = (k: string, v: React.ReactNode) => (
     <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-[12px] bg-black/[0.02] dark:bg-white/[0.04]">
-      <span className="text-[12px] text-apple-ink-muted dark:text-white/45">{k}</span>
+      <span className="text-[12px] text-apple-ink-muted dark:text-white/65">{k}</span>
       <span className="text-[12px] font-medium text-apple-ink dark:text-white/85 text-right tnum">{v}</span>
     </div>
   );
@@ -483,16 +483,16 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
+          className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white transition-colors"
         >
           <AlloSymbol name="left" size={16} /> {t('command.title')}
         </button>
       </div>
       <div ref={bodyRef} className="st-scroll-fade-y max-h-[52vh] overflow-y-auto p-4 flex flex-col gap-4">
         <section aria-label="Connection">
-          <h4 className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-1.5">Connection</h4>
+          <h4 className="text-[13px] font-medium tracking-normal text-apple-ink-muted dark:text-white/65 mb-1.5">Connection</h4>
           <div className="flex flex-col gap-1">
-            {row('State', <span className="font-semibold text-apple-blue">{state}</span>)}
+            {row('State', <span className="font-medium text-apple-blue">{state}</span>)}
             {row('In state', `${(inState / 1000).toFixed(1)} s`)}
             {row('Route', s.available ? describeRoute(s.route) : '—')}
             {row('RTT', s.rttMs !== null ? `${s.rttMs} ms` : '—')}
@@ -500,31 +500,31 @@ function DiagnosticsPanel({ onBack }: { onBack: () => void }) {
           </div>
         </section>
         <section aria-label="DataChannel">
-          <h4 className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-1.5">DataChannel</h4>
+          <h4 className="text-[13px] font-medium tracking-normal text-apple-ink-muted dark:text-white/65 mb-1.5">DataChannel</h4>
           <div className="flex flex-col gap-1">
             {row('State', s.dcState ?? '—')}
             {row('Buffered', s.bufferedBytes !== null ? formatBytes(s.bufferedBytes, 1) : '—')}
           </div>
         </section>
         <section aria-label="Transfer">
-          <h4 className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-1.5">Transfer</h4>
+          <h4 className="text-[13px] font-medium tracking-normal text-apple-ink-muted dark:text-white/65 mb-1.5">Transfer</h4>
           <div className="flex flex-col gap-1">
             {row('Bytes sent', formatBytes(s.bytesSent, 1))}
             {row('Bytes received', formatBytes(s.bytesReceived, 1))}
           </div>
         </section>
         <section aria-label="State history">
-          <h4 className="text-[12px] font-semibold uppercase tracking-wide text-apple-ink-muted/70 dark:text-white/35 mb-1.5">Recent transitions</h4>
+          <h4 className="text-[13px] font-medium tracking-normal text-apple-ink-muted dark:text-white/65 mb-1.5">Recent transitions</h4>
           {history.length === 0 ? (
-            <p className="text-[12px] text-apple-ink-muted dark:text-white/35 px-3 py-2">{t('diag.noTransitions')}</p>
+            <p className="text-[12px] text-apple-ink-muted dark:text-white/65 px-3 py-2">{t('diag.noTransitions')}</p>
           ) : (
             <div className="flex flex-col gap-0.5">
               {[...history].reverse().slice(0, 8).map((h, i) => (
                 <div key={h.at + '-' + i} className="flex items-center gap-2 px-3 py-1.5 rounded-[8px] bg-black/[0.02] dark:bg-white/[0.03] text-[12px]">
-                  <span className="text-apple-ink-muted dark:text-white/50 font-medium">{h.from}</span>
+                  <span className="text-apple-ink-muted dark:text-white/65 font-medium">{h.from}</span>
                   <span aria-hidden>→</span>
-                  <span className="font-semibold text-apple-ink dark:text-white/85">{h.to}</span>
-                  <span className="ml-auto text-apple-ink-muted/60 dark:text-white/30 tnum">{fmtTime(lang, h.at)}</span>
+                  <span className="font-medium text-apple-ink dark:text-white/85">{h.to}</span>
+                  <span className="ml-auto text-apple-ink-muted dark:text-white/65 tnum">{fmtTime(lang, h.at)}</span>
                 </div>
               ))}
             </div>
@@ -553,14 +553,14 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
+          className="flex items-center gap-1 -ml-2 px-2 py-3.5 text-[13px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-apple-ink dark:hover:text-white transition-colors"
         >
           <AlloSymbol name="left" size={16} /> {t('command.title')}
         </button>
         <button
           type="button"
           onClick={() => { clearTransferMetrics(); force(n => n + 1); }}
-          className="px-2.5 py-1.5 rounded-full text-[12px] font-medium text-apple-ink-muted dark:text-white/45 hover:text-status-danger hover:bg-status-danger/10 transition-colors"
+          className="px-2.5 py-1.5 rounded-full text-[12px] font-medium text-apple-ink-muted dark:text-white/65 hover:text-status-danger hover:bg-status-danger/10 transition-colors"
         >
           {t('command.clearStats')}
         </button>
@@ -572,26 +572,26 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
               (first sight) and again whenever a total moves. Units ride
               along as static characters. */}
           <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
-            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">
+            <div className="text-[17px] font-medium text-apple-ink dark:text-white tnum leading-tight">
               <NumberTicker value={totals.transfers} locale={localeOf(lang)} />
             </div>
-            <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.transfers')}</div>
+            <div className="text-[12px] text-apple-ink-muted dark:text-white/65">{t('stats.transfers')}</div>
           </div>
           <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
-            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">
+            <div className="text-[17px] font-medium text-apple-ink dark:text-white tnum leading-tight">
               <NumberTicker text={formatBytes(totals.bytes, 1)} locale={localeOf(lang)} />
             </div>
-            <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.dataMoved')}</div>
+            <div className="text-[12px] text-apple-ink-muted dark:text-white/65">{t('stats.dataMoved')}</div>
           </div>
           <div className="rounded-[12px] bg-black/[0.03] dark:bg-white/[0.05] px-3 py-2.5">
-            <div className="text-[17px] font-bold text-apple-ink dark:text-white tnum leading-tight">
+            <div className="text-[17px] font-medium text-apple-ink dark:text-white tnum leading-tight">
               <NumberTicker text={speed(totals.bestBytesPerSec)} locale={localeOf(lang)} />
             </div>
-            <div className="text-[12px] text-apple-ink-muted dark:text-white/45">{t('stats.bestSpeed')}</div>
+            <div className="text-[12px] text-apple-ink-muted dark:text-white/65">{t('stats.bestSpeed')}</div>
           </div>
         </div>
         {recent.length === 0 ? (
-          <p className="text-[13px] text-apple-ink-muted dark:text-white/40 text-center py-6">{t('stats.empty')}</p>
+          <p className="text-[13px] text-apple-ink-muted dark:text-white/65 text-center py-6">{t('stats.empty')}</p>
         ) : (
           <ul className="flex flex-col gap-1.5" aria-label={t('command.transferStats')}>
             {[...recent].reverse().slice(0, 12).map((r: TransferRecord) => (
@@ -606,9 +606,9 @@ function TransferStatsPanel({ onBack }: { onBack: () => void }) {
                 <span className="flex-1 min-w-0 truncate text-[12px] text-apple-ink dark:text-white/80" title={r.name}>
                   {r.name || (r.kind === 'text' ? 'Text' : 'File')}
                 </span>
-                <span className="text-[12px] text-apple-ink-muted dark:text-white/45 tnum shrink-0">{formatBytes(r.bytes, 0)}</span>
-                <span className="text-[12px] text-apple-ink-muted dark:text-white/45 tnum shrink-0 w-[72px] text-right">{speed(r.avgBytesPerSec)}</span>
-                {r.transport && <span className="text-[12px] uppercase tracking-wide text-apple-ink-muted/60 dark:text-white/30 shrink-0">{r.transport}</span>}
+                <span className="text-[12px] text-apple-ink-muted dark:text-white/65 tnum shrink-0">{formatBytes(r.bytes, 0)}</span>
+                <span className="text-[12px] text-apple-ink-muted dark:text-white/65 tnum shrink-0 w-[72px] text-right">{speed(r.avgBytesPerSec)}</span>
+                {r.transport && <span className="text-[13px] tracking-normal text-apple-ink-muted dark:text-white/65 shrink-0">{r.transport}</span>}
               </li>
             ))}
           </ul>

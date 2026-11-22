@@ -107,6 +107,15 @@ const failed = [];
 for (const [name, file] of GATES) {
   if (only && !only.has(name)) continue;
   console.log(`\n──── ${name} ────`);
+  // Each independent gate simulates many devices on one loopback IP. Give
+  // local suites fresh volatile quotas, not weaker production rate limits.
+  if (process.env.VITE_CI_LOCAL_WORKER === '1') {
+    const ready = await new Promise((resolve) => {
+      const worker = spawn(process.execPath, ['scripts/start-ci-worker.mjs', '--restart'], { stdio: 'inherit' });
+      worker.on('exit', (code) => resolve(code ?? 1));
+    });
+    if (ready !== 0) { failed.push(`${name} (local Worker setup)`); break; }
+  }
   const code = await new Promise((resolve) => {
     const child = spawn(process.execPath, [`scripts/${file}`], {
       stdio: 'inherit',

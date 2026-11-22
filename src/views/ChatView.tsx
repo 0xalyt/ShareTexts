@@ -33,7 +33,6 @@ import { Attachment } from '../types';
 import { MessageCard, pureLinkUrl } from '../components/MessageCard';
 import { TypingGhostBubble } from '../components/TypingIndicator';
 import { createTypingSender, typingIndicatorEnabled, TYPING_TIMING } from '../lib/typing';
-import { DeviceLinkIllustration, PacketTrain } from '../components/DeviceLinkIllustration';
 import { SettingsOverlay } from '../components/SettingsOverlay';
 import { OverlaySheet } from '../components/OverlaySheet';
 import { Settings as SettingsIcon } from 'lucide-react';
@@ -1077,10 +1076,10 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
             <ThisDeviceIcon className="w-4 h-4" />
           </span>
           <span className="hidden sm:flex flex-col items-start min-w-0 leading-tight">
-            <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-[160px]">
+            <span className="text-[12px] font-medium text-apple-ink dark:text-white truncate max-w-[160px]">
               {session.deviceName}
             </span>
-            <span className="flex items-center gap-1 text-[12px] font-medium text-apple-ink-muted dark:text-white/45">
+            <span className="flex items-center gap-1 text-[12px] font-medium text-apple-ink-muted dark:text-white/65">
               <span className={cn(
                 "w-1.5 h-1.5 rounded-full",
                 disconnected ? "bg-status-warning" : "bg-status-success"
@@ -1094,13 +1093,13 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                   : t('chat.online')}
             </span>
           </span>
-          <ArrowRightLeft className="hidden sm:block w-3.5 h-3.5 shrink-0 text-apple-ink-muted/60 dark:text-white/30" />
+          <ArrowRightLeft className="hidden sm:block w-3.5 h-3.5 shrink-0 text-apple-ink-muted dark:text-white/65" />
           {/* The status is steady once connected. Only an in-progress
               connection earns motion; a healthy room stays quiet to read. */}
           <span className={cn(
             "relative shrink-0 flex items-center justify-center w-8 h-8 rounded-[12px] transition-colors",
             disconnected
-              ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted/60 dark:text-white/30"
+              ? "bg-black/[0.05] dark:bg-white/[0.06] border border-apple-divider/40 dark:border-white/[0.08] text-apple-ink-muted dark:text-white/65"
               : session.connectionType === 'connecting'
                 ? "bg-status-warning/10 border border-status-warning/25 text-status-warning"
                 : "bg-status-success/10 border border-status-success/20 text-status-success"
@@ -1120,7 +1119,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
               initial={session.partnerName ? { opacity: 0, y: 3 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 shrink-0 max-w-[calc(100%_-_1rem)] sm:max-w-[190px]"
+              className="text-[13px] font-medium text-apple-ink dark:text-white truncate min-w-0 shrink-0 max-w-[calc(100%_-_1rem)] sm:max-w-[190px]"
             >
               {others.length > 1
                 ? t('room.deviceCount', { count: String(others.length + 1) })
@@ -1140,7 +1139,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                 // link status. Its complete wording remains in details.
                 'text-[12px] font-medium truncate min-w-0',
                 headerHealthy
-                  ? 'text-apple-ink-muted dark:text-white/45'
+                  ? 'text-apple-ink-muted dark:text-white/65'
                   : 'text-status-warning-ink dark:text-status-warning-ink-dark'
               )}
             >
@@ -1186,7 +1185,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
             data-testid="end-session"
             onClick={() => setConfirmDisconnect(true)}
             aria-label={t('common.disconnectAria')}
-            className="flex min-w-11 min-h-11 items-center justify-center gap-1.5 rounded-full font-semibold px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
+            className="flex min-w-11 min-h-11 items-center justify-center gap-1.5 rounded-full font-medium px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.97] transition-colors"
           >
             <DisconnectGlyph size={16} />
             <span className="hidden sm:inline">{t('common.disconnect')}</span>
@@ -1200,7 +1199,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
           testId="devices-sheet"
         >
           <div className="flex flex-col">
-              <h2 id="devices-title" className="mb-3 flex items-center gap-2 pr-9 text-[17px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white">
+              <h2 id="devices-title" className="mb-3 flex items-center gap-2 pr-9 text-[17px] font-medium tracking-[-0.01em] text-apple-ink dark:text-white">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-status-success" aria-hidden />
                 {t('details.aria')}
               </h2>
@@ -1228,21 +1227,21 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                       onClick={startEditName}
                       title={t('pair.renameTitle')}
                       aria-label={t('pair.renameAria', { name: session.deviceName })}
-                      className="group min-h-[44px] min-w-[44px] flex items-center justify-center gap-1 text-[12px] font-semibold text-apple-ink dark:text-white hover:text-apple-ink/80 max-w-full"
+                      className="group min-h-[44px] min-w-[44px] flex items-center justify-center gap-1 text-[12px] font-medium text-apple-ink dark:text-white hover:text-apple-ink/80 max-w-full"
                     >
                       <span className="truncate max-w-[96px]">{session.deviceName}</span>
                       <Pencil className="w-2.5 h-2.5 opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
                     </button>
                   )}
-                  <span className="text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">{t('chat.you')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/65">{t('chat.you')}</span>
                 </div>
-                <ArrowRightLeft className="w-4 h-4 shrink-0 text-apple-ink-muted/40 dark:text-white/25" />
+                <ArrowRightLeft className="w-4 h-4 shrink-0 text-apple-ink-muted dark:text-white/25" />
                 <div className="flex-1 flex flex-col items-center gap-1 rounded-[12px] bg-status-success/5 dark:bg-status-success/5 border border-apple-divider/60 dark:border-apple-tile-3 p-2.5 min-w-0">
                   <PartnerDeviceIcon className="w-5 h-5 text-status-success" />
-                  <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate max-w-full">
+                  <span className="text-[12px] font-medium text-apple-ink dark:text-white truncate max-w-full">
                     {session.partnerName || t('chat.pairedDevice')}
                   </span>
-                  <span className="text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40">{t('chat.otherDevice')}</span>
+                  <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/65">{t('chat.otherDevice')}</span>
                 </div>
               </div>
               <PairingMini secret={session.secret} createdAt={session.createdAt} className="mt-4" />
@@ -1256,11 +1255,11 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
               {/* The session as a memory, not a socket: when it started.
                   "Today, 7:24 PM" — the room has a beginning people recall. */}
               {startedAtLabel && (
-                <div className="mt-1.5 text-[12px] text-apple-ink-muted/70 dark:text-white/40">
+                <div className="mt-1.5 text-[12px] text-apple-ink-muted dark:text-white/65">
                   {t('details.started', { when: startedAtLabel })}
                 </div>
               )}
-              <div className="text-[12px] text-apple-ink-muted dark:text-white/45 mt-2 pt-2 border-t border-apple-divider/50 dark:border-apple-tile-3">
+              <div className="text-[12px] text-apple-ink-muted dark:text-white/65 mt-2 pt-2 border-t border-apple-divider/50 dark:border-apple-tile-3">
                 {t('details.encryptedNote')}
               </div>
               {/* One-time auto-rename explanation (mobile joiners never see
@@ -1294,7 +1293,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
             data-testid="connected-toast"
             data-motion-enter={entranceMotion}
             style={{ maxWidth: 'calc(100% - 32px)' }}
-            className="absolute top-[76px] sm:top-[80px] left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float flex items-center gap-2 text-[13px] font-semibold whitespace-nowrap"
+            className="absolute top-[76px] sm:top-[80px] left-1/2 -translate-x-1/2 z-40 px-4 py-2.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float flex items-center gap-2 text-[13px] font-medium whitespace-nowrap"
           >
             <span className="st-linked-seal" aria-hidden="true">
               <Monitor /><Smartphone /><span><Check strokeWidth={3} /></span>
@@ -1329,7 +1328,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                 <span
                   data-testid="banner-rejoin-code"
                   title={t('details.rejoinNote')}
-                  className="hidden sm:flex shrink-0 items-center gap-1.5 font-mono tnum text-[13px] font-bold tracking-widest whitespace-nowrap text-apple-ink dark:text-white bg-status-warning/15 rounded-full px-2.5 py-1"
+                  className="hidden sm:flex shrink-0 items-center gap-1.5 font-sans tnum text-[13px] font-medium tracking-widest whitespace-nowrap text-apple-ink dark:text-white bg-status-warning/15 rounded-full px-2.5 py-1"
                 >
                   <LiveRejoinCode secret={session.secret} createdAt={session.createdAt} />
                 </span>
@@ -1338,7 +1337,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                 data-testid="reconnect"
                 onPointerDown={startReconnectFeedback}
                 disabled={reconnecting}
-                className="min-h-[44px] px-3 py-1.5 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-[0.96] shrink-0 flex items-center gap-1.5"
+                className="min-h-[44px] px-3 py-1.5 rounded-full text-[13px] font-medium text-apple-ink dark:text-white bg-status-warning/15 hover:bg-status-warning/25 disabled:opacity-60 transition-colors active:scale-[0.97] shrink-0 flex items-center gap-1.5"
               >
                 {/* In-flight acknowledgment: the arrow spins while the
                     handshake runs and the label says so — a tap always
@@ -1371,12 +1370,12 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
             <div data-testid="active-transfer-strip" className="st-glow mx-3 sm:mx-6 mt-2 px-3.5 py-2.5 min-w-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-apple-blue animate-pulse shrink-0" aria-hidden />
-                <span className="text-[12px] font-semibold text-apple-ink dark:text-white truncate min-w-0">{stripTransfer.name}</span>
-                <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/50 truncate min-w-0 flex-1">
+                <span className="text-[12px] font-medium text-apple-ink dark:text-white truncate min-w-0">{stripTransfer.name}</span>
+                <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/65 truncate min-w-0 flex-1">
                   {t(stripTransfer.isMe ? 'xfer.to' : 'xfer.from', { name: stripTransfer.isMe ? (session.partnerName || t('chat.pairedDevice')) : session.deviceName })}
                 </span>
                 {activeCount > 1 && (
-                  <span data-testid="transfer-count" className="shrink-0 px-2 py-0.5 rounded-full bg-apple-blue/10 text-apple-blue text-[12px] font-semibold tnum whitespace-nowrap">
+                  <span data-testid="transfer-count" className="shrink-0 px-2 py-0.5 rounded-full bg-apple-blue/10 text-apple-blue text-[12px] font-medium tnum whitespace-nowrap">
                     {t('xfer.multi', { n: activeCount })}
                   </span>
                 )}
@@ -1392,7 +1391,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                 >
                   <i style={{ width: `${stripPct}%` }} />
                 </div>
-                <span className="tnum text-[12px] font-bold text-apple-blue min-w-[38px] text-right">{stripPct}%</span>
+                <span className="tnum text-[12px] font-medium text-apple-blue min-w-[38px] text-right">{stripPct}%</span>
               </div>
             </div>
           </motion.div>
@@ -1447,7 +1446,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
               {disconnected ? (
                 <div className="flex flex-col items-start max-w-[420px]">
                   <SceneRoomEnded size={112} className="text-apple-ink dark:text-white" />
-                  <p className="text-[18px] font-semibold tracking-[-0.01em] text-apple-ink dark:text-white mt-4">
+                  <p className="text-[18px] font-normal tracking-[-0.01em] text-apple-ink dark:text-white mt-4">
                     {t('chat.peerOffline.title')}
                   </p>
                   <p className="text-[13px] text-apple-ink-muted dark:text-white/60 max-w-[300px] leading-relaxed mt-1.5">
@@ -1491,7 +1490,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                     <React.Fragment key={msg.id}>
                       {showSep && (
                         <div aria-hidden="true" className="flex justify-center mt-4 mb-1">
-                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-semibold tracking-wide text-apple-ink-muted dark:text-white/60">
+                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-medium tracking-wide text-apple-ink-muted dark:text-white/60">
                             {sepLabel}
                           </span>
                         </div>
@@ -1535,7 +1534,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                 exit={{ opacity: 0, y: 8, scale: 0.9 }}
                 transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
                 onPointerDown={() => { setShowJump(false); atBottomRef.current = true; messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="self-center flex items-center gap-1.5 px-4 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float text-[13px] font-semibold active:scale-[0.96] transition-motion"
+                className="self-center flex items-center gap-1.5 px-4 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float text-[13px] font-medium active:scale-[0.97] transition-motion"
               >
                 <ChevronDown className="w-3.5 h-3.5" /> {t('chat.newMessage')}
               </motion.button>
@@ -1557,14 +1556,14 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
               data-testid="selection-bar"
               className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-1.5 py-1.5 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 shadow-float"
             >
-              <span className="pl-2.5 pr-1 text-[13px] font-semibold whitespace-nowrap">
+              <span className="pl-2.5 pr-1 text-[13px] font-medium whitespace-nowrap">
                 {selectionCopied ? t('select.copied') : t('select.selectedCount', { count: selection.size })}
               </span>
               <button
                 type="button"
                 onClick={copySelected}
                 disabled={selection.size === 0}
-                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-white/15 dark:bg-black/10 text-[12px] font-semibold disabled:opacity-40 active:scale-[0.96] transition-motion"
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-full bg-white/15 dark:bg-black/10 text-[12px] font-medium disabled:opacity-40 active:scale-[0.97] transition-motion"
               >
                 <Copy className="w-3.5 h-3.5" /> {t('select.copySelected')}
               </button>
@@ -1572,7 +1571,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                 type="button"
                 onClick={exitSelectMode}
                 aria-label={t('select.clear')}
-                className="flex items-center justify-center w-11 h-11 rounded-full hover:bg-white/15 dark:hover:bg-black/10 active:scale-[0.96] transition-motion"
+                className="flex items-center justify-center w-11 h-11 rounded-full hover:bg-white/15 dark:hover:bg-black/10 active:scale-[0.97] transition-motion"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1585,8 +1584,8 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
               <div className="w-12 h-12 rounded-full bg-ember/10 dark:bg-azure-400/10 flex items-center justify-center">
                 <ArrowUp className="w-5 h-5 text-ember dark:text-azure-400" />
               </div>
-              <span className="text-[16px] font-semibold text-apple-ink dark:text-white">{t('chat.drop.title')}</span>
-              <span className="text-[13px] text-apple-ink-muted dark:text-white/50">{t('chat.drop.subtitle')}</span>
+              <span className="text-[16px] font-medium text-apple-ink dark:text-white">{t('chat.drop.title')}</span>
+              <span className="text-[13px] text-apple-ink-muted dark:text-white/65">{t('chat.drop.subtitle')}</span>
             </div>
           </div>
         )}
@@ -1642,11 +1641,11 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
               multi-KB pastes get honest feedback; ≥50 KB marks a large
               payload (it will travel chunked over the wire). */}
           {inputText.length >= 1024 && (
-            <div className="hidden sm:flex items-center justify-end gap-1.5 text-[12px] font-medium text-apple-ink-muted/70 dark:text-white/40 px-1" aria-live="polite">
+            <div className="hidden sm:flex items-center justify-end gap-1.5 text-[12px] font-medium text-apple-ink-muted dark:text-white/65 px-1" aria-live="polite">
               {isLargeInput && (
-                <span className="text-ember dark:text-azure-400 font-semibold">{t('composer.largePayload')}</span>
+                <span className="text-ember dark:text-azure-400 font-medium">{t('composer.largePayload')}</span>
               )}
-              <span className={cn('tnum', isLargeInput && 'font-semibold')}>{formatBytes(inputBytes)}</span>
+              <span className={cn('tnum', isLargeInput && 'font-medium')}>{formatBytes(inputBytes)}</span>
             </div>
           )}
           <div className="relative">
@@ -1732,7 +1731,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                       ))}
                     </AnimatePresence>
                   </div>
-                  <p className="text-[12px] font-medium text-apple-ink-muted mt-1">
+                  <p className="text-[12px] font-normal text-apple-ink-muted mt-1">
                     {t('attach.count', { count: attachments.length, max: MAX_ATTACHMENTS })}
                   </p>
                 </motion.div>
@@ -1760,8 +1759,8 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                 >
                   <div aria-hidden="true" className="flex items-center gap-2 mx-3 mt-2.5 mb-1 rounded-[12px] px-2.5 py-1.5 bg-apple-blue/[0.07] dark:bg-apple-blue/[0.12] border border-apple-blue/15">
                     <Link2 className="w-3.5 h-3.5 text-apple-blue shrink-0" />
-                    <span className="text-[12px] font-semibold text-apple-blue truncate">{(() => { try { return new URL(composerLinkUrl).host; } catch { return composerLinkUrl; } })()}</span>
-                    <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/40 truncate flex-1 min-w-0" dir="ltr">{composerLinkUrl}</span>
+                    <span className="text-[12px] font-medium text-apple-blue truncate">{(() => { try { return new URL(composerLinkUrl).host; } catch { return composerLinkUrl; } })()}</span>
+                    <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/65 truncate flex-1 min-w-0" dir="ltr">{composerLinkUrl}</span>
                   </div>
                 </motion.div>
               )}
@@ -1788,8 +1787,8 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                   >
                     {([
                       ['bold', t('edit.bold'), <span key="b" className="text-[16px] font-bold leading-none">B</span>, [modKey, 'B']],
-                      ['italic', t('edit.italic'), <span key="i" className="text-[16px] font-semibold italic leading-none">I</span>, [modKey, 'I']],
-                      ['code', t('edit.code'), <span key="c" className="font-mono text-[12px] leading-none">{'</>'}</span>, [modKey, 'E']],
+                      ['italic', t('edit.italic'), <span key="i" className="text-[16px] font-medium italic leading-none">I</span>, [modKey, 'I']],
+                      ['code', t('edit.code'), <span key="c" className="font-sans text-[12px] leading-none">{'</>'}</span>, [modKey, 'E']],
                       ['list', t('edit.list'), <span key="l" className="text-[16px] leading-none">≡</span>, [modKey, '⇧', 'L']],
                     ] as const).map(([kind, label, glyph, keys]) => (
                       <Tooltip key={kind} label={label} keys={[...keys]}>
@@ -1798,7 +1797,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
                           aria-label={label}
                           data-testid={`format-${kind}`}
                           onClick={() => applyFormatting(kind)}
-                          className="w-11 h-11 rounded-[12px] flex items-center justify-center text-apple-ink-muted dark:text-white/50 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+                          className="w-11 h-11 rounded-[12px] flex items-center justify-center text-apple-ink-muted dark:text-white/65 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                         >
                           {glyph}
                         </button>
@@ -1898,7 +1897,7 @@ function RemoveAttachmentButton({ onClick }: { onClick: () => void }) {
       type="button"
       onPointerDown={onClick}
       aria-label={t('attach.remove')}
-      className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-black/75 dark:bg-black/75 text-white border border-white/25 shadow-md flex items-center justify-center z-10 transition-transform active:scale-[0.96] hover:bg-black/90"
+      className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-black/75 dark:bg-black/75 text-white border border-white/25 shadow-md flex items-center justify-center z-10 transition-transform active:scale-[0.97] hover:bg-black/90"
     >
       <X className="w-4 h-4" />
     </button>
@@ -1933,7 +1932,7 @@ function PairingMini({ secret, createdAt, className }: { secret: string, created
   return (
     <div className={cn("rounded-[12px] bg-apple-parchment/60 dark:bg-apple-tile-1 border border-apple-divider/60 dark:border-apple-tile-3 p-3", className)}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[12px] font-semibold tracking-widest uppercase text-apple-ink-muted">{t('details.rejoinLabel')}</span>
+        <span className="text-[13px] font-medium tracking-normal text-apple-ink-muted">{t('details.rejoinLabel')}</span>
         <span className={cn("text-[12px] font-medium tnum", remaining <= 3 ? "text-status-danger" : "text-apple-ink-muted")}>
           {Math.ceil(remaining)}s
         </span>
@@ -1941,7 +1940,7 @@ function PairingMini({ secret, createdAt, className }: { secret: string, created
       <div className="flex justify-between gap-1">
         {code.split('').map((d, i) => (
           <React.Fragment key={i}>
-            <span className="flex-1 aspect-[3/4] bg-white dark:bg-black rounded-[8px] border border-apple-divider/50 dark:border-apple-tile-3 flex items-center justify-center font-mono tnum text-[16px] font-semibold text-apple-ink dark:text-white">
+            <span className="flex-1 aspect-[3/4] bg-white dark:bg-black rounded-[8px] border border-apple-divider/50 dark:border-apple-tile-3 flex items-center justify-center st-code text-[16px] font-medium text-apple-ink dark:text-white">
               {d}
             </span>
             {i === 2 && <span className="w-1.5" />}

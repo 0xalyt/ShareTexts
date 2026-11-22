@@ -6,7 +6,7 @@ import { AlloSymbol } from '../AlloSymbol';
 import { useI18n } from '../../lib/i18n';
 import { useFocusTrap } from '../../lib/useFocusTrap';
 import { hapticTick } from '../../lib/haptics';
-import { DUR, EASE, SPRING, rubberBand, settleSeconds } from '../../lib/motion/tokens';
+import { DUR, SPRING, rubberBand } from '../../lib/motion/tokens';
 import { MotionSurface } from './MotionSurface';
 import { cn } from '../../lib/utils';
 
@@ -157,6 +157,8 @@ export function Sheet({
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const backdropRef = useRef<HTMLDivElement | null>(null);
+  const settling = useRef<{ stop(): void } | null>(null);
+  useEffect(() => () => settling.current?.stop(), [open]);
 
   /* Where the dialog grows from: the control that had focus before it opened,
      so the panel appears to come out of what you pressed. Centre is only the
@@ -230,6 +232,7 @@ export function Sheet({
     physics.current = { y: 0, max: restMax() };
     const el = panelRef.current;
     if (el) {
+      settling.current?.stop();
       el.style.transform = '';
       el.style.maxHeight = `${physics.current.max}px`;
     }
@@ -264,6 +267,16 @@ export function Sheet({
      *  person was still deciding. */
     samples: { t: number; y: number }[];
   } | null>(null);
+
+  useEffect(() => {
+    if (!reduced) return;
+    settling.current?.stop();
+    settling.current = null;
+    if (panelRef.current && !gesture.current) {
+      panelRef.current.style.transform = '';
+      physics.current.y = 0;
+    }
+  }, [reduced]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Reduced motion removes the release animation, not direct manipulation.
@@ -308,9 +321,10 @@ export function Sheet({
     let base = 0;
     const el = panelRef.current;
     if (el) {
-      // A CSS transition is how a release settles; catching the panel mid-flight
-      // must stop it first, or the drag would be animated by the position it is
-      // trying to leave.
+      // Stop both our release spring and any native transform animation before
+      // reading the painted position. Neither may fight the held pointer.
+      settling.current?.stop();
+      settling.current = null;
       const moving = el.getAnimations();
       for (const a of moving) a.pause();
       // Read BEFORE cancelling the CSS transition, otherwise its painted
@@ -452,13 +466,8 @@ export function Sheet({
     const landed = Math.max(0, g.base + raw + velocity * 160);
     const bd = backdropRef.current;
 
-    /* ── release → settle ─────────────────────────────────────────────────
-       vaul's rule, and the only one that feels right: the sheet KEEPS the
-       speed the finger left with, then decelerates on the published drawer
-       curve (0.32, 0.72, 0, 1). Not a spring with a bounce we invented, and
-       not a fixed duration: a 40px flick should not take as long as a 300px
-       drag, so the duration comes from distance ÷ speed, 180–450ms.
-       Reduced motion never flings: it lands where it belongs, instantly. */
+    /* Release keeps the sampled speed. A new grab stops this same spring at
+       its painted position; it never restarts an easing from the origin. */
     const settle = (node: HTMLElement | null, toY: number) => {
       if (!node) return;
       const painted = getComputedStyle(node).transform;
@@ -466,7 +475,6 @@ export function Sheet({
       // Start from where the finger left it, with no transition in the way.
       node.style.transition = 'none';
       node.style.transform = `translate3d(0, ${Math.round(fromY)}px, 0)`;
-      void node.offsetHeight; // flush: the next write must be the start of the transition
       if (reduced) {
         // No fling, no travel: land instantly. The close itself is an opacity
         // fade in the exit transition, so nothing is lost.
@@ -474,10 +482,12 @@ export function Sheet({
         node.style.transform = toY === 0 ? '' : `translate3d(0, ${Math.round(toY)}px, 0)`;
         return;
       }
-      node.style.transition = `transform ${settleSeconds(toY - fromY, velocity)}s cubic-bezier(0.32, 0.72, 0, 1)`;
-      node.style.transform = toY === 0 ? '' : `translate3d(0, ${Math.round(toY)}px, 0)`;
-      // No transitionend dependency: cancellation or animations-off must not
-      // leave stale cleanup callbacks that clobber the next gesture.
+      settling.current?.stop();
+      settling.current = animate(fromY, toY, {
+        type: 'spring', ...SPRING.sheet, velocity: velocity * 1000,
+        onUpdate: value => { node.style.transform = `translate3d(0, ${value}px, 0)`; },
+        onComplete: () => { settling.current = null; },
+      });
     };
 
     const home = () => {
@@ -492,8 +502,7 @@ export function Sheet({
 
     if (cancelled) {
       home();
-      if (el && !reduced) animate(el, { maxHeight: `${g.startMax}px` }, { duration: settleSeconds(physics.current.max - g.startMax, velocity), ease: EASE.drawer });
-      else if (el) el.style.maxHeight = `${g.startMax}px`;
+      if (el) el.style.maxHeight = `${g.startMax}px`;
       physics.current.max = g.startMax;
       return;
     }
@@ -516,8 +525,7 @@ export function Sheet({
     const room = fullMax() - g.startMax;
     const projected = grew + Math.abs(velocity) * 160;
     const next = (grew > Math.max(24, room * 0.35) || projected > room * 0.5) ? fullMax() : g.startMax;
-    if (el && !reduced) animate(el, { maxHeight: `${next}px` }, { duration: settleSeconds(next - physics.current.max, velocity), ease: EASE.drawer });
-    else if (el) el.style.maxHeight = `${next}px`;
+    if (el) el.style.maxHeight = `${next}px`;
     physics.current.max = next;
     home();
   };
@@ -575,7 +583,7 @@ export function Sheet({
           onClick={onClose}
           aria-label={t('common.close')}
           data-sheet-no-drag
-          className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+          className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-[0.97] transition-[color,background-color,border-color,box-shadow,transform,opacity]"
         >
           <AlloSymbol name="close" size={16} />
         </button>
@@ -625,7 +633,7 @@ export function Sheet({
         <motion.div
           className="w-full flex justify-center sm:block"
           animate={{ y: open ? 0 : '100%', opacity: open ? 1 : 0.4, scale: 1 }}
-          transition={quiet ? { duration: 0 } : { type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
+          transition={quiet ? { duration: 0 } : { type: 'spring', ...SPRING.sheet, opacity: { duration: DUR.state / 1000 } }}
           style={{ visibility: open ? 'visible' : 'hidden', maxWidth }}
         >
           {panel(true)}
@@ -649,7 +657,7 @@ export function Sheet({
             exit={reduced
               ? { opacity: 0 }
               : { y: desktop ? 8 : '100%', opacity: 0, scale: desktop ? 0.98 : 1 }}
-            transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}
+            transition={{ type: 'spring', ...SPRING.sheet, opacity: { duration: DUR.state / 1000 } }}
             style={{ maxWidth, transformOrigin: desktop ? origin : 'bottom center' }}
           >
             {panel(false)}
