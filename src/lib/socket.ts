@@ -21,6 +21,7 @@ export interface SignalingSocket {
   /** Boot-probe redirect: point the live transport at the current worker.
    *  Only the Cloudflare transport implements it. */
   retarget?(endpoint: string): void;
+  refreshCode?(roomId: string, secret: string): Promise<{ success: boolean; createdAt?: number }>;
 }
 
 const isProd = !import.meta.env.DEV;
@@ -429,11 +430,7 @@ export async function refreshCode(
   secret: string
 ): Promise<{ success: boolean; createdAt?: number }> {
   if (mode === 'cloudflare') {
-    const cf = getSocket() as unknown as import('./cloudflareSocket').CloudflareSocket;
-    if (typeof (cf as any).refreshCode === 'function') {
-      return (cf as any).refreshCode(roomId, secret);
-    }
-    return { success: false };
+    return getSocket().refreshCode?.(roomId, secret) ?? { success: false };
   }
   return new Promise((resolve) => {
     const socket = getSocket();
