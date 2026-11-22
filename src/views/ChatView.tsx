@@ -670,7 +670,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
       if (parked?.length) {
         // Keep a phone-share batch whole until it fits beside the restored
         // draft. Removing/sending draft attachments retries this pickup.
-        if (parked.length > MAX_ATTACHMENTS - attachments.length) {
+        if (parked.length <= MAX_ATTACHMENTS && parked.length > MAX_ATTACHMENTS - attachments.length) {
           setErrorMsg(t('shareTarget.waiting'));
         } else {
           delete w.__stHomeDropFiles;
