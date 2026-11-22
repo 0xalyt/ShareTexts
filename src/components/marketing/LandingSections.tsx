@@ -3,7 +3,8 @@ import { AlloSymbol } from '../AlloSymbol';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
 import { PairingDetail, TransferDetail, SpaceDetail } from '../landing/ProductDetails';
-export { BrowserCompatibility, WebsiteHandoff } from '../landing/BrowserCompatibility';
+import { WebsiteHandoff } from '../landing/BrowserCompatibility';
+export { BrowserCompatibility } from '../landing/BrowserCompatibility';
 
 /* ---------------------------------------------------------------------------
  * LandingSections — the scroll tail of the front door.
@@ -41,9 +42,10 @@ export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
   const number = (value: number) => new Intl.NumberFormat(lang, { minimumIntegerDigits: 2 }).format(value);
   return (
     <section aria-labelledby="how-title" className="landing-story w-full py-16">
+      <SectionHead id="how-title" heading={t('home.three.heading')} />
+      <WebsiteHandoff />
       <div className="landing-guide">
         <div>
-          <SectionHead id="how-title" heading={t('home.three.heading')} />
           <ol className="landing-guide-steps" aria-label={t('home.how.eyebrow')}>
             {STORIES.map((key, i) => (
               <li key={key}>
@@ -118,7 +120,7 @@ export function LandingFaq() {
   const { t } = useI18n();
   // Include storage before the first transfer, not only in the docs.
   const items: QA[] = [
-    { q: t('home.faq.q1'), a: t('home.faq.a1') },
+    { q: t('home.faq.q7'), a: t('home.faq.a7') },
     { q: t('home.faq.q2'), a: t('home.faq.a2') },
     { q: t('home.faq.q3'), a: t('home.faq.a3') },
     { q: t('home.faq.q4'), a: t('home.faq.a4') },
@@ -128,7 +130,7 @@ export function LandingFaq() {
     <section aria-labelledby="faq-title" className="landing-faq w-full py-16">
       <h2 id="faq-title" className="st-h2">{t('home.faq.heading')}</h2>
       <div>
-        <FaqSection items={items} pinFirst hideLabel defaultOpen={0} className="landing-faq-list" />
+        <FaqSection items={items} hideLabel defaultOpen={0} className="landing-faq-list" />
         <a href="/docs" className="landing-text-action">
           {t('home.faq.more')}<AlloSymbol name="right" />
         </a>

@@ -95,8 +95,10 @@ export function WebsiteHandoff() {
         qrTrigger.current?.focus();
       }
     }}>
-        <h3 id={titleId}>{t('home.browser.open')}</h3>
-        <div className="landing-site-address"><bdi dir="ltr">{window.location.host}</bdi></div>
+        <div className="landing-handoff-address">
+          <h3 id={titleId}>{t('home.browser.open')}</h3>
+          <div className="landing-site-address"><bdi dir="ltr">{window.location.host}</bdi></div>
+        </div>
         <div className="landing-browser-actions">
           <button type="button" className="landing-quiet-button" data-testid="landing-copy-address" onClick={copyAddress}>
             {copyState === 'copied' ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}

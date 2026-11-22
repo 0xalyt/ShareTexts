@@ -33,7 +33,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { SendScreen } from '../components/send/SendScreen';
 import { ReceiveScreen, type ReceiveError } from '../components/receive/ReceiveScreen';
 import { AnimatedIcon } from '../components/AnimatedIcon';
-import { SendCircleIcon, ReceiveCircleIcon, DisconnectGlyph } from '../components/TransferIcons';
+import { DisconnectGlyph } from '../components/TransferIcons';
 import { IntentField } from '../components/IntentField';
 import { UploadFolder } from '../components/ui/Detent';
 import { ShuffleHeading } from '../components/ShuffleHeading';
@@ -74,7 +74,8 @@ import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/error
 import { HeroLaunchFilm, type HeroFilmPlayback } from '../components/HeroLaunchFilm';
 import '../components/landing/landing-page.css';
 import { XProfileLink } from '../components/XProfileLink';
-import { ThreeThings, LandingFaq, BrowserCompatibility, WebsiteHandoff } from '../components/marketing/LandingSections';
+import { ThreeThings, LandingFaq, BrowserCompatibility } from '../components/marketing/LandingSections';
+import { LandingActivity } from '../components/landing/LandingActivity';
 import { useSavedCount } from '../lib/savedItems';
 import { useOverscroll } from '../lib/useOverscroll';
 import { ConfirmSheet } from '../components/ConfirmSheet';
@@ -1217,12 +1218,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* One tactile family, with Send as the filled primary and
                     Receive as its quieter surface companion. Both retain
                     immediate press feedback and the same target geometry. */}
-                <GlossyButton onClick={handleSend} data-testid="home-send" className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]" icon={<SendCircleIcon size={18} />} disabled={isCreating}>{t('home.send')}</GlossyButton>
+                <GlossyButton onClick={handleSend} data-testid="home-send" className="w-full" icon={<AlloSymbol name="right" size={20} style={{ transform: 'rotate(-45deg)' }} />} disabled={isCreating}>{t('home.send')}</GlossyButton>
                 <GlossyButton
                   onClick={handleReceive}
                   data-testid="home-receive"
-                  className="w-full text-[15px] sm:text-[16px] lg:min-h-[56px]"
-                  icon={<ReceiveCircleIcon size={18} />}
+                  className="w-full"
+                  icon={<AlloSymbol name="left" size={20} style={{ transform: 'rotate(-45deg)' }} />}
                 >
                   {t('home.receive')}
                 </GlossyButton>
@@ -1667,7 +1668,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     </div>
   );
   const footerNode = (
-    <footer className="shrink-0 mt-4 border-t border-black/[0.06] px-5 pt-8 pb-[max(env(safe-area-inset-bottom),24px)] dark:border-white/[0.08] sm:px-6 sm:pt-10 sm:pb-8 lg:px-8 2xl:px-12">
+    <footer data-testid="landing-footer" className="shrink-0 mt-4 border-t border-black/[0.06] px-6 pt-8 pb-[max(env(safe-area-inset-bottom),24px)] dark:border-white/[0.08] sm:pt-10 sm:pb-8 lg:px-8 2xl:px-12">
       {/* The front door's footer (DESIGN.md §20d): text links only. No icon
           row, no social buttons, no marketing band. Every link keeps a 44px
           hit area even though the label is 13px — that is what closes B20.
@@ -1678,9 +1679,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
           the link row is a real <nav> with a name that describes it — it
           used to be labelled with the footer.language string, which told a
           screen reader the wrong thing about the links inside it. */}
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-7 sm:gap-8">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
-          <div className="flex min-w-0 flex-col gap-2.5">
+          <div className="flex min-w-0 flex-col gap-3">
             <BrandLockup className="self-start" />
             <p className="max-w-[34ch] text-[13px] font-medium leading-relaxed text-apple-ink-muted dark:text-white/55">
               {t('footer.trust')}
@@ -1693,11 +1694,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               iPhone · Android · Windows · macOS · Linux
             </p>
           </div>
-          {/* On a phone the five links are one even band across the column,
-              not a left-hugging cluster with a ragged tail — the same width
-              the brand block occupies, so the footer reads as one grid. From
-              sm up they go back to a tight right-aligned group. */}
-          <nav aria-label={t('footer.read')} className="flex w-full items-center justify-between gap-x-3 sm:w-auto sm:justify-end sm:gap-x-4">
+          {/* A two-column phone grid gives translated labels room to wrap
+              without squeezing targets. Desktop links form a quiet group. */}
+          <nav aria-label={t('footer.read')} className="grid w-full grid-cols-2 gap-x-6 sm:flex sm:w-auto sm:max-w-[55%] sm:flex-wrap sm:justify-end sm:gap-x-6">
             {[
               { label: t('nav.docs'), href: '/docs' },
               { label: t('nav.guides'), href: '/guides' },
@@ -1708,22 +1707,20 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <a
                 key={item.href}
                 href={item.href}
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-[13px] font-medium text-apple-ink-muted decoration-[1px] underline-offset-[5px] transition-colors hover:text-apple-ink hover:underline dark:text-white/60 dark:hover:text-white"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center text-[13px] font-medium text-apple-ink-muted decoration-[1px] underline-offset-[5px] transition-colors hover:text-apple-ink hover:underline dark:text-white/60 dark:hover:text-white"
               >
-                {item.label}
+                <span className="min-w-0 break-words [hyphens:auto]">{item.label}</span>
               </a>
             ))}
           </nav>
         </div>
-        {/* Language and copyright share one row at every width. Stacked on a
-            phone the globe sat alone above the ©, which read as a stray icon
-            rather than a footer baseline — and cost 44px of height for it. */}
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-black/[0.05] pt-4 dark:border-white/[0.06]">
+        {/* Let the utility row wrap naturally; never compress its targets. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 border-t border-black/[0.05] pt-4 dark:border-white/[0.06]">
           <div className="flex flex-wrap items-center gap-x-5">
             {/* The current language, named, opening the same sheet the header
                 uses — so a visitor never has to hunt for the switcher. */}
             <span className="inline-flex min-h-[44px] items-center">
-              <LanguageMenu />
+              <LanguageMenu inline />
             </span>
             {/* The maker sits with the language control, not across the row
                 with the copyright: both are "who and how you read this
@@ -2118,9 +2115,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 Keep the same source order as the phone, not a CSS reorder. */}
             <div className="w-full min-w-0">{idleHeroNode}</div>
           </div>
+          <LandingActivity />
           <BrowserCompatibility />
           <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
-          <WebsiteHandoff />
           <LandingFaq />
           {/* No repeat CTA down here. The hero already owns Send / Receive,
               and a second pair at the foot of the page made the same two
@@ -2233,9 +2230,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </ScreenStack>
                   {panelMode === 'idle' && (
                     <div className="w-full">
+                      <LandingActivity />
                       <BrowserCompatibility />
                       <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
-                      <WebsiteHandoff />
                       <LandingFaq />
                     </div>
                   )}

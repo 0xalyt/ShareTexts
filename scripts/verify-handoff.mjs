@@ -7,6 +7,7 @@ import { launchBrowser, clickStable, resolveEngine, gotoPage } from './lib.mjs';
 import jsQR from 'jsqr';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 import { verifyHeroPoster } from './verify-hero-poster.mjs';
+import { verifyLandingActivity } from './verify-landing-activity.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const browser = await launchBrowser();
@@ -47,6 +48,7 @@ try {
   check('loopback retains every other CSP directive', directives(local) === directives(external));
 
   await verifyHeroPoster(browser, BASE);
+  await verifyLandingActivity(browser, BASE);
 
   // Isolate capabilities from service-worker caching and the live worker's CORS.
   const noRtc = await browser.newContext({ serviceWorkers: 'block' });
@@ -131,11 +133,15 @@ try {
           clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom - .05 || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
           framing: Math.abs(picture.width / picture.height - (innerWidth <= 639 ? 4 / 3 : 16 / 9)) < .02 &&
             el.querySelector('video').poster.includes('-mobile-') === (innerWidth <= 639),
-          backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
+          bare: getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)' &&
+            parseFloat(getComputedStyle(el).paddingLeft) === 0 &&
+            Math.abs(picture.left - r.left) <= 1.1 && Math.abs(picture.right - r.right) <= 1.1,
+          joined: el.querySelector('.hero-film-play').getBoundingClientRect().width >= r.width - 4 &&
+            parseFloat(getComputedStyle(el.querySelector('.hero-film-controls')).marginTop) === 0,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
         };
       });
-      check(`${locale}/${width}: the correctly framed film has its own backdrop and tappable controls below the picture`, facts.framing && facts.backdrop && !facts.clipped && !facts.overflow);
+      check(`${locale}/${width}: the film has no extra backdrop and keeps an attached playback bar below its intact picture`, facts.framing && facts.bare && facts.joined && !facts.clipped && !facts.overflow);
       const guidePair = page.getByTestId('landing-guide-pair');
       const guideSend = page.getByTestId('landing-guide-send');
       check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
@@ -235,6 +241,18 @@ try {
       } else {
         check(`${locale}/${width}: headline is localized`, !(await page.locator('h1').innerText()).includes('Share'));
       }
+      const language = page.getByTestId('landing-footer').locator('button[aria-haspopup="dialog"]');
+      check(`${locale}/${width}: footer names the current language`, !!(await language.innerText()).trim());
+      await clickStable(page, language);
+      await page.getByTestId('language-sheet').waitFor({ state: 'visible' });
+      const languageFits = await page.getByTestId('language-sheet').evaluate(el => {
+        const r = el.getBoundingClientRect();
+        return r.left >= -1 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1;
+      });
+      check(`${locale}/${width}: the footer language chooser stays in the viewport`, languageFits);
+      await page.keyboard.press('Escape');
+      await page.getByTestId('language-sheet').waitFor({ state: 'hidden' });
+      check(`${locale}/${width}: Escape restores focus to the footer language`, await language.evaluate(el => el === document.activeElement));
       check(`${locale}/${width}: no runtime errors`, errors.length === 0);
       await ctx.close();
     }

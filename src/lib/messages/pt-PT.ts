@@ -15,6 +15,15 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  "home.roomsMade": "salas criadas",
+  "home.activity.title": "Atividade das salas",
+  "home.three.heading": "Um código liga os seus dispositivos.",
+  "home.later.heading": "Textos e ligações para mais tarde.",
+  "home.faq.heading": "Antes de enviar",
+  "home.faq.more": "Ler o guia",
+  "home.faq.q2": "Os dois dispositivos têm de estar online?",
+  "home.faq.a2": "Para Enviar e Receber, mantenha o ShareTexts aberto nos dois dispositivos. Para deixar textos e ligações para mais tarde, use um Espaço temporário.",
+  "home.faq.a7": "Texto, ligações e qualquer tipo de ficheiro, incluindo fotografias, vídeos, PDF e arquivos comprimidos. Os ficheiros mantêm a qualidade original.",
   'space.createSub': 'Um espaço partilhado para este dispositivo e os que convidar. Fecha-se automaticamente.',
   'space.defaultName': 'Espaço partilhado',
   'space.empty': 'Comece com uma nota',
@@ -23,7 +32,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   'reading.englishOnly': "Esta página está atualmente disponível apenas em inglês.",
   'footer.devices': 'Os seus dispositivos',
   'demo.s7': 'Feche a sala quando terminar.',
-  'home.faq.a6': 'As salas em direto são encriptadas em trânsito. O serviço emite o segredo da sala, pelo que não é um sistema de conhecimento zero. Os Espaços temporários guardam textos e ligações no servidor até serem fechados ou expirarem. Os itens guardados ficam no navegador. Consulte a política de privacidade.',
+  "home.faq.a6": "As salas em direto são encriptadas durante o envio. O ShareTexts fornece as chaves da sala. Os Espaços temporários guardam textos e ligações no servidor até serem fechados ou expirarem. Os itens guardados ficam no seu navegador. Consulte a política de privacidade.",
   'home.faq.a1': 'Mova textos, ligações, fotografias e ficheiros entre os seus dispositivos. Use uma sala em direto para enviar no momento, ou um Espaço temporário para recolher textos e ligações mais tarde.',
   'app.ended.sub': 'Não precisa de conta. Os itens guardados ficam neste navegador.',
   'film.download': "Descarregar o filme",
@@ -37,8 +46,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   'film.watch': "Ver o filme",
   // mouth: the home screen
   'home.subheading': 'Chegou o AirDrop para todos',
-  'home.subtitle':
-    'Textos, ligações, fotografias e ficheiros. Abra esta página nos dois dispositivos.',
+  "home.subtitle": "Textos, ligações, fotografias, vídeos e ficheiros. Sem aplicação nem conta.",
   'home.how.1': 'Abra o ShareTexts nos dois dispositivos.',
 
   // files and what you do with them
