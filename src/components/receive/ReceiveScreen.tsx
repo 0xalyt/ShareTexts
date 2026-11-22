@@ -105,7 +105,7 @@ export function ReceiveScreen({
       data-testid="receive-screen"
     >
       <div className="st-pairing-content min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
-        <h2 className="text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
+        <h2 className="text-[34px] font-medium leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
           {t('receive.titleShort')}
         </h2>
         <p className="st-task-intro">
@@ -161,7 +161,7 @@ export function ReceiveScreen({
                 id="receive-code-error"
                 role="alert"
                 data-testid="receive-field-error"
-                className="flex items-start gap-1.5 text-[13px] font-medium leading-[1.35] text-status-danger-ink dark:text-status-danger-ink-dark [text-wrap:balance]"
+                className="flex items-start gap-1.5 text-[13px] font-normal leading-[1.35] text-status-danger-ink dark:text-status-danger-ink-dark [text-wrap:balance]"
               >
                 <AlertCircle className="mt-[1px] h-3.5 w-3.5 shrink-0" aria-hidden />
                 <span>{error.kind === 'code' ? t('receive.wrongCode') : error.text}</span>
@@ -181,11 +181,11 @@ export function ReceiveScreen({
           disabled={!full || isJoining || accepted}
           aria-busy={isJoining || undefined}
           className={cn(
-            'press w-full min-h-[52px] rounded-[16px] text-[17px] font-semibold transition-colors [@media(max-height:520px)]:min-h-[44px]',
+            'press w-full min-h-[52px] rounded-[16px] text-[16px] font-medium transition-colors [@media(max-height:520px)]:min-h-[44px]',
             // Disabled is a NEUTRAL fill, not a faded ember: white on 40% orange
             // measured 3.21:1, and a grey button is unmistakably not tappable.
             full && !isJoining
-              ? 'bg-[#f06413] text-white'
+              ? 'bg-ember-ink text-white'
               : 'bg-apple-parchment dark:bg-white/[0.10] text-apple-ink dark:text-white/70',
           )}
           data-testid="receive-join"
@@ -196,7 +196,7 @@ export function ReceiveScreen({
         <button
           onClick={onScan}
           disabled={isJoining || accepted}
-          className="press mt-4 w-full min-h-[48px] flex items-center justify-center gap-2 rounded-full bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 text-[16px] font-semibold text-apple-ink dark:text-white"
+          className="press mt-4 w-full min-h-[48px] flex items-center justify-center gap-2 rounded-full bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 text-[15px] font-medium text-apple-ink dark:text-white"
           data-testid="receive-scan"
         >
           <QrCode className="w-4 h-4 text-apple-ink-muted dark:text-white/70" aria-hidden /> {t('receive.scan')}

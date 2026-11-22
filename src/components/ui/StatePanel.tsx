@@ -38,6 +38,7 @@ export function StatePanel({
   action,
   secondary,
   icon,
+  illustration,
   testId,
   className,
   children,
@@ -51,6 +52,8 @@ export function StatePanel({
   secondary?: { label: string; onClick: () => void; testId?: string };
   /** Override the family glyph; the tile, size and colour stay the same. */
   icon?: React.ReactNode;
+  /** Full drawing, without the glyph's surrounding tile. */
+  illustration?: React.ReactNode;
   testId?: string;
   className?: string;
   /** Extra content under the copy — the skeleton rows, for `loading`. */
@@ -75,21 +78,21 @@ export function StatePanel({
       aria-live={kind === 'loading' ? 'polite' : undefined}
       className={cn(
         // One frame for all three: same padding, same measure, same floor.
-        'flex h-[300px] min-h-[300px] w-full flex-col items-start justify-center px-5 py-6 text-start',
+        'flex min-h-[300px] w-full flex-col items-start justify-center px-5 py-6 text-start',
         className,
       )}
     >
-      <span
+      {illustration ? <span className="st-state-illustration" aria-hidden>{illustration}</span> : <span
         className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', TILE[kind])}
         aria-hidden
       >
         {glyph}
-      </span>
-      <p className="mt-3.5 text-[16px] font-semibold leading-snug text-apple-ink dark:text-white">
+      </span>}
+      <p className="mt-4 text-[16px] font-medium leading-snug text-apple-ink dark:text-white">
         {title}
       </p>
       {body && (
-        <p className="mt-1.5 max-w-[46ch] text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">
+        <p className="mt-1.5 max-w-[46ch] text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/65">
           {body}
         </p>
       )}
@@ -98,7 +101,7 @@ export function StatePanel({
           type="button"
           onClick={action.onClick}
           data-testid={action.testId}
-          className="press mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-ember px-5 text-[13px] font-semibold text-white transition-colors hover:bg-brand-strong"
+          className="press mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-ember-ink px-5 text-[13px] font-medium text-white transition-colors hover:bg-ember-ink-hover"
         >
           {action.label}
         </button>
@@ -108,7 +111,7 @@ export function StatePanel({
           type="button"
           onClick={secondary.onClick}
           data-testid={secondary.testId}
-          className="press mt-1 inline-flex min-h-[44px] items-center text-[13px] font-semibold text-ember-ink transition-colors hover:underline dark:text-azure-400"
+          className="press mt-1 inline-flex min-h-[44px] items-center text-[13px] font-medium text-ember-ink transition-colors hover:underline dark:text-azure-400"
         >
           {secondary.label}
         </button>

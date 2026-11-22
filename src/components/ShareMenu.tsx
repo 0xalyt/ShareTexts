@@ -158,10 +158,10 @@ export function ShareMenu({
         aria-label={ariaLabel ?? t('space.share')}
         onClick={() => setOpen(o => !o)}
         className={cn(
-          'flex items-center justify-center transition-colors active:scale-[0.96]',
+          'flex items-center justify-center transition-colors active:scale-[0.97]',
           variant === 'pill'
             ? cn(
-                'gap-2 h-11 w-full px-5 rounded-full text-[13px] font-semibold',
+                'gap-2 h-11 w-full px-5 rounded-full text-[13px] font-medium',
                 pillTone === 'brand'
                   // The one button grammar (§6): flat orange, 3px edge that
                   // shrinks on press. No brightness filter, no gradient.
@@ -196,7 +196,7 @@ export function ShareMenu({
             {/* micro-caption — the original's tracked-out label above the rail */}
             <p
               aria-hidden
-              className="mb-2 px-0.5 text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
+              className="mb-2 px-0.5 text-[13px] font-normal tracking-normal text-apple-ink-muted dark:text-white/65"
             >
               {t('action.share')}
             </p>
@@ -212,14 +212,14 @@ export function ShareMenu({
                     onClick={cell.onClick}
                     className={cn(
                       'flex-1 min-w-0 min-h-[48px] flex flex-col items-center justify-center gap-1.5 px-1 py-2 rounded-[12px]',
-                      'text-apple-ink dark:text-white/85 transition-colors active:scale-[0.96]',
+                      'text-apple-ink dark:text-white/85 transition-colors active:scale-[0.97]',
                       cell.id === 'code' && done === 'code'
                         ? 'bg-status-success/10 text-status-success'
                         : 'hover:bg-apple-parchment dark:hover:bg-white/[0.07]'
                     )}
                   >
                     <span className="[&>svg]:w-4 [&>svg]:h-4">{cell.icon}</span>
-                    <span className="w-full text-center text-[12px] font-semibold leading-tight truncate">
+                    <span className="w-full text-center text-[12px] font-medium leading-tight truncate">
                       {cell.label}
                     </span>
                   </button>
@@ -234,7 +234,7 @@ export function ShareMenu({
               onClick={() => { void copy(url, 'link'); }}
               className={cn(
                 'mt-2 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border px-3 py-2',
-                'text-[12px] font-semibold transition-colors active:scale-[0.96]',
+                'text-[12px] font-medium transition-colors active:scale-[0.97]',
                 done === 'link'
                   ? 'border-status-success/40 bg-status-success/10 text-status-success'
                   : 'border-apple-divider dark:border-white/10 text-apple-ink dark:text-white/85 hover:bg-apple-parchment dark:hover:bg-white/[0.07]'

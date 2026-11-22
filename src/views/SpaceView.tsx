@@ -22,6 +22,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AlloSymbol } from '../components/AlloSymbol';
+import { SceneSpace } from '../components/art/Scenes';
 import { LogoTraceLoader } from '../components/LogoTraceLoader';
 import { QrArt } from '../components/qr/QrArt';
 import { Bar } from '../components/SkeletonScreen';
@@ -73,15 +74,9 @@ function isUrlLike(s: string): boolean {
 
 function SpaceEmptyState({ canUploadFiles }: { canUploadFiles: boolean }) {
   const { t } = useI18n();
-  const reduceMotion = useMotionPreference();
   return (
     <section className="st-space-empty" data-testid="space-empty" aria-labelledby="space-empty-title">
-      {/* A single state arrival, not an idle loop. The words are immediate. */}
-      <motion.span className="st-space-empty-mark" aria-hidden
-        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }} transition={fade(DUR.medium)}>
-        <FileText className="w-10 h-10" strokeWidth={1.5} />
-      </motion.span>
+      <span className="st-space-empty-mark" aria-hidden><SceneSpace size={132} /></span>
       <div className="st-space-empty-copy">
         <h2 id="space-empty-title">{t('space.empty')}</h2>
         <p id="space-empty-hint">{t(canUploadFiles ? 'space.emptyHint' : 'space.emptyTextHint')}</p>
@@ -101,7 +96,7 @@ function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: numb
   const color =
     tier === 'imminent' ? 'text-red-600 dark:text-red-400'
     : tier === 'soon' && runningOut ? 'text-amber-600 dark:text-amber-400'
-    : 'text-apple-ink-muted dark:text-white/50';
+    : 'text-apple-ink-muted dark:text-white/65';
   if (left <= 0) return null;
   return (
     <span className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium tabular-nums ${color}`}>
@@ -110,7 +105,7 @@ function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: numb
         <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="2" pathLength="1" strokeDasharray={`${fraction} 1`} strokeLinecap="round" />
       </svg>
       <span className="truncate">{t('space.closesIn', { time: remainingShort(left) })}</span>
-      <span className="hidden shrink-0 whitespace-nowrap sm:inline text-apple-ink-muted/60 dark:text-white/35">· {closingTime(lang, expiresAt)}</span>
+      <span className="hidden shrink-0 whitespace-nowrap sm:inline text-apple-ink-muted dark:text-white/65">· {closingTime(lang, expiresAt)}</span>
     </span>
   );
 }
@@ -248,7 +243,7 @@ function ItemCard({
           ) : (
             <span className="relative flex items-center justify-center h-44 overflow-hidden">
               <span className="st-skeleton w-full h-full absolute inset-0" aria-hidden />
-              <ImageIcon className="w-6 h-6 text-apple-ink-muted/40 dark:text-white/25 relative" aria-hidden />
+              <ImageIcon className="w-6 h-6 text-apple-ink-muted dark:text-white/25 relative" aria-hidden />
             </span>
           )}
         </button>
@@ -277,11 +272,11 @@ function ItemCard({
             </span>
             <span className="min-w-0">
               <span className="st-label block text-[16px] text-apple-ink dark:text-white/90 truncate">{item.name || 'file'}</span>
-              <span className="st-meta block text-apple-ink-muted dark:text-white/50">{fmtSize(item.size)}{PREVIEWABLE.test(item.mime) ? '' : ` · ${t('space.downloadOnly')}`}</span>
+              <span className="st-meta block text-apple-ink-muted dark:text-white/65">{fmtSize(item.size)}{PREVIEWABLE.test(item.mime) ? '' : ` · ${t('space.downloadOnly')}`}</span>
             </span>
           </div>
         )}
-        <div className="mt-2.5 flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 text-[12px] text-apple-ink-muted/80 dark:text-white/40">
+        <div className="mt-2.5 flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 text-[12px] text-apple-ink-muted dark:text-white/65">
           <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
           <button type="button" className="st-space-item-more flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full hover:bg-black/[0.05] dark:hover:bg-white/[0.08]" aria-label={t('nav.more')} aria-expanded={actionsOpen} onClick={() => setActionsOpen(v => !v)}>
             <MoreHorizontal className="h-4 w-4" aria-hidden />
@@ -364,7 +359,7 @@ function UploadRow({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[16px] font-medium text-apple-ink dark:text-white/90 truncate">{up.name}</span>
-          <span className="block text-[12px] text-apple-ink-muted dark:text-white/50" aria-live="polite">
+          <span className="block text-[12px] text-apple-ink-muted dark:text-white/65" aria-live="polite">
             {label}{pctText}
           </span>
           {failed && up.progress.error && (
@@ -403,14 +398,14 @@ function UploadRow({
         {failed && (
           <>
             <button
-              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] text-[12px] font-semibold text-azure-600 dark:text-azure-400 hover:bg-azure-500/[0.08]"
+              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] text-[12px] font-medium text-azure-600 dark:text-azure-400 hover:bg-azure-500/[0.08]"
               onClick={() => onRetry(up.key)}
               data-testid="space-upload-retry"
             >
               {t('space.retry')}
             </button>
             <button
-              className="shrink-0 inline-flex items-center justify-center rounded-full p-1.5 min-h-[44px] min-w-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+              className="shrink-0 inline-flex items-center justify-center rounded-full p-1.5 min-h-[44px] min-w-[44px] text-apple-ink-muted dark:text-white/65 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
               onClick={() => onDismiss(up.key)}
               aria-label={t('space.cancelUpload')}
             >
@@ -420,7 +415,7 @@ function UploadRow({
         )}
         {cancelled && (
           <button
-            className="shrink-0 inline-flex items-center justify-center rounded-full p-1.5 min-h-[44px] min-w-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            className="shrink-0 inline-flex items-center justify-center rounded-full p-1.5 min-h-[44px] min-w-[44px] text-apple-ink-muted dark:text-white/65 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             onClick={() => onDismiss(up.key)}
             aria-label={t('space.cancelUpload')}
           >
@@ -515,8 +510,8 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
 
   return (
     <OverlaySheet open={open} onClose={onClose} label={t('space.createHeading')} maxWidth={460} testId="space-create">
-      <h2 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">{t('space.createHeading')}</h2>
-        <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{t('space.createSub')}</p>
+      <h2 className="text-[17px] font-medium text-apple-ink dark:text-white tracking-[-0.01em]">{t('space.createHeading')}</h2>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/65">{t('space.createSub')}</p>
 
         {/* The code IS the share: whoever types it joins. Available codes
             confirm inline; taken codes suggest a replacement. */}
@@ -537,19 +532,19 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
             maxLength={9}
             autoFocus
             aria-describedby="space-code-hint"
-            className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-[16px] font-mono font-semibold tracking-[0.12em] uppercase text-apple-ink dark:text-white placeholder:text-apple-ink-muted/40 dark:placeholder:text-white/25 outline-none focus:ring-2 focus:ring-azure-500/40"
+            className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-[16px] st-code font-sans font-medium tracking-[0.12em] uppercase text-apple-ink dark:text-white placeholder:text-apple-ink-muted/40 dark:placeholder:text-white/25 outline-none focus:ring-2 focus:ring-azure-500/40"
             data-testid="space-code-input"
           />
           <button
             type="button"
             onClick={generateCode}
-            className="shrink-0 min-h-[44px] min-w-[44px] px-3.5 rounded-[12px] text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
+            className="shrink-0 min-h-[44px] min-w-[44px] px-3.5 rounded-[12px] text-[13px] font-medium text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
             data-testid="space-code-generate"
           >
             {t('space.codeGenerate')}
           </button>
         </div>
-        <p id="space-code-hint" className="mt-1.5 text-[12px] leading-relaxed text-apple-ink-muted/80 dark:text-white/40" aria-live="polite" data-testid="space-code-status">
+        <p id="space-code-hint" className="mt-1.5 text-[12px] leading-relaxed text-apple-ink-muted dark:text-white/65" aria-live="polite" data-testid="space-code-status">
           {codeState === 'idle' ? t('space.codeHint')
             : codeState === 'checking' ? t('space.codeChecking')
             : codeState === 'available' ? t('space.codeAvailable')
@@ -577,7 +572,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
           <p className="mt-2 text-[13px] text-apple-ink-muted dark:text-white/60" aria-live="polite">
             {t('space.closesIn', { time: remainingShort(duration) })} · {closingTime(lang, Date.now() + duration)}
           </p>
-          <p className="mt-2 text-[12px] text-apple-ink-muted dark:text-white/45">{t('space.durationMax')}</p>
+          <p className="mt-2 text-[12px] text-apple-ink-muted dark:text-white/65">{t('space.durationMax')}</p>
         </fieldset>
 
         {/* Name and reminders are optional; the lifetime above is always visible. */}
@@ -606,7 +601,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
             onChange={e => setRemind(e.target.checked)}
             className="w-4 h-4 accent-azure-600"
           />
-          <span className={`text-[13px] ${support === 'supported' ? 'text-apple-ink dark:text-white/80' : 'text-apple-ink-muted/60 dark:text-white/35'}`}>
+          <span className={`text-[13px] ${support === 'supported' ? 'text-apple-ink dark:text-white/80' : 'text-apple-ink-muted dark:text-white/65'}`}>
             {support === 'supported' ? t('space.remindLabel') : t('space.remindUnavailable')}
           </span>
         </label>
@@ -704,8 +699,8 @@ export function SpaceJoinSheet({ open, onClose, initialCode }: { open: boolean; 
 
   return (
     <OverlaySheet open={open} onClose={onClose} label={t('space.joinTitle')} maxWidth={420} testId="space-join">
-      <h2 className="text-[17px] font-semibold text-apple-ink dark:text-white tracking-[-0.01em]">{t('space.joinTitle')}</h2>
-        <p className="mt-1.5 text-[13px] text-apple-ink-muted dark:text-white/55">{t('space.joinSub')}</p>
+      <h2 className="text-[17px] font-medium text-apple-ink dark:text-white tracking-[-0.01em]">{t('space.joinTitle')}</h2>
+        <p className="mt-1.5 text-[13px] text-apple-ink-muted dark:text-white/65">{t('space.joinSub')}</p>
         <input
           ref={inputRef}
           value={formatSpaceCode(code)}
@@ -719,7 +714,7 @@ export function SpaceJoinSheet({ open, onClose, initialCode }: { open: boolean; 
           maxLength={9}
           aria-label={t('space.codeLabel')}
           aria-describedby="space-join-status"
-          className="mt-4 w-full rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-4 py-3.5 text-[20px] font-mono font-semibold tracking-[0.14em] uppercase text-center text-apple-ink dark:text-white placeholder:text-apple-ink-muted/40 dark:placeholder:text-white/25 outline-none focus:ring-2 focus:ring-azure-500/40"
+          className="mt-4 w-full rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-4 py-3.5 text-[20px] st-code font-sans font-medium tracking-[0.14em] uppercase text-center text-apple-ink dark:text-white placeholder:text-apple-ink-muted/40 dark:placeholder:text-white/25 outline-none focus:ring-2 focus:ring-azure-500/40"
           data-testid="space-join-code-input"
           autoFocus
         />
@@ -735,7 +730,7 @@ export function SpaceJoinSheet({ open, onClose, initialCode }: { open: boolean; 
         >
           {busy ? t('space.joining') : t('space.joinCta')}
         </TactileButton>
-        <p className="mt-3 text-[12px] leading-relaxed text-apple-ink-muted/70 dark:text-white/35">
+        <p className="mt-3 text-[12px] leading-relaxed text-apple-ink-muted dark:text-white/65">
           {t('space.joinLinkFallback')}
         </p>
     </OverlaySheet>
@@ -780,19 +775,19 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
   };
   return (
     <OverlaySheet open={open} onClose={onClose} label={t('space.share')} maxWidth={420} testId="space-share">
-      <h2 className="text-[17px] font-semibold text-apple-ink dark:text-white">{t('space.share')}</h2>
+      <h2 className="text-[17px] font-medium text-apple-ink dark:text-white">{t('space.share')}</h2>
         {code ? (
           <>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{t('space.codeShareHint')}</p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/65">{t('space.codeShareHint')}</p>
             {/* CODE is the share — the human-readable code owns the top of
                 the sheet; everything else is a way to hand it over. */}
             <div className="mt-4 rounded-[16px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.04] px-4 py-3.5 text-center">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/80 dark:text-white/45">{t('space.codeDisplayLabel')}</p>
-              <p className="mt-1 font-mono text-[30px] font-bold tracking-[0.1em] text-apple-ink dark:text-white leading-none" data-testid="space-share-code">{formatSpaceCode(code)}</p>
+              <p className="text-[13px] font-normal tracking-normal text-apple-ink-muted dark:text-white/65">{t('space.codeDisplayLabel')}</p>
+              <p className="mt-1 st-code font-sans text-[30px] font-normal tracking-[0.1em] text-apple-ink dark:text-white leading-none" data-testid="space-share-code">{formatSpaceCode(code)}</p>
             </div>
             <button
               onClick={() => void copy('code')}
-              className="mt-3 w-full min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold bg-apple-ink dark:bg-white text-white dark:text-night-900 active:scale-[0.96] transition-transform"
+              className="mt-3 w-full min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-medium bg-apple-ink dark:bg-white text-white dark:text-night-900 active:scale-[0.97] transition-transform"
               data-testid="space-share-copy-code"
             >
               {copied === 'code' ? <AlloSymbol name="check" size={16} className="w-4 h-4" /> : <Copy className="w-4 h-4" aria-hidden />}
@@ -803,7 +798,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
                 onClick={() => setShowQr(v => !v)}
                 aria-expanded={showQr}
                 aria-controls="space-invite-qr"
-                className="flex-[1_1_140px] px-3 py-2 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
+                className="flex-[1_1_140px] px-3 py-2 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-medium text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
                 data-testid="space-share-qr"
               >
                 <QrCode className="w-4 h-4 shrink-0" aria-hidden /> {t(showQr ? 'space.hideQr' : 'space.showQr')}
@@ -811,7 +806,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               {canNativeShare && (
                 <button
                   onClick={() => void nativeShare()}
-                  className="flex-[1_1_120px] px-3 py-2 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
+                  className="flex-[1_1_120px] px-3 py-2 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-medium text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
                   data-testid="space-share-native"
                 >
                   <Share2 className="w-4 h-4 shrink-0" aria-hidden /> {t('space.share')}
@@ -827,7 +822,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
             )}
           </>
         ) : (
-          <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{t('space.shareHint')}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/65">{t('space.shareHint')}</p>
         )}
         <button
           onClick={() => void copy('link')}
@@ -845,7 +840,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               readOnly value={copyFailed === 'code' ? formatSpaceCode(code || '') : link}
               aria-label={copyFailed === 'code' ? t('space.codeDisplayLabel') : t('send.tab.link')}
               onFocus={e => e.currentTarget.select()}
-              className="w-full min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink dark:text-white font-mono"
+              className="w-full min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink dark:text-white font-sans"
               data-testid="space-share-manual-copy"
             />
           </div>
@@ -960,11 +955,11 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center bg-apple-canvas dark:bg-night-900">
         <div className="w-[64px] h-[64px] rounded-[24px] bg-white dark:bg-surface-dark border border-apple-divider/70 dark:border-white/[0.08] flex items-center justify-center mb-5">
-          <Clock className="w-7 h-7 text-apple-ink-muted dark:text-white/50" />
+          <Clock className="w-7 h-7 text-apple-ink-muted dark:text-white/65" />
         </div>
         <h1 className="st-h3 text-apple-ink dark:text-white">{t('space.closedTitle')}</h1>
-        <p className="mt-2 text-[16px] text-apple-ink-muted dark:text-white/55 max-w-sm">{t('space.closedBody')}</p>
-        <button onClick={() => { window.location.href = '/'; }} className="mt-7 px-6 min-h-[46px] rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[16px] font-semibold">
+        <p className="mt-2 text-[16px] text-apple-ink-muted dark:text-white/65 max-w-sm">{t('space.closedBody')}</p>
+        <button onClick={() => { window.location.href = '/'; }} className="mt-7 px-6 min-h-[46px] rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[15px] font-medium">
           {t('space.backHome')}
         </button>
       </div>
@@ -975,8 +970,8 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center bg-apple-canvas dark:bg-night-900">
         <h1 className="st-h3 text-apple-ink dark:text-white">{t('space.errTitle')}</h1>
-        <p className="mt-2 text-[16px] text-apple-ink-muted dark:text-white/55 max-w-sm">{t('space.errGeneric')}</p>
-        <button onClick={() => window.location.reload()} className="mt-7 px-6 min-h-[46px] rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[16px] font-semibold">
+        <p className="mt-2 text-[16px] text-apple-ink-muted dark:text-white/65 max-w-sm">{t('space.errGeneric')}</p>
+        <button onClick={() => window.location.reload()} className="mt-7 px-6 min-h-[46px] rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[15px] font-medium">
           {t('space.retry')}
         </button>
       </div>
@@ -1015,7 +1010,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             <AlloSymbol name="left" size={18} className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
           </a>
           <div className="st-space-identity min-w-0 flex-1">
-            <h1 className="text-[16px] font-semibold tracking-[-0.02em] text-apple-ink dark:text-white truncate leading-tight">{snapshot?.name || '…'}</h1>
+            <h1 className="text-[16px] font-medium tracking-[-0.02em] text-apple-ink dark:text-white truncate leading-tight">{snapshot?.name || '…'}</h1>
             {snapshot && (
               <Countdown expiresAt={snapshot.expiresAt} now={nowMs} createdAt={snapshot.createdAt} />
             )}
@@ -1027,7 +1022,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               }}
               title={t('space.copyCode')}
               aria-label={`${t('space.codeDisplayLabel')}: ${formatSpaceCode(spaceCode)}. ${t('space.copyCode')}`}
-              className="st-chip st-chip-ember shrink-0 hidden sm:inline-flex min-h-11 font-mono tracking-[0.1em]"
+              className="st-chip st-chip-ember shrink-0 hidden sm:inline-flex min-h-11 st-code font-sans tracking-[0.1em]"
               data-testid="space-code-chip"
             >
               {formatSpaceCode(spaceCode)}
@@ -1046,7 +1041,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             onClick={() => setShareOpen(true)}
             aria-label={t('space.share')}
             title={t('space.share')}
-            className="st-space-share shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full text-[13px] font-semibold active:scale-[0.96] transition-transform"
+            className="st-space-share shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full text-[13px] font-medium active:scale-[0.97] transition-transform"
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5 shrink-0" />
@@ -1074,7 +1069,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             new ones are built in under the ring. */}
         <PullToRefresh scroller={scrollEl} onRefresh={resync} />
         {conn === 'offline' && (
-          <p className="mb-3 text-[12px] font-medium text-amber-600 dark:text-amber-400" role="status">{t('space.reconnecting')}</p>
+          <p className="mb-3 text-[12px] font-normal text-amber-600 dark:text-amber-400" role="status">{t('space.reconnecting')}</p>
         )}
         <AnimatePresence>
           {notice && (
@@ -1093,7 +1088,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         {/* Near expiry says exactly what happens next — calm and truthful,
             no manufactured urgency. Same trigger as the header hairline. */}
         {snapshot && closingSoon && (
-          <p className="mb-3 inline-flex items-center gap-1.5 text-[12px] font-medium text-ember" role="status" data-testid="space-closing-note">
+          <p className="mb-3 inline-flex items-center gap-1.5 text-[12px] font-normal text-ember" role="status" data-testid="space-closing-note">
             <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden />
             {t('space.closesSoonNote')}
           </p>
@@ -1107,7 +1102,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
                 <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-status-success" aria-hidden />
                 {m.name}
                 {m.participantId === snapshot.participantId && (
-                  <span className="text-apple-ink-muted/70 dark:text-white/40 font-normal">· {t('space.thisDevice')}</span>
+                  <span className="text-apple-ink-muted dark:text-white/65 font-normal">· {t('space.thisDevice')}</span>
                 )}
               </li>
             ))}
@@ -1217,7 +1212,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             onClick={submitText}
             disabled={!composer.trim()}
             aria-label={t('space.addText')}
-            className="shrink-0 w-11 h-11 rounded-full bg-ember text-white flex items-center justify-center disabled:opacity-40 active:scale-[0.96] transition-transform"
+            className="shrink-0 w-11 h-11 rounded-full bg-ember text-white flex items-center justify-center disabled:opacity-40 active:scale-[0.97] transition-transform"
             data-testid="space-send"
           >
             <ArrowUp className="w-5 h-5" strokeWidth={2.4} />
@@ -1229,7 +1224,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       {dragOver && canUploadFiles && (
         <div className="fixed inset-0 z-[70] pointer-events-none flex items-center justify-center">
           <div className="absolute inset-0 bg-azure-600/[0.06] dark:bg-azure-400/[0.08] border-2 border-dashed border-azure-500/50 rounded-none" />
-          <span className="relative rounded-full bg-white dark:bg-surface-dark shadow-lg px-5 py-2.5 text-[16px] font-semibold text-apple-ink dark:text-white">
+          <span className="relative rounded-full bg-white dark:bg-surface-dark shadow-lg px-5 py-2.5 text-[16px] font-medium text-apple-ink dark:text-white">
             {t('space.dropToAdd')}
           </span>
         </div>

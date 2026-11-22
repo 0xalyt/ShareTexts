@@ -60,19 +60,19 @@ export function ListRow({
         className,
       )}
     >
-      {leading ? <span className="flex h-8 w-8 shrink-0 items-center justify-center text-apple-ink-muted dark:text-white/55">{leading}</span> : null}
+      {leading ? <span className="flex h-8 w-8 shrink-0 items-center justify-center text-apple-ink-muted dark:text-white/65">{leading}</span> : null}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-[16px] font-medium leading-tight text-apple-ink dark:text-white">{title}</span>
         {subtitle ? (
-          <span className="truncate text-[13px] font-medium text-apple-ink-muted dark:text-white/50">{subtitle}</span>
+          <span className="truncate text-[13px] font-medium text-apple-ink-muted dark:text-white/65">{subtitle}</span>
         ) : null}
       </span>
-      {trailing ? <span className="shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/50">{trailing}</span> : null}
+      {trailing ? <span className="shrink-0 text-[13px] font-medium text-apple-ink-muted dark:text-white/65">{trailing}</span> : null}
       {chevron ? (
         <AlloSymbol
           name="next"
           size={14}
-          className="h-4 w-4 shrink-0 text-apple-ink-muted/60 transition-colors duration-200 dark:text-white/30 motion-reduce:transition-none"
+          className="h-4 w-4 shrink-0 text-apple-ink-muted transition-colors duration-200 dark:text-white/65 motion-reduce:transition-none"
         />
       ) : null}
     </Pressable>

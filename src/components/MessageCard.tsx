@@ -158,14 +158,14 @@ const ReactionBar: React.FC<{ msg: ChatMessage; disabled?: boolean }> = ({ msg, 
           aria-label={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           title={r.mine ? t('msg.removeReaction', { emoji }) : t('msg.reactWith', { emoji })}
           data-testid={`reaction-chip-${emoji}`}
-          className="group/chip flex items-center justify-center min-h-11 min-w-11 px-0.5 transition-motion active:scale-[0.96]"
+          className="group/chip flex items-center justify-center min-h-11 min-w-11 px-0.5 transition-motion active:scale-[0.97]"
         >
           {/* The hit box is 44px; the VISIBLE pill stays 26px inside it. The
               touch contract and the visual weight are both satisfied — a
               44px pill would out-shout the message it is attached to. */}
           <span
             className={cn(
-              'flex items-center gap-1 h-[26px] pl-1.5 pr-2 rounded-full border text-[12px] font-semibold select-none transition-colors',
+              'flex items-center gap-1 h-[26px] pl-1.5 pr-2 rounded-full border text-[12px] font-medium select-none transition-colors',
               r.mine
                 ? 'bg-ember/12 border-ember/40 text-brand-strong dark:text-azure-400'
                 : 'bg-black/[0.035] border-black/[0.08] text-apple-ink-muted dark:bg-white/[0.07] dark:border-white/10 group-hover/chip:border-black/20 dark:group-hover/chip:border-white/25'
@@ -333,7 +333,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
         {/* The tick carries the state in colour; the word stays quiet ink.
             A 12px label in full signal-green beside 16px message text made
             the receipt shout louder than the thing it confirms. */}
-        <span className="font-semibold text-apple-ink-muted dark:text-white/65">{label}</span>
+        <span className="font-medium text-apple-ink-muted dark:text-white/65">{label}</span>
       </span>
     );
   }
@@ -350,7 +350,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
         >
           <CheckCheck className="w-3.5 h-3.5" />
         </motion.span>
-        <span className="font-semibold text-apple-ink-muted dark:text-white/65">{label}</span>
+        <span className="font-medium text-apple-ink-muted dark:text-white/65">{label}</span>
       </span>
     );
   }
@@ -364,7 +364,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
       >
         <Check className="w-3.5 h-3.5" />
       </motion.span>
-      <span className="font-semibold">{label}</span>
+      <span className="font-medium">{label}</span>
     </span>
   );
 }
@@ -608,7 +608,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                 ? // Code / table shape: monospace + pre + horizontal scroll.
                   // overflow-x keeps columns aligned instead of wrapping and
                   // mangling the table the user pasted. break-words is OFF here.
-                  "font-mono text-[13px] whitespace-pre overflow-x-auto overscroll-x-contain"
+                  "font-sans text-[13px] whitespace-pre overflow-x-auto overscroll-x-contain"
                 : "break-words",
             )}
           >
@@ -619,7 +619,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             {isLargeText && !expanded && (
               <button
                 onClick={() => setExpanded(true)}
-                className="mt-1.5 flex min-h-11 items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
+                className="mt-1.5 flex min-h-11 items-center gap-1 text-[14px] font-medium active:opacity-70 text-apple-blue"
               >
                 <ChevronDown className="w-4 h-4" /> {t('msg.showFull')}
               </button>
@@ -627,7 +627,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             {isLargeText && expanded && (
               <button
                 onClick={() => setExpanded(false)}
-                className="mt-1.5 flex min-h-11 items-center gap-1 text-[16px] font-semibold active:opacity-70 text-apple-blue"
+                className="mt-1.5 flex min-h-11 items-center gap-1 text-[14px] font-medium active:opacity-70 text-apple-blue"
               >
                 <ChevronUp className="w-4 h-4" /> {t('msg.collapse')}
               </button>
@@ -642,13 +642,13 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
           <div className="mt-1 flex items-center justify-end gap-1.5">
             {msg.delivery === 'failed' ? (
               <>
-                <span className="text-[12px] font-semibold flex items-center gap-1 text-status-danger">
+                <span className="text-[12px] font-medium flex items-center gap-1 text-status-danger">
                   <AlertCircle className="w-3.5 h-3.5" /> {t('msg.couldNotSend')}
                 </span>
                 <button
                   onPointerDown={(e) => { e.preventDefault(); void retryText(msg.id); }}
                   onClick={(e) => { if (e.detail === 0) void retryText(msg.id); }}
-                  className="st-tap flex min-h-11 items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold transition-motion active:scale-[0.96] bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
+                  className="st-tap flex min-h-11 items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium transition-motion active:scale-[0.97] bg-apple-parchment dark:bg-apple-tile-2 text-apple-ink dark:text-white"
                 >
                   <RefreshCw className="w-3 h-3" /> {t('action.retry')}
                 </button>
@@ -664,13 +664,13 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                       <DeliveryTick state={messageState(msg)} onBlue />
                     )
                   ) : msg.source === 'push' ? (
-                    <span className="font-semibold flex items-center gap-1">
+                    <span className="font-medium flex items-center gap-1">
                       <Terminal className="w-3 h-3" /> {t('msg.fromPush')}
                     </span>
                   ) : (
                     /* Attribution beats a bare "Received": the message came
                         from a DEVICE — the name makes the bridge concrete. */
-                    <span className="font-semibold max-w-full truncate">{session.partnerName ? t('msg.fromDevice', { name: session.partnerName }) : t('msg.received')}</span>
+                    <span className="font-medium max-w-full truncate">{session.partnerName ? t('msg.fromDevice', { name: session.partnerName }) : t('msg.received')}</span>
                   )}
                   {showMeta && (
                     <span className="whitespace-nowrap">
@@ -685,7 +685,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   aria-label={t('msg.copyMessage')}
                   title={t('msg.copy')}
                   className={cn(
-                    "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] -mr-[15px] rounded-full transition-motion active:scale-[0.96]",
+                    "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] -mr-[15px] rounded-full transition-motion active:scale-[0.97]",
                     copied
                       ? "text-status-success"
                       : "text-apple-ink-muted hover:text-apple-ink dark:hover:text-white hover:bg-apple-divider/60 dark:hover:bg-apple-tile-3"
@@ -827,7 +827,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                       onError={() => setDecodeFailed(true)}
                     />
                   </motion.div>
-                  <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/60 text-white text-[12px] font-semibold opacity-90 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/60 text-white text-[12px] font-medium opacity-90 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <ZoomIn className="w-3.5 h-3.5" /> View
                   </span>
                 </button>
@@ -867,7 +867,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
             <div className="p-4 flex items-center gap-3.5 bg-apple-parchment/50 dark:bg-black/20">
               <TransferStamp name={a.name} mimeType={a.mimeType} complete={Boolean(complete)} />
               <div className="flex flex-col flex-1 truncate min-w-0">
-                <span className="text-[16px] font-semibold truncate text-apple-ink dark:text-white">{a.name}</span>
+                <span className="text-[16px] font-medium truncate text-apple-ink dark:text-white">{a.name}</span>
                 <span className="text-[12px] font-medium text-apple-ink-muted">
                   {formatBytes(a.size)}
                   {a.type === 'image' && decodeFailed && (
@@ -900,7 +900,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                       when we hold both timestamps; otherwise the classic
                       tick line. */}
                   {a.startedAt && a.completedAt && a.completedAt > a.startedAt ? (
-                    <span className="font-semibold flex items-center gap-1 text-status-success-ink dark:text-status-success-ink-dark">
+                    <span className="font-medium flex items-center gap-1 text-status-success-ink dark:text-status-success-ink-dark">
                       <Check className="w-3 h-3" /> {isMe
                         ? t('xfer.doneIn', { size: formatBytes(a.size), time: formatElapsed(a.completedAt - a.startedAt) })
                         // Receivers get the full story in one line: the object
@@ -912,13 +912,13 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                           : t('xfer.receivedIn', { size: formatBytes(a.size), time: formatElapsed(a.completedAt - a.startedAt) })}
                     </span>
                   ) : isMe ? <DeliveryTick state={messageState(msg)} onBlue /> : msg.source === 'push' ? (
-                    <span className="font-semibold flex items-center gap-1"><Terminal className="w-3 h-3" /> {t('msg.fromPush')}</span>
-                  ) : <span className="font-semibold">{t('xfer.receivedShort')}</span>}
+                    <span className="font-medium flex items-center gap-1"><Terminal className="w-3 h-3" /> {t('msg.fromPush')}</span>
+                  ) : <span className="font-medium">{t('xfer.receivedShort')}</span>}
                   {/* "Verified" explains itself in place — the term carries the
                       proof, so the footer never grows a footnote line. */}
                   {a.verified && (
                     <AnnotatedHint
-                      className="text-status-success-ink dark:text-status-success-ink-dark font-semibold"
+                      className="text-status-success-ink dark:text-status-success-ink-dark font-medium"
                       note={t('msg.verifiedTitle')}
                     >
                       <ShieldCheck className="w-3 h-3 mr-0.5" /> {t('msg.verified')}
@@ -940,10 +940,10 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
                   </span>
                 </span>
               ) : (
-                <span className={cn("text-[12px] font-semibold flex flex-wrap items-center gap-x-1.5", a.status === 'failed' ? "text-status-danger" : a.status === 'cancelled' || a.status === 'interrupted' ? "text-apple-ink-muted" : "text-apple-blue")}>
+                <span className={cn("text-[12px] font-medium flex flex-wrap items-center gap-x-1.5", a.status === 'failed' ? "text-status-danger" : a.status === 'cancelled' || a.status === 'interrupted' ? "text-apple-ink-muted" : "text-apple-blue")}>
                   {/* Who it's talking to, while bytes are moving. */}
                   {(a.status === 'sending' || a.status === 'receiving') && (session.partnerName || session.deviceName) && (
-                    <span className="text-apple-ink-muted dark:text-white/50 font-medium">
+                    <span className="text-apple-ink-muted dark:text-white/65 font-medium">
                       {t(isMe ? 'xfer.to' : 'xfer.from', { name: isMe ? session.partnerName : session.deviceName })} ·
                     </span>
                   )}
@@ -1039,8 +1039,8 @@ function LiveSpeed({ transferId, progressPct }: { transferId: string; progressPc
   const txt = formatSpeed(speed.bytesPerSec);
   const eta = formatEta(speed.etaSec);
   return (
-    <div className="flex items-center gap-2 pt-1.5 text-[12px] text-apple-ink-muted dark:text-white/40 tnum" aria-live="polite">
-      <span className="font-semibold text-apple-blue">{txt}</span>
+    <div className="flex items-center gap-2 pt-1.5 text-[12px] text-apple-ink-muted dark:text-white/65 tnum" aria-live="polite">
+      <span className="font-medium text-apple-blue">{txt}</span>
       {eta && <span>· {eta}</span>}
       <span className="hidden sm:inline">· {Math.round(progressPct * 100)}%</span>
     </div>
@@ -1116,7 +1116,7 @@ function BookmarkButton({ msg }: { msg: ChatMessage }) {
         disabled={bm.busy}
         data-testid="save-item"
         className={cn(
-          "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.96]",
+          "flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.97]",
           bm.error
             ? "text-status-danger"
             : bm.saved
@@ -1181,7 +1181,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
       disabled={disabled}
       data-testid={testId}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
+        "flex shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-medium transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
       compact ? "justify-center w-11 sm:w-auto sm:px-3" : "px-1.5 sm:px-3",
         active
           ? "bg-status-success/15 text-status-success shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
@@ -1304,7 +1304,7 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
         onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
         onClick={(e) => { if (e.detail === 0) onClose(); }}
         aria-label={t('common.close')}
-        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-[0.96]"
+        className="absolute top-4 right-4 w-11 h-11 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-black/75 transition-colors active:scale-[0.97]"
       >
         <X className="w-5 h-5" />
       </button>
@@ -1399,15 +1399,15 @@ function LinkCard({ url, onBlue }: { url: string; onBlue: boolean }) {
           <Link2 className="w-4 h-4" />
         </span>
         <span className="flex-1 min-w-0 flex flex-col leading-tight">
-          <span className="text-[14px] font-semibold text-apple-ink truncate dark:text-white" dir="auto">{title}</span>
+          <span className="text-[14px] font-medium text-apple-ink truncate dark:text-white" dir="auto">{title}</span>
           {showPreview && preview?.description ? (
-            <span className="mt-0.5 text-[12px] font-medium text-apple-ink-muted dark:text-white/45 line-clamp-2" dir="auto">{preview.description}</span>
+            <span className="mt-0.5 text-[12px] font-medium text-apple-ink-muted dark:text-white/65 line-clamp-2" dir="auto">{preview.description}</span>
           ) : subtitle ? (
-            <span className="mt-0.5 truncate text-[12px] font-medium text-apple-ink-muted/80 dark:text-white/40" dir="ltr">{subtitle}</span>
+            <span className="mt-0.5 truncate text-[12px] font-medium text-apple-ink-muted dark:text-white/65" dir="ltr">{subtitle}</span>
           ) : null}
         </span>
         <ArrowUpRight
-          className="w-4 h-4 shrink-0 text-apple-ink-muted/50 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 dark:text-white/35"
+          className="w-4 h-4 shrink-0 text-apple-ink-muted transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 dark:text-white/65"
           aria-hidden
         />
       </span>

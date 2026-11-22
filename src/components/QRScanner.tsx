@@ -78,7 +78,7 @@ export function QRScanner({ onScan, onErrorFallback, unavailableMessage }: { onS
       {errorBranch ? (
         <div className="flex flex-col items-center justify-center p-8 bg-apple-parchment dark:bg-apple-tile-1 rounded-[16px] text-center w-full max-w-[320px] mb-6">
           <CameraOff className="w-10 h-10 text-apple-ink-muted mb-4" />
-          <p className="text-[17px] font-medium text-apple-ink dark:text-white">{unavailableMessage ?? error}</p>
+          <p className="text-[17px] font-normal text-apple-ink dark:text-white">{unavailableMessage ?? error}</p>
           {/* The manual-code escape used to live here TOO — the same sentence,
               in a second colour, six pixels above the same control in the
               sheet below. One action, one place: the sheet owns it. */}

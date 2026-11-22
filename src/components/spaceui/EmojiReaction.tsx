@@ -588,7 +588,7 @@ export function EmojiReaction({
             asChild
               ? undefined
               : cn(
-                  'relative z-10 grid place-items-center rounded-full text-apple-ink-muted/70 transition-colors hover:text-apple-ink dark:text-white/45 dark:hover:text-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60',
+                  'relative z-10 grid place-items-center rounded-full text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/65 dark:hover:text-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60',
                   SURFACE,
                   s.trigger,
                 )
