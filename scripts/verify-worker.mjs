@@ -461,6 +461,14 @@ async function runInstantInvitation() {
   const malformed = await connect(new Room(new FakeCtx(), makeEnv()), uuid());
   const fallback = await malformed.send('create_room', { secret: 'not-a-secret', createdAt: Date.now() + 600_000 });
   check('malformed credential and far-future clock use server values', fallback.success && /^[A-Z2-7]{26}$/.test(fallback.secret) && Math.abs(fallback.createdAt - Date.now()) < 1000);
+  const fastInvitation = { ...makeInvitation(), createdAt: Date.now() + 290_000 };
+  const skewedRoom = new Room(new FakeCtx(), makeEnv());
+  const fastCreator = await connect(skewedRoom, fastInvitation.roomId);
+  const fastCreated = await fastCreator.send('create_room', fastInvitation);
+  check('a 290-second fast clock falls back inside the validation window', fastCreated.success && Math.abs(fastCreated.createdAt - Date.now()) < 1000);
+  const fastJoiner = await connect(skewedRoom, fastInvitation.roomId);
+  const initialCode = generateTOTP(fastInvitation.secret, Date.now()); // creator sees counter zero before acknowledgement
+  check('the provisional initial code still joins with a fast creator clock', (await fastJoiner.send('join_with_code', { code: initialCode, pid: uuid() })).success);
 }
 
 async function runRefreshCode() {

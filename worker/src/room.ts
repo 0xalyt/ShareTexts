@@ -1,5 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
-import { validateTOTP, base32Encode } from './totp';
+import { validateTOTP, base32Encode, TOTP_PERIOD } from './totp';
 import { json, dayKey, type Env } from './types';
 
 /**
@@ -861,8 +861,9 @@ export class Room extends DurableObject<Env> {
     const roomId = this.urlRoomId ?? crypto.randomUUID();
     const now = Date.now();
     // The anchor is an elapsed-time origin, not a trust credential. Bound
-    // client clock skew; legacy clients retain server-generated invitations.
-    const anchor = typeof payload?.createdAt === 'number' && Number.isFinite(payload.createdAt) && Math.abs(payload.createdAt - now) < 300_000
+    // client clock skew to less than two windows, inside validation's ±3
+    // tolerance. A further-ahead clock must not exclude the initial code.
+    const anchor = typeof payload?.createdAt === 'number' && Number.isFinite(payload.createdAt) && Math.abs(payload.createdAt - now) < 2 * TOTP_PERIOD * 1000
       ? payload.createdAt : now;
     // The creator's stable participant id rides the create payload (the
     // client proved nothing yet, but the room secret gates every later
