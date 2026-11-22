@@ -41,6 +41,9 @@ export const DUR = {
   long: 480,
 } as const;
 
+/** Overlap spacing, not an action delay. CSS mirrors --st-stagger-step. */
+export const STAGGER_STEP = 20;
+
 /** Easing curves — mirror of index.css --ease-* tokens. */
 export const EASE = {
   /** Default for entrances and ordinary transitions (index.css --ease-out). */

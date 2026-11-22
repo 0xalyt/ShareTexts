@@ -91,6 +91,9 @@ jobs:
           node scripts/start-ci-worker.mjs --restart
           BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
 
+      - name: Three-device encrypted relay files
+        run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-relay-files.mjs
+
       - name: Screenshots (this engine)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs
         continue-on-error: true

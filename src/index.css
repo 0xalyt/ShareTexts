@@ -845,6 +845,9 @@ html.dark .st-dotfield::after {
    consumed below (the visual-system gate deletes dead --st-* tokens). */
 :root {
   --st-dur-micro: 120ms;   /* press, toggle, copy-confirm, tooltip in */
+  --st-dur-short: 180ms;   /* small state changes */
+  --st-dur-medium: 280ms;  /* structural arrivals and completion seals */
+  --st-stagger-step: 20ms; /* overlapping choreography; STAGGER_STEP in tokens.ts */
   --st-dur-long: 480ms;    /* image settle — the longest UI beat */
 }
 
