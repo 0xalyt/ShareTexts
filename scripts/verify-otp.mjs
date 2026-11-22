@@ -47,7 +47,7 @@ ok('flat cell geometry: 48×56 (44×52 under 360px), radius 12, 8px gap, wider a
   && otp.includes('h-[52px]') && otp.includes('min-[360px]:h-14')
   && otp.includes('rounded-[12px]')
   && otp.includes("'justify-center gap-2'")
-  && otp.includes("index === 3 ? 'ml-2'"));
+  && /index === 3 (?:\?|&&) 'ml-2'/.test(otp));
 ok('flat cells wear the band, and the focus cell a 2px accent border',
   otp.includes("return 'bg-apple-parchment dark:bg-white/[0.08]';")
   && otp.includes('inset_0_0_0_2px_#f06413'));
