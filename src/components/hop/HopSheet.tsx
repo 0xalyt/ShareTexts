@@ -13,6 +13,7 @@ import { Copy, Download, FileText, RotateCcw, Undo2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AlloSymbol } from '../AlloSymbol';
 import { MessageComposer } from '../MessageComposer';
+import { ConfirmSheet } from '../ConfirmSheet';
 import { Sheet } from '../ui/Sheet';
 import { TactileButton } from '../TactileButton';
 import { SystemAlert } from '../SystemAlert';
@@ -103,7 +104,6 @@ export function HopSheet({
   const listRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const unlinkRef = useRef<HTMLButtonElement | null>(null);
   const joinRef = useRef<HopJoin | null>(null);
   const joinAttempt = useRef(0);
   const activeAt = useRef(Date.now());
@@ -367,6 +367,7 @@ export function HopSheet({
   );
 
   return (
+    <>
     <Sheet open={open} onClose={onClose} labelledBy="hop-title" maxWidth={480} testId="hop-sheet" scroll="none">
       <div className="hop-surface flex min-h-0 flex-1 flex-col" data-hop-view={view} data-hop-quiet={quiet}>
         {view === 'intro' && (
@@ -467,7 +468,7 @@ export function HopSheet({
 
         {view === 'home' && (
           <>
-            <div className="hop-device-header shrink-0 px-5 sm:px-6" data-sheet-no-drag>
+            <div className="shrink-0 px-5 sm:px-6">
               {heading(t('hop.title'))}
               <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/60" data-testid="hop-devices">
                 {devices.map((d) => (
@@ -487,19 +488,10 @@ export function HopSheet({
                   <AlloSymbol name="plus" size={16} />
                   {t('hop.devices.add')}
                 </button>
-                <button ref={unlinkRef} type="button" onClick={() => setConfirmUnlink((value) => !value)} aria-expanded={confirmUnlink} data-testid="hop-unlink" className="hop-action min-h-[44px] rounded-[12px] px-2 text-[13px] text-apple-ink-muted hover:bg-black/[0.04] dark:text-white/60 dark:hover:bg-white/[0.06]">
+                <button type="button" onClick={() => setConfirmUnlink(true)} aria-haspopup="dialog" aria-expanded={confirmUnlink} data-testid="hop-unlink" className="hop-action min-h-[44px] rounded-[12px] px-2 text-[13px] text-apple-ink-muted hover:bg-black/[0.04] dark:text-white/60 dark:hover:bg-white/[0.06]">
                   {t('hop.unlink')}
                 </button>
               </div>
-              {confirmUnlink && (
-                <div className="mb-4 rounded-[16px] bg-apple-parchment p-4 dark:bg-white/[0.06]">
-                  <p className="text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/60">{t('hop.unlink.hint')}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <TactileButton variant="secondary" size="sm" onClick={doUnlink} data-testid="hop-unlink-confirm">{t('hop.unlink')}</TactileButton>
-                    <button type="button" autoFocus data-testid="hop-unlink-cancel" className="st-btn st-btn--sm st-btn--tertiary" onClick={() => { setConfirmUnlink(false); unlinkRef.current?.focus(); }}><span className="flex items-center leading-none">{t('action.cancel')}</span></button>
-                  </div>
-                </div>
-              )}
               {justLinked && (
                 <p className="mt-2 inline-flex items-center gap-2 text-[14px] text-status-success" role="status" data-testid="hop-linked">{matchCheck}{t('hop.linked')}</p>
               )}
@@ -615,6 +607,16 @@ export function HopSheet({
         )}
       </div>
     </Sheet>
+    <ConfirmSheet
+      open={open && confirmUnlink}
+      title={t('hop.unlink')}
+      body={t('hop.unlink.hint')}
+      confirmLabel={t('hop.unlink')}
+      cancelLabel={t('action.cancel')}
+      onConfirm={doUnlink}
+      onCancel={() => setConfirmUnlink(false)}
+    />
+    </>
   );
 }
 

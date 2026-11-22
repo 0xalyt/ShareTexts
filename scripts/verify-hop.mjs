@@ -236,20 +236,32 @@ try {
   await B.setViewportSize({ width: 640, height: 380 });
   const unsent = 'A draft to keep\nwith several lines\nwhile checking devices\nand the unlink controls.';
   await B.getByTestId('hop-input').fill(unsent);
-  await B.getByTestId('hop-unlink').click();
   for (const [selector, name] of [['.hop-composer > button', 'Add file'], ['[data-testid="hop-send"]', 'Send']]) {
     const reachable = await B.locator(selector).evaluate((el) => {
       const r = el.getBoundingClientRect();
       const x = r.left + r.width / 2, y = r.top + r.height / 2;
       return x > 0 && x < innerWidth && y > 0 && y < innerHeight && el.contains(document.elementFromPoint(x, y));
     });
-    ok(reachable, `${name} stays reachable during short-screen unlink confirmation`);
+    ok(reachable, `${name} stays reachable with a multiline draft on a short screen`);
   }
-  await B.getByTestId('hop-unlink-cancel').click();
-  ok(await B.getByTestId('hop-input').inputValue() === unsent, 'canceling unlink preserves the multiline draft');
-  ok(await B.getByTestId('hop-unlink').evaluate((el) => el === document.activeElement), 'canceling returns keyboard focus to Unlink');
   await B.getByTestId('hop-unlink').click();
-  await B.getByTestId('hop-unlink-confirm').click();
+  const confirmation = B.getByTestId('confirm-sheet');
+  await confirmation.waitFor();
+  const fullyVisible = (el) => {
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= innerHeight && el.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+  };
+  ok(await until(() => confirmation.locator('p').evaluate(fullyVisible), 3000), 'the entire unlink consequence is visible on a short screen');
+  for (const button of await confirmation.getByRole('button').all()) {
+    ok(await button.evaluate(fullyVisible), `short-screen confirmation action is reachable: ${await button.textContent()}`);
+  }
+  await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await confirmation.waitFor({ state: 'hidden' });
+  ok(await B.getByTestId('hop-input').inputValue() === unsent, 'canceling unlink preserves the multiline draft');
+  ok(await until(() => B.getByTestId('hop-unlink').evaluate((el) => el === document.activeElement), 3000), 'canceling returns keyboard focus to Unlink');
+  ok(await B.getByTestId('hop-unlink').evaluate(fullyVisible), 'the restored Unlink focus is fully visible');
+  await B.getByTestId('hop-unlink').click();
+  await confirmation.getByRole('button', { name: 'Unlink this device', exact: true }).click();
   ok(await until(async () => (await view(B)) === 'intro'), 'unlinking returns this device to the start');
   ok(await B.evaluate(() => localStorage.getItem('sharetext.hop.v1') === null), 'and leaves no link behind on it');
 
