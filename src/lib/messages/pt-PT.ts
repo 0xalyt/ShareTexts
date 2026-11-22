@@ -124,8 +124,8 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   // Hop — linked devices (My devices)
   "hop.title": "Os meus dispositivos",
   "hop.row.hint": "Associe uma vez, envie quando quiser",
-  "hop.intro.title": "Envie para os seus dispositivos, mesmo sem ligação",
-  "hop.intro.body": "Associe dois dispositivos uma vez com um código QR. O que enviar fica à espera de que o outro abra o ShareTexts.",
+  "hop.intro.title": "Associe os seus dispositivos",
+  "hop.intro.body": "Envie agora. Aceda mais tarde.",
   "hop.intro.show": "Mostrar código QR",
   "hop.intro.scan": "Ler código QR",
   "hop.intro.note": "Sem conta. Cada item é encriptado neste dispositivo antes de sair, e o servidor guarda apenas essa cópia encriptada, no máximo 30 dias.",
@@ -139,6 +139,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   "hop.join.body": "Verifique que o seu outro dispositivo mostra estes quatro e confirme lá.",
   "hop.join.starting": "A associar…",
   "hop.scan.title": "Ler um código QR",
+  "hop.scan.noCamera": "Câmara indisponível. Mostre um código aqui ou abra uma ligação do outro dispositivo.",
   "hop.scan.body": "No outro dispositivo, escolha Mostrar código QR. Aponte esta câmara para ele.",
   "hop.linked": "Associado. Envie o que quiser, quando quiser.",
   "hop.devices.add": "Associar outro",
