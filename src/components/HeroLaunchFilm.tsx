@@ -103,7 +103,9 @@ export function HeroLaunchFilm({ className, playback }: { className?: string; pl
 
   return (
     <figure ref={root} className={cn('hero-film', className)} data-testid="hero-demo" data-state="film" aria-label={t('film.title')}>
-      <div className="hero-film-picture">
+      {/* WebKit may clear its native poster as play starts, before a frame is
+          decoded. Reuse that artwork behind the transparent pending video. */}
+      <div className="hero-film-picture" style={{ backgroundImage: `url("${POSTER}")` }}>
         <video key={MOVIE} ref={video} src={loaded ? MOVIE : undefined} poster={POSTER}
           muted loop playsInline preload={loaded ? 'metadata' : 'none'} {...dimensions}
           aria-label={t('film.title')} aria-describedby={summaryId}

@@ -6,6 +6,7 @@ import { get as getHTTPS } from 'node:https';
 import { launchBrowser, clickStable, resolveEngine, gotoPage } from './lib.mjs';
 import jsQR from 'jsqr';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
+import { verifyHeroPoster } from './verify-hero-poster.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const browser = await launchBrowser();
@@ -44,6 +45,8 @@ try {
   check('loopback HTTP does not force HTTPS', !local.includes('upgrade-insecure-requests'));
   const directives = value => value.split(';').filter(s => s !== 'upgrade-insecure-requests').sort().join(';');
   check('loopback retains every other CSP directive', directives(local) === directives(external));
+
+  await verifyHeroPoster(browser, BASE);
 
   // Isolate capabilities from service-worker caching and the live worker's CORS.
   const noRtc = await browser.newContext({ serviceWorkers: 'block' });
