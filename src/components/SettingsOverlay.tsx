@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Check, ChevronRight, X } from 'lucide-react';
 import './ui/task-surfaces.css';
 import { Sheet } from './ui/Sheet';
@@ -36,6 +36,11 @@ const APP_VERSION = (() => {
   const value = meta?.getAttribute('content') || '';
   return value || 'dev';
 })();
+
+function readHapticsPreference(): boolean {
+  try { return localStorage.getItem(HAPTICS_STORE) !== '0'; }
+  catch { return true; }
+}
 
 /** 52px row with an inset hairline above it (never under the last row). */
 function Row({
@@ -121,17 +126,21 @@ export function SettingsOverlay({
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState(session.deviceName || '');
   const [noGlass, setNoGlassState] = useState(() => readNoGlassPreference());
-  const [hapticsOn, setHapticsOn] = useState(() => {
-    try {
-      return localStorage.getItem(HAPTICS_STORE) !== '0';
-    } catch {
-      return true;
-    }
-  });
+  const [hapticsOn, setHapticsOn] = useState(readHapticsPreference);
   const [visible, setVisible] = useState(() => !isPresenceHidden());
   const [autoConnect, setAutoConnect] = useState(() => isAutoConnectEnabled());
   const [typingOn, setTypingOn] = useState(() => typingIndicatorEnabled());
 
+  // Mobile and desktop keep separate Settings instances mounted. Read the
+  // current preferences on entry, before painting another instance's defaults.
+  useLayoutEffect(() => {
+    if (!open) return;
+    setNoGlassState(readNoGlassPreference());
+    setHapticsOn(readHapticsPreference());
+    setVisible(!isPresenceHidden());
+    setAutoConnect(isAutoConnectEnabled());
+    setTypingOn(typingIndicatorEnabled());
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
