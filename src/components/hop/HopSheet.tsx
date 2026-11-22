@@ -268,6 +268,11 @@ export function HopSheet({
     if (el) el.scrollTop = el.scrollHeight;
   }, [lastId, onHome]);
 
+  useEffect(() => {
+    const el = listRef.current;
+    if (onHome && problem && el) el.scrollTop = el.scrollHeight;
+  }, [onHome, problem]);
+
   // A pasted paragraph stays readable; the send and attachment controls stay
   // on the last line rather than moving to the middle of the growing field.
   useEffect(() => {
@@ -495,7 +500,6 @@ export function HopSheet({
               {justLinked && (
                 <p className="mt-2 inline-flex items-center gap-2 text-[14px] text-status-success" role="status" data-testid="hop-linked">{matchCheck}{t('hop.linked')}</p>
               )}
-              {alert}
             </div>
 
             <div ref={listRef} className="hop-timeline min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-apple-divider/70 px-5 py-6 dark:border-white/10 sm:px-6" data-sheet-scroll data-testid="hop-timeline" role="region" aria-label={t('hop.title')}>
@@ -572,6 +576,7 @@ export function HopSheet({
                   </div>
                 </div>
               )}
+              {alert}
             </div>
 
             <form

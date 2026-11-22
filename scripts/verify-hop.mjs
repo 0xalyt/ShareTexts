@@ -236,6 +236,8 @@ try {
   await B.setViewportSize({ width: 640, height: 380 });
   const unsent = 'A draft to keep\nwith several lines\nwhile checking devices\nand the unlink controls.';
   await B.getByTestId('hop-input').fill(unsent);
+  await B.getByTestId('hop-file').setInputFiles({ name: 'too-big.bin', mimeType: 'application/octet-stream', buffer: Buffer.alloc(26 * 1024 * 1024) });
+  ok(await until(async () => /over 25 MB/.test((await B.getByTestId('hop-problem').textContent()) ?? ''), 10_000), 'the attachment error is available in the short-screen timeline');
   for (const [selector, name] of [['.hop-composer > button', 'Add file'], ['[data-testid="hop-send"]', 'Send']]) {
     const reachable = await B.locator(selector).evaluate((el) => {
       const r = el.getBoundingClientRect();
