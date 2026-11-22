@@ -116,6 +116,53 @@ const cases = {
     assert.equal(await page.evaluate(() => window.__stPendingIntentText), 'shared text');
   },
   async expiredLinked(page, context) { await cases.expired(page, context, true); },
+  async largeDrop(page) {
+    await storedRoom(page);
+    await gotoPage(page, BASE);
+    await page.getByTestId('composer').waitFor({ timeout: 25000 });
+    // The home-drop handoff has no 20-file intake limit, unlike the phone
+    // share target. Exercise its exact parked-file contract at pickup.
+    await page.evaluate(() => {
+      window.__stHomeDropFiles = Array.from({ length: 25 }, (_, i) => new File(['x'], `drop-${i}.txt`, { type: 'text/plain' }));
+      window.dispatchEvent(new Event('sharetext:composer-intent'));
+    });
+    await page.waitForFunction(() => document.querySelectorAll('[data-testid="staged-attachment"]').length === 20, null, { timeout: 10000 });
+    assert.match(await page.getByTestId('error-message').textContent(), /Not added/);
+  },
+  async disconnect(page) {
+    await storedRoom(page);
+    const id = await seed(page, { draftCount: 20, sharedCount: 1 });
+    await gotoPage(page, `${BASE}/?share_id=${id}`);
+    await page.getByTestId('error-message').waitFor({ timeout: 10000 });
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await page.waitForFunction(() => !JSON.parse(localStorage.getItem('sharetext.session.v1') || 'null')?.roomId);
+    assert.equal(await page.evaluate(() => window.__stHomeDropFiles?.length || 0), 0, 'Disconnect cannot carry waiting files into another room');
+    assert.equal(await page.evaluate(() => window.__stPendingIntentText || ''), '', 'The waiting caption is also discarded');
+  },
+  async lateDisconnect(page, context) {
+    await storedRoom(page);
+    const id = await seed(page);
+    await context.addInitScript(() => {
+      const match = Cache.prototype.match;
+      Cache.prototype.match = async function (request, options) {
+        const response = await match.call(this, request, options);
+        if (String(request?.url || request).includes('/__share/')) {
+          window.__readingShare = true;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        return response;
+      };
+    });
+    await gotoPage(page, `${BASE}/?share_id=${id}`);
+    await page.waitForFunction(() => window.__readingShare);
+    await page.getByTestId('composer').waitFor();
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await page.waitForFunction(async () => (await (await caches.open('sharetexts-share-inbox-v1')).keys()).length === 0);
+    assert.equal(await page.evaluate(() => window.__stHomeDropFiles?.length || 0), 0, 'A late cache read cannot resurrect a closed room handoff');
+    assert.equal(await page.evaluate(() => window.__stPendingIntentText || ''), '');
+  },
   async fullDraft(page) {
     await storedRoom(page);
     const id = await seed(page, { draftCount: 19, sharedCount: 2 });
@@ -123,7 +170,7 @@ const cases = {
     await page.getByTestId('composer').waitFor({ timeout: 25000 });
     await page.getByTestId('error-message').waitFor({ timeout: 10000 });
     assert.equal(await page.getByTestId('staged-attachment').count(), 19, 'A shared batch is not partly added');
-    assert.equal(await page.evaluate(() => window.__stHomeDropFiles?.length), 2, 'Both files remain available');
+    assert.equal(await page.getByTestId('composer').inputValue(), 'saved draft', 'The waiting caption must not send with the old draft');
     await page.getByRole('button', { name: 'Remove attachment', exact: true }).first().click();
     await page.waitForFunction(() => document.querySelectorAll('[data-testid="staged-attachment"]').length === 20 && !window.__stHomeDropFiles);
     assert(await page.getByTestId('composer').inputValue().then(value => value.includes('saved draft') && value.includes('shared text')));
@@ -144,6 +191,8 @@ try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
     await context.route(/^https?:\/\/[^/]*\.workers\.dev\//, route => route.abort());
     await context.routeWebSocket(/\.workers\.dev\//, socket => socket.close());
+    // Nearby discovery has its own gates; don't spend its socket quota here.
+    await context.routeWebSocket(/\/lobby(?:\?|$)/, socket => socket.close());
     const page = await context.newPage();
     try {
       await gotoPage(page, BASE + '/launch/index.html');
