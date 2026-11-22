@@ -71,6 +71,7 @@
      ember BUTTON backing on light — measured 4.78:1 as text on #fbfbfd
      and 4.94:1 behind white labels (docs/design-tokens.md §4). */
   --color-ember-ink: #c04b09;
+  --color-ember-ink-hover: #a83f08;
   --color-honey: #feab30;
   --gradient-ember: linear-gradient(165deg, #feab30 0%, #f97b3d 55%, #f06413 100%);
   --gradient-ember-dark: linear-gradient(165deg, #ffc25c 0%, #fb9243 55%, #fb7a2e 100%);
@@ -173,13 +174,13 @@
   --st-tone-raised: #ffffff;    /* light: card on grouped grey        */
   --st-tone-chrome: #f5f5f7;    /* light: page-level band             */
 
-  /* ── Type ramp (§22) — eight steps, nothing between them.
-     Components used to hand-type 26 sizes; this is the ladder they now
-     resolve to. `text-[15px]` and `text-[14px]` were the two busiest strays. */
+  /* Small type ramp. Content remains 16px; card copy and controls step down
+     to 15px without shrinking their touch targets. */
   --text-micro: 9px;   /* floor outside device mocks                    */
-  --text-meta: 12px;   /* uppercase group labels, captions             */
+  --text-meta: 13px;   /* quiet captions and group labels              */
   --text-ui: 13px;     /* dense labels, row meta                       */
-  --text-body: 16px;   /* body copy, row titles, controls              */
+  --text-card: 16px;   /* card copy and controls, body minus one        */
+  --text-body: 17px;   /* body copy                                    */
   --text-subhead: 17px;/* hero support line, ledes                     */
   --text-heading: 22px;/* sub-sections                                 */
   --text-title: 34px;  /* route and section titles                     */
@@ -309,7 +310,7 @@
 
   body {
     @apply font-sans antialiased;
-    font-size: 16px;
+    font-size: var(--text-body);
     line-height: 1.5;
     letter-spacing: 0;
     font-kerning: normal;
@@ -406,7 +407,7 @@
     --color-apple-divider: #333333;
     --color-apple-hairline: #454545;
     --color-apple-ink: #e4e4e4;
-    --color-apple-ink-muted: #888888;
+    --color-apple-ink-muted: #aaaaaa;
     --color-eyebrow: #888888;
     --color-azure-400: #ffc591;
     --color-azure-500: #fb9243;
@@ -451,10 +452,12 @@
   }
   h1 { letter-spacing: -0.015em; }
   h4, h5, h6 {
-    @apply font-semibold;
+    @apply font-medium;
     letter-spacing: -0.01em;
   }
-  h1, h2, h3 { @apply font-semibold; }
+  h1, h2, h3, h4, h5, h6 { @apply font-medium; font-style: normal; text-wrap: balance; }
+  :is(h1, h2, h3, h4, h5, h6) :is(em, i) { font-style: normal; }
+  p { text-wrap: pretty; }
 
   :focus-visible {
     outline: 2px solid var(--color-ember);
@@ -507,15 +510,15 @@
 
   /* Explicit optical roles keep WebKit's metrics aligned with other engines.
      Preserve the responsive size ramp and size-specific tracking. */
-  .st-display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.015em; line-height: 1.06; text-wrap: balance; font-variation-settings: "opsz" 32; }
-  .st-h2      { font-size: clamp(28px, 3.4vw, 38px); font-weight: 600; letter-spacing: -0.012em; line-height: 1.12; text-wrap: balance; font-variation-settings: "opsz" 32; }
-  .st-h3      { font-size: 22px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; font-variation-settings: "opsz" 22; }
-  .st-title   { font-size: 16px;   font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; font-variation-settings: "opsz" 16; }
-  .st-section { font-size: 13px;   font-weight: 600; letter-spacing: -0.002em; line-height: 1.3; font-variation-settings: "opsz" 13; }
-  .st-label   { font-size: 13px;   font-weight: 600; letter-spacing: 0.002em; line-height: 1.3; font-variation-settings: "opsz" 13; }
-  .st-body    { font-size: 16px;   font-weight: 400; letter-spacing: 0; line-height: 1.55; text-wrap: pretty; font-variation-settings: "opsz" 16; }
+  .st-display { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.03em; line-height: 1.06; text-wrap: balance; font-variation-settings: "opsz" 32; }
+  .st-h2      { font-size: 34px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; font-variation-settings: "opsz" 32; }
+  .st-h3      { font-size: 22px;   font-weight: 500; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; font-variation-settings: "opsz" 22; }
+  .st-title   { font-size: 16px;   font-weight: 500; letter-spacing: -0.01em; line-height: 1.3; font-variation-settings: "opsz" 16; }
+  .st-section { font-size: 13px;   font-weight: 500; letter-spacing: -0.002em; line-height: 1.3; font-variation-settings: "opsz" 13; }
+  .st-label   { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.3; font-variation-settings: "opsz" 13; }
+  .st-body    { font-size: var(--text-body); font-weight: 400; letter-spacing: 0; line-height: 1.55; text-wrap: pretty; font-variation-settings: "opsz" 17; }
   .st-support { font-size: 13px;   font-weight: 500; letter-spacing: 0.002em; line-height: 1.45; font-variation-settings: "opsz" 13; }
-  .st-meta    { font-size: 12px;   font-weight: 500; letter-spacing: 0.008em; line-height: 1.4; font-variation-settings: "opsz" 12; }
+  .st-meta    { font-size: 13px; font-weight: 400; letter-spacing: 0; line-height: 1.4; font-variation-settings: "opsz" 13; }
   .st-wordmark { font-family: var(--font-display); font-variation-settings: "opsz" 20; }
   /* Numbers get their own role because they are read differently: counts, sizes,
      timers and codes must not reflow when a digit changes. Tabular figures are
@@ -549,7 +552,7 @@
   /* Quiet section labels use sentence case and a small size step rather than
      shouting in all caps. One weight, tracking, and color across the app.
      Tracking opens to +0.06em — the small-size end of the optical ladder. */
-  .st-eyebrow  { font-size: 12px;   font-weight: 600; letter-spacing: 0.06em; line-height: 1.2; color: var(--color-eyebrow, #6e6e73); font-variation-settings: "opsz" 12; }
+  .st-eyebrow  { font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; line-height: 1.4; color: var(--color-apple-ink-muted); font-variation-settings: "opsz" 13; }
 
   /* Elevation utilities — the three levels above, as classes. Dark mode
      swaps the drop for a tone-and-hairline lift: shadows on near-black
@@ -749,7 +752,10 @@ html.dark .st-dotfield::after {
    consumed below (the visual-system gate deletes dead --st-* tokens). */
 :root {
   --st-dur-micro: 120ms;   /* press, toggle, copy-confirm, tooltip in */
-  --st-dur-short: 180ms;   /* small state changes */
+  --st-dur-short: 200ms;   /* small state changes */
+  --st-dur-hover: 150ms;
+  --st-dur-sheet: 400ms;
+  --st-dur-hero: 600ms;
   --st-dur-medium: 280ms;  /* structural arrivals and completion seals */
   --st-stagger-step: 20ms; /* overlapping choreography; STAGGER_STEP in tokens.ts */
   --st-dur-long: 480ms;    /* image settle — the longest UI beat */
@@ -1230,32 +1236,21 @@ html.dark {
    shadow of its own. */
 :root {
   --st-art-body: #ffffff;
-  --st-art-shade: #f7ece2;
+  --st-art-shade: #f3f3f5;
   --st-art-accent: #f06413;
-  --st-art-ink: #2a221c;
+  --st-art-ink: #1d1d1f;
 }
 html.dark {
-  --st-art-body: #241d19;
-  --st-art-shade: #2e2620;
+  --st-art-body: #1c1c1e;
+  --st-art-shade: #2c2c2e;
   --st-art-accent: #fb9243;
-  --st-art-ink: #f3e9e1;
+  --st-art-ink: #f5f5f7;
 }
 
 .st-art-body { fill: var(--st-art-body); }
 .st-art-shade { fill: var(--st-art-shade); }
 .st-art-accent { color: var(--st-art-accent); }
 .st-art-ink { color: var(--st-art-ink); fill: currentColor; }
-
-/* The one loop a scene may carry: the dashed line between two devices that
-   are still looking for each other. Motion is the grammar's, not decoration;
-   reduce turns it into a still line, which is the same drawing. */
-@keyframes st-wait-dash {
-  to { stroke-dashoffset: -22; }
-}
-.st-wait-dash { animation: st-wait-dash 2.4s linear infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .st-wait-dash { animation: none; }
-}
 
 /* ── Background primitives ────────────────────────────────────────────────
    Depth without another card. Each one is pointer-transparent and
@@ -1392,7 +1387,7 @@ html.dark .st-horizon {
     border: 1px solid var(--color-border);
     color: var(--color-text-secondary);
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: -0.005em;
     line-height: 1;
     white-space: nowrap;
@@ -1592,7 +1587,7 @@ html.dark .st-horizon {
   }
   .st-head-row > :first-child {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: -0.005em;
     color: var(--color-text);
   }

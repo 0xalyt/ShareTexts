@@ -96,7 +96,7 @@ export function XProfileLink({
         // Hover is a lift, not a bounce: the circle grows a hair and the ring
         // warms, which reads as "a person you can visit" rather than a button.
         '[@media(hover:hover)]:group-hover/maker:scale-[1.08]',
-        'active:scale-[0.96] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100',
+        'active:scale-[0.97] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/60 focus-visible:ring-offset-2 focus-visible:ring-offset-apple-parchment dark:focus-visible:ring-offset-night-900',
         className,
       )}
@@ -129,7 +129,7 @@ export function XProfileLink({
             />
             <span
               aria-hidden
-              className="relative leading-none font-bold tracking-[-0.03em] text-ember"
+              className="relative leading-none font-medium tracking-[-0.03em] text-ember"
               style={{ fontSize: Math.round(size * 0.44) }}
             >
               G

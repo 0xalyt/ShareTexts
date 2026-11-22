@@ -54,14 +54,14 @@ export function StayConnectedToggle({ className, compact = false }: { className?
             'shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-[background-color,color] duration-300 ease-out',
             on
               ? 'bg-ember/[0.12] text-ember dark:bg-ember/20 dark:text-ember-400'
-              : 'bg-black/[0.055] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/45'
+              : 'bg-black/[0.055] text-apple-ink-muted dark:bg-white/[0.07] dark:text-white/65'
           )}
         >
           <InfinityIcon className="w-[18px] h-[18px]" strokeWidth={2} />
         </span>
         <span className="flex flex-col min-w-0 leading-tight">
           <span className="st-label text-apple-ink dark:text-white">{t('stay.title')}</span>
-          {!compact && <span className="mt-0.5 text-[12px] font-medium leading-snug text-apple-ink-muted dark:text-white/55">
+          {!compact && <span className="mt-0.5 text-[12px] font-medium leading-snug text-apple-ink-muted dark:text-white/65">
             {t('stay.hint')}
           </span>}
         </span>
@@ -111,7 +111,7 @@ export function StayBadge({ className, onOpenDetails }: { className?: string; on
       aria-label={t('stay.badge')}
       title={t('stay.badge')}
       data-testid="stay-badge"
-      className="shrink-0 w-11 h-11 -m-2 flex items-center justify-center rounded-full active:scale-[0.96] transition-transform"
+      className="shrink-0 w-11 h-11 -m-2 flex items-center justify-center rounded-full active:scale-[0.97] transition-transform"
     >
       <span
         className="w-7 h-7 rounded-full flex items-center justify-center bg-ember/10 dark:bg-azure-400/15 text-ember dark:text-azure-400"

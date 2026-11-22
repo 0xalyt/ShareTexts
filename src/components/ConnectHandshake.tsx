@@ -121,7 +121,7 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
               place, so the block never flashes or jumps. */}
           <p
             aria-live="polite"
-            className="min-h-[18px] min-w-[120px] text-center text-[13px] font-semibold text-apple-ink dark:text-white/85"
+            className="min-h-[18px] min-w-[120px] text-center text-[13px] font-normal text-apple-ink dark:text-white/85"
             data-testid="connect-status"
           >
             {status}
