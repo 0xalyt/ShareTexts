@@ -104,7 +104,7 @@ export function ReceiveScreen({
       style={keyboard ? { paddingBottom: keyboard } : undefined}
       data-testid="receive-screen"
     >
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
+      <div className="st-pairing-content min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
         <h2 className="text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
           {t('receive.titleShort')}
         </h2>
@@ -114,7 +114,7 @@ export function ReceiveScreen({
         <PairingGuide receiving />
 
         {/* The cells sit on the canvas by themselves — no card around them. */}
-        <div className="mt-8 [@media(max-height:520px)]:mt-3" ref={fieldRef}>
+        <div className="mt-6 [@media(max-height:520px)]:mt-3" ref={fieldRef}>
           {/* A label that is always on screen. Six empty cells say "type" but
               never what to type; the heading above is the screen's name, not
               the field's. */}
@@ -151,12 +151,9 @@ export function ReceiveScreen({
             className={wrong ? 'st-shake' : undefined}
           />
 
-          {/* THE ERROR BELONGS TO THE FIELD, so it sits under the field — not in
-              a banner above it, and not after the button where the eye is
-              already past the thing that is wrong. Its slot is the same height
-              whether or not a message is in it, so nothing below moves when an
-              error lands and nothing jumps back when the user starts retyping. */}
-          <div className="min-h-[42px] pt-2" data-testid="receive-error-slot">
+          {/* An error belongs to the field. Reserve its two-line space so
+              retrying doesn't move Join; don't add another large gap below. */}
+          <div className="min-h-[44px] pt-2" data-testid="receive-error-slot">
             {/* balanced, not pretty: at 390 the message fits two lines and
                 `pretty` still left "new one." alone on the second one. */}
             {error && (
@@ -184,7 +181,7 @@ export function ReceiveScreen({
           disabled={!full || isJoining || accepted}
           aria-busy={isJoining || undefined}
           className={cn(
-            'press mt-6 w-full min-h-[52px] rounded-[16px] text-[17px] font-semibold transition-colors [@media(max-height:520px)]:mt-3 [@media(max-height:520px)]:min-h-[44px]',
+            'press w-full min-h-[52px] rounded-[16px] text-[17px] font-semibold transition-colors [@media(max-height:520px)]:min-h-[44px]',
             // Disabled is a NEUTRAL fill, not a faded ember: white on 40% orange
             // measured 3.21:1, and a grey button is unmistakably not tappable.
             full && !isJoining

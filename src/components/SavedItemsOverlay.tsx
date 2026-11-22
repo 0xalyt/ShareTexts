@@ -194,19 +194,21 @@ function KindThumb({ item }: { item: SavedItem }) {
 }
 
 /** Small quiet pill — same family as the chat's action buttons, quieter
- *  because these sit in a list, not a bubble. 40px touch target. */
+ *  because these sit in a list, not a bubble. 44px touch target. */
 function RowAction({
-  icon, label, onClick, href, danger, testId,
+  icon, label, onClick, href, danger, compact, testId,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick?: () => void;
   href?: string;
   danger?: boolean;
+  compact?: boolean;
   testId?: string;
 }) {
   const cls = cn(
-    'st-tap inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-full text-[12px] font-semibold transition-colors',
+    'st-tap inline-flex shrink-0 items-center justify-center gap-1.5 min-h-[44px] rounded-full text-[12px] font-semibold transition-colors',
+    compact ? 'w-11' : 'px-3',
     danger
       ? 'text-apple-ink-muted dark:text-white/55 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10'
       : 'bg-black/[0.045] text-apple-ink hover:bg-black/[0.08] dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.12]'
@@ -215,7 +217,7 @@ function RowAction({
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" className={cls} data-testid={testId} title={label} aria-label={label}>
         {icon}
-        <FitWidth><span>{label}</span></FitWidth>
+        {!compact && <FitWidth><span>{label}</span></FitWidth>}
       </a>
     );
   }
@@ -223,7 +225,7 @@ function RowAction({
     <button type="button" onClick={onClick} className={cls} data-testid={testId} title={label} aria-label={label}>
       {icon}
       {/* Frequent action labels update immediately without a width tween. */}
-      <FitWidth><span>{label}</span></FitWidth>
+      {!compact && <FitWidth><span>{label}</span></FitWidth>}
     </button>
   );
 }
@@ -287,7 +289,7 @@ function SavedRow({
 
   return (
     <li
-      className="st-card rounded-[16px] p-3 flex gap-3"
+      className="st-card rounded-[16px] p-3 grid grid-cols-[48px_minmax(0,1fr)] gap-3"
       data-testid="saved-row"
       data-kind={item.kind}
     >
@@ -345,9 +347,10 @@ function SavedRow({
         )}
 
         <span className="text-[11px] text-apple-ink-muted dark:text-white/40 tnum">{meta}</span>
+      </div>
 
         {/* Actions — only what can actually work for this kind. */}
-        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+        <div className="col-span-2 flex items-center gap-2 flex-wrap">
           {item.kind === 'text' && (
             <RowAction
               icon={copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -367,6 +370,7 @@ function SavedRow({
               <RowAction
                 icon={copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 label={copied ? t('action.copied') : t('saved.copyUrl')}
+                compact
                 onClick={() => { void copy(safeUrl); }}
                 testId="saved-copy"
               />
@@ -383,6 +387,7 @@ function SavedRow({
               <RowAction
                 icon={<Download className="w-3.5 h-3.5" />}
                 label={t('saved.download')}
+                compact
                 onClick={() => triggerDownload(item)}
                 testId="saved-download"
               />
@@ -402,10 +407,10 @@ function SavedRow({
             label={t('saved.remove')}
             onClick={() => { void doRemove(); }}
             danger
+            compact
             testId="saved-remove"
           />
         </div>
-      </div>
     </li>
   );
 }
@@ -510,15 +515,14 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
       );
     }
     if (items.length === 0) {
-      // A door, not a dead end: name the place and hand over the action that
-      // fills it (close the sheet and share something).
+      // Explain the real save action; closing this sheet doesn't start a room.
       return (
         <StatePanel
           kind="empty"
           testId="saved-empty"
           title={t('saved.emptyTitle')}
           body={t('saved.emptyBody')}
-          action={{ label: t('saved.emptyCta'), onClick: onClose, testId: 'saved-empty-cta' }}
+          secondary={{ label: t('saved.emptyCta'), onClick: onClose, testId: 'saved-empty-cta' }}
         />
       );
     }
@@ -620,12 +624,12 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
         </div>
 
         {items.length > 0 && snapshot.status === 'ready' && (
-          <div className="shrink-0 px-4 sm:px-5 pt-3 pb-2 mt-1 border-t border-apple-divider dark:border-white/[0.06] flex items-center justify-between gap-3">
+          <div className="shrink-0 px-4 sm:px-5 pt-2 pb-2 mt-1 flex items-center justify-end">
             <button
               type="button"
               onClick={() => setConfirmClear(true)}
               disabled={clearing}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[44px] min-w-[44px] rounded-full text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[44px] min-w-[44px] rounded-full text-[13px] font-medium text-apple-ink-muted dark:text-white/55 hover:text-status-danger dark:hover:text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
               data-testid="saved-clear"
             >
               <Trash2 className="w-3.5 h-3.5" aria-hidden />

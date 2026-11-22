@@ -13,6 +13,7 @@
    motion tokens. Nothing here reaches the landing or reading pages. */
 .st-task, .st-task-sheet, .st-room, .st-space {
   --task-surface: #fff;
+  --task-ink: var(--color-apple-ink);
   --task-inset: var(--color-apple-parchment);
   --task-line: var(--color-apple-divider);
   --task-muted: var(--color-apple-ink-muted);
@@ -22,6 +23,7 @@
 }
 .dark :is(.st-task, .st-task-sheet, .st-room, .st-space) {
   --task-surface: var(--color-apple-tile-2);
+  --task-ink: #fff;
   --task-inset: var(--color-apple-tile-1);
   --task-line: rgb(255 255 255 / .12);
   --task-muted: #b0b0b0;
@@ -29,18 +31,21 @@
   --task-soft: var(--color-brand-light);
 }
 .st-task-intro {
-  margin-top: 10px;
+  margin-top: 12px;
   max-width: 34ch;
   color: var(--task-muted);
   font-size: 16px;
   line-height: 1.55;
   text-wrap: pretty;
 }
+.st-pairing-content { display: flex; flex-direction: column; justify-content: safe center; padding-block: 24px; }
+.st-pairing-content > * { flex-shrink: 0; }
+.st-send-methods { flex: 0 0 auto; }
 .st-pair-guide {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 18px;
+  gap: 16px;
   padding-block: 24px 4px;
   color: var(--task-muted);
 }
@@ -89,11 +94,9 @@
 .st-task-sheet [data-testid='saved-empty'] > span:first-child { width: 56px; height: 56px; border-radius: 16px; background: var(--task-soft); color: var(--task-accent); border: 1px solid var(--task-line); box-shadow: var(--task-shadow); }
 .st-task-sheet [data-testid='saved-empty'] > p:first-of-type { font-size: 22px; letter-spacing: -.02em; }
 .st-task-sheet [data-testid='saved-empty'] > p:nth-of-type(2) { color: var(--task-muted); }
-.st-task-sheet [data-testid='saved-empty-cta'] { background: var(--color-brand); color: #1d1d1f; }
-.st-room-start { padding: 24px; border: 1px solid var(--task-line); border-radius: 24px; background: var(--task-surface); box-shadow: var(--task-shadow); }
-.st-room-starters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.st-room-starters > button { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--task-line); background: var(--task-inset); font-size: 13px; font-weight: 600; color: var(--task-muted); transition: transform var(--st-dur-micro, 120ms) var(--ease-out); }
-.st-room-starters > button:active { transform: scale(.97); }
+.st-room-start { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 480px; margin-inline: auto; padding-block: 32px; text-align: center; }
+.st-room-start h2 { max-width: 24ch; margin-top: 24px; font-size: clamp(24px, 2.5vw, 32px); font-weight: 650; line-height: 1.2; letter-spacing: -.025em; color: var(--task-ink); overflow-wrap: anywhere; text-wrap: balance; }
+.st-room-start p { max-width: 34ch; margin-top: 12px; font-size: 15px; line-height: 1.5; color: var(--task-muted); text-wrap: pretty; }
 .st-room [data-testid='composer']::placeholder, .st-space [data-testid='space-composer']::placeholder { color: var(--task-muted); opacity: 1; }
 /* A finite, unboxed guide on the real canvas. The composer is the action;
    don't surround a second Write button with a screen-sized empty card. */
@@ -175,20 +178,16 @@
   /* The workspace arrives as one thought. The destination is the lead;
      supporting words follow, not every button dancing independently. */
   .st-room-start[data-motion-enter='true'] > * { animation: st-room-arrive var(--st-dur-short) var(--ease-out) both; }
-  .st-room-start > p:first-of-type { animation-delay: calc(var(--st-stagger-step) * 2); }
-  .st-room-start > p:nth-of-type(2) { animation-delay: calc(var(--st-stagger-step) * 3); }
-  .st-room-start > .st-room-starters { animation-delay: calc(var(--st-stagger-step) * 5); }
+  .st-room-start > h2 { animation-delay: var(--st-stagger-step); }
+  .st-room-start > p { animation-delay: calc(var(--st-stagger-step) * 2); }
   @keyframes st-room-arrive {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
   }
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .st-room-starters > button:hover { border-color: var(--task-accent); color: var(--task-accent); }
-}
 @media (max-width: 400px) {
-  .st-room-start { padding: 20px; }
+  .st-room-start { padding-block: 24px; }
   .st-pair-guide { gap: 12px; }
 }
 /* Below the full desktop budget, use the phone's two-row hierarchy rather
@@ -213,21 +212,17 @@
   .st-task [data-testid='send-code-card'] { padding-block: 12px; }
   .st-task [data-testid='pairing-code'] { margin-block: 10px; }
 }
-/* Landscape uses the width it has instead of shrinking touch targets or
-   forcing the pairing action and QR below the pinned waiting state. */
+/* Landscape uses its width without shrinking touch targets. */
 @media (min-width: 600px) and (max-height: 520px) {
   .st-task[data-testid='send-screen'] { max-width: 720px; }
   .st-send-content { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); grid-template-rows: auto auto; column-gap: 32px; align-content: safe center; }
   .st-send-content > h2 { grid-column: 1; grid-row: 1; align-self: end; }
   .st-send-content > .st-task-intro { grid-column: 1; grid-row: 2; align-self: start; }
+  .st-send-content > [data-testid='send-status'] { grid-column: 2; grid-row: 3; }
   .st-send-methods { grid-column: 2; grid-row: 1 / span 2; display: block; padding-block: 0; min-width: 0; }
   .st-send-methods [data-testid='send-segments'] { margin-top: 0; }
   .st-send-methods [data-testid='copy-code'], .st-send-methods [data-testid='new-code'], .st-send-methods [data-testid='share-link'] { min-height: 44px; }
   .st-send-qr { display: flex; align-items: center; gap: 12px; }
   .st-send-qr [data-testid='qr-plate'] { width: 160px; flex-shrink: 0; margin: 0; }
   .st-send-qr > p { margin: 0; text-align: start; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .st-room-starters > button { transition: none; }
-  .st-room-starters > button:active { transform: none; }
 }

@@ -258,6 +258,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const [showQROverlay, setShowQROverlay] = useState(false);
   const reduceMotion = useReducedMotion();
   const [showQRScan, setShowQRScan] = useState(false);
+  const returnToCodeRef = useRef(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   // ACCEPTED BEAT: the server said yes — hold the code capsule green for a
@@ -560,8 +561,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   }, [session.roomId, session.isCreator, session.partnerConnected, session.partnerConnecting, session.connectionType]);
 
   // Focus traps for QR overlays
-  const qrScanTrapRef = useFocusTrap(showQRScan, () => setShowQRScan(false));
+  const qrScanTrapRef = useFocusTrap(showQRScan, () => setShowQRScan(false), () => {
+    if (!returnToCodeRef.current) return null;
+    returnToCodeRef.current = false;
+    return document.querySelector<HTMLInputElement>('[data-testid="receive-screen"] input');
+  });
   const qrDisplayTrapRef = useFocusTrap(showQROverlay, () => setShowQROverlay(false));
+  const returnToCode = () => {
+    returnToCodeRef.current = true;
+    setShowQRScan(false);
+  };
 
   /* --- handlers --- */
   const [retryCount, setRetryCount] = useState(0);
@@ -2267,13 +2276,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   </div>
                 }
               >
-                <QRScanner onScan={handleQRScan} onErrorFallback={() => { setShowQRScan(false); }} />
+                <QRScanner onScan={handleQRScan} onErrorFallback={returnToCode} />
               </Suspense>
-              {/* Underlined always, not on hover: a touch screen has no hover,
-                  so the only escape from a dead camera looked like a caption. */}
+              {/* A real recovery action, with the same touch target as Scan. */}
               <button
-                onClick={() => setShowQRScan(false)}
-                className="mt-4 text-[13px] font-semibold text-apple-ink-muted underline underline-offset-2 hover:text-apple-ink dark:hover:text-white transition-colors"
+                onClick={returnToCode}
+                className="mt-4 min-h-[44px] px-3 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white bg-black/[0.045] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-colors"
               >
                 {t('qr.scan.typeCode')}
               </button>

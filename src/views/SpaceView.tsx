@@ -678,20 +678,36 @@ export function SpaceJoinSheet({ open, onClose, initialCode }: { open: boolean; 
 function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; spaceId: string; token: string; code: string | null; onClose(): void }) {
   const { t } = useI18n();
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
+  const [copyFailed, setCopyFailed] = useState<'code' | 'link' | null>(null);
   const [showQr, setShowQr] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!open) {
+      setCopyFailed(null);
+      setCopied(null);
+      setShowQr(false);
+    }
+    return () => { if (copyTimer.current) clearTimeout(copyTimer.current); };
+  }, [open]);
   const link = spaceShareLink(spaceId, token);
   const copy = async (what: 'code' | 'link') => {
     try {
       await navigator.clipboard.writeText(what === 'code' ? formatSpaceCode(code || '') : link);
+      setCopyFailed(null);
       setCopied(what);
-      setTimeout(() => setCopied(null), 1600);
-    } catch { /* clipboard blocked */ }
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(null), 1600);
+    } catch { setCopyFailed(what); }
   };
   // Native share is the fastest exit where the platform offers it; the
   // sheet never forces it — copy and QR are always here as equivalents.
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   const nativeShare = async () => {
-    try { await navigator.share({ title: 'ShareTexts', text: code ? t('space.codeDisplayLabel') + ': ' + formatSpaceCode(code) : undefined, url: link }); } catch { /* user closed the sheet */ }
+    try {
+      await navigator.share({ title: 'ShareTexts', text: code ? t('space.codeDisplayLabel') + ': ' + formatSpaceCode(code) : undefined, url: link });
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) setCopyFailed('link');
+    }
   };
   return (
     <OverlaySheet open={open} onClose={onClose} label={t('space.share')} maxWidth={420} testId="space-share">
@@ -705,37 +721,36 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               <p className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/80 dark:text-white/45">{t('space.codeDisplayLabel')}</p>
               <p className="mt-1 font-mono text-[30px] font-bold tracking-[0.1em] text-apple-ink dark:text-white leading-none" data-testid="space-share-code">{formatSpaceCode(code)}</p>
             </div>
-            {/* Order follows the brief: QR → share → copy. Three equal
-                exits in one row, no primary/secondary hierarchy to parse. */}
-            <div className="mt-3 flex items-stretch gap-2">
+            <button
+              onClick={() => void copy('code')}
+              className="mt-3 w-full min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold bg-apple-ink dark:bg-white text-white dark:text-night-900 active:scale-[0.96] transition-transform"
+              data-testid="space-share-copy-code"
+            >
+              {copied === 'code' ? <Check className="w-4 h-4" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />}
+              {copied === 'code' ? t('space.copied') : t('space.copyCode')}
+            </button>
+            <div className="mt-2 flex flex-wrap items-stretch gap-2">
               <button
                 onClick={() => setShowQr(v => !v)}
                 aria-expanded={showQr}
-                className="flex-1 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
+                aria-controls="space-invite-qr"
+                className="flex-[1_1_140px] px-3 py-2 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
                 data-testid="space-share-qr"
               >
-                <QrCode className="w-4 h-4" /> QR
+                <QrCode className="w-4 h-4 shrink-0" aria-hidden /> {t(showQr ? 'space.hideQr' : 'space.showQr')}
               </button>
               {canNativeShare && (
                 <button
                   onClick={() => void nativeShare()}
-                  className="flex-1 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
+                  className="flex-[1_1_120px] px-3 py-2 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
                   data-testid="space-share-native"
                 >
-                  <Share2 className="w-4 h-4" /> {t('space.share')}
+                  <Share2 className="w-4 h-4 shrink-0" aria-hidden /> {t('space.share')}
                 </button>
               )}
-              <button
-                onClick={() => void copy('code')}
-                className="flex-1 min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold bg-apple-ink dark:bg-white text-white dark:text-night-900 active:scale-[0.96] transition-transform"
-                data-testid="space-share-copy-code"
-              >
-                {copied === 'code' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copied === 'code' ? t('space.copied') : t('space.copyCode')}
-              </button>
             </div>
             {showQr && (
-              <div className="mt-4 flex justify-center rounded-[16px] bg-white p-4">
+              <div id="space-invite-qr" className="mt-4 flex justify-center rounded-[16px] bg-white p-4">
                 <Suspense fallback={<span className="w-[208px] h-[208px] flex items-center justify-center"><LogoTraceLoader size={48} strokeWidth={5} className="text-ember" /></span>}>
                   <QrArt value={`${window.location.origin}/space/join?code=${formatSpaceCode(code)}`} size={208} label={t('qr.art.label')} />
                 </Suspense>
@@ -745,24 +760,27 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
         ) : (
           <p className="mt-1.5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/55">{t('space.shareHint')}</p>
         )}
-        {/* The link is a secondary technical convenience — collapsed, below
-            the code, never competing with it. */}
-        <details className="mt-3 group">
-          <summary className="cursor-pointer list-none min-h-[44px] rounded-[12px] inline-flex w-full items-center justify-center gap-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors">
-            <Link2 className="w-4 h-4" /> {t('space.shareLinkSecondary')}
-          </summary>
-          <div className="mt-3 flex items-center gap-2">
+        <button
+          onClick={() => void copy('link')}
+          className="mt-3 min-h-[44px] rounded-[12px] inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+          data-testid="space-share-copy-link"
+        >
+          {copied === 'link' ? <Check className="w-4 h-4 shrink-0" aria-hidden /> : <Link2 className="w-4 h-4 shrink-0" aria-hidden />}
+          {copied === 'link' ? t('space.copied') : t('space.copyLink')}
+        </button>
+        <span className="sr-only" role="status">{copied ? t('space.copied') : ''}</span>
+        {copyFailed && (
+          <div className="mt-3">
+            <p className="mb-2 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/60" role="alert">{t('composer.copyFailed')}</p>
             <input
-              readOnly value={link}
+              readOnly value={copyFailed === 'code' ? formatSpaceCode(code || '') : link}
+              aria-label={copyFailed === 'code' ? t('space.codeDisplayLabel') : t('send.tab.link')}
               onFocus={e => e.currentTarget.select()}
-              className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink-muted dark:text-white/70 font-mono truncate"
+              className="w-full min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink dark:text-white font-mono"
+              data-testid="space-share-manual-copy"
             />
-            <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] min-w-[44px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform">
-              {copied === 'link' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied === 'link' ? t('space.copied') : t('space.copyLink')}
-            </button>
           </div>
-        </details>
+        )}
     </OverlaySheet>
   );
 }
