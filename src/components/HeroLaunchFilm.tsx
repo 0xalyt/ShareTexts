@@ -118,11 +118,8 @@ export function HeroLaunchFilm({ className, playback }: { className?: string; pl
           }}
           onError={() => { setFailed(true); setPlaying(false); }} />
         {failed && <img className="hero-film-fallback" src={POSTER} alt="" {...dimensions} />}
-      </div>
-      <div className="hero-film-controls">
         {!failed && <button className="hero-film-play" type="button" onClick={toggle} aria-label={t(playing ? 'film.pause' : 'film.play')} title={t(playing ? 'film.pause' : 'film.play')}>
           {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-          <span>{t(playing ? 'film.pause' : 'film.play')}</span>
         </button>}
       </div>
       <figcaption id={summaryId} className="sr-only">

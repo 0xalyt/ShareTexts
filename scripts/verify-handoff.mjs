@@ -128,27 +128,44 @@ try {
         const r = el.getBoundingClientRect();
         const picture = el.querySelector('.hero-film-picture').getBoundingClientRect();
         return {
-          // Firefox rounds adjacent DOMRects independently at fractional aspect
-          // ratios (a measured 0.000015px overlap at 390px). Ignore only that
-          // sub-layout-unit noise; preserve the actual 44/48px target contract.
-          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom - .05 || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
+          // The visible icon stays in the image, with a full touch target.
+          // DOMRects can differ by a sub-layout unit across browser engines.
+          clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); return br.left < picture.left || br.right > picture.right || br.top < picture.top || br.bottom > picture.bottom || br.width < 44 || br.height < 44; }),
           framing: Math.abs(picture.width / picture.height - (innerWidth <= 639 ? 4 / 3 : 16 / 9)) < .02 &&
             el.querySelector('video').poster.includes('-mobile-') === (innerWidth <= 639),
           bare: getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)' &&
             parseFloat(getComputedStyle(el).paddingLeft) === 0 &&
             Math.abs(picture.left - r.left) <= 1.1 && Math.abs(picture.right - r.right) <= 1.1,
-          joined: el.querySelector('.hero-film-play').getBoundingClientRect().width >= r.width - 4 &&
-            parseFloat(getComputedStyle(el.querySelector('.hero-film-controls')).marginTop) === 0,
+          inset: (() => {
+            const button = el.querySelector('.hero-film-play');
+            const b = button.getBoundingClientRect();
+            return picture.right - b.right >= 7 && picture.right - b.right <= 13 &&
+              picture.bottom - b.bottom >= 7 && picture.bottom - b.bottom <= 13 &&
+              Math.abs(r.height - picture.height) <= 2.1 && !button.textContent.trim() &&
+              Boolean(button.getAttribute('aria-label')) && !el.querySelector('.hero-film-controls');
+          })(),
           overflow: document.documentElement.scrollWidth > window.innerWidth,
         };
       });
-      check(`${locale}/${width}: the film has no extra backdrop and keeps an attached playback bar below its intact picture`, facts.framing && facts.bare && facts.joined && !facts.clipped && !facts.overflow);
+      check(`${locale}/${width}: the intact film has one accessible inset control and no extra bar or backdrop`, facts.framing && facts.bare && facts.inset && !facts.clipped && !facts.overflow);
       const proof = page.locator('.landing-proof');
       await proof.scrollIntoViewIfNeeded();
-      await page.waitForFunction(() => [...document.querySelectorAll('.landing-proof-screen img')].filter(img => getComputedStyle(img).display !== 'none').every(img => img.complete && img.naturalWidth > 0));
-      check(`${locale}/${width}: three real product screens explain the same linear handoff`,
+      check(`${locale}/${width}: three original, non-interactive illustrations explain the linear handoff`,
         await proof.locator('li').count() === 3 && await proof.locator('button').count() === 0 &&
-        await proof.locator('h3').count() === 3);
+        await proof.locator('h3').count() === 3 && await proof.locator('svg[data-illustration][aria-hidden="true"]').count() === 3 &&
+        await proof.locator('svg[data-illustration]').evaluateAll(els => els.every(el => {
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.height > 0 && r.left >= 0 && r.right <= innerWidth;
+        })));
+      check(`${locale}/${width}: privacy belongs to the whole guide, not only its first step`,
+        await page.locator('.landing-privacy-line').evaluate(el =>
+          Math.abs(el.getBoundingClientRect().width - document.querySelector('.landing-proof').getBoundingClientRect().width) < 1));
+      check(`${locale}/${width}: secondary sections use their width below the heading`,
+        await page.locator('.landing-more, .landing-faq').evaluateAll(els => els.every(el => {
+          const heading = el.querySelector('h2').getBoundingClientRect();
+          const content = el.querySelector(':scope > div').getBoundingClientRect();
+          return content.top >= heading.bottom && Math.abs(content.width - el.getBoundingClientRect().width) < 1;
+        })));
       check(`${locale}/${width}: the hero has only Send and Receive; alternatives follow the proof`,
         await page.locator('.landing-intro .landing-actions button').count() === 2 &&
         await page.locator('.landing-intro [data-testid="intent-input"], .landing-intro [data-testid="home-rows"]').count() === 0 &&
@@ -187,7 +204,7 @@ try {
         const bounds = el.getBoundingClientRect();
         const logos = [...el.querySelectorAll('.landing-browser-list:first-child img')];
         return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
-          logos.every(img => img.complete && img.naturalWidth > 0 && img.alt && getComputedStyle(img).filter.includes('grayscale(1)')) &&
+          logos.every(img => img.complete && img.naturalWidth > 0 && img.alt && img.getBoundingClientRect().width >= (innerWidth < 640 ? 72 : 104) && getComputedStyle(img).filter === 'none' && getComputedStyle(img).opacity === '1') &&
           [...el.querySelectorAll('.landing-browser-list')].every(list => list.textContent.trim() === '');
       }));
       if (locale === 'en') {

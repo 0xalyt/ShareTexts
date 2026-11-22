@@ -13,7 +13,7 @@ const BROWSERS = [
 ] as const;
 
 /** Real browser marks, not endorsements. Repeated sets are visual only;
- * reduced motion exposes one complete, stationary set of the same logos. */
+ * reduced motion keeps one manually scrollable line, never an animated grid. */
 export function BrowserCompatibility() {
   const { t } = useI18n();
   const trackId = useId();
@@ -47,14 +47,14 @@ export function BrowserCompatibility() {
           {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
         </button>
       </div>
-      <div ref={viewport} className="landing-browser-marquee" dir="ltr" data-running={visible && !paused}>
+      <div ref={viewport} className="landing-browser-marquee" dir="ltr" data-running={visible && !paused} tabIndex={0} role="region" aria-labelledby="browsers-title">
         <div id={trackId} className="landing-browser-track">
           {/* Three sets cover the widest lane even at the last loop frame:
               two sets alone leave a gap when one set is narrower than it. */}
           {[0, 1, 2].map(copy => (
             <ul key={copy} className="landing-browser-list" aria-label={copy ? undefined : t('home.browsers')} aria-hidden={copy > 0 || undefined}>
               {BROWSERS.map(([slug, name]) => <li key={slug}>
-                <img src={`/browsers/${slug}.svg`} width="48" height="48" loading="lazy" decoding="async" alt={copy ? '' : name} />
+                <img src={`/browsers/${slug}.svg`} width="104" height="104" loading="lazy" decoding="async" alt={copy ? '' : name} />
               </li>)}
             </ul>
           ))}

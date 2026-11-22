@@ -1,13 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { AlloSymbol } from '../AlloSymbol';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
 import { WebsiteHandoff } from '../landing/BrowserCompatibility';
 export { BrowserCompatibility } from '../landing/BrowserCompatibility';
 
+// Decorative below-fold artwork must not weigh down the first-use entry.
+const HandoffIllustration = lazy(() => import('../landing/HandoffIllustration').then(module => ({ default: module.HandoffIllustration })));
+
 /* ---------------------------------------------------------------------------
  * LandingSections — the scroll tail of the front door.
  *
- * Hero → handoff guide → the separate Temporary Spaces story → FAQ → footer.
+ * Hero → illustrated handoff guide → the separate Spaces story → FAQ → footer.
  * The guide's examples are explicitly labelled illustrations, never live
  * rooms or pretend controls. Both instructions stay readable at every step.
  *
@@ -42,10 +46,9 @@ export function ThreeThings() {
       <ol className="landing-proof" aria-label={t('home.how.eyebrow')}>
         {STEPS.map((step, i) => (
           <li key={step} data-testid={`landing-proof-${step}`}>
-            <div className="landing-proof-screen" aria-hidden="true" lang="en">
-              <img className="landing-proof-light" src={`/media/landing/${step}-light.webp`} width="390" height="480" loading="lazy" decoding="async" alt="" />
-              <img className="landing-proof-dark" src={`/media/landing/${step}-dark.webp`} width="390" height="480" loading="lazy" decoding="async" alt="" />
-            </div>
+            <Suspense fallback={<svg className="handoff-art" viewBox="0 0 320 240" aria-hidden="true" focusable="false" />}>
+              <HandoffIllustration step={step} />
+            </Suspense>
             <h3><bdi>{new Intl.NumberFormat(lang).format(i + 1)}.</bdi> {t(`home.proof.${step}.title`)}</h3>
             <p>{t(`home.proof.${step}.body`)}</p>
           </li>
