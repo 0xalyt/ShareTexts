@@ -666,10 +666,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         // phantom "Code active" screen that swallowed the next join).
         abandonSession();
       }
-    } catch (e: unknown) {
-      if (thisAttempt !== createAbortRef.current) return;
-      discardComposerIntent();
-      setCreateError(friendlyConnectError(e));
+      } catch (e: unknown) {
+        if (thisAttempt !== createAbortRef.current) return;
+        // A failed connection is retryable; only Cancel/Disconnect discards
+        // the phone share or home drop waiting for the composer.
+        setCreateError(friendlyConnectError(e));
       setPanelMode('idle');
     } finally {
       creatingRef.current = false;
