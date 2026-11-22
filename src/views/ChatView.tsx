@@ -603,24 +603,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // Drop-to-send handoff: files dropped on the idle home screen were parked
   // here by SingleScreenApp right before the room was created. Consume once,
   // staged as attachments the moment the composer exists.
-  const pickedUpRef = useRef(false);
-  useEffect(() => {
-    if (pickedUpRef.current) return;
-    const parked = (window as Window & { __stHomeDropFiles?: File[] }).__stHomeDropFiles;
-    if (!parked || parked.length === 0) return;
-    pickedUpRef.current = true;
-    delete (window as Window & { __stHomeDropFiles?: File[] }).__stHomeDropFiles;
-    const first = parked[0];
-    const type = first.type.startsWith('image/')
-      ? 'image'
-      : first.type.startsWith('video/')
-        ? 'video'
-        : first.type.startsWith('audio/')
-          ? 'audio'
-          : 'file';
-    addFiles(parked, type);
-  }, []);
-  const addFiles = (files: FileList | File[], type: 'image' | 'file' | 'video' | 'audio') => {
+  const addFiles = useCallback((files: FileList | File[], type: 'image' | 'file' | 'video' | 'audio') => {
     const list = Array.from(files);
     if (list.length === 0) return;
     setComposerTouched(true);
@@ -669,7 +652,30 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       setAttachments(prev => [...prev, ...accepted]);
       setShowAttachmentMenu(false);
     }
-  };
+  }, [attachments.length, t]);
+  useEffect(() => {
+    // Shares can arrive after the restored room mounted. Wait for its saved
+    // draft first, so asynchronous restoration cannot overwrite the intake.
+    if (!draftReady) return;
+    const pickUp = () => {
+      const w = window as Window & { __stHomeDropFiles?: File[] };
+      const parked = w.__stHomeDropFiles;
+      delete w.__stHomeDropFiles;
+      if (parked?.length) {
+        const first = parked[0];
+        const type = first.type.startsWith('image/') ? 'image' : first.type.startsWith('video/') ? 'video' : first.type.startsWith('audio/') ? 'audio' : 'file';
+        addFiles(parked, type);
+      }
+      const text = takeIntentText();
+      if (text) {
+        setInputText(previous => previous ? `${previous}\n${text}` : text);
+        setComposerTouched(true);
+      }
+    };
+    pickUp();
+    window.addEventListener('sharetext:composer-intent', pickUp);
+    return () => window.removeEventListener('sharetext:composer-intent', pickUp);
+  }, [draftReady, addFiles]);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file' | 'video' | 'audio') => {
     if (!e.target.files || e.target.files.length === 0) return;
     addFiles(e.target.files, type);

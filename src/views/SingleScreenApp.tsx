@@ -882,9 +882,12 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       w.__stPendingIntentText = items.text;
       // Staging, never auto-sending: the user still chooses the recipient
       // and presses Send, exactly as with a file dropped on the landing.
-      void handleSend();
+      // A restored room owns its history and received files. Reuse it rather
+      // than silently replacing it just because the phone opened a share.
+      window.dispatchEvent(new Event('sharetext:composer-intent'));
+      if (!session.roomId && !loadStoredSession()?.roomId) void handleSend();
     }).catch(() => setCreateError({ text: t('shareTarget.failed'), icon: 'info' }));
-  }, [sharedArrival, handleSend, t]);
+  }, [sharedArrival, handleSend, session.roomId, t]);
 
   const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
