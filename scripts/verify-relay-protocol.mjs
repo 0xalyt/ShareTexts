@@ -59,11 +59,19 @@ try {
   await transport.sendRelay({ roomId: 'room', to: 'selected-peer', data: 'enc:AAAA' });
   assert.equal(JSON.parse(sent[0]).payload.to, 'selected-peer');
   await transport.sendRelay({ roomId: 'room', to: 'selected-peer', data: raw });
+  assert.equal(sent.pop(), raw);
+  assert.equal(sent.length, 1, 'old Worker receives no target hints');
+  transport.handleMessage(JSON.stringify({ type: 'event', event: 'relay_capabilities', payload: { binaryTargets: true } }));
+  await transport.sendRelay({ roomId: 'room', to: 'selected-peer', data: raw });
   assert.equal(JSON.parse(sent[1]).event, 'relay_binary_target');
   assert.equal(JSON.parse(sent[1]).payload.to, 'selected-peer');
   assert.equal(sent[2], raw);
   await transport.sendRelay({ roomId: 'room', data: raw });
   assert.equal(sent[3], raw);
+  transport.closeWs();
+  await transport.sendRelay({ roomId: 'room', to: 'selected-peer', data: raw });
+  assert.equal(sent[4], raw);
+  assert.equal(sent.length, 5, 'target capability must reset on reconnect');
   console.log('PASS relay recipient: targeted text, adjacent binary target hint, unchanged legacy bytes');
 
   const key = await generateKey('relay-regression-secret');

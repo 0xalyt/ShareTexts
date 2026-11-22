@@ -141,6 +141,7 @@ async function runRoomProtocol() {
   const SECOND_PID = 'pid-second-device-00000000';
   const creator = await connect(room, roomId);
   const created = await creator.send('create_room', { pid: 'pid-creator-device-00000000' });
+  check('Worker advertises binary targeting on every room connection', creator.server.sent.some(frame => typeof frame === 'string' && JSON.parse(frame).event === 'relay_capabilities'));
   check('create_room ack', created.success === true && created.roomId === roomId, `room ${String(created.roomId).slice(0, 8)}`);
   check('creator roster + stable pid in ack', created.myParticipantId === 'pid-creator-device-00000000' && created.roster?.participants?.length === 1);
   const secret = created.secret;
@@ -347,6 +348,20 @@ async function runRoomProtocol() {
   check('unknown text recipient fails closed', !third.inbox.slice(beforeText[1]).some(m => m.event === 'relay_message'));
   await room.webSocketMessage(creator.server, chunk.buffer);
   check('binary hint is one-shot; legacy broadcast still reaches all peers', joiner.binary.length === beforeTarget[0] + 2 && third.binary.length === beforeTarget[1] + 1);
+  room.frameBuckets.clear();
+  const beforeBurst = joiner.binary.length;
+  const burstStart = Date.now();
+  const burstFrames = [new ArrayBuffer(61476), new ArrayBuffer(61476), new ArrayBuffer(8256)];
+  for (let i = 0; i < 720; i++) {
+    await creator.send('relay_binary_target', { to: SECOND_PID });
+    await room.webSocketMessage(creator.server, burstFrames[i % 3]);
+  }
+  check('30 MiB relay burst: 720 hinted fragments pass within one quota window', Date.now() - burstStart < 10000 && joiner.binary.length === beforeBurst + 720, `${joiner.binary.length - beforeBurst}/720`);
+  check('paired target hints do not double-charge binary quota', room.frameBuckets.get(creator.cid)?.binCount === 720);
+  for (let i = 0; i < 80; i++) await creator.send('relay_binary_target', { to: SECOND_PID });
+  check('unpaired target hint flood is still metered', room.frameBuckets.get(creator.cid)?.binCount === 799);
+  creator.server.serializeAttachment(null);
+  room.frameBuckets.clear();
   // A FORGED roster claim — reusing another device's pid — is just a seat
   // reclaim (the room secret gates every action): the roster must not grow.
   const fourth = await connect(room, roomId);

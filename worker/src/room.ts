@@ -360,6 +360,7 @@ export class Room extends DurableObject<Env> {
     await this.ctx.storage.put('conn:' + cid, { roomId: null } satisfies ConnMeta);
     await this.ensureConns();
     this.conns!.set(cid, { roomId: null });
+    server.send(JSON.stringify({ type: 'event', event: 'relay_capabilities', payload: { binaryTargets: true } }));
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -633,11 +634,13 @@ export class Room extends DurableObject<Env> {
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     let binaryTarget: unknown;
     let targetHint = false;
+    let replacedHint = false;
     if (typeof message === 'string' && message.length <= SIGNAL_MAX) {
       try {
         const hint = JSON.parse(message);
         if (hint?.v === PROTOCOL_VERSION && hint.event === 'relay_binary_target') {
           targetHint = true;
+          replacedHint = ws.deserializeAttachment()?.relayTo !== undefined;
           ws.serializeAttachment({ relayTo: typeof hint.payload?.to === 'string' ? hint.payload.to : null });
         }
       } catch { /* handled below */ }
@@ -654,7 +657,7 @@ export class Room extends DurableObject<Env> {
     // client may not flood frames. Two buckets: text/control frames are
     // individually tiny but can arrive at absurd rates; binary relay frames
     // are bulk but a legit transfer can burst hard, so its cap is generous.
-    if (!this.allowFrame(cid, typeof message === 'string' && !targetHint)) {
+    if ((!targetHint || replacedHint) && !this.allowFrame(cid, typeof message === 'string' && !targetHint)) {
       await count(this.env, 'abuse.frames_dropped');
       return;
     }

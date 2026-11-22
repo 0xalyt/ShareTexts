@@ -37,6 +37,7 @@ export class CloudflareSocket implements SignalingSocket {
   private pending = new Map<string, (res: any) => void>();
   private reqSeq = 0;
   private binaryFrom: string | undefined;
+  private binaryTargets = false;
 
   private httpBase: string; // https://host (for POST /lookup)
   private wsBase: string;   // wss://host/ws (for the room socket)
@@ -332,6 +333,7 @@ export class CloudflareSocket implements SignalingSocket {
 
   private closeWs() {
     this.binaryFrom = undefined;
+    this.binaryTargets = false;
     if (this.ws) {
       const old = this.ws;
       this.ws = null;
@@ -378,7 +380,9 @@ export class CloudflareSocket implements SignalingSocket {
       } else if (msg?.type === 'error') {
         this.emitLocal('error', { code: msg.code, message: msg.message });
       } else if (msg?.type === 'event') {
-        if (msg.event === 'relay_binary') {
+        if (msg.event === 'relay_capabilities') {
+          this.binaryTargets = msg.payload?.binaryTargets === true;
+        } else if (msg.event === 'relay_binary') {
           this.binaryFrom = typeof msg.payload?.from === 'string' && msg.payload.from ? msg.payload.from : undefined;
         } else {
           this.emitLocal(msg.event, msg.payload);
@@ -512,7 +516,7 @@ export class CloudflareSocket implements SignalingSocket {
       if (typeof payload.data === 'string') {
         this.sendJson(ws, 'relay_message', { to: payload.to, data: payload.data });
       } else if (payload.data instanceof ArrayBuffer) {
-        if (payload.to) this.sendJson(ws, 'relay_binary_target', { to: payload.to });
+        if (payload.to && this.binaryTargets) this.sendJson(ws, 'relay_binary_target', { to: payload.to });
         ws.send(payload.data);
       }
     } catch {
