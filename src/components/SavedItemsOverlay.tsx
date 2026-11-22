@@ -221,9 +221,7 @@ function RowAction({
   return (
     <button type="button" onClick={onClick} className={cls} data-testid={testId} title={label} aria-label={label}>
       {icon}
-      {/* Label swaps in place (Copy → Copied). FitWidth springs the button to
-          the new label's width so the action row beside it reflows *with* the
-          animation instead of one frame after it — the container never snaps. */}
+      {/* Frequent action labels update immediately without a width tween. */}
       <FitWidth><span>{label}</span></FitWidth>
     </button>
   );
@@ -332,7 +330,7 @@ function SavedRow({
                 type="button"
                 aria-expanded={expanded}
                 onClick={() => setExpanded((v) => !v)}
-                className="mt-1 flex items-center gap-1 text-[13px] font-semibold text-apple-blue active:opacity-70"
+                className="mt-1 flex min-h-[44px] min-w-[44px] items-center gap-1 text-[13px] font-semibold text-apple-blue active:opacity-70"
               >
                 {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 {expanded ? t('msg.collapse') : t('msg.showFull')}

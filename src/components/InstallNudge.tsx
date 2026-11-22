@@ -228,7 +228,7 @@ export function InstallNudge() {
                 type="button"
                 data-testid="install-snooze"
                 onClick={() => close(false)}
-                className="inline-flex min-h-[44px] items-center px-2 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/45 dark:hover:text-white"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/45 dark:hover:text-white"
               >
                 {t('install.later')}
               </button>
@@ -236,7 +236,7 @@ export function InstallNudge() {
                 type="button"
                 data-testid="install-never"
                 onClick={() => close(true)}
-                className="inline-flex min-h-[44px] items-center px-1.5 text-[12px] font-medium text-apple-ink-muted/70 transition-colors hover:text-apple-ink dark:text-white/30 dark:hover:text-white/70"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 text-[12px] font-medium text-apple-ink-muted/70 transition-colors hover:text-apple-ink dark:text-white/30 dark:hover:text-white/70"
               >
                 {t('install.never')}
               </button>
