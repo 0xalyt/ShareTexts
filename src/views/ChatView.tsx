@@ -63,14 +63,6 @@ import { RecipientStrip } from '../components/RecipientStrip';
 import { noteConnectedRoom } from '../lib/completedItems';
 import { ShortcutHints } from '../components/ShortcutHints';
 
-function takeIntentText(): string | null {
-  const w = window as Window & { __stPendingIntentText?: string };
-  const v = w.__stPendingIntentText;
-  if (!v) return null;
-  delete w.__stPendingIntentText;
-  return v;
-}
-
 /** Localized date-separator label: Today / Yesterday / a real date. */
 function dateKeyOf(ts: number): string {
   const d = new Date(ts);
@@ -143,6 +135,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
   // Multiple staged attachments per send (up to 20) — each file becomes its
   // own transfer bubble on send, but they're picked together in one message.
   const [attachments, setAttachments] = useState<(Attachment & { file: File })[]>([]);
+  const [pendingShares, setPendingShares] = useState<NonNullable<ComposerDraft['pendingShares']>>([]);
   // ---- Draft persistence: text + attachments survive an accidental refresh.
   // Restore on mount, save (debounced) on every change, clear on send. The
   // draft is keyed by room, so switching rooms never mixes composers. A
@@ -158,6 +151,7 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
       if (!d) { setDraftReady(true); return; }
       setInputText(d.text);
       setAttachments(d.attachments.filter(a => a.file && a.file.size > 0));
+      setPendingShares(d.pendingShares ?? []);
       setDraftReady(true);
     });
     return () => { cancelled = true; };
@@ -166,11 +160,11 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
   useEffect(() => {
     if (!draftReady) return;
     const t = setTimeout(() => {
-      const draft: ComposerDraft = { text: inputText, attachments, updatedAt: Date.now() };
+      const draft: ComposerDraft = { text: inputText, attachments, pendingShares, updatedAt: Date.now() };
       void saveDraft(session.roomId, draft);
     }, 250);
     return () => clearTimeout(t);
-  }, [inputText, attachments, session.roomId, draftReady]);
+  }, [inputText, attachments, pendingShares, session.roomId, draftReady]);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [showConnectionDetails, setShowConnectionDetails] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -657,30 +651,31 @@ export function ChatView({ panelMode, intakeError }: { panelMode?: 'embedded' | 
     // draft first, so asynchronous restoration cannot overwrite the intake.
     if (!draftReady) return;
     const pickUp = () => {
-      const w = window as Window & { __stHomeDropFiles?: File[] };
-      const parked = w.__stHomeDropFiles;
-      if (parked?.length) {
-        // Keep a phone-share batch whole until it fits beside the restored
-        // draft. Removing/sending draft attachments retries this pickup.
-        if (parked.length <= MAX_ATTACHMENTS && parked.length > MAX_ATTACHMENTS - attachments.length) {
-          setErrorMsg(t('shareTarget.waiting'));
-          return; // Keep the caption with its waiting files, not this draft.
-        } else {
-          delete w.__stHomeDropFiles;
-          // Classify every file independently, including mixed media.
-          addFiles(parked, 'file');
-        }
-      }
-      const text = takeIntentText();
-      if (text) {
-        setInputText(previous => previous ? `${previous}\n${text}` : text);
-        setComposerTouched(true);
-      }
+      const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+      const files = w.__stHomeDropFiles ?? [];
+      const text = w.__stPendingIntentText ?? '';
+      delete w.__stHomeDropFiles;
+      delete w.__stPendingIntentText;
+      // The room owns the handoff now. Save waiting batches with its draft,
+      // not only in globals that disappear on refresh; later shares queue.
+      if (files.length || text) setPendingShares(previous => [...previous, { files, text }]);
     };
     pickUp();
     window.addEventListener('sharetext:composer-intent', pickUp);
     return () => window.removeEventListener('sharetext:composer-intent', pickUp);
-  }, [draftReady, addFiles, attachments.length, t]);
+  }, [draftReady]);
+  useEffect(() => {
+    if (!draftReady || !pendingShares.length) return;
+    const { files, text } = pendingShares[0];
+    if (files.length <= MAX_ATTACHMENTS && files.length > MAX_ATTACHMENTS - attachments.length) {
+      setErrorMsg(t('shareTarget.waiting'));
+      return; // Keep the caption with its waiting files, not this draft.
+    }
+    if (files.length) addFiles(files, 'file');
+    if (text) setInputText(previous => previous ? `${previous}\n${text}` : text);
+    setComposerTouched(true);
+    setPendingShares(previous => previous.slice(1));
+  }, [draftReady, pendingShares, addFiles, attachments.length, t]);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file' | 'video' | 'audio') => {
     if (!e.target.files || e.target.files.length === 0) return;
     addFiles(e.target.files, type);

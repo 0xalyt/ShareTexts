@@ -163,7 +163,7 @@ const cases = {
     assert.equal(await page.evaluate(() => window.__stHomeDropFiles?.length || 0), 0, 'A late cache read cannot resurrect a closed room handoff');
     assert.equal(await page.evaluate(() => window.__stPendingIntentText || ''), '');
   },
-  async fullDraft(page) {
+  async fullDraft(page, _context, refresh = false) {
     await storedRoom(page);
     const id = await seed(page, { draftCount: 19, sharedCount: 2 });
     await gotoPage(page, `${BASE}/?share_id=${id}`);
@@ -171,11 +171,21 @@ const cases = {
     await page.getByTestId('error-message').waitFor({ timeout: 10000 });
     assert.equal(await page.getByTestId('staged-attachment').count(), 19, 'A shared batch is not partly added');
     assert.equal(await page.getByTestId('composer').inputValue(), 'saved draft', 'The waiting caption must not send with the old draft');
+    if (refresh) {
+      // The composer saves after 250 ms; reload after that local write.
+      await page.waitForTimeout(600);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByTestId('composer').waitFor({ timeout: 25000 });
+      await page.getByTestId('error-message').waitFor({ timeout: 10000 });
+      assert.equal(await page.getByTestId('composer').inputValue(), 'saved draft');
+      assert.equal(await page.getByTestId('staged-attachment').count(), 19);
+    }
     await page.getByRole('button', { name: 'Remove attachment', exact: true }).first().click();
     await page.waitForFunction(() => document.querySelectorAll('[data-testid="staged-attachment"]').length === 20 && !window.__stHomeDropFiles);
     assert(await page.getByTestId('composer').inputValue().then(value => value.includes('saved draft') && value.includes('shared text')));
     await page.getByTestId('error-message').waitFor({ state: 'hidden' });
   },
+  async fullDraftRefresh(page, context) { await cases.fullDraft(page, context, true); },
   async rejection(page) {
     await storedRoom(page);
     await gotoPage(page, `${BASE}/?share_error=1`);
