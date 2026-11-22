@@ -2,6 +2,7 @@
 import { launchBrowser, URL, sleep, readLiveCode, gotoPage } from './lib.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
+import { verifySpaceCreate } from './verify-space-create.mjs';
 
 const { generateTOTP } = await tsImport('../src/lib/totp.ts', import.meta.url);
 
@@ -36,6 +37,7 @@ async function main() {
   const browser = await launchBrowser();
   const artifacts = browserDiagnostics(browser, 'e2e');
   try {
+  await verifySpaceCreate(browser);
   const ctxA = await artifacts.newContext();
   const ctxB = await artifacts.newContext();
   const ctxC = await artifacts.newContext();

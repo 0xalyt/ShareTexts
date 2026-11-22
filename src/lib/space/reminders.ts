@@ -27,11 +27,21 @@ export function reminderSupport(): ReminderSupport {
   }
 }
 
-/** Ask permission + subscribe this device to the space's one reminder.
- *  Must be called from a user gesture. Never throws. */
+/** Call before any await in the user gesture. Never throws. */
+export async function requestReminderPermission(): Promise<boolean> {
+  if (reminderSupport() !== 'supported') return false;
+  try {
+    return (Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission()) === 'granted';
+  } catch {
+    return false;
+  }
+}
+
+/** Subscribe only after notification permission has been granted. */
 export async function enableReminder(spaceId: string): Promise<{ ok: boolean; reason?: ReminderSupport }> {
   const support = reminderSupport();
   if (support !== 'supported') return { ok: false, reason: support };
+  if (Notification.permission !== 'granted') return { ok: false, reason: 'denied' };
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
     await navigator.serviceWorker.ready;
@@ -43,7 +53,7 @@ export async function enableReminder(spaceId: string): Promise<{ ok: boolean; re
     return { ok: true };
   } catch {
     // Permission prompt dismissed, or subscribe failed — countdown still works.
-    return { ok: false, reason: Notification.permission === 'denied' ? 'denied' : 'unsupported' };
+    return { ok: false, reason: reminderSupport() === 'denied' ? 'denied' : 'unsupported' };
   }
 }
 
