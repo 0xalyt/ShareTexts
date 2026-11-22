@@ -267,24 +267,30 @@ function validateSignal(signal: unknown): unknown | null {
 }
 
 /**
- * Fire an anonymous aggregate metric (best-effort, no payload — see
- * metrics.ts). No-ops when the METRICS binding is absent so the emulator
+ * Send a batch of anonymous aggregate metric counts (best-effort, no
+ * payload — see metrics.ts). No-ops when the METRICS binding is absent so the emulator
  * harness and older deploys keep working unchanged.
  */
-async function count(env: Env, name: string) {
+async function countMany(env: Env, counts: Record<string, number>) {
   try {
     if (!env.METRICS) return;
     const stub = env.METRICS.get(env.METRICS.idFromName('metrics'));
     await stub.fetch(
       new Request('https://internal/event', {
         method: 'POST',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ counts }),
       })
     );
   } catch {
     /* metrics are best-effort */
   }
 }
+
+/** Rooms buffer metric counts and flush at most this often while frames
+ *  flow (plus on close, alarm and destroy) instead of one Metrics request per
+ *  relay frame. */
+const METRICS_FLUSH_MS = 10_000;
+const BUFFERED_METRICS = new Set(['relay.text_messages', 'relay.binary_messages', 'abuse.frames_dropped']);
 
 /**
  * Report this room's current seated-peer count to the Stats DO (best-effort,
@@ -535,7 +541,7 @@ export class Room extends DurableObject<Env> {
     if (r.state === 'CONNECTED' && !wasConnected && !r.countedConnected) {
       r.countedConnected = true;
       await this.ctx.storage.put('room', r);
-      await count(this.env, 'rooms.created');
+      await this.metric('rooms.created');
     }
   }
 
@@ -580,6 +586,27 @@ export class Room extends DurableObject<Env> {
    *  while turning O(frames) storage writes into O(minutes). */
   private lastTouchWrite = 0;
 
+  private pendingMetrics = new Map<string, number>();
+  private metricsFlushedAt = Date.now();
+
+  /** Per-frame counters are buffered (a hibernating room may drop the last
+   *  few seconds of them); everything else, including the lifetime
+   *  rooms.created count, goes out at once. */
+  private async metric(name: string) {
+    this.pendingMetrics.set(name, (this.pendingMetrics.get(name) ?? 0) + 1);
+    if (!BUFFERED_METRICS.has(name) || Date.now() - this.metricsFlushedAt >= METRICS_FLUSH_MS) {
+      await this.flushMetrics();
+    }
+  }
+
+  private async flushMetrics() {
+    this.metricsFlushedAt = Date.now();
+    if (!this.pendingMetrics.size) return;
+    const counts = Object.fromEntries(this.pendingMetrics);
+    this.pendingMetrics.clear();
+    await countMany(this.env, counts);
+  }
+
   private async touch() {
     const r = this.room;
     if (!r) return;
@@ -612,11 +639,12 @@ export class Room extends DurableObject<Env> {
     if (r) {
       r.state = reason === 'idle_timeout' ? 'EXPIRED' : 'CLOSING';
       log('room terminal', r.roomId.slice(0, 8), r.state);
-      await count(this.env, 'rooms.closed:' + reason);
+      await this.metric('rooms.closed:' + reason);
       // The room is gone — zero its presence so the live counter can't hold
       // a stale positive for a destroyed room (webSocketClose may race this).
       await reportPresence(this.env, r.roomId, 0);
     }
+    await this.flushMetrics();
     // room_closed goes to every live socket, then they all close.
     for (const ws of this.ctx.getWebSockets()) {
       if (ws.readyState === 1) {
@@ -658,7 +686,7 @@ export class Room extends DurableObject<Env> {
     // individually tiny but can arrive at absurd rates; binary relay frames
     // are bulk but a legit transfer can burst hard, so its cap is generous.
     if ((!targetHint || replacedHint) && !this.allowFrame(cid, typeof message === 'string' && !targetHint)) {
-      await count(this.env, 'abuse.frames_dropped');
+      await this.metric('abuse.frames_dropped');
       return;
     }
     if (targetHint) return;
@@ -669,7 +697,7 @@ export class Room extends DurableObject<Env> {
       if (!(await this.memberOf(cid))) return;
       await this.touch();
       await this.markTransferring();
-      await count(this.env, 'relay.binary_messages');
+      await this.metric('relay.binary_messages');
       const r = this.room!;
       const toPid = this.targetPid(r, binaryTarget);
       if (binaryTarget !== undefined && !toPid) return;
@@ -762,13 +790,16 @@ export class Room extends DurableObject<Env> {
       const earliest = Math.min(...Object.values(r.grace));
       const alarm = await this.ctx.storage.getAlarm();
       if (!alarm || alarm > earliest) await this.ctx.storage.setAlarm(earliest);
+      await this.flushMetrics();
       return;
     }
     await this.dropConn(cid);
     log('non-member socket closed', cid.slice(0, 8));
+    await this.flushMetrics();
   }
 
   async alarm() {
+    await this.flushMetrics();
     const r = await this.loadRoom();
     if (!r) {
       await this.ctx.storage.deleteAll();
@@ -866,13 +897,13 @@ export class Room extends DurableObject<Env> {
     }
     const code = payload?.code;
     if (typeof code !== 'string') {
-      await count(this.env, 'joins.failed:invalid_code');
+      await this.metric('joins.failed:invalid_code');
       return this.ackErr(cid, id, 'INVALID_CODE', 'Invalid or expired code');
     }
     // Per-room brute-force limit on the pairing code.
     const now = Date.now();
     if (r.codeFails >= CODE_FAIL_MAX && now < r.codeFailReset) {
-      await count(this.env, 'joins.failed:rate_limited');
+      await this.metric('joins.failed:rate_limited');
       return this.ackErr(cid, id, 'RATE_LIMITED', 'Too many attempts. Try again in a minute.');
     }
     if (!(await validateTOTP(r.secret, code, r.codeAnchor))) {
@@ -882,13 +913,13 @@ export class Room extends DurableObject<Env> {
       }
       r.codeFails++;
       await this.ctx.storage.put('room', r);
-      await count(this.env, 'joins.failed:invalid_code');
+      await this.metric('joins.failed:invalid_code');
       return this.ackErr(cid, id, 'INVALID_CODE', 'Invalid or expired code');
     }
     r.codeFails = 0;
     const slot = await this.assignSlot(cid, this.pidFrom(payload));
     if (slot === 'full') {
-      await count(this.env, 'joins.failed:room_full');
+      await this.metric('joins.failed:room_full');
       return this.ackErr(cid, id, 'ROOM_FULL', 'This room cannot take more devices right now.');
     }
     await this.completeJoin(cid, id);
@@ -897,11 +928,11 @@ export class Room extends DurableObject<Env> {
   private async handleJoinWithLink(cid: string, id?: string, payload?: { secret?: unknown; pid?: unknown }) {
     const r = await this.loadRoom();
     if (!r) {
-      await count(this.env, 'joins.failed:session_expired');
+      await this.metric('joins.failed:session_expired');
       return this.ackErr(cid, id, 'SESSION_EXPIRED', 'This room has expired.');
     }
     if (payload?.secret && payload.secret !== r.secret) {
-      await count(this.env, 'joins.failed:invalid_session');
+      await this.metric('joins.failed:invalid_session');
       return this.ackErr(cid, id, 'INVALID_SESSION', 'This room link isn\u2019t valid anymore.');
     }
     if (r.participants.some((p) => p.cid === cid)) {
@@ -909,7 +940,7 @@ export class Room extends DurableObject<Env> {
     }
     const slot = await this.assignSlot(cid, this.pidFrom(payload));
     if (slot === 'full') {
-      await count(this.env, 'joins.failed:room_full');
+      await this.metric('joins.failed:room_full');
       return this.ackErr(cid, id, 'ROOM_FULL', 'This room cannot take more devices right now.');
     }
     await this.completeJoin(cid, id);
@@ -1001,7 +1032,7 @@ export class Room extends DurableObject<Env> {
       initiatorId: initiatorOf(r.participants),
     });
     log('peer joined', r.roomId.slice(0, 8), cid.slice(0, 8), 'state', r.state, 'members', r.participants.length);
-    await count(this.env, 'joins.succeeded');
+    await this.metric('joins.succeeded');
     await reportPresence(this.env, r.roomId, (await this.livePeers()).length);
     this.ackOk(cid, id, {
       roomId: r.roomId,
@@ -1032,7 +1063,7 @@ export class Room extends DurableObject<Env> {
     r.codeAnchor = Date.now();
     await this.ctx.storage.put('room', r);
     await this.registerInRegistry(r); // keep the registry's lookup anchor in sync
-    await count(this.env, 'rooms.code_refreshed');
+    await this.metric('rooms.code_refreshed');
     this.ackOk(cid, id, { createdAt: r.codeAnchor });
   }
 
@@ -1059,7 +1090,7 @@ export class Room extends DurableObject<Env> {
     if (data === null) return;
     await this.touch();
     await this.markTransferring();
-    await count(this.env, 'relay.text_messages');
+    await this.metric('relay.text_messages');
     const self = this.participantOf(cid);
     const r = this.room!;
     const targetPid = this.targetPid(r, payload?.to);
@@ -1124,7 +1155,7 @@ export class Room extends DurableObject<Env> {
         try { ws.send(JSON.stringify(event)); } catch { /* best effort */ }
       }
     }
-    await count(this.env, enabled ? 'stay.enabled' : 'stay.disabled');
+    await this.metric(enabled ? 'stay.enabled' : 'stay.disabled');
     this.ackOk(cid, id, { success: true, enabled });
   }
 
@@ -1137,14 +1168,14 @@ export class Room extends DurableObject<Env> {
   private async handlePush(request: Request): Promise<Response> {
     const r = await this.loadRoom();
     if (!r) {
-      await count(this.env, 'push.failed:not_found');
+      await this.metric('push.failed:not_found');
       return json({ error: 'Room not found — it may have expired.' }, 404);
     }
 
     const auth = request.headers.get('authorization') || '';
     const secret = auth.startsWith('Bearer ') ? auth.slice(7) : '';
     if (!secret || !timingSafeEqual(secret, r.secret)) {
-      await count(this.env, 'push.failed:unauthorized');
+      await this.metric('push.failed:unauthorized');
       return json({ error: 'Invalid secret. Copy the command from the connect screen.' }, 401);
     }
 
@@ -1171,7 +1202,7 @@ export class Room extends DurableObject<Env> {
 
     if (typeof body.text === 'string' && body.text.trim().length > 0) {
       const text = body.text.slice(0, PUSH_TEXT_MAX);
-      await count(this.env, 'push.text');
+      await this.metric('push.text');
       for (const pid of live) {
         await this.sendToPid(r, pid, { type: 'event', event: 'push_message', payload: { id: messageId, kind: 'text', text, timestamp } });
       }
@@ -1200,7 +1231,7 @@ export class Room extends DurableObject<Env> {
       chunkCount,
       timestamp,
     };
-    await count(this.env, 'push.file');
+    await this.metric('push.file');
     for (let i = 0; i < chunkCount; i++) {
       const chunk = raw.slice(i * PUSH_CHUNK, (i + 1) * PUSH_CHUNK);
       const payload = { ...base, chunkIndex: i, dataBase64: btoa(chunk) };

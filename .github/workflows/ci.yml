@@ -54,6 +54,10 @@ jobs:
       - name: Start local signaling Worker
         run: node scripts/start-ci-worker.mjs
 
+      - name: Space double-join request stream regression
+        if: matrix.browsers == 'chromium'
+        run: node scripts/verify-space-join-stream.mjs
+
       - name: Space live updates after idle
         if: matrix.browsers == 'chromium'
         run: node scripts/verify-space-idle.mjs
@@ -88,6 +92,10 @@ jobs:
       # cannot see a Send circle that walks 65px up a grown row.
       - name: Verify local signaling in built app
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-ci-worker.mjs
+
+      - name: Nearby opt-in lifecycle
+        if: matrix.browsers == 'chromium'
+        run: BASE_URL=http://localhost:3311 node scripts/verify-nearby-optin.mjs
 
       - name: Composer geometry gate
         run: URL=http://localhost:3311 node scripts/verify-composer.mjs
