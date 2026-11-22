@@ -219,7 +219,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
       nearbyPresence.stop(socket);
     }
     return () => nearbyPresence.stop(socket);
-  }, [idle, session.deviceName]);
+  }, [idle, session.deviceName, presenceHidden]);
 
   // Subscribe once; presence updates arrive over the existing socket.
   useEffect(() => nearbyPresence.subscribe((list, selfToken) => {

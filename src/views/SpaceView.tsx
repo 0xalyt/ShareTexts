@@ -42,7 +42,7 @@ import { normalizeSpaceCode, formatSpaceCode, isValidSpaceCode, generateSpaceCod
 import type { SpaceItem } from '../lib/space/types';
 import { closingTime, remainingShort, urgencyTier } from '../lib/space/time';
 import { isRunningOut } from '../lib/space/lifetime';
-import { reminderSupport, enableReminder } from '../lib/space/reminders';
+import { reminderSupport, requestReminderPermission, enableReminder } from '../lib/space/reminders';
 
 
 
@@ -397,6 +397,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
     if (busy) return;
     setBusy(true);
     setError(null);
+    const reminderPermission = remind && support === 'supported' ? requestReminderPermission() : Promise.resolve(false);
     try {
       const { createSpace } = await import('../lib/space/api');
       const out = await createSpace({ name: name.trim() || t('space.defaultName'), durationMs: duration, code: code || undefined });
@@ -405,7 +406,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
         let timer: number | undefined;
         try {
           await Promise.race([
-            enableReminder(out.spaceId).catch(() => { /* countdown still works */ }),
+            reminderPermission.then(granted => granted ? enableReminder(out.spaceId) : undefined).catch(() => { /* countdown still works */ }),
             new Promise<void>(resolve => { timer = window.setTimeout(resolve, 2500); }),
           ]);
         } finally {

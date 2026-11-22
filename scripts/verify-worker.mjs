@@ -45,6 +45,7 @@ const out = await build({
     room: path.join(root, 'worker', 'src', 'room.ts'),
     registry: path.join(root, 'worker', 'src', 'registry.ts'),
     metrics: path.join(root, 'worker', 'src', 'metrics.ts'),
+    lobby: path.join(root, 'worker', 'src', 'lobby.ts'),
     space: path.join(root, 'worker', 'src', 'space.ts'),
     shim: shimPath,
   },
@@ -63,6 +64,7 @@ const { FakeCtx } = await import(pathToFileURL(path.join(tmp, 'shim.js')).href +
 const { Room, ROOM_TTL } = await import(pathToFileURL(path.join(tmp, 'room.js')).href + cacheBust);
 const { Registry } = await import(pathToFileURL(path.join(tmp, 'registry.js')).href + cacheBust);
 const { Metrics } = await import(pathToFileURL(path.join(tmp, 'metrics.js')).href + cacheBust);
+const { Lobby } = await import(pathToFileURL(path.join(tmp, 'lobby.js')).href + cacheBust);
 const { Space, SPACE_TTL_CAP } = await import(pathToFileURL(path.join(tmp, 'space.js')).href + cacheBust);
 const { default: worker } = await import(pathToFileURL(path.join(tmp, 'index.js')).href + cacheBust);
 
@@ -1073,6 +1075,37 @@ async function runSpaceCors() {
   check('Space code join exposes its credential header to the allowed frontend', codeJoin.status === 200 && codeJoin.headers.get('access-control-allow-origin') === origin && !!codeJoin.headers.get('x-space-token') && codeJoin.headers.get('access-control-expose-headers') === 'x-space-token');
 }
 
+async function runLobbyWithdrawal() {
+  const ctx = new FakeCtx();
+  const lobby = new Lobby(ctx, {});
+  const peer = await connect(lobby, uuid());
+  const deviceId = uuid();
+  check('Lobby empty withdrawal is ACKed', (await peer.send('presence_withdraw')).success);
+  check('Lobby initial announce is ACKed', (await peer.send('presence_announce', { deviceId, name: 'Nearby peer' })).success);
+  await peer.waitFor(frame => frame.event === 'presence_list' && frame.payload.devices.some(device => device.name === 'Nearby peer'));
+  peer.inbox.length = 0;
+  check('Lobby withdrawal is ACKed', (await peer.send('presence_withdraw')).success);
+  check('Lobby withdrawal removes membership but retains socket identity',
+    !await ctx.storage.get('dev:' + deviceId) && (await ctx.storage.get('conn:' + peer.cid))?.deviceId === null);
+  check('Lobby withdrawal broadcasts an empty list', !!await peer.waitFor(frame => frame.event === 'presence_list' && frame.payload.devices.length === 0));
+  check('Lobby repeated withdrawal is ACKed', (await peer.send('presence_withdraw')).success);
+  const wake = new Lobby(ctx, {});
+  peer.inbox.length = 0;
+  await wake.webSocketMessage(peer.server, JSON.stringify({ v: 1, id: 'reannounce', event: 'presence_announce', payload: { deviceId, name: 'Nearby again' } }));
+  check('Lobby same-socket re-announce after wake is ACKed', peer.inbox.some(frame => frame.id === 'reannounce' && frame.ok && frame.success));
+  check('Lobby same-socket re-announce is listed', !!await peer.waitFor(frame => frame.event === 'presence_list' && frame.payload.devices.some(device => device.name === 'Nearby again')));
+  peer.server.close();
+  await wake.webSocketClose(peer.server);
+  check('Lobby announced socket close removes membership and identity',
+    !await ctx.storage.get('dev:' + deviceId) && !await ctx.storage.get('conn:' + peer.cid));
+  const withdrawn = await connect(wake, uuid());
+  await withdrawn.send('presence_announce', { deviceId, name: 'Withdrawn peer' });
+  await withdrawn.send('presence_withdraw');
+  withdrawn.server.close();
+  await wake.webSocketClose(withdrawn.server);
+  check('Lobby withdrawn socket close removes retained identity', !await ctx.storage.get('conn:' + withdrawn.cid));
+}
+
 await runCorsPreflight();
 await runSpaceCors();
 await runRoomProtocol();
@@ -1090,6 +1123,7 @@ await runRegistry();
 await runMetrics();
 await runSpace();
 await runSpaceHibernation();
+await runLobbyWithdrawal();
 
 rmSync(tmp, { recursive: true, force: true });
 console.log(`\n${passed} passed, ${failed} failed`);
