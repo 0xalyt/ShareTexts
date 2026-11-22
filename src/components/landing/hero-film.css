@@ -1,5 +1,5 @@
 .hero-film { width: 100%; min-width: 0; margin: 0; padding: 12px; border-radius: 24px; background: #eae1d6; }
-.hero-film-picture { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 9; background: #fff; border-radius: 12px; border: 1px solid var(--color-apple-divider); box-shadow: var(--shadow-float); }
+.hero-film-picture { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 9; background: #fff center / contain no-repeat; border-radius: 12px; border: 1px solid var(--color-apple-divider); box-shadow: var(--shadow-float); }
 .hero-film-picture video { display: block; width: 100%; height: 100%; object-fit: contain; }
 .hero-film-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .hero-film-controls { display: flex; justify-content: flex-end; margin-top: 8px; min-height: 48px; }
@@ -12,7 +12,7 @@
 /* Warm, flat fields separate the actual media frame from the page in either
    theme. Never recolor or crop the encoded film to manufacture a match. */
 .dark .hero-film { background: #302a24; }
-.dark .hero-film-picture { background: #181818; }
+.dark .hero-film-picture { background-color: #181818; }
 .dark .hero-film-play::before { background: #313131; }
 .dark .hero-film-play:focus-visible { outline-color: #f5f5f7; }
 @media (hover: hover) and (pointer: fine) {
