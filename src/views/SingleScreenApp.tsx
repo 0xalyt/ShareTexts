@@ -173,7 +173,7 @@ function useIsDesktopLayout() {
 /* ------------------------------------------------------------------ */
 export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initialSpaceSheet?: 'create' | 'join'; initialSpaceCode?: string } = {}) {
   const { t, lang } = useI18n();
-  const { session, createSession, abandonSession, joinWithCode, joinWithShortCode, setDeviceName, rejoinStayRoom, requestReconnect, refreshCode } = useSession();
+  const { session, isRestoringSession, createSession, abandonSession, joinWithCode, joinWithShortCode, setDeviceName, rejoinStayRoom, requestReconnect, refreshCode } = useSession();
   const isDesktopLayout = useIsDesktopLayout();
   const filmPlayback = useRef<HeroFilmPlayback>({ phase: 0, choice: 'auto', loaded: false });
   // "Is the link actually usable right now?" — during a stall the room
@@ -666,11 +666,11 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         // phantom "Code active" screen that swallowed the next join).
         abandonSession();
       }
-      } catch (e: unknown) {
-        if (thisAttempt !== createAbortRef.current) return;
-        // A failed connection is retryable; only Cancel/Disconnect discards
-        // the phone share or home drop waiting for the composer.
-        setCreateError(friendlyConnectError(e));
+    } catch (e: unknown) {
+      if (thisAttempt !== createAbortRef.current) return;
+      // A failed connection is retryable; only Cancel/Disconnect discards
+      // the phone share or home drop waiting for the composer.
+      setCreateError(friendlyConnectError(e));
       setPanelMode('idle');
     } finally {
       creatingRef.current = false;
@@ -896,7 +896,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
 
   const sharedArrivalStarted = useRef(false);
   useEffect(() => {
-    if (sharedArrivalStarted.current || (!sharedArrival.id && !sharedArrival.error)) return;
+    // Resolve the saved room before consuming the cache. Otherwise an
+    // expired pairing can strand the share (or consume it into a dead draft).
+    if (isRestoringSession || sharedArrivalStarted.current || (!sharedArrival.id && !sharedArrival.error)) return;
     sharedArrivalStarted.current = true;
     const intakeAttempt = createAbortRef.current;
     window.history.replaceState(null, '', window.location.pathname);
@@ -910,7 +912,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
       // than silently replacing it just because the phone opened a share.
       if (staged && !session.roomId && !loadStoredSession()?.roomId) void handleSend();
     }).catch(() => setCreateError({ text: t('shareTarget.failed'), icon: 'info' }));
-  }, [sharedArrival, handleSend, session.roomId, t]);
+  }, [sharedArrival, handleSend, session.roomId, isRestoringSession, t]);
 
   // Body-level paste is a shortcut, never a clipboard read on page load.
   // Editors and open sheets keep their normal paste behavior.
