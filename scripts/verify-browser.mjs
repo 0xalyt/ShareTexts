@@ -19,6 +19,15 @@ import { mkdirSync, openSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
 
+// The pre-push hook calls this without shell configuration. A local app
+// must never quietly fall back to production signaling.
+const localWorker = process.env.VITE_SIGNALING_URL || 'http://localhost:8787';
+if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+\/?$/.test(localWorker)) {
+  throw new Error('verify:browser requires a private local Worker; run npm run worker:dev');
+}
+process.env.VITE_CI_LOCAL_WORKER = '1';
+process.env.VITE_SIGNALING_URL = localWorker;
+
 // Own an isolated port, rather than silently testing a stale dev server.
 const PORT = process.env.VERIFY_BROWSER_PORT || await new Promise((resolve, reject) => {
   const probe = createServer();
