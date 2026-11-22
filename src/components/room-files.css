@@ -1,6 +1,7 @@
 .st-file-group { box-shadow: 0 2px 0 rgb(0 0 0 / .035), 0 5px 0 -2px rgb(0 0 0 / .035); }
 .st-photo-grid > div { min-width: 0; }
 .st-photo-grid .st-file-bubble { max-width: 100%; }
+.st-photo-grid .st-file-bubble .st-img-edge { aspect-ratio: 1; object-fit: cover; }
 .st-photo-grid > [aria-hidden='true'] { grid-column: 1 / -1; }
 @media (prefers-reduced-motion: no-preference) { .st-peer-arrival { animation: st-peer-arrival 480ms ease-out both; } }
 @keyframes st-peer-arrival { from { opacity: .8; transform: scale(1); } to { opacity: 0; transform: scale(1.7); } }

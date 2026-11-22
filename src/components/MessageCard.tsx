@@ -968,7 +968,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
               {complete && (
                 <>
                   <ActionButton icon={saved ? <Check /> : <Download />} label={saved ? t('action.downloadStarted') : savesPhotos && isImage && typeof navigator.share === 'function' ? t('action.savePhotos') : t('action.download')} active={saved} onClick={() => { if (savesPhotos && isImage && typeof navigator.share === 'function') void handleShare(); else handleDownload(a.url!, a.name); }} primary onBlue={isMe} testId="transfer-download" />
-                  <div className="flex items-center gap-1 sm:gap-1.5">
+                  <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1 sm:gap-1.5">
                     {a.type === 'image' && (
                       <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} compact onBlue={isMe} testId="transfer-copy" />
                     )}
@@ -1116,7 +1116,7 @@ function BookmarkButton({ msg }: { msg: ChatMessage }) {
         aria-label={name}
         title={name}
         aria-pressed={bm.saved}
-        disabled={bm.busy}
+        aria-disabled={bm.busy}
         data-testid="save-item"
         className={cn(
           "st-message-utility flex shrink-0 items-center justify-center min-w-11 min-h-11 -my-[15px] rounded-full transition-motion active:scale-[0.96]",
@@ -1176,15 +1176,15 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
   return (
     <button
       type="button"
-      onClick={viaClick ? onClick : (e) => { if (e.detail === 0) onClick(); }}
-      onPointerDown={viaClick ? undefined : (e) => { e.preventDefault(); onClick(); }}
+      onClick={(e) => { if (!disabled && (viaClick || e.detail === 0)) onClick(); }}
+      onPointerDown={viaClick ? undefined : (e) => { e.preventDefault(); if (!disabled) onClick(); }}
       aria-label={ariaLabel}
       title={ariaLabel ?? label}
       aria-pressed={pressed}
-      disabled={disabled}
+      aria-disabled={disabled}
       data-testid={testId}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
+        "flex max-w-full shrink-0 items-center gap-1.5 py-2 rounded-full text-[12px] font-semibold transition-[background-color,box-shadow,color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none min-h-11 select-none",
       compact ? "justify-center w-11 sm:w-auto sm:px-3" : "px-1.5 sm:px-3",
         active
           ? "bg-status-success/15 text-status-success shadow-[0_0_0_1px_rgba(4,120,87,0.18),inset_0_1px_2px_rgba(4,120,87,0.10)]"
@@ -1199,11 +1199,11 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.18, ease: EASE.out }}
-        className="[&>svg]:w-3.5 [&>svg]:h-3.5"
+        className="shrink-0 [&>svg]:w-3.5 [&>svg]:h-3.5"
       >
         {active ? (activeIcon ?? <Check />) : icon}
       </motion.span>
-      <span className={compact ? 'sr-only sm:not-sr-only' : undefined}>{label}</span>
+      <span className={compact ? 'sr-only sm:not-sr-only' : 'min-w-0 break-words'}>{label}</span>
     </button>
   );
 }
