@@ -296,7 +296,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // and closed tabs, making the room feel genuinely persistent.
   useEffect(() => {
     if (!session.roomId || !session.secret) return;
-    const timer = setTimeout(() => {
+    let pending = true;
+    const persist = () => {
+      if (!pending) return;
+      pending = false;
+      const session = sessionRef.current;
+      if (!session.roomId || !session.secret) return;
       const payload: StoredSession = {
         roomId: session.roomId,
         secret: session.secret,
@@ -331,8 +336,24 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         }
         saveStoredSession(payload);
       } catch { /* ignore */ }
-    }, 300);
-    return () => clearTimeout(timer);
+    };
+    const timer = setTimeout(persist, 300);
+    const flush = () => {
+      clearTimeout(timer);
+      persist();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [session.roomId, session.secret, session.isCreator, session.deviceName, session.partnerName, session.messages, session.stayConnected]);
 
   // ---- Connection state machine mirror: feed the coarse lifecycle truth
