@@ -6,7 +6,6 @@ import { Segmented } from './ui/Segmented';
 import { useI18n, LANGS, type Lang } from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 import { useSession } from '../lib/SessionContext';
-import { useFocusTrap } from '../lib/useFocusTrap';
 import { readNoGlassPreference, setNoGlass } from '../lib/device';
 import { HAPTICS_IOS, HAPTICS_STORE, haptic } from '../lib/haptics';
 import { isPresenceHidden, setPresenceHidden } from '../lib/nearby';
@@ -117,7 +116,8 @@ export function SettingsOverlay({
   const { t, lang, auto, setLang, useDeviceLanguage } = useI18n();
   const { choice, setChoice } = useTheme();
   const { session, setDeviceName } = useSession();
-  const trapRef = useFocusTrap(open, onClose);
+  // Sheet owns the trap. Follow the actual column only for its focus handoff.
+  const columnRef = useRef<HTMLDivElement>(null);
 
   const [languageOpen, setLanguageOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -163,14 +163,14 @@ export function SettingsOverlay({
     if (languageOpen) {
       wasLanguageOpen.current = true;
       const raf = requestAnimationFrame(() => {
-        trapRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-back"]')?.focus();
+        columnRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-back"]')?.focus();
       });
       return () => cancelAnimationFrame(raf);
     }
     if (!wasLanguageOpen.current) return;
     wasLanguageOpen.current = false;
     const raf = requestAnimationFrame(() => {
-      trapRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-row"]')?.focus();
+      columnRef.current?.querySelector<HTMLElement>('[data-testid="settings-language-row"]')?.focus();
     });
     return () => cancelAnimationFrame(raf);
   }, [languageOpen, open]);
@@ -214,7 +214,7 @@ export function SettingsOverlay({
                   the sheet slides and the list is replaced, so Back (or this
                   chevron) is one gesture, in the same surface. */}
               {languageOpen ? (
-                <div className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4" data-testid="settings-language-list" data-sheet-scroll>
+                <div ref={columnRef} className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4" data-testid="settings-language-list" data-sheet-scroll>
                   <button
                     type="button"
                     onClick={() => setLanguageOpen(false)}
@@ -252,7 +252,7 @@ export function SettingsOverlay({
                   </div>
                 </div>
               ) : (
-                <div className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4 room-scroll" data-sheet-scroll>
+                <div ref={columnRef} className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4 room-scroll" data-sheet-scroll>
                   {/* ── Device ─────────────────────────────────────── */}
                   <Group title={t('settings.device')} testId="settings-device">
                     <Row first as="div" className="justify-between">
