@@ -1,62 +1,49 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { DemoScreen } from '../components/landing/HandoffDemo';
+import { flushSync } from 'react-dom';
 import { ShareTextsLogo } from '../components/ShareTextsLogo';
-import { useI18n } from '../lib/i18n';
-import { createStudio } from './StudioScene';
+import { createBlenderStage } from './BlenderStage';
 import './launch-film.css';
 
-export const LAUNCH_DURATION = 12.7;
+export const LAUNCH_DURATION = 16.8;
 export const filmEase = (t: number, start: number, duration: number) => {
   const p = Math.max(0, Math.min(1, (t - start) / duration));
   return p * p * p * (p * (p * 6 - 15) + 10);
 };
 
-/** Authoring only. The app ships the encoded movie, never Three.js or a canvas.
- * Original unbranded hardware; the existing product illustration supplies its
- * displays at native aspect ratios. One seekable clock owns every frame. */
+/** Offline only. Real product footage, physical camera moves, encoded delivery. */
 export function LaunchFilm() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [time, setTime] = useState(0);
-  const { t } = useI18n();
-  const texture = new URLSearchParams(location.search).get('texture');
   const dark = new URLSearchParams(location.search).get('theme') === 'dark';
   useEffect(() => {
-    if (texture || !canvas.current) return;
-    let live = true;
-    let dispose: (() => void) | undefined;
-    void createStudio(canvas.current, dark).then(studio => {
-      dispose = studio.dispose;
-      if (!live) { dispose(); return; }
+    let alive = true;
+    let stage: Awaited<ReturnType<typeof createBlenderStage>> | undefined;
+    document.documentElement.classList.toggle('dark', dark);
+    void createBlenderStage(canvas.current!, dark).then(value => {
+      stage = value;
+      if (!alive) { value.dispose(); return; }
       window.__film = async next => {
-        const clamped = Math.max(0, Math.min(LAUNCH_DURATION, next));
-        studio.seek(clamped); setTime(clamped);
-        await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+        const t = next >= LAUNCH_DURATION ? 0 : Math.max(0, next);
+        flushSync(() => setTime(t));
+        await value.seek(t);
       };
-      studio.seek(0);
-    });
-    return () => { live = false; delete window.__film; dispose?.(); };
-  }, [texture, dark]);
-
-  if (texture) {
-    const phone = texture.startsWith('phone');
-    return <div className={`studio-texture ${phone ? 'studio-texture-phone' : 'studio-texture-laptop'}`} data-film-texture>
-      {!phone && <div className="studio-browser"><i /><i /><i /><span>sharetexts.online</span></div>}
-      <DemoScreen phone={phone} step={texture.endsWith('complete') ? 4 : phone ? 3 : 1} progress={texture.endsWith('complete') ? 1 : 0} />
-    </div>;
-  }
-
-  const at = (start: number, duration: number) => filmEase(time, start, duration);
-  const first = at(5.95, 0.55), second = at(6.65, 0.55), copyOut = at(8.25, 0.3);
-  const mark = at(8.65, 0.55), wordmark = at(9.15, 0.55), brandOut = at(11.55, 0.35);
-  return <div className="launch-stage">
-    <canvas ref={canvas} width="1920" height="1080" className="studio-canvas" style={{ opacity: 1 - at(5.55, 0.55) + at(11.9, 0.65) }} />
-    <div className="studio-type" style={{ opacity: 1 - copyOut }}>
-      <div><span style={{ transform: `translateY(${104 * (1 - first)}%)` }}>{t('film.from')}</span></div>
-      <div><span style={{ transform: `translateY(${104 * (1 - second)}%)`, color: dark ? '#ff813d' : '#ee6417' }}>{t('film.to')}</span></div>
-    </div>
-    <div className="studio-brand" style={{ opacity: mark * (1 - brandOut), transform: `translateY(${16 * (1 - mark)}px)` }}>
-      <div style={{ transform: `translateX(${178 * (1 - wordmark)}px) rotate(${24 * (1 - mark)}deg)` }}><ShareTextsLogo size={130} /></div>
-      <span style={{ opacity: wordmark, clipPath: `inset(0 ${100 * (1 - wordmark)}% 0 0)`, transform: `translateX(${-24 * (1 - wordmark)}px)` }}>ShareTexts</span>
+    }).catch(error => { setTimeout(() => { throw error; }); });
+    return () => { alive = false; stage?.dispose(); delete window.__film; };
+  }, [dark]);
+  const intro = 1 - filmEase(time, .55, .25) + filmEase(time, 16.2, .6);
+  const end = filmEase(time, 15.0, .6) * (1 - filmEase(time, 16.2, .6));
+  const chapter = time >= .8 && time < 4.4 ? 'Text & links'
+    : time >= 4.4 && time < 9.35 ? 'Files & photos'
+    : time >= 9.35 && time < 13.8 ? 'Videos' : '';
+  const chapterStart = time < 4.4 ? .8 : time < 9.35 ? 4.4 : 9.35;
+  const alpha = chapter ? filmEase(time, chapterStart, .18) : 0;
+  return <div className="launch-stage native-film" data-film-time={time}>
+    <canvas ref={canvas} className="native-film-hardware" />
+    <div className="native-film-intro" style={{ opacity: intro }}><span>Text.</span><span>Files.</span><span>Videos.</span></div>
+    <div className="native-film-chapter" style={{ opacity: alpha, transform: `translateY(${10 * (1 - alpha)}px)` }}>{chapter}</div>
+    <div className="native-film-confirmation" style={{ opacity: filmEase(time, 3.55, .12) * (1 - filmEase(time, 4.25, .15)) }}>✓ Copied</div>
+    <div className="native-film-ending" style={{ opacity: end }}>
+      <div className="native-film-wordmark"><ShareTextsLogo size={144} /><span>ShareTexts</span></div>
     </div>
   </div>;
 }
