@@ -945,9 +945,9 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
               ) : (
                 <span className={cn("text-[12px] font-semibold flex flex-wrap items-center gap-x-1.5", a.status === 'failed' ? "text-status-danger" : a.status === 'cancelled' || a.status === 'interrupted' ? "text-apple-ink-muted" : "text-apple-blue")}>
                   {/* Who it's talking to, while bytes are moving. */}
-                  {(a.status === 'sending' || a.status === 'receiving') && (session.partnerName || session.deviceName) && (
+                  {(a.status === 'sending' || a.status === 'receiving') && session.partnerName && (
                     <span className="text-apple-ink-muted dark:text-white/50 font-medium">
-                      {t(isMe ? 'xfer.to' : 'xfer.from', { name: isMe ? session.partnerName : session.deviceName })} ·
+                      {t(isMe ? 'xfer.to' : 'xfer.from', { name: session.partnerName })} ·
                     </span>
                   )}
                   {/* Media cards already show this status inside the image/
