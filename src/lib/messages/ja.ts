@@ -827,7 +827,7 @@ const ja: Dict = {
   "nav.saved": "保存した項目",
   "saved.title": "保存した項目",
   "saved.emptyTitle": "まだ何も保存されていません。",
-  "saved.emptyBody": "メッセージのブックマークをタップすると、テキスト、リンク、写真、ファイルをここに保存できます。",
+  "saved.emptyBody": "メッセージのブックマークをタップすると、ここに保存できます。",
   "saved.emptyCta": "わかりました",
   "saved.save": "項目を保存",
   "saved.remove": "保存済みから削除",

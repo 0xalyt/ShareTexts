@@ -39,7 +39,7 @@ const zhHant: Partial<Record<MsgKey, string>> = {
   "chat.empty.dest": "傳送到 {name}",
   "chat.empty.body": "在下方寫筆記、貼上連結或加入檔案。",
   "chat.empty.title": "可以開始分享了",
-  "saved.emptyBody": "點按訊息上的書籤，即可在這裡保留文字、連結、照片或檔案。",
+  "saved.emptyBody": "點按訊息上的書籤，即可將它保存在這裡。",
   "saved.emptyCta": "知道了",
   "details.relay": "透過伺服器連線。",
   "nearby.hint": "在另一台裝置上開啟 ShareTexts 並開啟 Nearby。",

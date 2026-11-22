@@ -828,7 +828,7 @@ const fr: Dict = {
   "nav.saved": "Objets enregistrés",
   "saved.title": "Objets enregistrés",
   "saved.emptyTitle": "Rien n'est encore enregistré.",
-  "saved.emptyBody": "Touchez le marque-page d’un message pour garder ici un texte, un lien, une photo ou un fichier.",
+  "saved.emptyBody": "Touchez le marque-page d’un message pour le garder ici.",
   "saved.emptyCta": "Compris",
   "saved.save": "Enregistrer",
   "saved.remove": "Retirer des enregistrés",

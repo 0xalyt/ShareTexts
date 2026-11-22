@@ -828,7 +828,7 @@ const pt: Dict = {
   "nav.saved": "Itens salvos",
   "saved.title": "Itens salvos",
   "saved.emptyTitle": "Nada salvo ainda.",
-  "saved.emptyBody": "Toque no marcador de uma mensagem para guardar um texto, link, foto ou arquivo aqui.",
+  "saved.emptyBody": "Toque no marcador de uma mensagem para guardá-la aqui.",
   "saved.emptyCta": "Entendi",
   "saved.save": "Salvar item",
   "saved.remove": "Remover dos salvos",
