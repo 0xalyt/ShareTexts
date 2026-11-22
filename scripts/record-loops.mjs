@@ -1,6 +1,7 @@
 // record-loops.mjs — record the three front-door stories from the real product.
 //
-// DESIGN.md §20b. One command: drives a phone-viewport browser through Pair,
+// DESIGN.md §20b short feature loops only, not the cinematic hero film.
+// One command: drives a phone-viewport browser through Pair,
 // Send and Keep, captures each run, and encodes MP4 (H.264), WebM (VP9) and a
 // WebP poster into public/media/loops/. It then writes
 // src/lib/loops.generated.ts so the landing knows what exists.
@@ -13,7 +14,7 @@
 //     names are used, and the run is single-device where one device is enough.
 //   • no invented content — the text sent is "Hello from the phone", the same
 //     string the smoke test uses.
-//   • budgets — MP4 ≤ 350 KB, WebM ≤ 300 KB, poster ≤ 40 KB, ≤ 6 s at 30 fps.
+//   • budgets — MP4 ≤ 350 KiB, WebM ≤ 300 KiB, poster ≤ 40 KiB, ≤ 6 s at 30 fps.
 //     A recording that misses the budget fails the command instead of shipping.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -250,6 +251,6 @@ ${Object.keys(media)
 `;
 fs.writeFileSync('src/lib/loops.generated.ts', generated);
 const total = Object.values(media).reduce((n, s) => n + s.mp4 + s.webm + s.poster, 0);
-console.log(`total landing media: ${Math.round(total / 1024)} KB (budget 1.2 MB)`);
-if (total > 1.2 * 1024 * 1024) throw new Error('landing media over the 1.2 MB budget');
+console.log(`total short feature-loop media: ${Math.round(total / 1024)} KiB (budget 1.2 MiB; excludes hero film)`);
+if (total > 1.2 * 1024 * 1024) throw new Error('short feature-loop media over the 1.2 MiB budget');
 console.log('loops written to', OUT);

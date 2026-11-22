@@ -1,264 +1,53 @@
-# The hero film
+# ShareTexts product film
 
-## Current landing: theme-matched studio films
+## V5 authoring (review required before release)
 
-The landing uses `LaunchFilm.tsx` + `StudioScene.ts` (`film.html?mode=launch`), a 12.7 s
-sequence inspired by [Grok Bot — Action Button](https://serenatan.org/launchvideo/#video-27),
-inspected through Serena Launch MCP. This is an adaptation of the reference's
-motion language, **not a pixel-identical clone**: ShareTexts' two-device file
-transfer replaces its iPhone OS/Action Button interaction. No reference frames,
-third-party logos, voice or audio are redistributed.
+The 16.8-second light/dark film uses original Blender 4.5 LTS hardware, an offline Three.js physical-material/HDRI stage, and device-resolution recordings of two real ShareTexts clients connected through a local Worker. Text/files actually cross the room; the receiver copies, saves, opens the photo and plays the received video. Film time is edited for clarity, **not a production transfer-speed benchmark**. Only H.264 movies and JPEG posters ship; no renderer, GLB, HDRI, fixtures or native captures enter production JavaScript.
 
-| Time | Composition |
+| Time | Story |
 | --- | --- |
-| 0–1.25 s | Macro phone; separate metal case, bevel, glass, lens and undistorted display. |
-| 1.25–3.72 s | One continuous camera dolly reveals the laptop; the file lifts from its actual screen position and arcs into the other display. |
-| 3.72–5.55 s | Both screens show receipt, with a settled two-device hold. |
-| 5.95–8.55 s | Masked “From one screen / to the other.” entrances. |
-| 8.65–11.9 s | Official orange mark resolves into the ShareTexts lockup. |
-| 11.9–12.7 s | Return to the identical opening camera and hardware pose, not a blank loop seam. |
+| 0–0.8 s | Complete phone and laptop, safe margins, “Text. Files. Videos.” |
+| 0.8–4.4 s | Compose/send text and a link; physical handoff; receiver arrives/copies. |
+| 4.4–7.6 s | Choose/send an archive; handoff; receive/download confirmation. |
+| 7.6–9.35 s | A separate photo arrives, then opens in the real viewer. |
+| 9.35–13.8 s | Choose/send video; handoff; receive and play with native controls. |
+| 13.8–16.8 s | Moving wide resolution, ShareTexts signature, exact opening pose. |
 
-V2 replaces the flat CSS hardware with original 3D geometry, a procedural
-studio environment, physical materials, a keyboard/deck/hinge and soft shadows.
-Three.js and its types are pinned to **0.180.0**, an established September 2025
-release, as **devDependencies only**. `film.html` is not a production Vite entry;
-the website ships a video, not WebGL. Check `npm run verify:bundle` after building
-and confirm production JS has no `THREE.WebGLRenderer`/`PMREMGenerator` code.
+Dark is separately lit graphite hardware, genuine dark product UI and a #181818 studio, not an inversion or brightness filter. Theme variants share camera geometry/timing. Type matches full Allo (not Friendly): ROND 0, display opsz 32, calt disabled, opener/brand tracking -0.015em and chapter tracking -0.012em.
 
-Craft references consulted for this revision: [device frames](https://www.ui-skills.com/skills/ibelick/device-frames)
-(separate screen/hardware, native ratios, restrained metal, no manufacturer marks),
-[Laws of UX](https://www.userinterface.wiki/laws-of-ux) (one lead, fewer playback
-choices, a 48 px target around the small control), [eases vs. springs](https://www.userinterface.wiki/to-spring-or-not-to-spring)
-and [animation principles](https://www.userinterface.wiki/12-principles-of-animation)
-(a predetermined film uses eases; anticipation, staging, arcs and causal receipt),
-[Detail](https://detail.design/detail/smart-corner-morph-animation) (continuous
-shape treatment), [word breaking](https://detail.design/detail/smarter-word-break)
-(let translated controls wrap), and [Preet Suthar](https://preetsuthar.me/)
-(restrained typography and resolved small details). Hardware is an unbranded
-approximation, not a claim of manufacturer-accurate industrial design.
+## Reproduce
 
-The device screens reuse `DemoScreen`, the existing localized product
-illustration. This is a demonstration, not a live transfer or speed benchmark.
-The public player has a localized text description; the exported film's copy
-is English. All player and source-film strings exist in every shipped locale.
-
-| Asset | Delivery |
-| --- | --- |
-| `public/film/sharetexts-launch-v2.mp4` | 1440×810, 60 fps, H.264, no audio; muted landing loop. |
-| `public/film/sharetexts-launch-v2-full.mp4` | 1920×1080, 60 fps, H.264/AAC; deliberate playback with original synthesized sound. |
-| `public/film/sharetexts-launch-v2-poster.jpg` | The handoff at 3.05 s; reduced-motion and Save-Data default. |
-| `public/film/sharetexts-launch-v3-dark.mp4` | The separately rendered charcoal studio, graphite hardware and actual dark product UI; 1440×810, 60 fps, muted. |
-| `public/film/sharetexts-launch-v3-dark-full.mp4` | Dark 1920×1080, 60 fps H.264/AAC full export with the original sound. |
-| `public/film/sharetexts-launch-v3-dark-poster.jpg` | The matching dark handoff still. |
-
-To reproduce, start `PORT=3010 npm run dev`, then run:
+Requires Node/project dev dependencies, Playwright Chrome, ffmpeg and [Blender 4.5 LTS](https://download.blender.org/release/Blender4.5/) (authored with 4.5.14 LTS; verify the official checksum). Start a local Worker on 8787 and an app on 3044 configured with `VITE_SIGNALING_URL=http://localhost:8787`; `FILM_UI_BASE_URL` overrides the app URL. Never use the production Worker for capture. A second app checkout belongs **outside** this repository: nesting another TypeScript project in `film/out` can pollute the root typecheck.
 
 ```sh
-npx playwright install chrome  # once; system ffmpeg is also required
-node scripts/render-launch-film.mjs probe
-node scripts/render-launch-film.mjs render
-FILM_THEME=dark node scripts/render-launch-film.mjs probe
-FILM_THEME=dark node scripts/render-launch-film.mjs render
+npx playwright install chrome
+node scripts/capture-launch-ui.mjs
+FILM_THEME=dark node scripts/capture-launch-ui.mjs
+FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs probe
+FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
+FILM_THEME=dark FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs probe
+FILM_THEME=dark FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
+FILM_FRAMING=phone FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
+FILM_THEME=dark FILM_FRAMING=phone FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
 ```
 
-One deterministic clock (`window.__film(t)`) owns transforms, easing and
-screen state. Capture uses headless Chrome, 1080p screenshots and 60 fps.
-The script builds an isolated authoring site under the ignored output folder
-and serves it on a temporary loopback port. Dev-server HMR cannot reload a
-partially captured sequence; the ordinary app build remains untouched.
-The script first captures `DemoScreen` textures at 402×874 and 1512×982 points,
-each at 2×, and records file-icon coordinates for the 3D handoff anchors. Device
-and screen aspect ratios are preserved. The macro shot intentionally crops the
-hardware; the settled pair is fully visible. No source screen content is stretched.
-Frames, probes and the original synthesized PCM soundtrack stay in ignored
-`film/out/launch-v2/` and `film/out/launch-v3-dark/`; only delivery encodes and posters are committed.
-The sound bed and tactile tones are generated locally without samples or a
-third-party music license. The landing encode deliberately has no audio track.
+`FILM_FONT_FILE` can select a local full Allo variable file; the default is `public/fonts/AlloVariable.woff2`. Native capture records actual actions, screen anchors and high-resolution checkpoints, with separate photo-receipt/viewer states and real video-playback holds. It verifies the download event and that the received video advances. `native-ui.json` captureVersion 4 rejects earlier incomplete takes. The editor keys both themes to verified outcomes rather than sparse wall-clock samples. The **same transferred video payload** is recomposited at source cadence and its real playback time, feathering into the genuinely captured native controls. No transport/chat state is mocked. Capture uses the in-app owner's final received-file component: primary **Download** first, then responsive **Save item** and **Share** controls (icon-only below `sm`, with accessible names retained). Download confirmation is the real check/active state. A single staged item reads “1 attached”.
 
-`HeroLaunchFilm` mounts only in the active responsive slot. It loads no video
-until visible, respects reduced motion and Save-Data, pauses off screen or in
-a hidden tab, remembers manual pause, and supports a manual autoplay fallback.
-An error leaves a meaningful still and the full-film link available.
-The inline pause/resume control has a 36 px visual disc and a 48 px hit target;
-full viewing and download are secondary actions below the frame.
-Dark mode is a genuinely separate set: a seamless `#181818` charcoal field,
-dark `DemoScreen` textures, graphite hardware, restrained cool edge lighting,
-warm orange bounce and a matte shadow catcher. Type and brand plates remain
-dark throughout; the loop returns to the identical dark opening pose. No CSS
-inversion, dimming or enclosing cinema box alters or disguises a white cut.
-The approved light v2 delivery files are unchanged.
+The renderer exports Blender `studio.glb` in model-only mode and builds an isolated authoring site under ignored `film/out/launch-v5-{light,dark}` so HMR cannot interrupt capture. UI is unlit on LCD meshes to preserve exact colors. One deterministic `window.__film(t)` owns camera cuts/moves, packet arcs, chapter type and the ending. Shadow maps are static because hardware is stationary; decoded-image caching is bounded. `probe` emits key story frames/timings. `FILM_BENCH=1` samples adjacent opening frames for performance diagnosis. None of these intermediates ship.
 
-`src/lib/heroFilmAssets.ts` is the one source for each cut's three URLs. Vite
-supplies poster metadata to the existing before-paint theme bootstrap, which
-preloads exactly one image after resolving the saved choice. OS-only `media`
-preloads would fetch the wrong poster when a visitor saved an override. The
-player follows the actual root theme, including live changes; explicit pause,
-reduced motion and Save-Data remain independent. A theme swap remounts the
-native video so a decoded white frame cannot leak into the dark presentation,
-then restores the same playback phase instead of restarting the film.
-The CI handoff gate observes preload/player equality, opposite-OS saved
-choices, live OS changes, real poster corner luminance and matching shipped
-movie/full-export URLs on phone and desktop.
-The previous v1 assets remain for cached pages and existing links. New names avoid the
-seven-day `/film` asset cache serving the old cut after deployment.
+## Delivery
 
-## Archived desk-film rig
+Families are `public/film/sharetexts-launch-v5-{light,dark}.mp4`, `-full.mp4` and `-poster.jpg`. Muted desktop exports are 1440×810/60 fps; `-mobile.mp4` and `-mobile-poster.jpg` use 960×720, a closer 4:3 camera, larger native UI close-ups and the exact same 16.8-second timeline. This is a separately composed phone cut, not a CSS crop that hides controls. Both use H.264/yuv420p and fast-start. Full downloadable exports stay 1920×1080 H.264/AAC with an original locally synthesized score. No borrowed audio. Posters show both complete devices in the real opening; final capture equals frame zero. Encoded copy is English; player controls and the hidden description remain localized.
 
-The earlier rig and assets remain reproducible for existing links:
+Keep the existing player contract: visibility-gated loading, muted inline looping, offscreen/hidden-document pause, explicit pause persistence, meaningful error poster, saved/OS theme selection and phase-preserving remount. Reduced-motion/Save-Data disable autoplay while explicit Play remains available. Below 640px the picture and preload use the 4:3 phone family; wider screens retain 16:9. Theme/framing changes preserve phase and the visitor's paused choice. The localized description stays hidden; the 44px phone pause target stays outside the picture. Surrounding page layout/control dock otherwise stays unchanged. Run local build, bundle isolation, media and player checks before release; do not bypass required gates.
 
-| File | What it is | Where it goes |
-| --- | --- | --- |
-| `film/out/sharetexts-hero-1080p.mp4` | the 32.0 s film with sound (1920×1080, 24 fps) | anywhere that plays it deliberately — social, a launch post |
-| `public/film/sharetexts-hero-v3.mp4` | the 15.0 s muted launch cut, 1920×1080, 30 fps | the landing hero |
-| `public/film/sharetexts-hero-v3-poster.jpg` | frame 0 of the launch cut | the hero's poster, shown before playback and under reduced motion |
+The cinematic hero budget is **< 3,000,000 bytes per inline MP4**, with each poster **<= 150,000 bytes** (DESIGN.md §20b). `npm run verify:bundle` checks every selectable phone/desktop and light/dark pair in the built output. Only one family is selected on a cold visit; full/audio downloads are never preloaded. The separate short feature-loop limit (six seconds and 1.2 MiB combined) does not apply to this film.
 
-The picture is the product itself: `LaptopApp` and `PhoneApp` in
-`src/film/FilmUI.tsx` are the real room/connect screens — the QR plate, the
-six-digit code in two groups of three, the countdown, the this ⇄ partner
-header with its Direct badge, the composer, the received thread — drawn at
-native laptop and native phone density. Nothing in the film is invented UI.
+## Sources
 
-The set around them is CSS, not a 3D render — but the *materials* are not
-CSS guesses. `scripts/make-film-textures.mjs` draws two textures once and
-writes them to `public/film/tex/`: an oak board (long wandering grain, pores
-that catch light, colour drift across the plank) and a brushed aluminium that
-is blended into the laptop lid, deck and phone body at soft-light. The screen
-glass carries a reflected window pane and a bright line where it meets the
-bezel. Light is a room: warm key from upper left, cool fill from the right,
-spill from both panels onto the wood, contact shadows, a mirrored chassis on
-the surface, bokeh behind, then vignette + bloom + grain.
+- Hardware and packet artwork are original; no manufacturer models/artwork are redistributed.
+- [Poly Haven Studio Small 08](https://polyhaven.com/a/studio_small_08), [CC0](https://polyhaven.com/license). Place `studio_small_08_1k.hdr` in `film/out`; verified source MD5 `de3ba64222895aca876b1d1c2e0cf81a`.
+- NASA, *Earth Views from the ISS*, media ID `NHQ_2019_0626_Earth Views from the ISS`: [original collection](https://images-assets.nasa.gov/video/NHQ_2019_0626_Earth%20Views%20from%20the%20ISS/collection.json), [media-use guidance](https://www.nasa.gov/nasa-brand-center/images-and-media/). Use an Earth-only five-second excerpt with original audio removed, a derived still and a ZIP containing it. In `film/out/fixtures`, name them `Earth — NASA.mp4`, `Earth — NASA.jpg` and `Earth photos.zip`. NASA is credited in visible filenames/source imagery and does not endorse ShareTexts.
+- Craft: [Serena-inspected launch reference](https://x.com/bot/status/2112252507762368684), [device frames](https://www.ui-skills.com/skills/ibelick/device-frames), [animation principles](https://www.userinterface.wiki/12-principles-of-animation), [Detail](https://detail.design/), Preet Suthar on [frame budgets](https://preetsuthar.me/writing/every-frame-has-16ms), [springs](https://preetsuthar.me/writing/what-a-spring-actually-is) and [shape joining](https://preetsuthar.me/writing/how-shapes-melt-into-each-other). Reference footage is not redistributed.
 
-## Shot list (32.0 s)
-
-| Time | Shot |
-| --- | --- |
-| 0.0–4.0 | Establish. Both devices on the lit oak, ShareTexts already open: the room card with QR + `482 916` on the laptop, the Nearby card on the phone. A push so slow you notice it only at the cut. |
-| 4.0–7.2 | Connect. Drift onto the phone; Nearby appears at 4.2 with the laptop listed as *Your iPhone · Same network · 1 device*. |
-| 7.2–8.6 | One tap. Connect presses (7.2–7.6); the laptop's header flips to Connecting… then Direct at 8.55, the phone joins at 8.95. |
-| 8.6–11.6 | Two-shot. Pull back while both ends light up; the phone starts typing at 11.2. |
-| 11.6–14.0 | Text. Send at 13.2, the payload crosses the desk, lands at 14.0 with a receive pulse. |
-| 14.0–17.1 | Photo. Attachment appears at 15.5, sends at 16.25, the photo card lands at 17.1. |
-| 17.1–21.4 | File. `Q3-budget.pdf` attaches at 19.3, sends at 20.15, lands at 20.9, progress runs to Saved. |
-| 21.4–24.0 | Hold on the laptop: three payloads in the thread. |
-| 24.0–26.3 | Pull back to the whole desk. |
-| 26.4–32.0 | End card: logo, "Move anything between your devices.", sharetexts.online. |
-
-Captions are one line per beat (muted-friendly): *No app. No account.* ·
-*One tap to connect.* · *Text.* · *Photos.* · *Files.* · *Encrypted. Nothing
-is kept.*
-
-## The launch cut (15.0 s, the hero)
-
-`?mode=brag` renders the launch cut inside `src/film/FilmStage.tsx` (`LAUNCH_SHOTS`). It is
-the same set and the same real app as the 32 s film, cut like a launch film instead of a
-walkthrough: seven shots, hard cuts, one idea per shot, and the product doing the talking.
-There is no typography stage any more — the first attempt at this cut was giant words on a
-still field, and it read as a deck, not a product.
-
-| Time | Shot |
-| --- | --- |
-| 0.0–2.2 | **Hook.** Both screens lit on the desk: the room card with its QR and `482 916` on the laptop, the Nearby card on the phone. Frame 0 is the poster, so this frame is settled, not mid-move. |
-| 2.2–4.3 | **The phone.** Cut in on the iPhone as it joins, types, and sends — the bubble leaves the composer. The phone sits right of centre: a 9:19.5 device cannot fill a 16:9 frame, so the blurred laptop holds the left column and the super sits on it. |
-| 4.3–7.0 | **Arrival.** Cut wide as the packet crosses the desk and lands in the laptop's thread, with a receive pulse and a ring at the landing point. The camera pushes onto the thread. |
-| 7.0–8.8 | **The photo.** `Above the clouds.jpg`, 2.4 MB, arrives whole — shot tight, with the laptop right of centre so the super sits in a dark column instead of on the UI. |
-| 8.8–10.4 | **Back to the phone** for `Q3-budget.pdf`, in the same frame as the first phone shot. |
-| 10.4–12.4 | **Saved.** The file's progress runs to *4.2 MB · Saved to Downloads* while the super makes the trust claim the picture has just proven. |
-| 12.4–15.0 | **Lockup.** The camera gives the frame back and the mark, `Move anything between your devices.` and `sharetexts.online` land on the room. |
-
-Four supers total, each in a reserved column or on the empty desk — never across the
-product. Focus is a step per shot (1.7–2.1 px of blur on the device that is not the subject),
-not a rack, because a lens still travelling when the picture cuts reads as a mistake. Cuts
-land on 30 fps frame boundaries and the file ships silent: the hero is muted by policy, so
-the story has to survive without sound.
-
-> The 10.0 s desk loop below is still in the rig (`?mode=loop`) but no longer ships as the
-> hero. Its camera positions belong to the 10 s cut and are unrelated to the launch cut.
-
-## The loop (10.0 s, retired from the hero)
-
-`?mode=loop` renders a self-contained version of the same set: both devices
-already connected with all three payloads in the thread, one text packet
-crossing at 3.0–4.4 s. It is cut as four beats with holds, not as a drift:
-
-| Time | Beat |
-| --- | --- |
-| 0.0–3.0 | Establish. A slow push in on the whole set; the lens settles on the laptop. |
-| 3.0–5.0 | The send. The rack pulls through to the phone as the card leaves it; the camera follows a hair left. |
-| 5.0–7.2 | The arrival. Focus returns to the laptop thread as the card lands, with a ring leaving the landing point, a four-ghost trail behind the card and a lit edge along its direction of travel. |
-| 7.2–10.0 | Settle home to frame 0's camera, exactly. |
-
-One studio light move runs across the set (5.0–9.3 s), windowed to zero at both
-ends, so the aluminium and the desk take a highlight without the loop showing a
-seam. Focus, exposure and UI state are identical at t=0 and t=10; nothing
-persists across the seam, which is why it can loop forever.
-
-The set was reframed with this cut: both devices fill the frame (196–1604 px of
-a 1920 px stage), the phone overlaps the laptop by 96 px and casts a shadow onto
-it, both bottoms sit on `DESK_Y` by construction, and the desk's cream seam line
-— a 12 px band at 0.12 alpha that read as a pasted rectangle — is a wide haze.
-
-## Render it
-
-```bash
-npm run dev -- --port 3010          # the rig renders from a running dev server
-node scripts/render-film.mjs probe  # 13 stills to check framing and light
-node scripts/render-film.mjs probe-brag  # 18 stills for the launch cut, both sides of every cut
-node scripts/render-film.mjs brag   # 450 frames → film/frames-brag (FPS=30)
-node scripts/render-film.mjs bragweb # → public/film (launch cut + poster)
-node scripts/render-film.mjs frames # 816 frames → film/frames
-node scripts/render-film.mjs loop   # 240 frames → film/frames-loop
-node scripts/render-film.mjs audio  # voiceover + music + sound design
-node scripts/render-film.mjs encode # → film/out/sharetexts-hero-1080p.mp4
-node scripts/render-film.mjs web    # → public/film (loop + poster)
-node scripts/render-film.mjs all    # everything
-```
-
-`bragweb` reads the frame count and derives 30 fps from the 15 s cut, so it no
-longer inherits `FPS` from the shell (`FPS=24` re-timed it to 18.75 s). It
-encodes at CRF 27 to keep the hero inside DESIGN §20b's 1.2 MB landing-media
-budget: 15.000 s, 450 frames, silent. Poster is frame 0. **A re-cut gets a new
-filename**: `/film` is served with a seven-day `max-age`, so shipping a new cut
-under an old name leaves every returning visitor watching the old one.
-
-`frames` and `loop` are resumable: they skip PNGs already on disk, so a
-cancelled pass restarts where it stopped. **After changing a device's position
-or the camera, delete `film/frames` and `film/frames-loop`** — a resumed pass
-would mix two versions of the film.
-
-## How it stays reproducible
-
-The scene is a pure function of time. `FilmStage` exposes `window.__film(t)`,
-which sets the scene to an exact time and resolves after two committed frames;
-`film.html` disables CSS animation and transition entirely. The rig asks for
-`t = 13.2083` and gets the same picture every run.
-
-`src/film/FilmStage.tsx` holds the timeline:
-
-- `SHOTS` — the camera. One entry per move.
-- `LAUNCH_SHOTS` — the hero cut's seven shots; every entry's `a` is a cut frame.
-- `LOOP_SHOTS` — the loop's camera, which returns to its own start.
-- `LAPTOP` / `PHONE` / `DESK_Y` — world layout in frame pixels. `DESK_Y` is
-  derived from the laptop, and `PHONE_TOP` is derived from `DESK_Y` and the
-  phone's own height, so both stand on the line by construction rather than by
-  matching numbers.
-- `flights` — when a payload crosses, and what it is.
-- `CAPTIONS` / `LAUNCH_CAPTIONS` — the lower-third lines and their windows.
-- device state is derived from `t` near the bottom of the component.
-
-Framing rule: wide beats stay at or below ~1.05 scale so both devices fit;
-close beats push far enough that the other device is properly out of frame.
-A shot where both are half cropped is the one composition that reads as an
-accident.
-
-## Archived desk-rig limitations
-
-- **Voiceover** is the OS speech engine (Microsoft David). It is a timings
-  reference, not a performance: replace it, keep the windows, re-run `audio`
-  then `encode`. The hero on the site is muted, so none of this is load
-  bearing for the landing page.
-- **Materials in this archived rig** are CSS: gradients, one sheen per panel,
-  contact shadows, mirrored chassis and blur. The current studio rig above
-  replaces them with real 3D geometry and physical materials while retaining
-  the product's UI as native-ratio display textures.
-- Artifacts (`film/frames`, `film/frames-loop`, `film/audio`, `film/out`) are
-  gitignored. Only the rig, the scene, and the two web assets are versioned.
+**Release gate:** V4 was rejected and must not ship. Review V5 at full speed and send decoded contact sheets before release. Verify distinct download/bookmark actions, separate photo receipt, theme-equivalent states, fixed movie-space cursor size, visible dark hardware and readable copy confirmation. Keep preload/player poster equality, matching theme families, codec/duration checks and the dev-only bundle boundary. Run the local build/player gates and handle Devin Review before merging.

@@ -5,17 +5,20 @@ import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'path';
 import {defineConfig, type Connect, type Plugin, type ViteDevServer} from 'vite';
 import {visualizer} from 'rollup-plugin-visualizer';
-import {heroFilmAssets, heroFilmDarkAssets} from './src/lib/heroFilmAssets';
+import {heroFilmAssets, heroFilmDarkAssets, heroFilmPhoneMedia} from './src/lib/heroFilmAssets';
 
-/** Supply both posters to the existing before-paint theme bootstrap. It starts
- *  exactly one preload matching the saved/resolved theme, not merely the OS. */
+/** Before-paint selection matches the player's theme and phone framing. */
 const heroFilmPoster = (): Plugin => ({
   name: 'hero-film-poster',
   transformIndexHtml(_html, context) {
     if (path.basename(context.filename) !== 'index.html') return;
     return [{
       tag: 'meta',
-      attrs: { name: 'hero-film-posters', 'data-light': heroFilmAssets.poster, 'data-dark': heroFilmDarkAssets.poster },
+      attrs: {
+        name: 'hero-film-posters', 'data-light': heroFilmAssets.poster, 'data-dark': heroFilmDarkAssets.poster,
+        'data-light-mobile': heroFilmAssets.mobile.poster, 'data-dark-mobile': heroFilmDarkAssets.mobile.poster,
+        'data-phone-media': heroFilmPhoneMedia,
+      },
       injectTo: 'head-prepend',
     }];
   },
