@@ -25,9 +25,9 @@
       html.dark, html.dark body { background: #181818; }
     </style>
 
-    <!-- Allo, preloaded: it is the product's face on every screen, and a
-         swap at first paint is the one moment type can visibly jump. -->
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/AlloVariable.woff2" crossorigin />
+    <!-- One efficient Allo cut for text and display, shared with static pages. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/allo-crisp.woff2" crossorigin />
+    <link rel="stylesheet" href="/typography.css" />
 
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -225,7 +225,7 @@
             min-height: 100dvh;
             display: block;
             background: #fbfbfd;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-family: var(--st-font-sans);
             transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
           }
           #loading-shell.fade-out { opacity: 0; }
@@ -374,13 +374,13 @@
       <noscript>
         <style>
           .st-ns-head { max-width: 720px; margin: 0 auto; padding: 20px 24px 8px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+            font-family: var(--st-font-sans); }
           .st-ns-head a { display: inline-flex; align-items: center; gap: 8px;
             color: #1d1d1f; text-decoration: none; font-size: 19px; font-weight: 650;
             letter-spacing: -0.035em; }
           .st-ns-head img { width: 28px; height: 28px; display: block; }
           .st-ns { max-width: 720px; margin: 0 auto; padding: 0 24px 48px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-family: var(--st-font-sans);
             color: #1d1d1f; background: #fbfbfd; }
           .st-ns h1 { font-size: 34px; line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 12px; }
           .st-ns h2 { font-size: 15px; font-weight: 600; letter-spacing: 0.04em;

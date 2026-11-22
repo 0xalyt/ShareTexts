@@ -17,14 +17,19 @@
         "src/film",
         "scripts/gen-search-pages.mjs",
         "scripts/render-film.mjs",
-        "src/components/marketing/DataFlow.tsx"
+        "src/components/marketing/DataFlow.tsx",
+        "src/views/privacy-content.html",
+        "src/views/terms-content.html",
+        "src/views/docs-faq.json"
       ],
       "reason": "Rooms are encrypted in transit only — the Worker mints the room secret, so it could derive the key. E2E becomes claimable only when the Circle work (M3/M4) proves zero-knowledge."
     },
     {
       "id": "close-tab-erases",
       "pattern": "(?:關閉分頁|关闭标签页)[，, ]*一切(?:即|都)?消失",
-      "scope": ["src/lib/messages"],
+      "scope": [
+        "src/lib/messages"
+      ],
       "reason": "Closing a tab does not erase server-stored Temporary Spaces or browser-local saved items."
     },
     {
@@ -43,7 +48,10 @@
         "src/film",
         "scripts/gen-search-pages.mjs",
         "scripts/render-film.mjs",
-        "src/components/marketing/DataFlow.tsx"
+        "src/components/marketing/DataFlow.tsx",
+        "src/views/privacy-content.html",
+        "src/views/terms-content.html",
+        "src/views/docs-faq.json"
       ],
       "reason": "Temporary Spaces hold items for a chosen duration, and the server keeps room state, IPs, sizes and times. An absolute is false; say what is actually true."
     },

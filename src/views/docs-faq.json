@@ -1,0 +1,26 @@
+[
+  {
+    "question": "Do I need an account or an app?",
+    "answer": "No. Open ShareTexts in a supported browser on each device."
+  },
+  {
+    "question": "Do both devices need to stay open?",
+    "answer": "For a live room, keep both tabs open until the transfer finishes. Temporary Spaces store content for later, and Hop keeps encrypted items for linked devices to collect."
+  },
+  {
+    "question": "What is a Temporary Space?",
+    "answer": "A shared place for text and links that stays on the server for 6 hours to 7 days, or until its creator closes it. Anyone with a working code or link can join. It is separate from a live room."
+  },
+  {
+    "question": "Will closing the room delete my file?",
+    "answer": "It does not remove a downloaded file or a copy saved in Saved Items. Save what you need before closing, and keep the original until you have checked the received copy."
+  },
+  {
+    "question": "Can I use this instead of cloud storage?",
+    "answer": "Use it for sharing, not your only backup. Rooms and spaces expire; Hop mailbox items have a 30-day lifetime. Browser data can also be cleared or lost."
+  },
+  {
+    "question": "Are there file size limits?",
+    "answer": "Limits depend on the sharing mode, browser, available storage, and network. Hop accepts files up to 25 MB. For larger files, use a live room and keep both devices connected."
+  }
+]

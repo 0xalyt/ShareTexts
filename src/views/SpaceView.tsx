@@ -17,10 +17,11 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { AnimatePresence, motion } from 'motion/react';
 import { MotionSurface } from '../components/ui/MotionSurface';
 import {
-  ArrowLeft, ArrowUp, Check, ChevronDown, Clock, Copy, Download, File as FileIcon, FileText,
-  Image as ImageIcon, Link2, Plus, QrCode, Share2, Trash2, UploadCloud,
-  X, XCircle,
+  ArrowUp, ChevronDown, Clock, Copy, Download, File as FileIcon, FileText,
+  Image as ImageIcon, Link2, QrCode, Share2, Trash2, UploadCloud,
+  XCircle,
 } from 'lucide-react';
+import { AlloSymbol } from '../components/AlloSymbol';
 import { LogoTraceLoader } from '../components/LogoTraceLoader';
 import { QrArt } from '../components/qr/QrArt';
 import { Bar } from '../components/SkeletonScreen';
@@ -224,7 +225,7 @@ function ItemCard({
               className="inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
               onClick={() => { onCopy(item); setCopied(true); setTimeout(() => setCopied(false), 1600); }}
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <AlloSymbol name="check" size={14} className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? t('space.copied') : t('space.copy')}
             </button>
           )}
@@ -345,7 +346,7 @@ function UploadRow({
               onClick={() => onDismiss(up.key)}
               aria-label={t('space.cancelUpload')}
             >
-              <X className="w-3.5 h-3.5" />
+              <AlloSymbol name="close" size={14} className="w-3.5 h-3.5" />
             </button>
           </>
         )}
@@ -355,7 +356,7 @@ function UploadRow({
             onClick={() => onDismiss(up.key)}
             aria-label={t('space.cancelUpload')}
           >
-            <X className="w-3.5 h-3.5" />
+            <AlloSymbol name="close" size={14} className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
@@ -726,7 +727,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               className="mt-3 w-full min-h-[44px] rounded-[12px] inline-flex items-center justify-center gap-2 text-[13px] font-semibold bg-apple-ink dark:bg-white text-white dark:text-night-900 active:scale-[0.96] transition-transform"
               data-testid="space-share-copy-code"
             >
-              {copied === 'code' ? <Check className="w-4 h-4" aria-hidden /> : <Copy className="w-4 h-4" aria-hidden />}
+              {copied === 'code' ? <AlloSymbol name="check" size={16} className="w-4 h-4" /> : <Copy className="w-4 h-4" aria-hidden />}
               {copied === 'code' ? t('space.copied') : t('space.copyCode')}
             </button>
             <div className="mt-2 flex flex-wrap items-stretch gap-2">
@@ -765,7 +766,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
           className="mt-3 min-h-[44px] rounded-[12px] inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
           data-testid="space-share-copy-link"
         >
-          {copied === 'link' ? <Check className="w-4 h-4 shrink-0" aria-hidden /> : <Link2 className="w-4 h-4 shrink-0" aria-hidden />}
+          {copied === 'link' ? <AlloSymbol name="check" size={16} className="w-4 h-4 shrink-0" /> : <Link2 className="w-4 h-4 shrink-0" aria-hidden />}
           {copied === 'link' ? t('space.copied') : t('space.copyLink')}
         </button>
         <span className="sr-only" role="status">{copied ? t('space.copied') : ''}</span>
@@ -942,7 +943,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         )}
         <div className="st-space-header max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <a href="/" aria-label={t('space.backHome')} className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08]">
-            <ArrowLeft className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
+            <AlloSymbol name="left" size={18} className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
           </a>
           <div className="st-space-identity min-w-0 flex-1">
             <h1 className="text-[16px] font-semibold tracking-[-0.02em] text-apple-ink dark:text-white truncate leading-tight">{snapshot?.name || '…'}</h1>
@@ -1101,7 +1102,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
                 className="shrink-0 w-11 h-11 rounded-full bg-white dark:bg-white/[0.06] border border-apple-divider dark:border-white/[0.1] flex items-center justify-center hover:border-apple-ink/30 dark:hover:border-white/30 transition-colors"
                 data-testid="space-add-file"
               >
-                <Plus className="w-5 h-5 text-apple-ink dark:text-white/80" />
+                <AlloSymbol name="plus" size={20} className="w-5 h-5 text-apple-ink dark:text-white/80" />
               </button>
               <input
                 ref={fileInput}
