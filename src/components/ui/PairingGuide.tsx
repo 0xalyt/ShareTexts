@@ -15,7 +15,7 @@ export function PairingGuide({ receiving = false }: { receiving?: boolean }) {
         <span className="st-pair-tile"><Monitor strokeWidth={1.5} /></span>
         <span>{t('connect.thisDevice')}</span>
       </div>
-      <div className="st-pair-route">
+      <div className="st-pair-route rtl:-scale-x-100">
         <span /><Arrow className="h-4 w-4 shrink-0" /><span />
         {/* One explanatory handoff, not a connection/progress indicator.
             The arrow remains when the paper settles; nothing loops. */}

@@ -12,6 +12,7 @@
  * - Escape calls onClose (if provided)
  * - When isOpen becomes false, focus returns to the trigger — the control the
  *   person used to open the surface (DESIGN.md §18, APPLE-DNA §6.4)
+ * - A recovery action may supply a different return target.
  */
 import React, { useEffect, useRef } from 'react';
 
@@ -41,15 +42,18 @@ function focusablesIn(container: HTMLElement): HTMLElement[] {
 export function useFocusTrap(
   isOpen: boolean,
   onClose?: () => void,
+  returnFocusTo?: () => HTMLElement | null,
 ): React.RefObject<HTMLDivElement | null> {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const wasOpen = useRef(false);
   const onCloseRef = useRef(onClose);
+  const returnFocusRef = useRef(returnFocusTo);
 
   // An inline callback changing must not re-register an older trap above
   // its child or restart its initial-focus timer.
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+  useEffect(() => { returnFocusRef.current = returnFocusTo; }, [returnFocusTo]);
 
   // Open: remember the trigger. Close: give focus back to it.
   //
@@ -67,7 +71,7 @@ export function useFocusTrap(
     }
     if (!wasOpen.current) return;
     wasOpen.current = false;
-    const trigger = previousFocusRef.current;
+    const trigger = returnFocusRef.current?.() ?? previousFocusRef.current;
     previousFocusRef.current = null;
     if (!trigger || !document.contains(trigger)) return;
     // Deferred one frame: the trigger can be inside a surface that is still

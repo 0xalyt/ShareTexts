@@ -816,8 +816,8 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
         )}
       </AnimatePresence>
 
-      {/* SEARCHING — the self-explaining empty state. The radar ring breathes
-          while the pool is empty; the hint names the one fix that matters. */}
+      {/* Discovery starts here: explain this device's visibility before
+          asking the person to change anything on their other device. */}
       <AnimatePresence>
         {waiting && (
           <MotionSurface
@@ -828,29 +828,21 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
             exit={{ opacity: 0 }}
             className="mt-2.5 flex items-center gap-2.5 px-1 py-1"
           >
-            {/* The overlay's radar language, miniature: two staggered
-                pings on the same 3s cycle + one hairline ring + the
-                search glyph at the core — both discovery surfaces now
-                read as ONE system. Decorative (the row's text carries
-                the state); frozen under reduced motion; the shared
-                `.st-radar-ping` primitive from index.css. */}
             <span className="relative shrink-0 w-8 h-8 flex items-center justify-center" aria-hidden>
               <span className="absolute inset-0 rounded-full border border-ember/15 dark:border-azure-400/15" />
-              <span className="absolute inset-0 rounded-full border border-ember/35 dark:border-azure-400/35 st-radar-ping" />
-              <span className="absolute inset-0 rounded-full border border-ember/35 dark:border-azure-400/35 st-radar-ping [animation-delay:1.5s]" />
-              <Search className="relative w-3.5 h-3.5 text-ember dark:text-azure-400" strokeWidth={2.4} />
+              {!presenceHidden && !searchExpired && <>
+                <span className="absolute inset-0 rounded-full border border-ember/35 dark:border-azure-400/35 st-radar-ping" />
+                <span className="absolute inset-0 rounded-full border border-ember/35 dark:border-azure-400/35 st-radar-ping [animation-delay:1.5s]" />
+              </>}
+              {presenceHidden
+                ? <EyeOff className="relative w-3.5 h-3.5 text-apple-ink-muted dark:text-white/60" />
+                : <Search className="relative w-3.5 h-3.5 text-ember dark:text-azure-400" strokeWidth={2.4} />}
             </span>
             <span className="flex-1 flex flex-col min-w-0 leading-tight">
-              {/* The standing instruction, promoted to the searching state's
-                  title: "Open ShareTexts on the other device" IS what waiting
-                  means here. Deliberately NOT a card — the surrounding rows
-                  are buttons, and an identical container reads as clickable
-                  when it isn't (usability audit #8/#9): status is typography,
-                  actions are surfaces. */}
-              <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{t('nearby.hint')}</span>
+              <span className="text-[13px] font-semibold text-apple-ink dark:text-white">{presenceHidden ? t('nearby.hiddenTitle') : t('nearby.hint')}</span>
               <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45 flex items-center gap-1">
-                {searchExpired
-                  ? <><Wifi className="w-3 h-3" aria-hidden /> {presenceHidden ? t('nearby.hiddenHint') : t('nearby.searchingHint')}</>
+                {presenceHidden ? t('nearby.hiddenHint') : searchExpired
+                  ? <><Wifi className="w-3 h-3 shrink-0" aria-hidden /> {t('nearby.searchingHint')}</>
                   : t('nearby.waitingOther')}
               </span>
             </span>
@@ -879,7 +871,7 @@ export function NearbyDevices({ onStatus, onPairingStart }: { onStatus?: (s: str
                 ? <EyeOff className="w-3.5 h-3.5" strokeWidth={2.2} />
                 : <Eye className="w-3.5 h-3.5" strokeWidth={2.2} />}
               active={!presenceHidden}
-              title={presenceHidden ? t('nearby.hiddenTitle') : t('nearby.visibleFor', { time: countdown })}
+              title={presenceHidden ? t('nearby.visibleTitle') : t('nearby.visibleFor', { time: countdown })}
               hint={presenceHidden ? t('nearby.hiddenHint') : t('nearby.visibleForHint')}
               ariaLabel={t('nearby.visibleTitle')}
               onClick={() => { setPresenceHiddenState(h => { setPresenceHidden(!h); return !h; }); }}

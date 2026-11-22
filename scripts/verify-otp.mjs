@@ -43,10 +43,11 @@ ok('no old field left behind: Retry button removed', !lci.includes("'home.retry'
 ok('single real input surface: one real input per cell behind a shared row (paste/autofill intact)',
   otp.includes('autoComplete={index === 0 ? \'one-time-code\' : \'off\'}'));
 ok('flat cell geometry: 48×56 (44×52 under 360px), radius 12, 8px gap, wider after the third digit',
-  otp.includes('w-[44px] h-[52px] min-[360px]:w-12 min-[360px]:h-14')
+  /(?:max-)?w-\[44px\]/.test(otp) && /min-\[360px\]:(?:max-)?w-12/.test(otp)
+  && otp.includes('h-[52px]') && otp.includes('min-[360px]:h-14')
   && otp.includes('rounded-[12px]')
   && otp.includes("'justify-center gap-2'")
-  && otp.includes("index === 3 ? 'ml-2'"));
+  && /index === 3 (?:\?|&&) 'ml-2'/.test(otp));
 ok('flat cells wear the band, and the focus cell a 2px accent border',
   otp.includes("return 'bg-apple-parchment dark:bg-white/[0.08]';")
   && otp.includes('inset_0_0_0_2px_#f06413'));
@@ -111,6 +112,12 @@ ok('exactly ONE entry in the DOM (old field not left active)',
   (await B.locator('[data-testid="join-code-input"]').count()) === 1);
 const inputs = B.locator('[data-slot="otp-input-slot"]');
 ok('six real inputs', (await inputs.count()) === 6);
+// Codes retain the sender's left-to-right order inside an RTL interface.
+await B.evaluate(() => { document.documentElement.dir = 'rtl'; });
+const rtlSlots = await inputs.evaluateAll(els => els.map(el => el.getBoundingClientRect().x));
+ok('RTL keeps digit 1 leftmost and advances visually left to right',
+  rtlSlots.every((x, i) => i === 0 || x > rtlSlots[i - 1]), JSON.stringify(rtlSlots));
+await B.evaluate(() => { document.documentElement.dir = 'ltr'; });
 ok('entry is idle on mount', (await capsule.getAttribute('data-status')) === 'idle');
 const expWidths = await B.evaluate(() => window.__widths);
 const narrowFrame = expWidths.find((w) => /px$/.test(w) && parseFloat(w) < 250);
