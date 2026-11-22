@@ -59,13 +59,12 @@ Rules:
 - Toggle ON = success green, like iOS.
 
 ## 4. Type
-- Apple devices: the system font (SF) through -apple-system, restored by `html.apple-type` (`src/lib/device.ts` sets it only on a real Apple platform). Never add SF files to the repo: Apple's licence does not allow SF on websites.
-- The token lists Inter first, because `-apple-system` is NOT Apple-only: Blink resolves it on Windows too, and a stack that begins with it renders Arial there and never reaches Inter (P2 measurement, `audit/p2/fonts.txt`, bug B22). Order on the page: `html.apple-type` puts SF in front, everyone else gets Inter.
-- Everywhere else: **Allo** (screens-and-interfaces typeface, SIL OFL 1.1), self-hosted from `public/fonts/AlloVariableFriendly.woff2` (229 KB, the roundness-fixed cut; the full variable file is 442 KB and adds only the ROND axis), font-display: swap, size-adjusted fallback, and Inter kept behind it as the offline fallback. Licence text ships beside the file at `public/fonts/OFL.txt` — the OFL requires that.
-- Allo is used on purpose, not by default: `font-optical-sizing: auto` so a 12 px label and a 40 px headline are different drawings; `ss02` (serifed I, tailed l, footed 1, slashed zero) because six-digit codes and room ids are read character by character; `case` so punctuation beside capitals stops looking nudged; `calt` so a typed `->` becomes an arrow. To change the face, change one `@font-face` and the two tokens (`--font-sans`, `--font-display`) — nothing else names a font.
-- Hindi, Arabic, Japanese, Chinese, Korean and other scripts use system fonts through :lang(). Do not force Inter.
-- Scale (px): display 56/64 (650, -0.03em) · h2 32 · h3 22 (600) · title 16 · body 16/1.5 · support 13 · meta 12. Tighten letter-spacing only at 20px and above.
-- Codes, counts and progress use tabular numbers.
+- Garv's SF direction supersedes the earlier Allo and font-order decisions below. Apple devices use their installed San Francisco through the system aliases; never redistribute Apple font files.
+- The shared stack and font faces live in `public/typography.css`, used by the app, generated HTML and standalone guides. Other platforms use locally hosted Inter with a size-adjusted fallback and true italic; its licence is `public/fonts/Inter-OFL.txt`.
+- Allo is only the eight decorative `AlloSymbol` glyphs, served as `public/fonts/allo-symbols.woff2`. It is not a text face.
+- Use automatic optical sizing, standard semibold headings and size-specific tracking. Never pin Allo's ROND/opsz axes on text.
+- Hindi, Arabic, Japanese and Chinese use the existing script-specific local stacks through :lang(). Do not force Inter.
+- Keep the responsive size ramp, tabular codes/counts, and literal user punctuation. Disable contextual alternates for user content, not for all prose.
 - Line length 60 characters or less. Headings text-wrap: balance. Paragraphs text-wrap: pretty.
 
 ## 5. Shape, space, depth
