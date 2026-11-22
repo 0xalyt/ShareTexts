@@ -15,6 +15,7 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  "receive.note": "O código muda a cada 90 segundos. Se deixar de funcionar, use o código atual do outro dispositivo.",
   "qr.scan.typeCode": "Introduzir código",
   "chat.empty.dest": "Enviar para {name}",
   "chat.empty.body": "Escreva uma nota, cole uma ligação ou adicione um ficheiro abaixo.",

@@ -15,6 +15,7 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  "receive.note": "代碼每 90 秒更換一次。如果目前的代碼失效，請使用另一台裝置上顯示的最新代碼。",
   "qr.scan.typeCode": "輸入代碼",
   "chat.empty.dest": "傳送到 {name}",
   "chat.empty.body": "在下方寫筆記、貼上連結或加入檔案。",

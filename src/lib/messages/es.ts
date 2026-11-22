@@ -186,7 +186,7 @@ const es: Dict = {
   'receive.wrongCode': 'Ese código no funcionó. Revisa los dígitos o pide otro.',
   'receive.hint': 'Escribe el código de seis dígitos de la otra pantalla.',
   'receive.scan': 'Escanear código QR',
-  'receive.note': 'Codes change every 90 seconds. If yours stops working, ask for a new one.',
+  "receive.note": "El código cambia cada 90 segundos. Si deja de funcionar, usa el código actual del otro dispositivo.",
   'connect.stuck': 'Sigue conectando: el otro dispositivo está tardando un poco.',
   'connect.stuckLong': 'Aún sin conexión. Puede que el otro dispositivo haya cerrado ShareTexts: cancela y prueba con un código nuevo.',
   'common.tryAgain': "Reintentar",

@@ -186,7 +186,7 @@ const de: Dict = {
   'receive.wrongCode': 'Der Code hat nicht funktioniert. Prüfe die Ziffern oder bitte um einen neuen.',
   'receive.hint': 'Tippe den sechsstelligen Code vom anderen Bildschirm ein.',
   'receive.scan': 'QR-Code scannen',
-  'receive.note': 'Codes change every 90 seconds. If yours stops working, ask for a new one.',
+  "receive.note": "Der Code ändert sich alle 90 Sekunden. Falls er nicht mehr funktioniert, nimm den aktuellen Code vom anderen Gerät.",
   'connect.stuck': 'Verbindet noch – das andere Gerät braucht etwas länger.',
   'connect.stuckLong': 'Noch keine Verbindung. Das andere Gerät hat ShareTexts vielleicht geschlossen – abbrechen und neuen Code versuchen.',
   'common.tryAgain': "Erneut versuchen",

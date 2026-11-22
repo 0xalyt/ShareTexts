@@ -186,7 +186,7 @@ const fr: Dict = {
   'receive.wrongCode': 'Ce code n’a pas marché. Vérifiez les chiffres ou demandez-en un autre.',
   'receive.hint': 'Tapez le code à six chiffres affiché sur l’autre écran.',
   'receive.scan': 'Scanner le QR code',
-  'receive.note': 'Codes change every 90 seconds. If yours stops working, ask for a new one.',
+  "receive.note": "Le code change toutes les 90 secondes. S’il ne fonctionne plus, utilisez le code actuel de l’autre appareil.",
   'connect.stuck': 'Toujours en cours — l’autre appareil prend un peu de temps.',
   'connect.stuckLong': 'Toujours pas connecté. L’autre appareil a peut-être fermé ShareTexts — annulez et essayez un nouveau code.',
   'common.tryAgain': "Réessayer",

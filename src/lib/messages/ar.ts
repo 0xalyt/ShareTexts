@@ -186,7 +186,7 @@ const ar: Dict = {
   'receive.wrongCode': 'لم يعمل هذا الرمز. تحقق من الأرقام أو اطلب رمزًا جديدًا.',
   'receive.hint': 'اكتب رمز الأرقام الستة الظاهر على الشاشة الأخرى.',
   'receive.scan': 'مسح رمز QR',
-  'receive.note': 'Codes change every 90 seconds. If yours stops working, ask for a new one.',
+  "receive.note": "يتغيّر الرمز كل 90 ثانية. إذا لم يعمل، استخدم الرمز الأحدث الظاهر على جهازك الآخر.",
   'connect.stuck': 'ما زلنا نوصِل — الجهاز الآخر يستغرق بعض الوقت.',
   'connect.stuckLong': 'لم يتم الاتصال بعد. ربما أغلق الجهاز الآخر ShareTexts — ألغِ وجرّب رمزًا جديدًا.',
   'common.tryAgain': "حاول مجددًا",

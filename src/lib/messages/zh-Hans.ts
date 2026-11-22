@@ -186,7 +186,7 @@ const zh: Dict = {
   'receive.wrongCode': '这个代码没用。检查数字，或要一个新代码。',
   'receive.hint': '输入另一台屏幕上显示的六位数字代码。',
   'receive.scan': '扫描二维码',
-  'receive.note': 'Codes change every 90 seconds. If yours stops working, ask for a new one.',
+  "receive.note": "代码每 90 秒更换一次。如果当前代码失效，请使用另一台设备上显示的最新代码。",
   'connect.stuck': '仍在连接 — 另一台设备稍慢一些。',
   'connect.stuckLong': '还没有连上。另一台设备可能已关闭 ShareTexts——请取消并使用新代码。',
   'common.tryAgain': "重试",

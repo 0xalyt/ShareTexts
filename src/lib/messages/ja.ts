@@ -186,7 +186,7 @@ const ja: Dict = {
   'receive.wrongCode': 'そのコードではつながりませんでした。数字を確認するか、新しいコードをもらってください。',
   'receive.hint': '相手の画面に表示されている6桁のコードを入力します。',
   'receive.scan': 'QRコードをスキャン',
-  'receive.note': 'Codes change every 90 seconds. If yours stops working, ask for a new one.',
+  "receive.note": "コードは90秒ごとに変わります。使えなくなったら、もう一方のデバイスに表示されている最新のコードを入力してください。",
   'connect.stuck': '接続中です — 相手のデバイスに少し時間がかかっています。',
   'connect.stuckLong': 'まだ接続できません。相手のデバイスで ShareTexts が閉じられた可能性があります。キャンセルして新しいコードをお試しください。',
   'common.tryAgain': "再試行",

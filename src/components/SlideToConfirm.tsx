@@ -56,9 +56,9 @@ export interface SlideToConfirmProps {
 const TONES = {
   danger: {
     track: 'bg-status-danger/[0.07] dark:bg-status-danger/[0.14] border border-status-danger/25',
-    trackArmed: 'bg-status-danger',
-    trackConfirmed: 'bg-status-danger',
-    label: 'text-status-danger/80 dark:text-status-danger/90',
+    trackArmed: 'bg-status-danger-ink',
+    trackConfirmed: 'bg-status-danger-ink',
+    label: 'text-status-danger-ink dark:text-status-danger-ink-dark',
     labelArmed: 'text-white',
     knob: 'bg-white text-status-danger',
     knobIcon: 'text-status-danger',
@@ -202,7 +202,7 @@ export function SlideToConfirm({
                 ? cn(tones.labelArmed, '[text-shadow:0_1px_1px_rgba(0,0,0,0.25)]')
                 : tones.label,
           )}
-          style={{ opacity: confirmed ? 1 : Math.max(0, 1 - progress * 1.4) }}
+          style={{ opacity: confirmed || armed ? 1 : Math.max(0, 1 - progress * 1.4) }}
         >
           {confirmed ? armedLabel : armed ? armedLabel : label}
         </span>

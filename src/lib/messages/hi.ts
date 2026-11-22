@@ -186,7 +186,7 @@ const hi: Dict = {
   'receive.wrongCode': 'वह कोड काम नहीं आया। अंक जाँचें या नया कोड माँगें।',
   'receive.hint': 'दूसरी स्क्रीन पर दिख रहा छह अंकों का कोड टाइप करें।',
   'receive.scan': 'QR कोड स्कैन करें',
-  'receive.note': 'Codes change every 90 seconds. If yours stops working, ask for a new one.',
+  "receive.note": "कोड हर 90 सेकंड में बदलता है। अगर यह काम न करे, तो दूसरे डिवाइस पर दिख रहा नया कोड डालें।",
   'connect.stuck': 'अभी भी कनेक्ट हो रहा है — दूसरे डिवाइस को थोड़ा समय लग रहा है।',
   'connect.stuckLong': 'अभी तक कनेक्ट नहीं हुआ। शायद दूसरे डिवाइस ने ShareTexts बंद कर दिया — रद्द करें और नया कोड आज़माएँ।',
   'common.tryAgain': "फिर कोशिश करें",

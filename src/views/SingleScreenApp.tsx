@@ -2341,7 +2341,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
         open={showSettings}
         editDeviceName={settingsEditName}
         onClose={() => { setShowSettings(false); setSettingsEditName(false); }}
-        onOpenSaved={() => { setShowSettings(false); setSettingsEditName(false); setShowSaved(true); }}
+        onOpenSaved={() => { setSettingsEditName(false); setShowSaved(true); }}
       />
       </Suspense>
       {hopMounted && (

@@ -230,6 +230,8 @@ try {
         await page.mouse.move(k.x + 4, k.y + k.height / 2);
         await page.mouse.down();
         await page.mouse.move(k.x + 280, k.y + k.height / 2, { steps: 5 });
+        const releaseLabel = page.getByTestId('slide').getByText('Release', { exact: true });
+        assert.equal(await releaseLabel.evaluate(el => getComputedStyle(el).opacity), '1', 'Armed release feedback must not inherit the resting label fade');
         const pointerId = Number(await knob.getAttribute('data-pointer-id'));
         await knob.dispatchEvent('pointercancel', { pointerId, pointerType: 'mouse' });
         await page.mouse.up();
