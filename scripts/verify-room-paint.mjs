@@ -22,12 +22,10 @@
  *
  *   BASE_URL=http://localhost:3010 node scripts/verify-room-paint.mjs
  */
-import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
-import { resolveChrome } from './lib.mjs';
+import { launchBrowser, readLiveCode } from './lib.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
-const exe = resolveChrome();
 const failures = [];
 const out = (name, ok, extra = '') => {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${extra ? ` — ${extra}` : ''}`);
@@ -79,7 +77,7 @@ const SAMPLER = () => {
   requestAnimationFrame(tick);
 };
 
-const browser = await chromium.launch(exe ? { executablePath: exe } : {});
+const browser = await launchBrowser();
 
 async function pairRoom() {
   const ctxA = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -91,9 +89,8 @@ async function pairRoom() {
   await b.goto(BASE, { waitUntil: 'domcontentloaded' });
   await a.getByRole('button', { name: /^send$/i }).first().click();
   await b.getByRole('button', { name: /^receive$/i }).first().click();
-  const code = (await a.getByTestId('pairing-code').innerText()).replace(/\D/g, '').slice(0, 6);
-  await b.getByTestId('join-code-input').click();
-  await b.keyboard.type(code, { delay: 30 });
+  const code = await readLiveCode(a);
+  await b.getByTestId('join-code-input').locator('input').first().fill(code);
   await a.locator('textarea').first().waitFor({ timeout: 25000 });
   await b.locator('textarea').first().waitFor({ timeout: 25000 });
   return { a, b, ctxA, ctxB };
@@ -131,6 +128,8 @@ for (const [w, h] of [[1024, 768], [1440, 900]]) {
     continue;
   }
   const at = frames[first];
+  const railVisibility = await a.locator('#main-content .route-stack').evaluate(el => getComputedStyle(el).contentVisibility);
+  out(`${w}×${h} — the room rail is not virtualized`, railVisibility === 'visible', railVisibility);
   const later = (key) => frames.findIndex((f) => f[key]);
   const settle = (key) => Math.max(0, later(key) - first);
 
@@ -146,6 +145,68 @@ for (const [w, h] of [[1024, 768], [1440, 900]]) {
 
   await ctxA.close();
   await ctxB.close();
+}
+
+{
+  const { a, b, ctxA, ctxB } = await pairRoom();
+  for (const event of ['visibilitychange', 'beforeunload']) {
+    const text = `Flush received history on ${event}.`;
+    await a.locator('textarea').first().fill(text);
+    await a.locator('textarea').first().press('Enter');
+    await b.getByText(text, { exact: true }).waitFor({ timeout: 20000 });
+    const persisted = await b.evaluate(({ event, text }) => {
+      const visibility = Object.getOwnPropertyDescriptor(document, 'visibilityState');
+      try {
+        if (event === 'visibilitychange') {
+          Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+          document.dispatchEvent(new Event(event));
+        } else window.dispatchEvent(new Event(event));
+        return JSON.parse(localStorage.getItem('sharetext.session.v1'))?.messages?.some(m => m.text === text);
+      } finally {
+        if (visibility) Object.defineProperty(document, 'visibilityState', visibility);
+        else delete document.visibilityState;
+      }
+    }, { event, text });
+    out(`${event} synchronously persists the latest received message`, persisted);
+  }
+  const text = 'Persist this message before the receiving tab closes.';
+  await a.locator('textarea').first().fill(text);
+  await a.locator('textarea').first().press('Enter');
+  await b.getByText(text, { exact: true }).waitFor({ timeout: 20000 });
+  await b.close();
+  const reopened = await ctxB.newPage();
+  await reopened.goto(BASE, { waitUntil: 'domcontentloaded' });
+  const restored = await reopened.getByText(text, { exact: true }).waitFor({ timeout: 25000 }).then(() => true, () => false);
+  out('a received message survives immediately closing and reopening its tab', restored);
+  await ctxA.close();
+  await ctxB.close();
+}
+
+{
+  const context = await browser.newContext();
+  const older = await context.newPage();
+  await older.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await older.getByTestId('home-send').click();
+  await older.getByTestId('pairing-code').waitFor({ timeout: 45000 });
+  await older.waitForTimeout(500);
+  const firstRoom = await older.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')).roomId);
+  await older.evaluate(() => localStorage.removeItem('sharetext.session.v1'));
+  const newer = await context.newPage();
+  await newer.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await newer.getByTestId('home-send').click();
+  await newer.getByTestId('pairing-code').waitFor({ timeout: 45000 });
+  await newer.waitForTimeout(500);
+  const currentRoom = await newer.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')).roomId);
+  out('two tabs have created different rooms', firstRoom !== currentRoom);
+  await older.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  const storedRoom = () => newer.evaluate(() => JSON.parse(localStorage.getItem('sharetext.session.v1')).roomId);
+  out('hiding an idle older tab preserves the newer stored room', await storedRoom() === currentRoom);
+  await older.close();
+  out('closing an idle older tab preserves the newer stored room', await storedRoom() === currentRoom);
+  await context.close();
 }
 
 /* ── static: a null fallback around a first-paint surface ───────────────── */
