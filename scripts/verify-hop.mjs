@@ -134,6 +134,8 @@ try {
   }, 40_000);
   const [nameOnA, nameOnB] = [await named(A), await named(B)];
   ok(nameOnA && nameOnB, 'each device learns the other one\'s name', `A sees "${nameOnA}", B sees "${nameOnB}"`);
+  // Same browser, same platform, same default name: the later device is numbered.
+  ok(nameOnA && nameOnB && nameOnA === `${nameOnB} 2`, 'two devices of the same kind get told apart', `A sees "${nameOnA}", B sees "${nameOnB}"`);
 
   /* ── both open ────────────────────────────────────────────────────────── */
   const T1 = `hop one ${Date.now()}`;
