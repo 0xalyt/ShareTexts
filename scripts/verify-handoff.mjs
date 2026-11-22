@@ -7,6 +7,7 @@ import { launchBrowser, clickStable, resolveEngine, gotoPage } from './lib.mjs';
 import jsQR from 'jsqr';
 import { browserDiagnostics } from './browser-diagnostics.mjs';
 import { verifyHeroPoster } from './verify-hero-poster.mjs';
+import { verifyLandingActivity } from './verify-landing-activity.mjs';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const browser = await launchBrowser();
@@ -47,6 +48,7 @@ try {
   check('loopback retains every other CSP directive', directives(local) === directives(external));
 
   await verifyHeroPoster(browser, BASE);
+  await verifyLandingActivity(browser, BASE);
 
   // Isolate capabilities from service-worker caching and the live worker's CORS.
   const noRtc = await browser.newContext({ serviceWorkers: 'block' });
@@ -131,39 +133,25 @@ try {
           clipped: [...el.querySelectorAll('button')].some(b => { const br = b.getBoundingClientRect(); const target = innerWidth < 768 ? 44 : 48; return br.left < r.left - 1 || br.right > r.right + 1 || br.top < picture.bottom - .05 || br.bottom > r.bottom + 1 || br.width < target || br.height < target; }),
           framing: Math.abs(picture.width / picture.height - (innerWidth <= 639 ? 4 / 3 : 16 / 9)) < .02 &&
             el.querySelector('video').poster.includes('-mobile-') === (innerWidth <= 639),
-          backdrop: getComputedStyle(el).backgroundColor !== getComputedStyle(el.querySelector('.hero-film-picture')).backgroundColor,
+          bare: getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)' &&
+            parseFloat(getComputedStyle(el).paddingLeft) === 0 &&
+            Math.abs(picture.left - r.left) <= 1.1 && Math.abs(picture.right - r.right) <= 1.1,
+          joined: el.querySelector('.hero-film-play').getBoundingClientRect().width >= r.width - 4 &&
+            parseFloat(getComputedStyle(el.querySelector('.hero-film-controls')).marginTop) === 0,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
         };
       });
-      check(`${locale}/${width}: the correctly framed film has its own backdrop and tappable controls below the picture`, facts.framing && facts.backdrop && !facts.clipped && !facts.overflow);
-      const guidePair = page.getByTestId('landing-guide-pair');
-      const guideSend = page.getByTestId('landing-guide-send');
-      check(`${locale}/${width}: handoff guide starts on Pair`, await guidePair.getAttribute('aria-pressed') === 'true' && await guideSend.getAttribute('aria-pressed') === 'false');
-      const guideBounds = await page.locator('.landing-guide-frame').boundingBox();
-      await guideSend.click();
-      check(`${locale}/${width}: selecting Send changes only the illustrative example`, await guideSend.getAttribute('aria-pressed') === 'true' && await page.locator('.landing-guide-layer[data-active="true"] .landing-transfer-detail').count() === 1 && await page.getByTestId('home-send').count() === 1);
-      const guideAfter = await page.locator('.landing-guide-frame').boundingBox();
-      check(`${locale}/${width}: example switches without resizing or clipping`, Math.abs(guideBounds.width - guideAfter.width) < 1 && Math.abs(guideBounds.height - guideAfter.height) < 1 && guideAfter.x >= 0 && guideAfter.x + guideAfter.width <= width);
-      check(`${locale}/${width}: reduced-motion example switches do not animate`, await page.locator('.landing-guide-layer[data-active="true"]').evaluate(el => getComputedStyle(el).transitionDuration === '0s' && getComputedStyle(el).opacity === '1'));
-      await guidePair.focus();
-      await page.keyboard.press('Space');
-      check(`${locale}/${width}: keyboard selects Pair without motion`, await guidePair.getAttribute('aria-pressed') === 'true' && await page.locator('.landing-guide-example').getAttribute('data-animate') === 'false' && await page.locator('.landing-guide-layer[data-active="true"] .landing-pair-detail').count() === 1);
-      await page.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
-      check(`${locale}/${width}: sample code fits its padded card and every receiver cell`, await page.locator('.landing-pair-detail').evaluate(el => {
-        const code = el.querySelector('.landing-example-code');
-        const card = code.closest('.landing-mini-device');
-        const style = getComputedStyle(card);
-        const bounds = card.getBoundingClientRect();
-        const range = document.createRange();
-        range.selectNodeContents(code);
-        const glyphs = range.getBoundingClientRect();
-        return glyphs.left >= bounds.left + parseFloat(style.paddingLeft) && glyphs.right <= bounds.right - parseFloat(style.paddingRight) && [...el.querySelectorAll('.landing-code-cells span')].every(cell => {
-          range.selectNodeContents(cell);
-          const text = range.getBoundingClientRect();
-          const box = cell.getBoundingClientRect();
-          return text.left >= box.left && text.right <= box.right;
-        });
-      }));
+      check(`${locale}/${width}: the film has no extra backdrop and keeps an attached playback bar below its intact picture`, facts.framing && facts.bare && facts.joined && !facts.clipped && !facts.overflow);
+      const proof = page.locator('.landing-proof');
+      await proof.scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => [...document.querySelectorAll('.landing-proof-screen img')].filter(img => getComputedStyle(img).display !== 'none').every(img => img.complete && img.naturalWidth > 0));
+      check(`${locale}/${width}: three real product screens explain the same linear handoff`,
+        await proof.locator('li').count() === 3 && await proof.locator('button').count() === 0 &&
+        await proof.locator('h3').count() === 3);
+      check(`${locale}/${width}: the hero has only Send and Receive; alternatives follow the proof`,
+        await page.locator('.landing-intro .landing-actions button').count() === 2 &&
+        await page.locator('.landing-intro [data-testid="intent-input"], .landing-intro [data-testid="home-rows"]').count() === 0 &&
+        await page.locator('.landing-more').evaluate(el => Boolean(document.querySelector('.landing-proof').compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)));
       const browsers = page.locator('.landing-browsers');
       const handoff = page.locator('.landing-browser-utility');
       const copyAddress = page.getByTestId('landing-copy-address');
@@ -177,50 +165,43 @@ try {
       await copyAddress.click();
       check(`${locale}/${width}: clipboard denial never reports success and leaves a fallback`, await copyAddress.innerText() === defaultCopyLabel && (await handoff.getByRole('status').innerText()).length > 12 && await handoff.getByRole('status').innerText() !== successFeedback);
       const websiteQr = page.getByTestId('landing-website-qr');
-      const closedQrLabel = await websiteQr.innerText();
-      await websiteQr.click();
-      await handoff.getByTestId('qr-art').waitFor();
-      check(`${locale}/${width}: browser band contains no second-device tool`, await browsers.getByRole('heading').count() === 1 && await browsers.locator('.landing-browser-utility').count() === 0);
-      check(`${locale}/${width}: website QR has a Hide action and logo-only browser support stays inside the viewport`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel && await browsers.locator('.landing-browser-list:not([aria-hidden]) img[alt]').count() === 8 && await browsers.evaluate(el => {
+      if (width < 768) {
+        const closedQrLabel = await websiteQr.innerText();
+        await websiteQr.click();
+        await handoff.getByTestId('qr-art').waitFor();
+        check(`${locale}/${width}: the website QR has a named Hide action`, await websiteQr.getAttribute('aria-expanded') === 'true' && await websiteQr.innerText() !== closedQrLabel);
+        if (locale === 'en' && width === 320) check('phone QR decodes to the homepage, not a fake room', await decodeWebsiteQr(page) === new URL(BASE).origin);
+        await websiteQr.focus();
+        await page.keyboard.press('Escape');
+        check(`${locale}/${width}: Escape closes QR and restores focus`, await websiteQr.getAttribute('aria-expanded') === 'false' && await websiteQr.evaluate(el => el === document.activeElement));
+      } else {
+        check(`${locale}/${width}: desktop QR is visible without a click`, await handoff.getByTestId('qr-art').isVisible() && !await websiteQr.isVisible());
+        if (locale === 'en') check('desktop QR opens this website without room credentials', await decodeWebsiteQr(page) === new URL(BASE).origin);
+      }
+      // The proof now precedes this lazy-loaded strip. Scroll it into view
+      // before checking decoded images; Firefox does not preload this far down.
+      await browsers.scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => [...document.querySelectorAll('.landing-browser-list:first-child img')].every(img => img.complete && img.naturalWidth > 0));
+      check(`${locale}/${width}: the logo-only browser strip stays inside the viewport`, await browsers.locator('.landing-browser-list:not([aria-hidden]) img[alt]').count() === 8 && await browsers.evaluate(el => {
         const bounds = el.getBoundingClientRect();
         const logos = [...el.querySelectorAll('.landing-browser-list:first-child img')];
         return bounds.left >= 0 && bounds.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
           logos.every(img => img.complete && img.naturalWidth > 0 && img.alt && getComputedStyle(img).filter.includes('grayscale(1)')) &&
           [...el.querySelectorAll('.landing-browser-list')].every(list => list.textContent.trim() === '');
       }));
-      if (locale === 'en' && width === 320) check('website QR decodes to the homepage, not a fake room', await decodeWebsiteQr(page) === new URL(BASE).origin);
-      await websiteQr.focus();
-      await page.keyboard.press('Escape');
-      check(`${locale}/${width}: Escape closes the website QR and restores focus without creating a room`, await websiteQr.getAttribute('aria-expanded') === 'false' && await websiteQr.evaluate(el => el === document.activeElement) && await page.getByTestId('home-send').isVisible());
-      const shelf = page.locator('.landing-space-preview');
-      const shelfButtons = shelf.getByRole('button');
-      const shelfBefore = await shelf.boundingBox();
-      await shelfButtons.nth(1).click();
-      const shelfAfter = await shelf.boundingBox();
-      check(`${locale}/${width}: expiry preview is labelled, reversible and does not resize`, await shelfButtons.nth(1).getAttribute('aria-pressed') === 'true' && await shelf.locator('figcaption').innerText() !== '' && Math.abs(shelfBefore.height - shelfAfter.height) < 1 && await shelf.locator('.landing-space-closed').evaluate(el => getComputedStyle(el).opacity === '1'));
-      await shelfButtons.nth(0).focus();
-      await page.keyboard.press('Space');
-      check(`${locale}/${width}: keyboard restores the open example instantly`, await shelfButtons.nth(0).getAttribute('aria-pressed') === 'true' && await shelf.locator('.landing-space-open').evaluate(el => getComputedStyle(el).opacity === '1' && getComputedStyle(el).transitionDuration === '0s'));
       if (locale === 'en') {
         await page.waitForFunction(() => document.fonts.status === 'loaded', null, { timeout: 10000 });
-        const longestHeadingFits = await page.locator('h1').evaluate(el => {
-          const copy = el.cloneNode(true);
-          copy.style.cssText = `position:absolute;visibility:hidden;width:${el.getBoundingClientRect().width}px`;
-          el.after(copy);
-          const word = copy.querySelector('.st-word-gradient');
-          word.textContent = 'Screenshots';
-          word.parentElement.style.width = 'auto';
-          const line = word.parentElement.parentElement.getBoundingClientRect();
-          const fits = line.width <= el.getBoundingClientRect().width + 1;
-          copy.remove();
-          return fits;
-        });
-        check(`${width}: the longest rotating headline stays inside its column`, longestHeadingFits);
+        check(`${width}: the complete headline is still, medium-weight and fits`, await page.locator('h1').evaluate(el => {
+          const bounds = el.getBoundingClientRect();
+          return el.textContent.trim() === 'Send anything to your other device.' && getComputedStyle(el).fontWeight === '500' &&
+            !el.querySelector('.st-word-gradient') && bounds.left >= 0 && bounds.right <= innerWidth;
+        }));
         await page.locator('h1').evaluate(el => el.scrollIntoView({ block: 'center' }));
         await page.screenshot({ path: `audit/tmp/handoff-${width}.png`, fullPage: false });
-        await page.getByTestId('landing-open-space').click();
+        await page.getByTestId('home-space').click();
+        await page.getByTestId('space-sheet-create').click();
         await page.getByTestId('space-create-duration').waitFor();
-        check(`${width}: the later-sharing story opens real space creation`, await page.getByTestId('space-create-duration').isVisible());
+        check(`${width}: the quiet alternatives section opens real space creation`, await page.getByTestId('space-create-duration').isVisible());
         await page.keyboard.press('Escape');
         await page.getByTestId('space-create-duration').waitFor({ state: 'hidden' });
         if (width === 1440) {
@@ -235,6 +216,41 @@ try {
       } else {
         check(`${locale}/${width}: headline is localized`, !(await page.locator('h1').innerText()).includes('Share'));
       }
+      if (width >= 768) {
+        const languagePopup = page.locator('.landing-nav button[aria-haspopup="listbox"]');
+        await clickStable(page, languagePopup);
+        await page.evaluate(() => {
+          const data = new DataTransfer();
+          data.setData('text/plain', 'Keep paste inside this popup');
+          document.activeElement.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: data }));
+        });
+        check(`${locale}/${width}: paste respects the visible desktop language listbox`,
+          await languagePopup.getAttribute('aria-expanded') === 'true' &&
+          !await page.evaluate(() => Boolean(window.__stPendingIntentText || window.__stHomeDropFiles)));
+        await page.keyboard.press('Escape');
+      }
+      const language = page.getByTestId('landing-footer').locator('button[aria-haspopup="dialog"]');
+      check(`${locale}/${width}: footer names the current language`, !!(await language.innerText()).trim());
+      await clickStable(page, language);
+      await page.getByTestId('language-sheet').waitFor({ state: 'visible' });
+      const languageFits = await page.getByTestId('language-sheet').evaluate(el => {
+        const r = el.getBoundingClientRect();
+        return r.left >= -1 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1;
+      });
+      check(`${locale}/${width}: the footer language chooser stays in the viewport`, languageFits);
+      // LanguageMenu owns its open state outside the parent's sheet flags.
+      // A body shortcut must respect that dialog instead of opening Send.
+      await page.evaluate(() => {
+        const data = new DataTransfer();
+        data.setData('text/plain', 'Keep this paste inside the language sheet');
+        document.activeElement.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: data }));
+      });
+      check(`${locale}/${width}: paste cannot escape a nested language sheet`,
+        await page.getByTestId('language-sheet').isVisible() && await page.getByTestId('home-send').count() === 1 &&
+        !await page.evaluate(() => Boolean(window.__stPendingIntentText || window.__stHomeDropFiles)));
+      await page.keyboard.press('Escape');
+      await page.getByTestId('language-sheet').waitFor({ state: 'hidden' });
+      check(`${locale}/${width}: Escape restores focus to the footer language`, await language.evaluate(el => el === document.activeElement));
       check(`${locale}/${width}: no runtime errors`, errors.length === 0);
       await ctx.close();
     }
