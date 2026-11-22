@@ -148,6 +148,13 @@ function HoldToDelete({ onDelete, onConfirm }: { onDelete(): void; onConfirm(): 
     <button type="button" data-testid="space-hold-delete" data-sheet-no-drag
       className="relative flex min-h-[48px] w-full touch-none select-none items-center justify-center gap-2 overflow-hidden rounded-[12px] bg-status-danger/10 px-4 text-[15px] font-medium text-status-danger"
       onPointerDown={e => { if (e.isPrimary && e.button === 0) start(); }}
+      onPointerMove={e => {
+        if (!timer.current || !e.isPrimary) return;
+        // Touch implicitly captures this pointer: leaving the button does
+        // not produce pointerleave, but captured movement keeps its coords.
+        const box = e.currentTarget.getBoundingClientRect();
+        if (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom) cancel();
+      }}
       onPointerUp={cancel} onPointerLeave={cancel} onPointerCancel={cancel} onBlur={cancel}
       onContextMenu={e => e.preventDefault()}
       onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) start(); } else if (e.key === 'Escape') cancel(); }}

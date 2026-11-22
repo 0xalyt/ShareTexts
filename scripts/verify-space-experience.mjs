@@ -264,6 +264,25 @@ try {
   ok('invalid code: join stays available for retry',
     await C.page.locator('[data-testid="space-join-cta"]').isEnabled());
 
+  // Touch implicit capture delivers outside movement to the held button,
+  // without pointerleave. That motion must cancel deletion, not finish it.
+  const T = await mk({ viewport: { width: 390, height: 844 } });
+  await T.page.goto(URL + '/space/create', { waitUntil: 'domcontentloaded' });
+  await T.page.getByTestId('space-code-generate').click();
+  await T.page.getByTestId('space-create-cta').click();
+  await T.page.waitForURL(/\/space\/[0-9a-f-]{36}#k=/, { timeout: 15000 });
+  await T.page.getByTestId('space-actions').click();
+  const touchHold = T.page.getByTestId('space-hold-delete');
+  const touchBox = await touchHold.boundingBox();
+  const touchPointer = { pointerId: 7, pointerType: 'touch', isPrimary: true, button: 0, buttons: 1, clientX: touchBox.x + touchBox.width / 2, clientY: touchBox.y + touchBox.height / 2 };
+  await touchHold.dispatchEvent('pointerdown', touchPointer);
+  await touchHold.dispatchEvent('pointermove', { ...touchPointer, clientY: touchBox.y - 40 });
+  await T.page.waitForTimeout(1100);
+  ok('sliding outside a captured touch hold does not delete', await T.page.getByTestId('space-composer').isVisible());
+  if (await touchHold.isVisible()) {
+    await touchHold.dispatchEvent('pointerup', { ...touchPointer, buttons: 0, clientY: touchBox.y - 40 });
+  }
+
   // ── nothing anywhere should have crashed ─────────────────────────────
   ok('zero page/console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
 } catch (e) {
