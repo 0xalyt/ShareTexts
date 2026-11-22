@@ -1469,7 +1469,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                     <React.Fragment key={msg.id}>
                       {showSep && (
                         <div aria-hidden="true" className="flex justify-center mt-4 mb-1">
-                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-semibold tracking-wide text-apple-ink-muted/80 dark:text-white/45">
+                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-semibold tracking-wide text-apple-ink-muted dark:text-white/60">
                             {sepLabel}
                           </span>
                         </div>
