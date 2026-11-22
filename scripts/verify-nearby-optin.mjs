@@ -19,14 +19,13 @@ async function until(check, message, timeout = 10_000) {
 const count = (index, event) => sent[index].filter(e => e === event).length;
 try {
   for (let index = 0; index < 2; index++) {
-    const context = await browser.newContext();
+    const context = await browser.newContext({ serviceWorkers: 'block' });
     contexts.push(context);
     await context.route(/workers\.dev/, route => route.abort());
     await context.routeWebSocket(/workers\.dev/, route => route.close());
-    await context.addInitScript(({ index, deadlineKey }) => {
+    await context.addInitScript(({ index }) => {
       if (location.protocol !== 'http:') return;
       localStorage.setItem('sharetext.deviceName', `Optin ${index === 0 ? 'A' : 'B'}`);
-      if (index === 0 && !sessionStorage.getItem(deadlineKey)) sessionStorage.setItem(deadlineKey, String(Date.now() + 600_000));
     }, { index, deadlineKey });
     const page = await context.newPage();
     pages.push(page);
@@ -53,15 +52,23 @@ try {
     await page.getByTestId('nearby-visibility-toggle').waitFor({ state: 'visible' });
   }
   const [a, b] = pages;
-  await until(() => count(0, 'presence_announce') >= 1, 'A must announce its existing deadline');
+  assert.equal(count(0, 'presence_announce'), 0, 'fresh A starts hidden');
   assert.equal(count(1, 'presence_announce'), 0, 'fresh B starts hidden');
+  assert.equal(await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).count(), 0);
   assert.equal(await b.evaluate(key => sessionStorage.getItem(key), deadlineKey), null);
+  await a.getByTestId('nearby-visibility-toggle').click();
   await b.getByTestId('nearby-visibility-toggle').click();
+  await until(() => count(0, 'presence_announce') === 1, 'A opting in must announce');
   const deadline = await b.evaluate(key => Number(sessionStorage.getItem(key)), deadlineKey);
   assert(Math.abs(deadline - Date.now() - 600_000) < 5000, 'opt-in keeps the ten-minute absolute deadline');
   await until(() => count(1, 'presence_announce') === 1, 'B opting in must send presence_announce without reload');
   await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).waitFor({ state: 'visible', timeout: 10_000 });
+  await b.getByTestId('nearby-device-row').filter({ hasText: 'Optin A' }).waitFor({ state: 'visible', timeout: 10_000 });
   console.log('PASS Nearby opt-in: B announces immediately and appears on A without reload');
+  console.log('PASS Nearby ordering: both start hidden, A opts in before B, both list each other');
+  await a.getByTestId('nearby-visibility-toggle').waitFor({ state: 'visible', timeout: 2000 });
+  await b.getByTestId('nearby-visibility-toggle').waitFor({ state: 'visible', timeout: 2000 });
+  console.log('PASS Nearby controls: both visibility switches remain available with a discovered peer');
   await delay(2200);
   assert.equal(count(1, 'presence_announce'), 1, 'countdown re-renders must not announce again');
   await b.reload();
@@ -71,17 +78,12 @@ try {
   assert.equal(count(1, 'presence_announce'), 2, 'reload must not double-announce');
   assert.equal(await b.evaluate(key => Number(sessionStorage.getItem(key)), deadlineKey), deadline, 'reload must not extend the deadline');
   console.log('PASS Nearby reload and re-render: one announce per load, deadline unchanged, no countdown spam');
-  await a.goto('about:blank');
   await b.getByTestId('nearby-visibility-toggle').waitFor({ state: 'visible', timeout: 10_000 });
   const withdrawals = count(1, 'presence_withdraw');
   await b.getByTestId('nearby-visibility-toggle').click();
   await until(() => count(1, 'presence_withdraw') > withdrawals, 'opting out must withdraw');
   assert.equal(await b.evaluate(key => sessionStorage.getItem(key), deadlineKey), null);
-  const previousAnnouncements = count(0, 'presence_announce');
-  await a.goto(base);
-  await a.getByTestId('home-nearby').click();
-  await until(() => count(0, 'presence_announce') > previousAnnouncements, 'A must rejoin discovery before checking withdrawal');
-  await delay(1500);
+  await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).waitFor({ state: 'hidden', timeout: 10_000 });
   assert.equal(await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).count(), 0);
   console.log('PASS Nearby opt-out: immediate withdrawal and deadline removed');
   await b.getByTestId('nearby-visibility-toggle').click();
@@ -101,6 +103,7 @@ try {
   await b.clock.setFixedTime(Date.now());
   await b.getByTestId('nearby-visibility-toggle').click();
   await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).waitFor({ state: 'visible', timeout: 10_000 });
+  await b.keyboard.press('Escape');
   await a.getByTestId('nearby-device-row').filter({ hasText: 'Optin B' }).click();
   await b.getByTestId('nearby-detect-primary').click();
   for (const page of [a, b]) {
