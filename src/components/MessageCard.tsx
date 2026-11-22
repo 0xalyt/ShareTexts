@@ -81,21 +81,23 @@ async function toPngClipboardBlob(blob: Blob): Promise<Blob | null> {
 
 
 /**
- * Selection ring for selection mode (bencho selection list): an absolutely
- * positioned ring on the message edge; filled when selected. Tap target is
+ * Selection ring for selection mode: a separate flex item, never over text.
+ * Filled when selected. Tap target is
  * the whole bubble wrapper (handled in the render paths via onPointerDown).
  */
 function SelectionRing({ selected }: { selected: boolean }) {
   return (
     <motion.span
+      aria-hidden="true"
+      data-testid="message-selection-marker"
       initial={false}
       animate={{ scale: selected ? 1 : 0.85, opacity: 1 }}
       transition={{ duration: 0.2, ease: EASE.out }}
       className={cn(
-        'absolute top-1/2 -translate-y-1/2 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 pointer-events-none',
+        'self-center w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0 pointer-events-none',
         selected
           ? 'bg-ember border-ember'
-          : 'bg-transparent border-apple-ink-muted/40 dark:border-white/35'
+          : 'bg-transparent border-apple-ink-muted dark:border-white/45'
       )}
     >
       {selected && (
@@ -553,7 +555,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
           // as the plain justify-end layout renders without a ring.
           isMe ? "flex-row-reverse justify-start" : "justify-start",
           isGroupStart ? "mt-3" : "mt-0.5",
-          selectMode && "px-1"
+          selectMode && "st-message-selecting px-1"
         )}
         {...longPress}
         {...rowKeyboard}
@@ -747,7 +749,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
         "group/msg relative flex w-full items-center gap-2",
         isMe ? "flex-row-reverse justify-start" : "justify-start",
         isGroupStart ? "mt-3" : "mt-0.5",
-        selectMode && "px-1"
+        selectMode && "st-message-selecting px-1"
       )}
       {...longPress}
       {...rowKeyboard}

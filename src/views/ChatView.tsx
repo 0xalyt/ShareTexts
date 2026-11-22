@@ -1350,13 +1350,14 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         )}
       </AnimatePresence>
       {/* Messages */}
+      <div className="relative flex-1 min-h-0">
       <div
         ref={(el) => {
           scrollRef.current = el;
           if (el && el !== pullEl) setPullEl(el);
         }}
         onScroll={onMessagesScroll}
-        className="room-scroll flex-1 overflow-y-auto p-4 sm:p-6 relative"
+        className="room-scroll h-full overflow-y-auto p-4 sm:p-6 relative"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -1372,7 +1373,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             underneath. min-height (not a fixed height) is what keeps the
             first message reachable once the thread overflows. */}
         <div
-          className="max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col min-h-full"
+          className={cn("max-w-3xl 2xl:max-w-4xl mx-auto flex flex-col min-h-full", selectMode && "pb-24")}
           role="log"
           aria-live="polite"
           aria-relevant="additions"
@@ -1494,8 +1495,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           </AnimatePresence>
           <div ref={messagesEndRef} />
         </div>
+      </div>
         {/* Selection-mode floating bar (bencho selection list): count, copy,
-            exit. Sits over the message area, never blocking the composer. */}
+            exit. Outside the scroller; the log reserves space beneath it. */}
         <AnimatePresence>
           {selectMode && (
             <motion.div
