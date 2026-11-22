@@ -15,6 +15,9 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  'space.createSub': 'Um espaço partilhado para este dispositivo e os que convidar. Fecha-se automaticamente.',
+  'space.defaultName': 'Espaço partilhado',
+  'space.composerPlaceholder': 'Adicionar nota…',
   'reading.englishOnly': "Esta página está atualmente disponível apenas em inglês.",
   'footer.devices': 'Os seus dispositivos',
   'demo.s7': 'Feche a sala quando terminar.',
