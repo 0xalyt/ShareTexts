@@ -8,8 +8,10 @@
  */
 import { EASE, SPRING } from '../lib/motion/tokens';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { useMotionPreference } from '../lib/useMotionPreference';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import { useSession } from '../lib/SessionContext';
 import { formatSpeed, formatEta } from '../lib/speedEngine';
 import { renderRichText } from '../lib/richText';
@@ -22,7 +24,7 @@ import {
   X as X, Copy, Check, CheckCheck, Download,
   Image as ImageIcon, Play, Pause, RefreshCw,
   CircleAlert as AlertCircle, ChevronDown, ChevronUp,
-  Share2, ShieldCheck, Terminal, ZoomIn,
+  Share2, ShieldCheck, Terminal, ZoomIn, Ellipsis,
   Link as Link2, Bookmark, ArrowUpRight,
 } from 'lucide-react';
 import { hapticTick } from '../lib/haptics';
@@ -402,6 +404,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
   const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
+  const viewerTrap = useFocusTrap(viewerOpen, () => setViewerOpen(false));
   // Decoded dimensions of the ORIGINAL image bytes (proves nothing was
   // resized) and a decode-failure flag: a received "image" that the browser
   // can't decode (HEIC/HEIF on Chrome, damaged file, …) degrades to the file
@@ -481,7 +484,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
   const [actionsAnchor, setActionsAnchor] = useState<{ x: number; y: number } | null>(null);
   const openActions = (e?: { clientX: number; clientY: number }) => {
     if (selectMode) return;
-    if (e) setActionsAnchor({ x: e.clientX, y: e.clientY });
+    setActionsAnchor(e ? { x: e.clientX, y: e.clientY } : null);
     setActionsOpen(true);
     // Android only; iOS Safari has no vibrate, and nothing pretends it does.
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -757,11 +760,9 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
         onClose={() => setActionsOpen(false)}
         anchor={actionsAnchor}
         onReact={(emoji) => reactToMessage(msg.id, emoji)}
-        onCopy={() => { void handleCopy(msg.text); }}
-        onSave={a?.url ? () => handleDownload(a.url as string, a.name) : undefined}
-        onShare={typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-          ? () => { void navigator.share({ text: msg.text }).catch(() => {}); }
-          : undefined}
+        onCopy={() => { void copyAttachment(a); }}
+        onSave={a.url ? () => handleDownload(a.url as string, a.name) : undefined}
+        onShare={() => { void handleShare(); }}
         onSelect={() => onLongPressStart?.(msg.id)}
         onDelete={() => deleteLocalMessage(msg.id)}
         align={isMe ? 'right' : 'left'}
@@ -968,12 +969,13 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
               {complete && (
                 <>
                   <ActionButton icon={saved ? <Check /> : <Download />} label={saved ? t('action.downloadStarted') : savesPhotos && isImage && typeof navigator.share === 'function' ? t('action.savePhotos') : t('action.download')} active={saved} onClick={() => { if (savesPhotos && isImage && typeof navigator.share === 'function') void handleShare(); else handleDownload(a.url!, a.name); }} primary onBlue={isMe} testId="transfer-download" />
-                  <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1 sm:gap-1.5">
+                  <div className="st-file-utilities flex min-w-0 max-w-full flex-wrap items-center gap-1 sm:gap-1.5">
                     {a.type === 'image' && (
                       <ActionButton icon={copied ? <Check /> : <Copy />} label={copied ? t('action.copied') : t('action.copy')} active={copied} onClick={() => { void copyAttachment(a); }} compact onBlue={isMe} testId="transfer-copy" />
                     )}
                     <BookmarkAction msg={msg} onBlue={isMe} />
                     <ActionButton icon={<Share2 />} label={shared ? t('action.shared') : t('action.share')} active={shared} onClick={() => { void handleShare(); }} compact onBlue={isMe} testId="transfer-share" />
+                    <span className="st-file-more"><ActionButton icon={<Ellipsis />} label={t('msg.actions')} onClick={() => openActions()} viaClick compact onBlue={isMe} testId="transfer-more" /></span>
                   </div>
                 </>
               )}
@@ -1010,7 +1012,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, arrival, isGroupS
         </div>
         <ReactionBar msg={msg} disabled={selectMode} />
         {viewerOpen && complete && (
-          <ImageViewer src={a.url!} name={a.name} onClose={() => setViewerOpen(false)} />
+          <ImageViewer src={a.url!} name={a.name} onClose={() => setViewerOpen(false)} trapRef={viewerTrap} />
         )}
       </div>
     </motion.div>
@@ -1178,7 +1180,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
       type="button"
       onClick={(e) => { if (!disabled && (viaClick || e.detail === 0)) onClick(); }}
       onPointerDown={viaClick ? undefined : (e) => { e.preventDefault(); if (!disabled) onClick(); }}
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? label}
       title={ariaLabel ?? label}
       aria-pressed={pressed}
       aria-disabled={disabled}
@@ -1213,7 +1215,7 @@ function ActionButton({ icon, label, onClick, active, primary, onBlue, testId, a
  * Wheel / pinch to zoom, drag to pan, double-tap or double-click to toggle,
  * Esc or backdrop to close. Touch-friendly and keyboard-friendly.
  */
-function ImageViewer({ src, name, onClose }: { src: string; name: string; onClose: () => void }) {
+function ImageViewer({ src, name, onClose, trapRef }: { src: string; name: string; onClose: () => void; trapRef: React.Ref<HTMLDivElement> }) {
   const { t } = useI18n();
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -1276,13 +1278,16 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
     pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) pinchDist.current = null;
   };
-  return (
+  // Fixed overlays must escape the row's content-visibility paint containment
+  // and arrival transform, just like MessageActions does.
+  return createPortal(
     <motion.div
+      ref={trapRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-black/92 flex items-center justify-center"
-      onPointerDown={onClose}
+      onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
       role="dialog"
       aria-modal="true"
       aria-label={`Viewing ${name}`}
@@ -1318,7 +1323,8 @@ function ImageViewer({ src, name, onClose }: { src: string; name: string; onClos
           <ZoomIn className="w-3.5 h-3.5" /> {Math.round(scale * 100)}% · scroll or pinch to zoom
         </span>
       </div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }
 

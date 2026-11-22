@@ -1130,7 +1130,7 @@ html[st-theme-vt] {
 }
 /* An open reaction palette crosses its row's paint box. Keep virtualization
    for the rest of the thread, but never clip or hide focus inside this row. */
-.room-scroll > * > *:has([data-slot="emoji-reaction"] [aria-expanded="true"]) {
+.room-scroll [class~="group/msg"]:has([data-slot="emoji-reaction"] [aria-expanded="true"]) {
   content-visibility: visible;
   z-index: 10;
 }
