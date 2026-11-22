@@ -190,6 +190,13 @@ try {
         await page.mouse.up();
         assert.equal(await page.locator('#confirmed').innerText(), '0');
 
+        // A keyboard dismissal must unmount a pointer-opened sheet, even
+        // when its non-animating outer wrapper changes input modality.
+        await page.locator('#open').click();
+        await page.getByTestId('sheet').waitFor();
+        await page.keyboard.press('Escape');
+        await page.getByTestId('sheet').waitFor({ state: 'detached', timeout: 1500 });
+
         // Direct manipulation remains available with the OS animation toggle off.
         await page.locator('#open').click();
         const handle = page.locator('[data-testid="sheet"] [data-sheet-handle]');

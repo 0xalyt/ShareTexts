@@ -16,7 +16,7 @@ export const MotionSurface = React.forwardRef<HTMLDivElement, React.ComponentPro
         ref={ref}
         data-motion-entry={pointerEntry ? 'pointer' : 'quiet'}
         initial={quiet ? false : initial}
-        exit={quiet ? { opacity: 0, transition: { duration: 0 } } : exit}
+        exit={exit === undefined ? undefined : quiet ? { opacity: 0, transition: { duration: 0 } } : exit}
         transition={quiet ? { duration: 0 } : transition}
         inert={!present || props.inert}
         style={{ ...style, pointerEvents: present ? style?.pointerEvents : 'none' }}
