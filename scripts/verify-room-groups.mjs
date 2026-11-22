@@ -11,4 +11,6 @@ assert.equal(roomMessageGroups([a, b], true).length, 2, 'different remote sender
 assert.equal(roomMessageGroups([a, { ...b, attachment: { ...b.attachment, recipients: {} } }], false).length, 2);
 assert.equal(roomMessageGroups([a, { id: 'text', sender: 'partner', timestamp: 1000, text: 'Hi' }, b], false).length, 3);
 assert.deepEqual(roomMessageGroups([a, b], false)[0].map(item => item.idx), [0, 1], 'timeline metadata keeps original message positions');
-console.log('PASS file grouping: sender, time, text boundaries, multi-device safety, original positions');
+const midnight = new Date(2026, 10, 22, 23, 59, 50).getTime();
+assert.equal(roomMessageGroups([photo('late', 'partner', midnight), photo('next-day', 'partner', midnight + 20_000)], false).length, 2, 'a local day boundary must stay outside a file group');
+console.log('PASS file grouping: sender, time, day and text boundaries, multi-device safety, original positions');

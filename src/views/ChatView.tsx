@@ -31,7 +31,7 @@ import { cn, formatBytes, sanitizeDeviceName } from '../lib/utils';
 import { Attachment } from '../types';
 import { MessageCard, pureLinkUrl } from '../components/MessageCard';
 import { RoomFileGroup } from '../components/RoomFileGroup';
-import { roomMessageGroups } from '../lib/roomMessageGroups';
+import { roomMessageGroups, dateKeyOf } from '../lib/roomMessageGroups';
 import { TypingGhostBubble } from '../components/TypingIndicator';
 import { createTypingSender, typingIndicatorEnabled, TYPING_TIMING } from '../lib/typing';
 import { SettingsOverlay } from '../components/SettingsOverlay';
@@ -68,11 +68,6 @@ function takeIntentText(): string | null {
   return v;
 }
 
-/** Localized date-separator label: Today / Yesterday / a real date. */
-function dateKeyOf(ts: number): string {
-  const d = new Date(ts);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
 export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' } = {}) {
   const reducedMotion = useMotionPreference();
   const quietMotion = reducedMotion || document.documentElement.dataset.motionIntent === 'keyboard';
@@ -1420,8 +1415,21 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   it can never clip the first message. */}
               <div aria-hidden className="grow" />
               <AnimatePresence initial={false}>
-                {roomMessageGroups(session.messages, isMultiRoom).map(group => (
-                  <RoomFileGroup key={group[0].msg.id} messages={group.map(item => item.msg)}>
+                {roomMessageGroups(session.messages, isMultiRoom).map(group => {
+                  const { msg: first, idx: firstIndex } = group[0];
+                  const sepKey = dateKeyOf(first.timestamp);
+                  const showSep = firstIndex === 0 || dateKeyOf(session.messages[firstIndex - 1].timestamp) !== sepKey;
+                  const sepLabel = sepKey === todayKey ? t('time.today') : sepKey === yesterdayKey ? t('time.yesterday') : fmtDayHeading(lang, first.timestamp);
+                  return (
+                  <React.Fragment key={first.id}>
+                    {showSep && (
+                      <div aria-hidden="true" data-testid="room-day-separator" className="flex justify-center mt-4 mb-1">
+                        <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-medium tracking-wide text-apple-ink-muted dark:text-white/60">
+                          {sepLabel}
+                        </span>
+                      </div>
+                    )}
+                  <RoomFileGroup messages={group.map(item => item.msg)}>
                   {group.map(({ msg, idx }) => {
                   const prev = idx > 0 ? session.messages[idx - 1] : undefined;
                   // §19 grouping: a run of messages from one sender is one
@@ -1430,21 +1438,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   const silentFor = prev ? (msg.timestamp - prev.timestamp) / 60000 : Infinity;
                   const showMeta = !prev || prev.sender !== msg.sender || silentFor >= 5;
                   const isLastOwn = msg.id === lastOwnId;
-                  // Date separators: a quiet chip between days. Today is the
-                  // common case (no separator at all); Yesterday and older
-                  // dates get an honest localized label.
-                  const showSep = idx === 0 || dateKeyOf(session.messages[idx - 1].timestamp) !== dateKeyOf(msg.timestamp);
-                  const sepKey = dateKeyOf(msg.timestamp);
-                  const sepLabel = sepKey === todayKey ? t('time.today') : sepKey === yesterdayKey ? t('time.yesterday') : fmtDayHeading(lang, msg.timestamp);
                   return (
                     <React.Fragment key={msg.id}>
-                      {showSep && (
-                        <div aria-hidden="true" className="flex justify-center mt-4 mb-1">
-                          <span className="px-3 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-medium tracking-wide text-apple-ink-muted dark:text-white/60">
-                            {sepLabel}
-                          </span>
-                        </div>
-                      )}
                       <MessageCard
                         msg={msg}
                         arrival={msg.sender === 'partner' && msg.attachment && !initialMessageIds.current.has(msg.id)
@@ -1476,7 +1471,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                   );
                 })}
                   </RoomFileGroup>
-                ))}
+                  </React.Fragment>
+                );
+                })}
                 <AnimatePresence>{peerTyping && <TypingGhostBubble align="left" />}</AnimatePresence>
               </AnimatePresence>
             </>
