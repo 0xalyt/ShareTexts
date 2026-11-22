@@ -82,12 +82,10 @@ function Countdown({ expiresAt, now, createdAt }: { expiresAt: number; now: numb
     : 'text-apple-ink-muted dark:text-white/50';
   if (left <= 0) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 min-w-0">
-      <span className={`inline-flex items-center gap-1.5 text-[13px] font-medium tabular-nums ${color}`}>
-        <Clock className="w-3.5 h-3.5" />
-        {t('space.closesIn', { time: remainingShort(left) })}
-        <span className="hidden sm:inline text-apple-ink-muted/60 dark:text-white/35">· {closingTime(lang, expiresAt)}</span>
-      </span>
+    <span className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium tabular-nums ${color}`}>
+      <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden />
+      <span className="truncate">{t('space.closesIn', { time: remainingShort(left) })}</span>
+      <span className="hidden shrink-0 whitespace-nowrap sm:inline text-apple-ink-muted/60 dark:text-white/35">· {closingTime(lang, expiresAt)}</span>
     </span>
   );
 }
@@ -204,9 +202,8 @@ function ItemCard({
             </span>
           </div>
         )}
-        <div className="mt-2.5 flex items-center gap-2.5 text-[12px] text-apple-ink-muted/80 dark:text-white/40">
-          <span className="truncate">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
-          <span className="flex-1" />
+        <div className="mt-2.5 flex flex-wrap items-center justify-end gap-x-2.5 gap-y-1 text-[12px] text-apple-ink-muted/80 dark:text-white/40">
+          <span className="basis-full min-w-0 [overflow-wrap:anywhere] sm:basis-auto sm:flex-1">{mine ? t('space.addedByYou') : t('space.addedBy', { name: item.addedByName })}</span>
           {item.kind === 'text' && (
             <button
               className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[28px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
@@ -406,7 +403,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
     setError(null);
     try {
       const { createSpace } = await import('../lib/space/api');
-      const out = await createSpace({ name: name.trim() || undefined, durationMs: duration, code: code || undefined });
+      const out = await createSpace({ name: name.trim() || t('space.defaultName'), durationMs: duration, code: code || undefined });
       productEvent('product.space_created');
       if (remind && support === 'supported') {
         let timer: number | undefined;
@@ -902,7 +899,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             style={{ width: `${Math.min(100, Math.round(((nowMs - (snapshot.createdAt ?? snapshot.expiresAt - 24 * 3_600_000)) / Math.max(1, snapshot.expiresAt - (snapshot.createdAt ?? snapshot.expiresAt - 24 * 3_600_000))) * 100))}%` }}
           />
         )}
-        <div className="st-space-header max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+        <div className="st-space-header max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <a href="/" aria-label={t('space.backHome')} className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08]">
             <ArrowLeft className="w-[18px] h-[18px] text-apple-ink-muted dark:text-white/60" />
           </a>
@@ -919,7 +916,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               }}
               title={t('space.copyCode')}
               aria-label={`${t('space.codeDisplayLabel')}: ${formatSpaceCode(spaceCode)}. ${t('space.copyCode')}`}
-              className="st-chip st-chip-ember shrink-0 hidden sm:inline-flex font-mono tracking-[0.1em]"
+              className="st-chip st-chip-ember shrink-0 hidden sm:inline-flex min-h-11 font-mono tracking-[0.1em]"
               data-testid="space-code-chip"
             >
               {formatSpaceCode(spaceCode)}
@@ -937,27 +934,29 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
           <button
             onClick={() => setShareOpen(true)}
             aria-label={t('space.share')}
+            title={t('space.share')}
             className="st-space-share shrink-0 inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 rounded-full text-[13px] font-semibold active:scale-[0.96] transition-transform"
             data-testid="space-share-btn"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span className="hidden min-[400px]:inline">{t('space.share')}</span>
+            <span className="hidden lg:inline">{t('action.share')}</span>
           </button>
           {canClose && (
             <button
               onClick={() => setCloseConfirm(true)}
               aria-label={t('space.closeNow')}
+              title={t('space.closeNow')}
               className="st-space-close shrink-0 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-3 rounded-full text-[13px] font-medium text-red-600/90 dark:text-red-400/90 hover:bg-red-500/[0.08]"
             >
-              <XCircle className="w-[18px] h-[18px] min-[400px]:hidden" aria-hidden />
-              <span className="hidden min-[400px]:inline">{t('space.closeNow')}</span>
+              <XCircle className="w-[18px] h-[18px] lg:hidden" aria-hidden />
+              <span className="hidden lg:inline">{t('space.closeNow')}</span>
             </button>
           )}
         </div>
       </header>
 
       {/* ── content ── */}
-      <main className="relative flex-1 flex flex-col w-full max-w-3xl mx-auto px-4 sm:px-6 py-5">
+      <main className="relative flex-1 flex flex-col w-full max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-5">
         {/* A Host is the other place where something new can land while you
             are looking at it; pulling down at the top re-reads it — one fresh
             snapshot, applied in place, so the rows that changed glide and the
@@ -1074,7 +1073,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
 
       {/* ── composer ── */}
       <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas dark:bg-night-900 border-t border-apple-divider/50 dark:border-white/[0.06]">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
+        <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
           {canUploadFiles && (
             <>
               <button
@@ -1109,7 +1108,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
             }}
             rows={1}
             placeholder={t('space.composerPlaceholder')}
-            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[24px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25"
+            className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 rounded-[24px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25 placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
             data-testid="space-composer"
           />
           {/* Composer share is a convenience duplicate of the header share —
@@ -1138,7 +1137,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
         {!canUploadFiles && (
           <p
             data-testid="space-text-only"
-            className="max-w-3xl mx-auto px-4 sm:px-6 pb-2 text-[12px] leading-snug text-apple-ink-muted dark:text-white/50"
+            className="max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 pb-2 text-[12px] leading-snug text-apple-ink-muted dark:text-white/50"
           >
             {t('space.textOnly')}
           </p>
