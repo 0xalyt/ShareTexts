@@ -1,5 +1,54 @@
 # ShareTexts product film
 
+## V6 reference-inspired edit
+
+The 24-second editorial cut uses the owner's Fastlane *Claude for Ads* reference
+for close-up UI staging, layered surfaces, object-preserving transitions and the
+central-device carousel. It does not copy its brand, footage or story. The film
+opens with a photo crossing from phone to laptop, shows actual short-code
+pairing, then native text/copy, ZIP/download, photo receipt/viewer and video
+playback before a mixed-content carousel and ShareTexts lockup.
+
+`src/film/ReferenceFilm.tsx` and `reference-film.css` are offline authoring only,
+selected by `film.html?mode=reference`. Every frame is a deterministic
+`window.__film(t)` call. Native captureVersion 4 checkpoint sources come from
+the V5 local-Worker capture below; pairing panels are an additional capture of
+two independent real clients. Text is authored in English; the existing localized
+player description and controls remain unchanged. No new dependencies or public
+renderer code are required.
+
+After capturing both V5 theme sources and placing the NASA fixtures below:
+
+```sh
+node scripts/capture-reference-pairing.mjs
+node scripts/render-reference-film.mjs probe
+node scripts/render-reference-film.mjs render
+FILM_THEME=dark node scripts/render-reference-film.mjs render
+FILM_FRAMING=phone node scripts/render-reference-film.mjs render
+FILM_THEME=dark FILM_FRAMING=phone node scripts/render-reference-film.mjs render
+```
+
+The renderer builds an isolated authoring site, emits keyframe JPEG probes and
+1920×1080/60 fps source frames (1440×1080 for the independently composed phone
+cut), then exports `sharetexts-reference-v6-{light,dark}` families. Inline H.264
+movies are 1440×810 desktop / 960×720 phone, two-pass 900 kbps, yuv420p/bt709,
+fast-start and muted. Each stays under 3 MB; opening-frame JPEG posters stay
+under 150 KB. Desktop `-full.mp4` is the source-resolution optional export with
+an original locally synthesized score; it is never preloaded. All four cuts
+share the same timing and semantic native states, not capture wall-clock times.
+The received video payload is recomposited in its measured native screen bounds.
+Film timing is editorial, not a transfer-speed benchmark.
+`FILM_RANGE=10.25:11.56` recaptures only that bounded change before re-encoding;
+use it only with existing frames from the same composition, otherwise render in
+full. `FILM_FPS` supports 24/30 fps previews; release exports default to 60 fps.
+
+The requested [VidScribe skill](https://github.com/SamuelZ12/vidscribe) was
+installed for reference inspection. Its runtime targets macOS; on this Linux
+authoring machine ffmpeg frame extraction was used instead. The owner's
+[Fastlane reference](https://x.com/UseFastlane/status/2116024172430156062) is not
+redistributed. NASA fixture attribution and the existing player/release gates
+below also apply to V6.
+
 ## V5 authoring (review required before release)
 
 The 16.8-second light/dark film uses original Blender 4.5 LTS hardware, an offline Three.js physical-material/HDRI stage, and device-resolution recordings of two real ShareTexts clients connected through a local Worker. Text/files actually cross the room; the receiver copies, saves, opens the photo and plays the received video. Film time is edited for clarity, **not a production transfer-speed benchmark**. Only H.264 movies and JPEG posters ship; no renderer, GLB, HDRI, fixtures or native captures enter production JavaScript.
