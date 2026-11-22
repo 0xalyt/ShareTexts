@@ -1,0 +1,43 @@
+/* Allo by Josh Puckett, OFL-1.1; source and licence remain in /fonts.
+   Rebuild the crisp text and symbol cuts: python3 scripts/build-allo-fonts.py.
+   Keep one definition for the app, static guides and no-JavaScript shells. */
+:root {
+  --st-font-sans: "Allo", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-optical-sizing: auto;
+  /* Explicit roles also work in WebKit versions that ignore automatic opsz. */
+  font-variation-settings: "opsz" 16;
+  font-synthesis: none;
+  /* Literal arrows and punctuation stay literal in every draft and note. */
+  font-feature-settings: "ss02" 1, "case" 1, "calt" 0;
+}
+@font-face {
+  font-family: "Allo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/allo-crisp.woff2") format("woff2");
+}
+/* Real obliques, fetched only when italic content is painted. */
+@font-face {
+  font-family: "Allo";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/AlloOblique.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Allo";
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/AlloSemiBoldOblique.woff2") format("woff2");
+}
+/* Fixed 500/20/crisp drawing; all eight symbols retain accessible control labels. */
+@font-face {
+  font-family: "Allo Symbols";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/allo-symbols.woff2") format("woff2");
+  unicode-range: U+002B, U+2190, U+2192, U+22EF, U+2315, U+2713, U+2715, U+276F;
+}

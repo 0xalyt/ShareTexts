@@ -1,6 +1,8 @@
+@import url('/typography.css');
+
 /* ShareText Guide Pages — Design System
  * Matches the main app's Apple-inspired visual language:
- * - Allo variable typography
+ * - Native SF on Apple, locally hosted Inter elsewhere
  * - Ember brand (#f06413)
  * - Clean surfaces with subtle depth
  * - Layered dark mode (not inverted)
@@ -106,19 +108,9 @@ html.dark {
   }
 }
 
-@font-face {
-  font-family: Allo;
-  src: url('/fonts/AlloVariable.woff2') format('woff2');
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-}
-
 body {
-  font-family: Allo, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--st-font-sans);
   font-optical-sizing: auto;
-  font-variation-settings: 'ROND' 0;
-  font-feature-settings: 'calt' 0;
   color: var(--text);
   background: var(--bg);
   line-height: 1.65;
@@ -127,7 +119,8 @@ body {
 }
 
 h1, h2, h3 {
-  font-variation-settings: 'ROND' 0, 'opsz' 32;
+  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 32;
   text-wrap: balance;
 }
 p, li { text-wrap: pretty; }
