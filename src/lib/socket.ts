@@ -171,10 +171,10 @@ export function kickEndpointProbe(): void {
  * Resolve the signaling endpoint.
  *
  * Priority:
- *   1. VITE_SIGNALING_URL → Cloudflare Workers (WebSocket protocol)
- *   2. VITE_SOCKET_URL     → Node socket.io server
- *   3. same-origin         → dev (the local server runs signaling) or a
- *      deployment where the signaling server also serves the frontend
+ *   1. CI local Worker opt-in → local Cloudflare transport
+ *   2. VITE_SIGNALING_URL → canonical Worker in production, configured URL in dev
+ *   3. VITE_SOCKET_URL → Node socket.io server when no Worker URL is set
+ *   4. Neither set → canonical Worker in production, same-origin socket.io in dev
  *
  * Production safety: an explicit localhost in either env is refused loudly —
  * deployed builds never silently target localhost.
@@ -197,7 +197,7 @@ function resolveEndpoints(): { mode: 'cloudflare' | 'socketio'; url?: string } {
     // pairing still worked). The canonical host wins; anything else is logged
     // once and ignored.
     if (isProd && cf !== SIGNALING_WORKER) {
-      console.warn(`[ShareTexts] VITE_SIGNALING_URL (${cf}) is not the canonical signaling worker — using ${SIGNALING_WORKER}. Remove the env var or set it to the canonical host.`);
+      console.info(`[ShareTexts] Ignoring non-canonical VITE_SIGNALING_URL (${cf}); using ${SIGNALING_WORKER}.`);
       return { mode: 'cloudflare', url: SIGNALING_WORKER };
     }
     return { mode: 'cloudflare', url: cf };
@@ -211,12 +211,7 @@ function resolveEndpoints(): { mode: 'cloudflare' | 'socketio'; url?: string } {
     return { mode: 'socketio', url: node };
   }
 
-  if (isProd) {
-    console.error(
-      '[ShareTexts] Neither VITE_SIGNALING_URL nor VITE_SOCKET_URL is set. A deployed build must point at a signaling backend ' +
-      '(Cloudflare Worker or Node server). Falling back to same-origin — this only works when the backend serves this frontend.'
-    );
-  }
+  if (isProd) return { mode: 'cloudflare', url: SIGNALING_WORKER };
   return { mode: 'socketio' };
 }
 
@@ -252,10 +247,9 @@ export function pushEndpoint(): string | null {
 }
 
 /**
- * Human-readable reason when a deployed build has no signaling backend to
- * talk to. In production the transport is chosen at BUILD time — Vite inlines
- * VITE_SIGNALING_URL / VITE_SOCKET_URL into the bundle, so adding the env var
- * to Vercel after the last build does nothing until a rebuild.
+ * Human-readable reason when a production build refused a localhost backend
+ * and has no usable explicit fallback. Unset URLs use the canonical Worker.
+ * Overrides are baked in at build time and require a rebuild to change.
  */
 export function signalingConfigIssue(): string | null {
   if (import.meta.env.DEV) return null;
