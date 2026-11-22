@@ -20,7 +20,8 @@
  */
 import React from 'react';
 import { motion } from 'motion/react';
-import { Check, Monitor, Smartphone } from 'lucide-react';
+import { Monitor, Smartphone } from 'lucide-react';
+import { AlloSymbol } from './AlloSymbol';
 import { useI18n } from '../lib/i18n';
 import { cn } from '../lib/utils';
 import { useMotionPreference } from '../lib/useMotionPreference';
@@ -109,7 +110,7 @@ export function ConnectHandshake({ phase, localIcon = 'phone', partnerName, quie
             data-testid="connect-check"
             className="st-connect-check absolute left-1/2 top-1/2 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-status-success shadow-[0_2px_8px_-2px_rgba(52,199,89,0.5)]"
           >
-            <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+            <AlloSymbol name="check" size={14} className="text-white" />
           </span>
         )}
       </div>
