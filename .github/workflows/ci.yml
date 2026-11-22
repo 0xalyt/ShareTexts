@@ -102,7 +102,11 @@ jobs:
         run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-nearby-accept.mjs
 
       - name: Composer geometry gate
-        run: URL=http://localhost:3311 node scripts/verify-composer.mjs
+        # Earlier browser gates share one loopback IP and spend its quotas.
+        # Give this independent gate a fresh Worker, not weaker limits.
+        run: |
+          node scripts/start-ci-worker.mjs --restart
+          URL=http://localhost:3311 node scripts/verify-composer.mjs
 
       - name: Landing handoff and audit regressions
         run: BROWSER=${{ matrix.browsers }} BASE_URL=http://localhost:3311 node scripts/verify-handoff.mjs
