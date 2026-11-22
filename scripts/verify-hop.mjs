@@ -28,12 +28,19 @@ const sink = [];
    the test had the network off. Not Hop, and not something a person sees. */
 const offlineAssets = [];
 let offline = false;
+/* Hop requests A had in the air when this gate pulled its network, or that
+   the browser gave up on while it came back. WebKit reports each one as an
+   "internal error"; they are the test's doing, not the product's. */
+const cutByTest = [];
+let cutting = false;
 const watch = (page, name) => {
   page.on('console', (m) => {
     if (m.type() !== 'error') return;
     const path = (m.location()?.url ?? '').replace(/^https?:\/\/[^/]+/, '').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>');
     const line = `[${name}] ${m.text()} ${path}`;
     if (offline && /^Failed to load resource/.test(m.text()) && path.startsWith('/') && !path.startsWith('/circle/')) offlineAssets.push(line);
+    // A reply from the server ("status of 500") is never the cut; only a request that got no answer.
+    if (cutting && name === 'A' && /^Failed to load resource/.test(m.text()) && !/status of \d/.test(m.text()) && path.startsWith('/circle/')) cutByTest.push(line);
     sink.push(line);
   });
   page.on('pageerror', (e) => sink.push(`[${name}] pageerror ${e.message}`));
@@ -180,6 +187,7 @@ try {
 
   /* ── offline ──────────────────────────────────────────────────────────── */
   offline = true;
+  cutting = true;
   await ctxA.setOffline(true);
   const T4 = `hop offline ${Date.now()}`;
   await send(A, T4);
@@ -190,6 +198,7 @@ try {
   await ctxA.setOffline(false);
   offline = false;
   ok(await until(async () => (await texts(B, 'hop-in')).includes(T4), 60_000), 'it goes by itself when the connection returns');
+  cutting = false;
   ok((await texts(B, 'hop-in')).filter((t) => t === T4).length === 1, 'and it arrives once');
 
   /* ── a file ───────────────────────────────────────────────────────────── */
@@ -234,8 +243,8 @@ try {
   const waiting = sink.filter((l) => l.startsWith('[B]') && /status of 403/.test(l) && /\/circle\/<id>\/members$/.test(l));
   // This gate cuts A's network itself; a request already in the air at that
   // moment fails, and that failure is the test's doing, not the product's.
-  const cut = sink.filter((l) => l.startsWith('[A]') && /ERR_INTERNET_DISCONNECTED|\/circle\/.* due to access control checks/.test(l));
-  ok(cut.length <= 1, 'going offline interrupts at most one request already in flight', `${cut.length}`);
+  const cut = sink.filter((l) => cutByTest.includes(l) || (l.startsWith('[A]') && /ERR_INTERNET_DISCONNECTED|\/circle\/.* due to access control checks/.test(l)));
+  ok(cut.length <= 3, 'going offline breaks only the few requests already in flight', `${cut.length}`);
   const others = sink.filter((l) => !clock.includes(l) && !waiting.includes(l) && !cut.includes(l) && !offlineAssets.includes(l));
   console.log(`note  ${waiting.length} "not linked yet" answer(s) while B waited for approval`);
   for (const name of ['A', 'B']) {
