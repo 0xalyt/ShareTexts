@@ -77,9 +77,14 @@ export interface OutboxItem {
   error?: string;
 }
 
+/* Bytes, not a Blob: WebKit private windows refuse to store a Blob in
+   IndexedDB ("Error preparing Blob/File data"), and Hop would stall there.
+   `blob` is how records written before this change read back. */
 interface PayloadRecord {
   itemId: string;
-  blob: Blob;
+  bytes?: ArrayBuffer;
+  type?: string;
+  blob?: Blob;
 }
 
 export class OutboxError extends Error {
@@ -134,12 +139,12 @@ async function putItem(item: OutboxItem): Promise<void> {
   }
 }
 
-async function putPayload(itemId: string, blob: Blob): Promise<void> {
+async function putPayload(itemId: string, bytes: ArrayBuffer, type: string): Promise<void> {
   const db = await open();
   try {
     await new Promise<void>((resolve, reject) => {
       const t = db.transaction(PAYLOADS, 'readwrite');
-      t.objectStore(PAYLOADS).put({ itemId, blob } satisfies PayloadRecord);
+      t.objectStore(PAYLOADS).put({ itemId, bytes, type } satisfies PayloadRecord);
       t.oncomplete = () => resolve();
       t.onerror = () => reject(t.error);
     });
@@ -148,7 +153,7 @@ async function putPayload(itemId: string, blob: Blob): Promise<void> {
   }
 }
 
-async function readPayload(itemId: string): Promise<Blob | null> {
+async function readPayload(itemId: string): Promise<Uint8Array | null> {
   const db = await open();
   try {
     const rec = await new Promise<PayloadRecord | undefined>((resolve, reject) => {
@@ -157,7 +162,8 @@ async function readPayload(itemId: string): Promise<Blob | null> {
       r.onsuccess = () => resolve(r.result as PayloadRecord | undefined);
       r.onerror = () => reject(r.error);
     });
-    return rec?.blob ?? null;
+    if (rec?.bytes) return new Uint8Array(rec.bytes);
+    return rec?.blob ? new Uint8Array(await rec.blob.arrayBuffer()) : null;
   } finally {
     db.close();
   }
@@ -234,8 +240,10 @@ export interface EnqueueArgs {
  * moment the UI may say "Sent" — not before.
  */
 export async function enqueue(args: EnqueueArgs): Promise<OutboxItem> {
-  const blob = args.blob ?? new Blob([args.text ?? ''], { type: 'text/plain;charset=utf-8' });
-  const size = blob.size;
+  // Text never goes through a Blob: reading one back can fail where text can't.
+  const type = args.blob ? args.blob.type : 'text/plain;charset=utf-8';
+  const bytes = args.blob ? await args.blob.arrayBuffer() : new TextEncoder().encode(args.text ?? '').buffer;
+  const size = bytes.byteLength;
   if (size === 0 && args.kind !== 'text') throw new OutboxError('EMPTY');
   await ensureRoom(size);
 
@@ -247,7 +255,7 @@ export async function enqueue(args: EnqueueArgs): Promise<OutboxItem> {
     payloadRef: `payload:${itemId}`,
     kind: args.kind,
     name: args.name,
-    mime: args.mime ?? (blob.type || undefined),
+    mime: args.mime ?? (type || undefined),
     state: 'queued',
     size,
     chunks: Math.max(1, Math.ceil((size + 512) / (1024 * 1024 - 4096))),
@@ -257,7 +265,7 @@ export async function enqueue(args: EnqueueArgs): Promise<OutboxItem> {
     expiresAt: now + (args.ttlMs ?? OUTBOX_TTL_MS),
     createdAt: now,
   };
-  await putPayload(itemId, blob);
+  await putPayload(itemId, bytes, type);
   await putItem(record);
   return record;
 }
@@ -375,8 +383,8 @@ export function runOutbox(now = Date.now()): Promise<OutboxRun> {
         continue;
       }
 
-      const blob = await readPayload(item.itemId);
-      if (!blob) {
+      const bytes = await readPayload(item.itemId);
+      if (!bytes) {
         await putItem({ ...item, state: 'failed', error: 'NO_PAYLOAD' });
         failed += 1;
         continue;
@@ -389,7 +397,6 @@ export function runOutbox(now = Date.now()): Promise<OutboxRun> {
       let progress: OutboxItem = item;
       try {
         await putItem({ ...item, state: 'sealing' });
-        const bytes = new Uint8Array(await blob.arrayBuffer());
         const nowTs = Date.now();
         const { chunks } = await sealItem({
           circleKey: ctx.key,
