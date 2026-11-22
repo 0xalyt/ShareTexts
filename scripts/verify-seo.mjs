@@ -171,7 +171,38 @@ async function browserChecks() {
   await page.waitForTimeout(600);
   const docsH1 = await page.locator('h1').first().textContent().catch(() => '');
   ok('docs route renders the React Docs view', docsH1.includes('Move something to your other device'), String(docsH1));
-  ok('no page errors on home+docs', errors.length === 0, errors.slice(0, 2).join(' | '));
+
+  for (const height of [900, 1713]) {
+    await page.setViewportSize({ width: 1440, height });
+    for (const route of ['/privacy', '/terms']) {
+      await page.goto(BASE + route, { waitUntil: 'networkidle' });
+      const links = page.locator('.legal-sidebar .reading-nav-link');
+      await links.first().waitFor();
+      await page.evaluate(() => document.fonts.ready);
+      const firstSection = await page.locator('.legal-section').first().elementHandle();
+      const targets = await links.evaluateAll(items => items.map(item => item.getAttribute('href')));
+      for (const target of targets) {
+        await page.locator(`.legal-sidebar a[href="${target}"]`).click();
+        const current = await page.waitForFunction(href => {
+          return document.querySelector('.legal-sidebar [aria-current="location"]')?.getAttribute('href') === href;
+        }, target, { timeout: 2000 }).then(() => true, () => false);
+        ok(`${route} at ${height}px height marks ${target} current after clicking`, current);
+      }
+      await page.locator(`.legal-sidebar a[href="${targets[0]}"]`).click();
+      await page.evaluate(async () => {
+        window.scrollTo(0, 0);
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        window.scrollTo(0, document.documentElement.scrollHeight);
+      });
+      const lastIsCurrent = await page.waitForFunction(href => {
+        return document.querySelector('.legal-sidebar [aria-current="location"]')?.getAttribute('href') === href;
+      }, targets.at(-1), { timeout: 2000 }).then(() => true, () => false);
+      ok(`${route} at ${height}px height resumes scroll tracking after a jump`, lastIsCurrent);
+      ok(`${route} preserves policy nodes across scroll updates`, await firstSection.evaluate(node => node.isConnected));
+      await firstSection.dispose();
+    }
+  }
+  ok('no page errors on home or reading pages', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   await browser.close();
 }

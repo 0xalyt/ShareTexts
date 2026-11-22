@@ -36,6 +36,8 @@ The existing reading shell, shared footer, English-content notice, reduced-motio
 - `npm run worker:test`: 252 assertions plus relay, receive, lifecycle, and deferred-loading regressions.
 - `npm run verify:layout`: sheets, desktop geometry, no-flash, first-room paint, and landing basics passed. Serialize WebSocket suites against one emulator to avoid its per-IP rate limit.
 - `npm run verify:seo`: all revised-page checks passed; the only failure was the unchanged homepage description at 210 characters, above its 200-character gate.
+- Browser regression: clicking all twelve policy index entries keeps the correct active link and preserves the policy nodes across scroll updates. The test first reproduced six wrong highlights and two detached policy subtrees; stable HTML props fixed them.
+- Tall-viewport regression: anchor clicks take precedence over the terminal-scroll shortcut until the reader scrolls again. Checks at 900px and 1713px heights cover every anchor and resumed scroll tracking.
 - Recorded reading-page checks and CI results are linked in the PR.
 
 Local browser tests use `VITE_CI_LOCAL_WORKER=1 VITE_SIGNALING_URL=http://localhost:8787`. The production signaling hostname is blocked on this VM.

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { SiteFooter } from '../components/marketing/SiteFooter';
@@ -13,6 +13,11 @@ type LegalPage = 'privacy' | 'terms';
 const PRIVACY_SECTIONS = ['The short version', 'What you do not need to provide', 'What the connection server sees', 'What stays on your device', 'Cookies and trackers', 'Changes to this policy'];
 const TERMS_SECTIONS = ['Using ShareTexts', 'Your content is yours', 'Acceptable use', 'Rooms are temporary', 'No warranty', 'Contact'];
 const sectionId = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+// Stable props preserve the nodes measured by the scroll listener.
+const POLICY_HTML = {
+  privacy: { __html: privacyContent },
+  terms: { __html: termsContent },
+};
 
 export function Legal({ page }: { page: LegalPage }) {
   const { t } = useI18n();
@@ -20,6 +25,14 @@ export function Legal({ page }: { page: LegalPage }) {
   const title = isPrivacy ? 'Privacy Policy' : 'Terms of Use';
   const sections = isPrivacy ? PRIVACY_SECTIONS : TERMS_SECTIONS;
   const [active, setActive] = useState(sectionId(sections[0]));
+  const anchorPosition = useRef<{ id: string; scrollY: number } | null>(null);
+  const selectSection = useCallback((id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.scrollIntoView({ block: 'start', behavior: 'instant' });
+    anchorPosition.current = { id, scrollY: window.scrollY };
+    setActive(id);
+  }, []);
 
   useEffect(() => {
     const previous = document.title;
@@ -32,6 +45,12 @@ export function Legal({ page }: { page: LegalPage }) {
     let frame = 0;
     const updateActive = () => {
       frame = 0;
+      // A tall viewport can reach the bottom before the chosen section does.
+      if (anchorPosition.current?.scrollY === window.scrollY) {
+        setActive(anchorPosition.current.id);
+        return;
+      }
+      anchorPosition.current = null;
       let current = elements[0];
       for (const element of elements) {
         if (element.getBoundingClientRect().top <= 112) current = element;
@@ -44,17 +63,23 @@ export function Legal({ page }: { page: LegalPage }) {
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(updateActive);
     };
-    const target = document.getElementById(window.location.hash.slice(1));
-    if (target) target.scrollIntoView({ block: 'start', behavior: 'instant' });
-    updateActive();
+    const onHashChange = () => {
+      const target = elements.find(element => element.id === window.location.hash.slice(1));
+      if (target) selectSection(target.id);
+      else { anchorPosition.current = null; updateActive(); }
+    };
+    const onResize = () => { anchorPosition.current = null; onScroll(); };
+    onHashChange();
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('hashchange', onHashChange);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('hashchange', onHashChange);
     };
-  }, [sections]);
+  }, [sections, selectSection]);
 
   return (
     <div className="reading-page min-h-dvh bg-apple-canvas dark:bg-night-900 font-sans">
@@ -84,14 +109,16 @@ export function Legal({ page }: { page: LegalPage }) {
             <div className="reading-sticky">
               <p className="reading-nav-label">On this page</p>
               <div className="reading-nav-items">
-                {sections.map((section, index) => <a key={section} href={`#${sectionId(section)}`} className="reading-nav-link" aria-current={active === sectionId(section) ? 'location' : undefined}><span aria-hidden>{String(index + 1).padStart(2, '0')}</span>{section}</a>)}
+                {sections.map((section, index) => <a key={section} href={`#${sectionId(section)}`} onClick={event => {
+                  if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) selectSection(sectionId(section));
+                }} className="reading-nav-link" aria-current={active === sectionId(section) ? 'location' : undefined}><span aria-hidden>{String(index + 1).padStart(2, '0')}</span>{section}</a>)}
               </div>
               <a href={isPrivacy ? '/terms' : '/privacy'} className="reading-sidebar-home">{isPrivacy ? 'Terms of use' : 'Privacy policy'} <ArrowRight size={16} aria-hidden /></a>
             </div>
           </nav>
           <article className="legal-article">
             {/* Authored HTML is shared with the no-JavaScript pages at build time. */}
-            <div dangerouslySetInnerHTML={{ __html: isPrivacy ? privacyContent : termsContent }} />
+            <div dangerouslySetInnerHTML={POLICY_HTML[page]} />
             <div className="legal-related">
               <div><p>Questions about the details?</p><a href="/docs#privacy">Explore the privacy guide <ArrowRight size={16} aria-hidden /></a></div>
               <a href={isPrivacy ? '/terms' : '/privacy'}>{isPrivacy ? 'Terms of use' : 'Privacy policy'} <ArrowRight size={16} aria-hidden /></a>
