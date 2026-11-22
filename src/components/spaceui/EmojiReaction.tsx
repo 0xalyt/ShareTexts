@@ -55,14 +55,14 @@ const EDGE = 8;
 
 const SIZES = {
   sm: {
-    trigger: 'size-8',
+    trigger: 'size-11',
     icon: 'size-4',
     emoji: 26,
     pill: 'gap-0.5 p-1',
     burst: 26,
   },
   md: {
-    trigger: 'size-10',
+    trigger: 'size-11',
     icon: 'size-[18px]',
     emoji: 30,
     pill: 'gap-0.5 p-1.5',
@@ -508,7 +508,10 @@ export function EmojiReaction({
                     data-testid={`reaction-emoji-${name}`}
                     aria-label={optionLabel ? optionLabel(name) : label(name)}
                     onFocus={() => setActiveIndex(i)}
-                    onPointerDown={(event) =>
+                    // Motion's whileTap dispatches a pointerdown with no
+                    // pointerType for Enter. The native click below owns
+                    // keyboard/AT activation; handling both toggles it off.
+                    onPointerDown={(event) => event.pointerType &&
                       startHold(
                         name,
                         event.currentTarget.getBoundingClientRect(),
@@ -522,7 +525,7 @@ export function EmojiReaction({
                       event.detail === 0 &&
                       react(name, event.currentTarget.getBoundingClientRect())
                     }
-                    className="relative z-10 rounded-full p-1 outline-none focus-visible:ring-2 focus-visible:ring-ember/60"
+                    className="relative z-10 min-h-11 min-w-11 rounded-full p-1 outline-none focus-visible:ring-2 focus-visible:ring-ember/60"
                     initial={reduced ? false : { scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{
@@ -572,11 +575,12 @@ export function EmojiReaction({
           }
           data-testid="add-reaction"
           onPointerDown={onTriggerPointerDown}
-          onClick={() => {
-            if (justOpened.current) {
-              justOpened.current = false;
-              return;
-            }
+          onClick={(event) => {
+            // Only suppress the trailing pointer click. Pointer capture or a
+            // moving palette can omit it; that must not swallow a later key.
+            const openedByPointer = justOpened.current;
+            justOpened.current = false;
+            if (event.detail > 0 && openedByPointer) return;
             if (open) close();
             else setOpen(true);
           }}

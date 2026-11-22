@@ -66,6 +66,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
 
   // actions
   'action.save': 'Guardar',
+  'action.download': 'Transferir',
   'action.copy': 'Copiar',
   'msg.copy': 'Copiar',
   // Landing: open a second browser and explore an expiring example.

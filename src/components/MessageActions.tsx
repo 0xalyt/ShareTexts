@@ -16,7 +16,6 @@ import { createPortal } from 'react-dom';
 import { motion, useReducedMotion } from 'motion/react';
 import { Copy, Download, Share2, CheckSquare, Trash2 } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
-import { EmojiReaction } from './spaceui/EmojiReaction';
 import { REACTIONS } from '../lib/emoji';
 import { cn } from '../lib/utils';
 
@@ -109,7 +108,7 @@ export function MessageActions({
 
   const rows = [
     { key: 'copy', icon: <Copy className="w-4 h-4" />, label: t('msg.copy'), run: onCopy },
-    ...(onSave ? [{ key: 'save', icon: <Download className="w-4 h-4" />, label: t('msg.save'), run: onSave }] : []),
+    ...(onSave ? [{ key: 'save', icon: <Download className="w-4 h-4" />, label: t('action.download'), run: onSave }] : []),
     ...(onShare ? [{ key: 'share', icon: <Share2 className="w-4 h-4" />, label: t('msg.share'), run: onShare }] : []),
     { key: 'select', icon: <CheckSquare className="w-4 h-4" />, label: t('msg.select'), run: onSelect },
     ...(canDelete && onDelete
@@ -150,6 +149,7 @@ export function MessageActions({
             key={emoji}
             type="button"
             onPointerDown={(e) => { e.preventDefault(); onReact(emoji); onClose(); }}
+            onClick={(e) => { if (e.detail === 0) { onReact(emoji); onClose(); } }}
             aria-label={t('msg.reactWith', { emoji })}
             data-testid={`tapback-${emoji}`}
             className="flex h-11 w-11 items-center justify-center rounded-full text-[19px] leading-none transition-transform active:scale-[0.96] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
@@ -157,17 +157,6 @@ export function MessageActions({
             {emoji}
           </button>
         ))}
-        <EmojiReaction
-          align={align}
-          triggerLabel={t('msg.pickReaction')}
-          optionLabel={(name) => t('msg.reactWith', { emoji: name })}
-          onReact={(name) => {
-            const char = REACTIONS.find((r) => r.id === name)?.char ?? name;
-            onReact(char);
-            onClose();
-          }}
-          className="ml-0.5"
-        />
       </motion.div>
 
       <motion.div
@@ -185,7 +174,7 @@ export function MessageActions({
             data-testid={`action-${row.key}`}
             onClick={(e) => { row.run(); onClose(); if (e.detail === 0) restoreFocus(); }}
             className={cn(
-              'flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] font-medium transition-colors',
+              'flex min-h-11 w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] font-medium transition-colors',
               row.destructive
                 ? 'text-status-danger hover:bg-status-danger/[0.07]'
                 : 'text-apple-ink dark:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06]',

@@ -385,6 +385,7 @@ const es: Dict = {
   'action.copy': 'Copiar',
   'action.share': 'Compartir',
   'action.save': 'Guardar',
+  'action.download': 'Descargar',
   'action.copied': 'Copiado',
   'action.shared': 'Compartido',
   'action.saved': 'Guardado',
