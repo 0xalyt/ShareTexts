@@ -9737,7 +9737,7 @@ async function shaderLint(GI, base) {
     try {
       const x = new URL(u); if (x.origin !== origin) continue; // a library from a CDN is its own maker's
       let text = null;
-      if (server && serveRoot) { const f = resolve(join(serveRoot, decodeURIComponent(x.pathname))); if (f.startsWith(serveRoot) && existsSync(f) && statSync(f).size < 3e6) text = readFileSync(f, 'utf8'); }
+      if (server && serveRoot) { const f = resolve(join(serveRoot, decodeURIComponent(x.pathname))); if ((f === serveRoot || f.startsWith(serveRoot + sep)) && existsSync(f) && statSync(f).size < 3e6) text = readFileSync(f, 'utf8'); }
       else { const r = await fetch(u); if (r.ok) text = (await r.text()).slice(0, 3e6); }
       if (!text) continue;
       const name = x.pathname.split('/').slice(-2).join('/');

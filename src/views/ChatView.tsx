@@ -13,7 +13,7 @@ import { TransferFlight } from '../components/TransferFlight';
 // lucide since Phase 3; the shared app default supplies strokeWidth 1.5).
 import {
   X as X, Plus, Copy, Check, Play, CircleAlert as AlertCircle,
-  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Monitor as Monitor, Pencil,
+  ChevronDown, ArrowUp, ShieldCheck, Smartphone, Monitor as Monitor, MonitorSmartphone, Tablet, Users, Pencil,
   ArrowLeftRight as ArrowRightLeft, Info,
   RefreshCw, Link as Link2, FileText, Download,
 } from 'lucide-react';
@@ -95,7 +95,14 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     return /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
   })();
   const ThisDeviceIcon = isMobileDevice ? Smartphone : Monitor;
-  const PartnerDeviceIcon = isMobileDevice ? Monitor : Smartphone;
+  // The other device reports its own platform. It is not necessarily the
+  // opposite of this one (two computers and two phones are ordinary rooms).
+  const partnerPlatform = others[0]?.platform;
+  const PartnerDeviceIcon = isMultiRoom ? Users
+    : partnerPlatform === 'phone' ? Smartphone
+    : partnerPlatform === 'tablet' ? Tablet
+    : partnerPlatform === 'desktop' ? Monitor
+    : MonitorSmartphone;
   // Rename-this-device lives inside the connection details popover in
   // standalone mode (the paired screen owns it on desktop instead).
   const [editingName, setEditingName] = useState(false);
@@ -191,8 +198,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     if (session.nameAutoAdjusted) setNameNoticeOpen(true);
   }, [session.nameAutoAdjusted]);
-  const [showThatsIt, setShowThatsIt] = useState(false);
-  const [thatsItCopy, setThatsItCopy] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0);
@@ -486,28 +491,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       setAnnouncement(tr('chat.peerDisconnected'));
     }
   }, [partnerLinkHealthy, session.connectionType, session.roomId]);
-  // Post-transfer moment: after the very first transfer, a quiet "That's it."
-  // appears once, then the app gets out of the way. Direction-aware: sending
-  // and receiving tell different truths ("it's on the other device" vs "it
-  // arrived"). The baseline is the message count AT MOUNT, so a RESTORED
-  // session (refresh/rejoin with history) never replays the one-time moment
-  // for messages the user already saw — only a real 0→1 transition fires it.
-  const firstTransferShown = useRef(false);
-  const mountMessageCount = useRef<number | null>(null);
-  useEffect(() => {
-    if (mountMessageCount.current === null) {
-      mountMessageCount.current = session.messages.length;
-      return;
-    }
-    if (!firstTransferShown.current && mountMessageCount.current === 0 && session.messages.length >= 1) {
-      firstTransferShown.current = true;
-      const last = session.messages[session.messages.length - 1];
-      setThatsItCopy(last?.sender === 'me' ? tRef.current('thatsIt.sent') : tRef.current('thatsIt.received'));
-      setShowThatsIt(true);
-      const t = setTimeout(() => setShowThatsIt(false), 5000);
-      return () => clearTimeout(t);
-    }
-  }, [session.messages.length]);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -1056,9 +1039,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           type="button"
           data-testid="connection-details"
           onPointerDown={() => setShowConnectionDetails(!showConnectionDetails)}
+          onClick={(e) => { if (e.detail === 0) setShowConnectionDetails(value => !value); }}
           aria-expanded={showConnectionDetails}
           aria-label={t('details.aria')}
-          className="flex items-center gap-2 min-w-0 max-w-full rounded-full px-1.5 py-1 -ml-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+          className="flex min-h-11 items-center gap-2 min-w-0 max-w-full rounded-full px-1.5 py-1 -ml-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
         >
           {/* Phones show only the PARTNER — the other device is the room's
               identity, and two truncated names + icons cannot share 375px
@@ -1105,13 +1089,13 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
               seat read "4 devices / 1 connecting / Connected": three
               statements, two of them contradicting each other, in space for
               one. The count still exists, but as the same single suffix. */}
-          <span className="flex items-center gap-1.5 min-w-0">
+          <span className="flex flex-1 items-center gap-1.5 min-w-0">
             <motion.span
               key={session.partnerName || 'paired'}
               initial={session.partnerName ? { opacity: 0, y: 3 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 flex-1 max-w-[52vw] sm:max-w-[190px]"
+              className="text-[13px] font-semibold text-apple-ink dark:text-white truncate min-w-0 shrink-0 max-w-[calc(100%_-_1rem)] sm:max-w-[190px]"
             >
               {others.length > 1
                 ? t('room.deviceCount', { count: String(others.length + 1) })
@@ -1127,11 +1111,9 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             <span
               data-testid="room-device-count"
               className={cn(
-                // The state word never shrinks or breaks: at 320px the name
-                // yields first (an ellipsis on a device name is readable,
-                // "Disconne…" is not). Multi-device counts can truncate.
-                'text-[12px] font-medium',
-                others.length > 1 ? 'truncate min-w-0' : 'shrink-0 whitespace-nowrap',
+                // Keep the peer's identity readable before the secondary
+                // link status. Its complete wording remains in details.
+                'text-[12px] font-medium truncate min-w-0',
                 headerHealthy
                   ? 'text-apple-ink-muted dark:text-white/45'
                   : 'text-status-warning-ink dark:text-status-warning-ink-dark'
@@ -1179,7 +1161,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
             data-testid="end-session"
             onClick={() => setConfirmDisconnect(true)}
             aria-label={t('common.disconnectAria')}
-            className="flex items-center gap-1.5 rounded-full font-semibold min-h-[40px] px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
+            className="flex min-w-11 min-h-11 items-center justify-center gap-1.5 rounded-full font-semibold px-3 text-[12px] text-apple-ink-muted hover:text-status-danger hover:bg-status-danger/10 active:scale-[0.96] transition-colors"
           >
             <DisconnectGlyph size={16} />
             <span className="hidden sm:inline">{t('common.disconnect')}</span>
@@ -1353,24 +1335,6 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Post-transfer moment — quiet, one-time */}
-      <div className="shrink-0 flex justify-center">
-        <AnimatePresence>
-          {showThatsIt && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
-            >
-              <p className="px-4 pt-3 pb-1 text-[13px] font-medium text-apple-ink-muted dark:text-white/60 text-center">
-                {thatsItCopy}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
       {/* Active transfer strip — pinned between header and messages so
           "is it actually sending?" never scrolls away. Newest real
           transfer, lit from inside (st-glow) with a measured track and a
@@ -1885,7 +1849,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 placeholder={(textareaRef.current?.clientWidth ?? 400) < 300 ? t('composer.placeholderShort') : t('composer.placeholder')}
                 aria-label={t('composer.aria')}
                 title={t('composer.title')}
-                className="flex-1 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim"
+                className="flex-1 min-w-0 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
               />
               <button
                 type="button"

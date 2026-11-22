@@ -85,7 +85,7 @@ if (PORT < 5965 || PORT > 5969) { console.error('check: --port must be 5965-5969
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
 const srv = http.createServer((req, res) => {
   const file = path.join(SKILL, decodeURIComponent(new URL(req.url, 'http://x').pathname));
-  if (!file.startsWith(SKILL) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); return res.end(); }
+  if ((file !== SKILL && !file.startsWith(SKILL + path.sep)) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); return res.end(); }
   res.writeHead(200, { 'content-type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-store' });
   fs.createReadStream(file).pipe(res);
 });

@@ -385,6 +385,7 @@ const ar: Dict = {
   'action.copy': 'نسخ',
   'action.share': 'مشاركة',
   'action.save': 'حفظ',
+  'action.download': 'تنزيل',
   'action.copied': 'تم النسخ',
   'action.shared': 'تمت المشاركة',
   'action.saved': 'تم الحفظ',
