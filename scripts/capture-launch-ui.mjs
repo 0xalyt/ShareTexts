@@ -15,14 +15,13 @@ mkdirSync(OUT, { recursive: true });
 const dimensions = { phone: [402, 774], laptop: [1008, 655] };
 const metadata = { dimensions, frames: { phone: [], laptop: [] }, states: { phone: {}, laptop: {} }, actions: [], anchors: {}, duration: 16.8 };
 const browser = await chromium.launch({ channel: 'chrome', args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
-const contexts = [], pages = {}, sessions = {};
+const pages = {};
 const MESSAGE = 'Look at this view.\nhttps://nasa.gov/earth';
 let start = 0;
 try {
   for (const actor of ['phone', 'laptop']) {
     const [width, height] = dimensions[actor];
     const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 3, colorScheme: THEME, locale: 'en-US', acceptDownloads: true });
-    contexts.push(context);
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await context.addInitScript(({ theme, name }) => {
       localStorage.setItem('sharetext.locale', 'en');
@@ -112,6 +111,10 @@ try {
   await at(1.95);
   await click('phone', 'send-text', source.getByRole('button', { name: 'Send', exact: true }));
   await receiver.getByText('Look at this view.', { exact: false }).waitFor();
+  // Let the real one-time transfer toast dismiss before another message can
+  // cancel its timer. No CSS/DOM is hidden or substituted for the film.
+  await source.waitForTimeout(5400);
+  await receiver.getByText("That's it. It arrived.", { exact: true }).waitFor({ state: 'hidden' });
   await anchor('phone', 'text', row(source, 'Look at this view.'));
   await anchor('laptop', 'text', row(receiver, 'Look at this view.'));
   await state('phone', 'text-sent');

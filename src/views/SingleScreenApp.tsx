@@ -71,7 +71,7 @@ const CommandBar = lazy(() => import('../components/CommandBar').then(m => ({ de
 import { signalingConfigIssue, prewarmSignaling } from '../lib/socket';
 import { loadStoredSession, storedRoomWasLinked } from '../lib/session/persistence';
 import { ConnectError, describeConnectFailure, errCodeToKey } from '../lib/errors';
-import { HeroLaunchFilm } from '../components/HeroLaunchFilm';
+import { HeroLaunchFilm, type HeroFilmPlayback } from '../components/HeroLaunchFilm';
 import '../components/landing/landing-page.css';
 import { XProfileLink } from '../components/XProfileLink';
 import { ThreeThings, LandingFaq, BrowserCompatibility, WebsiteHandoff } from '../components/marketing/LandingSections';
@@ -168,6 +168,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const { t, lang } = useI18n();
   const { session, createSession, abandonSession, joinWithCode, joinWithShortCode, setDeviceName, rejoinStayRoom, requestReconnect, refreshCode } = useSession();
   const isDesktopLayout = useIsDesktopLayout();
+  const filmPlayback = useRef<HeroFilmPlayback>({ phase: 0, choice: 'auto', loaded: false });
   // "Is the link actually usable right now?" — during a stall the room
   // settles into 'connecting' while partnerConnected stays true; every green
   // "Connected" treatment must key off this, not the flag alone.
@@ -1228,7 +1229,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* One linear story at every width, including reading order:
                   heading → sharing actions → film → secondary tools. */}
               <div className="landing-hero-film st-hide-landscape order-5 w-full">
-                <HeroLaunchFilm />
+                <HeroLaunchFilm playback={filmPlayback} />
               </div>
               <div className="landing-shortcut order-6 w-full">
                 <IntentField

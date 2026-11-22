@@ -15,11 +15,12 @@ export function LaunchFilm() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [time, setTime] = useState(0);
   const dark = new URLSearchParams(location.search).get('theme') === 'dark';
+  const mobile = new URLSearchParams(location.search).get('framing') === 'phone';
   useEffect(() => {
     let alive = true;
     let stage: Awaited<ReturnType<typeof createBlenderStage>> | undefined;
     document.documentElement.classList.toggle('dark', dark);
-    void createBlenderStage(canvas.current!, dark).then(value => {
+    void createBlenderStage(canvas.current!, dark, mobile).then(value => {
       stage = value;
       if (!alive) { value.dispose(); return; }
       window.__film = async next => {
@@ -29,7 +30,7 @@ export function LaunchFilm() {
       };
     }).catch(error => { setTimeout(() => { throw error; }); });
     return () => { alive = false; stage?.dispose(); delete window.__film; };
-  }, [dark]);
+  }, [dark, mobile]);
   const intro = 1 - filmEase(time, .55, .25) + filmEase(time, 16.2, .6);
   const end = filmEase(time, 15.0, .6) * (1 - filmEase(time, 16.2, .6));
   const chapter = time >= .8 && time < 4.4 ? 'Text & links'
@@ -37,7 +38,7 @@ export function LaunchFilm() {
     : time >= 9.35 && time < 13.8 ? 'Videos' : '';
   const chapterStart = time < 4.4 ? .8 : time < 9.35 ? 4.4 : 9.35;
   const alpha = chapter ? filmEase(time, chapterStart, .18) : 0;
-  return <div className="launch-stage native-film" data-film-time={time}>
+  return <div className={`launch-stage native-film${mobile ? ' native-film-mobile' : ''}`} data-film-time={time}>
     <canvas ref={canvas} className="native-film-hardware" />
     <div className="native-film-intro" style={{ opacity: intro }}><span>Text.</span><span>Files.</span><span>Videos.</span></div>
     <div className="native-film-chapter" style={{ opacity: alpha, transform: `translateY(${10 * (1 - alpha)}px)` }}>{chapter}</div>

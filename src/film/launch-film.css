@@ -67,3 +67,9 @@
 .native-film-wordmark { display: flex; align-items: center; justify-content: center; gap: 36px; }
 .native-film-wordmark > span { font-size: 144px; font-weight: 620; letter-spacing: -.015em; }
 .dark .native-film-ending { background: #181818; }
+
+/* Same timeline, composed for a phone rather than clipping the desktop UI.
+   Author at a fixed height; the final 960×720 movie needs no runtime renderer. */
+.native-film-mobile { width: 1440px; transform: scale(.6666666667); transform-origin: top left; }
+.native-film-mobile .native-film-hardware { width: 1440px; }
+.native-film-mobile .native-film-intro { top: 28px; font-size: 88px; gap: 24px; }

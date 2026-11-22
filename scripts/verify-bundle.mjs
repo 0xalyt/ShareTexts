@@ -99,6 +99,14 @@ try {
 const tiny = rows.filter((r) => r.raw < 200);
 out(tiny.length === 0, 'no empty chunk shipped', tiny.map((r) => r.file).join(', '));
 
+// Film authoring has a separate HTML entry and dev-only Three.js runtime.
+// Neither may silently become a dependency of the public application.
+const filmEntries = Object.keys(manifest).filter(key => key === 'film.html' || key.startsWith('src/film/'));
+const rendererChunks = files.filter(file =>
+  /\b(?:WebGLRenderer|GLTFLoader|RGBELoader)\b|\/film\/out\//.test(readFileSync(join(ASSETS, file), 'utf8')));
+out(filmEntries.length === 0 && rendererChunks.length === 0,
+  'offline film renderer stays out of production JavaScript', [...filmEntries, ...rendererChunks].join(', '));
+
 const css = readdirSync(ASSETS).filter((f) => f.endsWith('.css'))
   .map((f) => ({ f, gz: gzipSync(readFileSync(join(ASSETS, f))).length }));
 if (css.length) console.log(`  css: ${css.map((c) => `${c.f} ${kb(c.gz)}`).join(', ')}`);

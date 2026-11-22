@@ -1,4 +1,4 @@
-/** Deterministic 1080p/60 film. Requires dev server + Blender 4.5 LTS + ffmpeg + Chrome.
+/** Deterministic 1080p/60 film. Requires Blender 4.5 LTS + ffmpeg + Chrome.
  * node scripts/render-launch-film.mjs probe | render
  * Intermediates stay in ignored film/out. No reference media is redistributed.
  */
@@ -10,18 +10,19 @@ import { createServer } from 'node:http';
 import { build } from 'vite';
 import path from 'node:path';
 
-const BASE = process.env.BASE_URL || 'http://localhost:3010';
 const THEME = process.env.FILM_THEME === 'dark' ? 'dark' : 'light';
-const PASS = `launch-v5-${THEME}`;
+const MOBILE = process.env.FILM_FRAMING === 'phone';
+const PASS = `launch-v5-${THEME}${MOBILE ? '-mobile' : ''}`;
 const CUT = `sharetexts-${PASS}`;
 const OUT = path.resolve(`film/out/${PASS}`);
-const query = `mode=launch&theme=${THEME}`;
+const SOURCE = path.resolve(`film/out/launch-v5-${THEME}`);
+const query = `mode=launch&theme=${THEME}${MOBILE ? '&framing=phone' : ''}`;
 const WEB = path.resolve('public/film');
 const FONT = path.resolve(process.env.FILM_FONT_FILE || 'public/fonts/AlloVariable.woff2');
 if (!existsSync(FONT)) throw new Error('Full AlloVariable.woff2 is required; set FILM_FONT_FILE to its local path');
 const FPS = 60;
 const DURATION = 16.8;
-const probes = process.env.FILM_BENCH ? Array.from({ length: 16 }, (_, i) => i / FPS) : [0, 1.2, 2.45, 3.1, 3.9, 4.95, 6, 7.2, 8.4, 9.45, 10.8, 11.8, 12.6, 13.9, 14.7, 15.8];
+const probes = process.env.FILM_BENCH ? Array.from({ length: 16 }, (_, i) => i / FPS) : [0, 1.2, 2.45, 2.8, 3.9, 4.95, 6, 6.65, 7.2, 7.9, 8.6, 9.65, 10.5, 11, 11.8, 12.6, 14, 14.7, 15.8];
 const mode = process.argv[2] || 'probe';
 if (!['probe', 'render'].includes(mode)) throw new Error('Use probe or render');
 mkdirSync(OUT, { recursive: true });
@@ -65,15 +66,15 @@ function soundtrack() {
 const browser = await chromium.launch({ channel: 'chrome', args: ['--enable-unsafe-swiftshader'] });
 let studioServer;
 try {
-  const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, locale: 'en-US', colorScheme: THEME });
+  const context = await browser.newContext({ viewport: { width: MOBILE ? 960 : 1920, height: MOBILE ? 720 : 1080 }, deviceScaleFactor: 1, locale: 'en-US', colorScheme: THEME });
   await context.route('**/fonts/AlloVariable.woff2', route => route.fulfill({ path: FONT, contentType: 'font/woff2' }));
   await context.addInitScript(theme => { localStorage.setItem('sharetext.locale', 'en'); localStorage.setItem('sharetext.theme', theme); }, THEME);
-  if (!existsSync(path.join(OUT, 'native-ui.json'))) throw new Error('Run scripts/capture-launch-ui.mjs against the local app and Worker first');
+  if (!existsSync(path.join(SOURCE, 'native-ui.json'))) throw new Error('Run scripts/capture-launch-ui.mjs against the local app and Worker first');
   const signature = createHash('sha256').update(THEME).update(readFileSync('film/blender_studio.py')).digest('hex');
-  const cacheFile = path.join(OUT, 'model-build.json');
+  const cacheFile = path.join(SOURCE, 'model-build.json');
   const cached = existsSync(cacheFile) ? JSON.parse(readFileSync(cacheFile, 'utf8')) : null;
-  if (cached?.signature !== signature || !existsSync(path.join(OUT, 'studio.glb'))) {
-    execFileSync(process.env.FILM_BLENDER || 'blender', ['-b', '-t', '8', '--python', 'film/blender_studio.py', '--', '--theme', THEME, '--textures', OUT, '--out', OUT, '--model-only'], { stdio: 'inherit' });
+  if (cached?.signature !== signature || !existsSync(path.join(SOURCE, 'studio.glb'))) {
+    execFileSync(process.env.FILM_BLENDER || 'blender', ['-b', '-t', '8', '--python', 'film/blender_studio.py', '--', '--theme', THEME, '--textures', SOURCE, '--out', SOURCE, '--model-only'], { stdio: 'inherit' });
     writeFileSync(cacheFile, JSON.stringify({ signature }));
   }
   // An isolated authoring build, never dist/: no dev HMR can navigate the
@@ -123,11 +124,11 @@ try {
   }
 } finally { await browser.close(); if (studioServer) await new Promise(resolve => studioServer.close(resolve)); }
 if (mode === 'render') {
-  const audio = soundtrack();
+  const audio = MOBILE ? null : soundtrack();
   const source = ['-framerate', String(FPS), '-i', path.join(OUT, 'f%05d.jpg')];
   const codec = ['-c:v', 'libx264', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_trc', 'bt709', '-color_primaries', 'bt709', '-color_range', 'tv', '-movflags', '+faststart', '-frames:v', String(Math.round(FPS*DURATION))];
-  ffmpeg([...source, '-vf', 'scale=1440:810:out_color_matrix=bt709:out_range=tv', ...codec, '-crf', '23', '-an', path.join(WEB, `${CUT}.mp4`)]);
-  ffmpeg([...source, '-i', audio, '-vf', 'scale=1920:1080:out_color_matrix=bt709:out_range=tv', ...codec, '-crf', '19', '-c:a', 'aac', '-b:a', '160k', '-t', String(DURATION), path.join(WEB, `${CUT}-full.mp4`)]);
-  for (const file of [`${CUT}.mp4`, `${CUT}-full.mp4`]) console.log(`${file}: ${(statSync(path.join(WEB, file)).size / 1024 / 1024).toFixed(2)} MiB`);
+  ffmpeg([...source, '-vf', `scale=${MOBILE ? '960:720' : '1440:810'}:out_color_matrix=bt709:out_range=tv`, ...codec, '-crf', '23', '-an', path.join(WEB, `${CUT}.mp4`)]);
+  if (!MOBILE) ffmpeg([...source, '-i', audio, '-vf', 'scale=1920:1080:out_color_matrix=bt709:out_range=tv', ...codec, '-crf', '19', '-c:a', 'aac', '-b:a', '160k', '-t', String(DURATION), path.join(WEB, `${CUT}-full.mp4`)]);
+  for (const file of [`${CUT}.mp4`, ...(!MOBILE ? [`${CUT}-full.mp4`] : [])]) console.log(`${file}: ${(statSync(path.join(WEB, file)).size / 1024 / 1024).toFixed(2)} MiB`);
 }
 console.log(`Studio ${mode} complete. Probes: ${OUT}`);

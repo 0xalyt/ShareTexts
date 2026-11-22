@@ -8,9 +8,9 @@ The 16.8-second light/dark film uses original Blender 4.5 LTS hardware, an offli
 | --- | --- |
 | 0–0.8 s | Complete phone and laptop, safe margins, “Text. Files. Videos.” |
 | 0.8–4.4 s | Compose/send text and a link; physical handoff; receiver arrives/copies. |
-| 4.4–8 s | Choose/send an archive; handoff; receive/save confirmation. |
-| 8–9 s | Open the received photo in the real viewer. |
-| 9–13.8 s | Choose/send video; handoff; receive and play with native controls. |
+| 4.4–7.6 s | Choose/send an archive; handoff; receive/download confirmation. |
+| 7.6–9.35 s | A separate photo arrives, then opens in the real viewer. |
+| 9.35–13.8 s | Choose/send video; handoff; receive and play with native controls. |
 | 13.8–16.8 s | Moving wide resolution, ShareTexts signature, exact opening pose. |
 
 Dark is separately lit graphite hardware, genuine dark product UI and a #181818 studio, not an inversion or brightness filter. Theme variants share camera geometry/timing. Type matches full Allo (not Friendly): ROND 0, display opsz 32, calt disabled, opener/brand tracking -0.015em and chapter tracking -0.012em.
@@ -27,17 +27,19 @@ FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs probe
 FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
 FILM_THEME=dark FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs probe
 FILM_THEME=dark FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
+FILM_FRAMING=phone FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
+FILM_THEME=dark FILM_FRAMING=phone FILM_BLENDER=/path/to/blender node scripts/render-launch-film.mjs render
 ```
 
-`FILM_FONT_FILE` can select a local full Allo variable file; the default is `public/fonts/AlloVariable.woff2`. Native capture records actual actions, screen anchors and high-resolution snapshots, with real photo-viewer and video-playback holds. It verifies the received video advances. `native-ui.json` captureVersion 3 rejects earlier incomplete takes. Snapshot cadence preserves sharp type; the **same transferred video payload** is recomposited at source cadence and its real playback time, feathering into the genuinely captured native controls. No transport/chat state is mocked.
+`FILM_FONT_FILE` can select a local full Allo variable file; the default is `public/fonts/AlloVariable.woff2`. Native capture records actual actions, screen anchors and high-resolution checkpoints, with separate photo-receipt/viewer states and real video-playback holds. It verifies the download event and that the received video advances. `native-ui.json` captureVersion 4 rejects earlier incomplete takes. The editor keys both themes to verified outcomes rather than sparse wall-clock samples. The **same transferred video payload** is recomposited at source cadence and its real playback time, feathering into the genuinely captured native controls. No transport/chat state is mocked. Capture uses the in-app owner's final received-file component: primary **Download** first, then responsive **Save item** and **Share** controls (icon-only below `sm`, with accessible names retained). Download confirmation is the real check/active state. A single staged item reads “1 attached”.
 
 The renderer exports Blender `studio.glb` in model-only mode and builds an isolated authoring site under ignored `film/out/launch-v5-{light,dark}` so HMR cannot interrupt capture. UI is unlit on LCD meshes to preserve exact colors. One deterministic `window.__film(t)` owns camera cuts/moves, packet arcs, chapter type and the ending. Shadow maps are static because hardware is stationary; decoded-image caching is bounded. `probe` emits key story frames/timings. `FILM_BENCH=1` samples adjacent opening frames for performance diagnosis. None of these intermediates ship.
 
 ## Delivery
 
-Families are `public/film/sharetexts-launch-v5-{light,dark}.mp4`, `-full.mp4` and `-poster.jpg`. Muted hero exports are 1440×810/60 fps H.264/yuv420p with fast-start; full exports are 1920×1080 H.264/AAC with an original locally synthesized score. No borrowed audio. Posters show both complete devices in the real opening; final capture equals frame zero. Encoded copy is English; player controls and the hidden description remain localized.
+Families are `public/film/sharetexts-launch-v5-{light,dark}.mp4`, `-full.mp4` and `-poster.jpg`. Muted desktop exports are 1440×810/60 fps; `-mobile.mp4` and `-mobile-poster.jpg` use 960×720, a closer 4:3 camera, larger native UI close-ups and the exact same 16.8-second timeline. This is a separately composed phone cut, not a CSS crop that hides controls. Both use H.264/yuv420p and fast-start. Full downloadable exports stay 1920×1080 H.264/AAC with an original locally synthesized score. No borrowed audio. Posters show both complete devices in the real opening; final capture equals frame zero. Encoded copy is English; player controls and the hidden description remain localized.
 
-Keep the existing player contract: visibility-gated loading, muted inline looping, offscreen/hidden-document pause, explicit pause persistence, meaningful error poster, saved/OS theme selection and phase-preserving remount. Reduced-motion/Save-Data disable autoplay while explicit Play remains available. Preserve 16:9 geometry, hidden description and forgiving play/pause target. Surrounding layout/control dock belongs to the landing owner. Run local build, bundle isolation, media and player checks before release; do not bypass required gates.
+Keep the existing player contract: visibility-gated loading, muted inline looping, offscreen/hidden-document pause, explicit pause persistence, meaningful error poster, saved/OS theme selection and phase-preserving remount. Reduced-motion/Save-Data disable autoplay while explicit Play remains available. Below 640px the picture and preload use the 4:3 phone family; wider screens retain 16:9. Theme/framing changes preserve phase and the visitor's paused choice. The localized description stays hidden; the 44px phone pause target stays outside the picture. Surrounding page layout/control dock otherwise stays unchanged. Run local build, bundle isolation, media and player checks before release; do not bypass required gates.
 
 ## Sources
 
@@ -46,4 +48,4 @@ Keep the existing player contract: visibility-gated loading, muted inline loopin
 - NASA, *Earth Views from the ISS*, media ID `NHQ_2019_0626_Earth Views from the ISS`: [original collection](https://images-assets.nasa.gov/video/NHQ_2019_0626_Earth%20Views%20from%20the%20ISS/collection.json), [media-use guidance](https://www.nasa.gov/nasa-brand-center/images-and-media/). Use an Earth-only five-second excerpt with original audio removed, a derived still and a ZIP containing it. In `film/out/fixtures`, name them `Earth — NASA.mp4`, `Earth — NASA.jpg` and `Earth photos.zip`. NASA is credited in visible filenames/source imagery and does not endorse ShareTexts.
 - Craft: [Serena-inspected launch reference](https://x.com/bot/status/2112252507762368684), [device frames](https://www.ui-skills.com/skills/ibelick/device-frames), [animation principles](https://www.userinterface.wiki/12-principles-of-animation), [Detail](https://detail.design/), Preet Suthar on [frame budgets](https://preetsuthar.me/writing/every-frame-has-16ms), [springs](https://preetsuthar.me/writing/what-a-spring-actually-is) and [shape joining](https://preetsuthar.me/writing/how-shapes-melt-into-each-other). Reference footage is not redistributed.
 
-**Review gate:** V4 was rejected and must not ship. Send V5 movies/contact sheets for acceptance before a PR or changing `src/lib/heroFilmAssets.ts` to this family. Keep preload/player poster equality, matching theme families, codec/duration checks and the dev-only bundle boundary.
+**Release gate:** V4 was rejected and must not ship. Review V5 at full speed and send decoded contact sheets before release. Verify distinct download/bookmark actions, separate photo receipt, theme-equivalent states, fixed movie-space cursor size, visible dark hardware and readable copy confirmation. Keep preload/player poster equality, matching theme families, codec/duration checks and the dev-only bundle boundary. Run the local build/player gates and handle Devin Review before merging.

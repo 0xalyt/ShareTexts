@@ -21,17 +21,17 @@ const smooth = (t: number, start: number, duration: number) => {
   return p * p * p * (p * (p * 6 - 15) + 10);
 };
 
-export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolean) {
+export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolean, mobile = false) {
   const root = `/film/out/launch-v5-${dark ? 'dark' : 'light'}`;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
-  renderer.setSize(1920, 1080, false); renderer.setPixelRatio(1);
+  renderer.setSize(mobile ? 960 : 1920, mobile ? 720 : 1080, false); renderer.setPixelRatio(1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = dark ? 1 : 1.05;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
   const scene = new THREE.Scene(); scene.background = new THREE.Color(dark ? '#181818' : '#ffffff');
-  const camera = new THREE.PerspectiveCamera(28, 16 / 9, .04, 250);
+  const camera = new THREE.PerspectiveCamera(28, mobile ? 4 / 3 : 16 / 9, .04, 250);
   const [gltf, hdr, metadata] = await Promise.all([
     new GLTFLoader().loadAsync(`${root}/studio.glb`),
     new RGBELoader().loadAsync('/film/out/studio_small_08_1k.hdr'),
@@ -40,13 +40,13 @@ export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolea
   if (metadata.captureVersion !== 4) throw new Error('Recapture the real UI with verified receipt checkpoints and a complete playback take');
   const pmrem = new THREE.PMREMGenerator(renderer);
   const environment = pmrem.fromEquirectangular(hdr); hdr.dispose(); pmrem.dispose();
-  scene.environment = environment.texture; scene.environmentIntensity = dark ? 1.1 : 1.1;
+  scene.environment = environment.texture; scene.environmentIntensity = 1.1;
   scene.add(gltf.scene); scene.updateMatrixWorld(true);
   const key = new THREE.DirectionalLight(0xffffff, dark ? 3.5 : 3.1);
   key.position.set(-5, 14, 8); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); key.shadow.normalBias = .025; key.shadow.radius = 7;
   Object.assign(key.shadow.camera, { left: -15, right: 15, top: 12, bottom: -12, near: 1, far: 45 });
-  scene.add(key, new THREE.HemisphereLight(dark ? 0xffffff : 0xffffff, dark ? 0x17171b : 0xbdbdc7, dark ? .7 : 1.0));
+  scene.add(key, new THREE.HemisphereLight(0xffffff, dark ? 0x17171b : 0xbdbdc7, dark ? .7 : 1.0));
   const rim = new THREE.DirectionalLight(0xffffff, dark ? 4.5 : 1.5); rim.position.set(8, 9, -7); scene.add(rim);
   gltf.scene.traverse(object => {
     if (!(object instanceof THREE.Mesh)) return;
@@ -174,7 +174,7 @@ export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolea
     buffer.texture.needsUpdate = true; buffer.last = index; buffer.lastKey = key;
   }
   const sizes = { phone: [2.30, 5.00], laptop: [9.94, 6.455] };
-  const pointer = document.createElement('canvas'); pointer.width = 1920; pointer.height = 1080;
+  const pointer = document.createElement('canvas'); pointer.width = mobile ? 1440 : 1920; pointer.height = 1080;
   pointer.className = 'native-film-pointer'; pointer.style.cssText = 'position:absolute;inset:0;pointer-events:none';
   canvas.after(pointer);
   const cursor = pointer.getContext('2d')!;
@@ -190,7 +190,7 @@ export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolea
     const normal = new THREE.Vector3(0, 0, 1).transformDirection(screens[actor].matrixWorld);
     const right = new THREE.Vector3(1, 0, 0).transformDirection(screens[actor].matrixWorld);
     const up = new THREE.Vector3(0, 1, 0).transformDirection(screens[actor].matrixWorld);
-    const field = width / metadata.dimensions[actor][0] * sizes[actor][0] * 9 / 16;
+    const field = width / metadata.dimensions[actor][0] * sizes[actor][0] / camera.aspect;
     const distance = field / (2 * Math.tan(THREE.MathUtils.degToRad(14)));
     camera.position.copy(target).addScaledVector(normal, distance)
       .addScaledVector(right, distance * (-.11 + .07 * progress)).addScaledVector(up, distance * .05);
@@ -200,7 +200,8 @@ export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolea
     camera.up.set(0, 1, 0);
     const x = ending ? 9 - progress * 4.5 : 9.5 - progress * 1.1;
     const y = ending ? 9.3 - progress * 1.2 : 9.5 - progress * .5;
-    camera.position.set(1.1 + (x - .3) * 1.28, 3 + (y - 2.55) * 1.28, -.1 + (19.6 - progress * .8) * 1.28);
+    const distance = mobile ? 1.12 : 1.28;
+    camera.position.set(1.1 + (x - .3) * distance, 3 + (y - 2.55) * distance, -.1 + (19.6 - progress * .8) * distance);
     camera.lookAt(1.1, 3, -.1);
   }
   const packet = new THREE.Group();
@@ -233,7 +234,7 @@ export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolea
       const a = metadata.anchors[`phone-${section[2]}`], c = metadata.anchors['phone-composer'];
       const top = Math.min(a.y - a.height / 2, c.y - c.height / 2), bottom = c.y + c.height / 2;
       aimMacro('phone', 201, section[2] === 'video' ? c.y - 70 : (top + bottom) / 2 + 50,
-        section[2] === 'video' ? 590 - p * 20 : 565 - p * 38, p);
+        section[2] === 'video' ? (mobile ? 530 : 590) - p * 20 : (mobile ? 500 : 565) - p * (mobile ? 30 : 38), p);
     } else if ((phase >= 2.15 && phase < 2.75) || (phase >= 5.65 && phase < 6.35) || (phase >= 10.15 && phase < 10.85)) {
       const section = phase < 2.75 ? [2.15, .6, 'text'] : phase < 6.35 ? [5.65, .7, 'file'] : [10.15, .7, 'video'];
       const p = smooth(phase, section[0] as number, section[1] as number); wide(p);
@@ -245,29 +246,29 @@ export async function createBlenderStage(canvas: HTMLCanvasElement, dark: boolea
       packet.scale.setScalar(.82 + .18 * Math.sin(p * Math.PI));
     } else if (phase < 4.4) {
       const p = smooth(phase, 2.75, 1.65), a = metadata.anchors['laptop-text'];
-      aimMacro('laptop', a.x, a.y - 8, 545 - p * 35, p);
+      aimMacro('laptop', a.x, a.y - 8, (mobile ? 460 : 545) - p * (mobile ? 20 : 35), p);
     } else if (phase < 7.6) {
       const p = smooth(phase, 6.35, 1.25), a = metadata.anchors['laptop-file'];
-      aimMacro('laptop', a.x, a.y, 590 - p * 30, p);
+      aimMacro('laptop', a.x, a.y, (mobile ? 545 : 590) - p * (mobile ? 10 : 30), p);
     } else if (phase < 8.4) {
       const a = metadata.anchors['laptop-photo'];
-      aimMacro('laptop', a.x, a.y, Math.max(a.width + 90, (a.height + 90) * 16 / 9), .5);
+      aimMacro('laptop', a.x, a.y - 30, Math.max(a.width + 90, (a.height + (mobile ? 140 : 190)) * camera.aspect), .5);
     } else if (phase < 9.35) {
-      aimMacro('laptop', 504, 327, 1180 - smooth(phase, 8.4, .95) * 45, .5);
+      aimMacro('laptop', 504, 327, (mobile ? 1100 : 1180) - smooth(phase, 8.4, .95) * 45, .5);
     } else if (phase < 13.8) {
       const p = smooth(phase, 10.85, 2.95), a = metadata.anchors['laptop-video-card'];
-      aimMacro('laptop', a.x, a.y, Math.max(a.width + 90, (a.height + 90) * 16 / 9) - p * 15, p);
+      aimMacro('laptop', a.x, a.y - 30, Math.max(a.width + 90, (a.height + (mobile ? 140 : 190)) * camera.aspect) - p * 15, p);
     } else wide(smooth(phase, 13.8, 1.4), true);
     scene.updateMatrixWorld(true); renderer.render(scene, camera);
     // Cursor size belongs to the movie frame, never the camera's zoom level.
-    cursor.clearRect(0, 0, 1920, 1080);
+    cursor.clearRect(0, 0, pointer.width, pointer.height);
     if (activeActor) {
       const time = nativeTime(activeActor, phase);
       const action = metadata.actions.filter(a => a.actor === activeActor && a.t <= time).at(-1);
       const age = action ? time - action.t : 10;
       if (action && age < 1.6) {
         const point = world(activeActor, action.x, action.y + (activeActor === 'phone' ? 50 : 0)).project(camera);
-        cursor.save(); cursor.translate((point.x + 1) * 960, (1 - point.y) * 540);
+        cursor.save(); cursor.translate((point.x + 1) * pointer.width / 2, (1 - point.y) * pointer.height / 2);
         cursor.globalAlpha = 1 - smooth(age, 1.2, .4);
         if (activeActor === 'phone') {
           cursor.globalAlpha *= 1 - clamp(age / .4);
