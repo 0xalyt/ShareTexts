@@ -466,7 +466,8 @@ try {
       const preload = [...document.querySelectorAll('link[rel~="preload"][as="image"]')]
         .find(link => new URL(link.href).pathname.startsWith('/film/'));
       return video.poster.includes('-mobile-') === phone && preload?.href === video.poster &&
-        video.readyState >= 2 && video.paused && Math.abs(video.currentTime - at) < .12;
+        video.readyState >= 2 && Math.abs(video.videoWidth / video.videoHeight - (phone ? 4 / 3 : 16 / 9)) < .01 &&
+        video.paused && Math.abs(video.currentTime - at) < .12;
     }, { phone: width <= 639, at: pausedAt });
     check(`${width}: framing changes preserve the paused phase and matching preload`, true);
   }
