@@ -90,6 +90,12 @@
 .st-space-empty-mark { display: grid; place-items: center; width: 64px; height: 64px; color: var(--task-accent); }
 .st-space-empty-copy h2 { margin: 0; font-size: clamp(24px, 2.5vw, 32px); font-weight: 650; line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; }
 .st-space-empty-copy p { max-width: 34ch; margin: 12px auto 0; font-size: 16px; line-height: 1.5; color: var(--task-muted); text-wrap: pretty; }
+/* At high zoom/short heights, spend the available space on words and input,
+   not the decorative mark. The empty footer stays in flow, never over copy. */
+@media (max-height: 560px) {
+  .st-space-empty { padding-block: 0; }
+  .st-space-empty-mark { display: none; }
+}
 .st-space [data-testid='space-item'] { background: var(--task-surface); border-color: var(--task-line); border-radius: 16px; box-shadow: var(--task-shadow); }
 .st-space-share { background: var(--task-inset); color: var(--task-muted); border: 1px solid var(--task-line); }
 .st-space [data-testid='space-send'] { background: var(--color-brand); color: #1d1d1f; border: 1px solid transparent; }

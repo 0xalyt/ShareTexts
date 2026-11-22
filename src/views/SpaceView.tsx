@@ -898,6 +898,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
   }
 
   const loadingFirst = !snapshot && conn === 'connecting';
+  const isEmpty = !loadingFirst && items.length === 0 && uploads.length === 0;
 
   return (
     <div
@@ -1034,7 +1035,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               <SkeletonScreen variant="space" />
             </SkeletonGate>
           </div>
-        ) : items.length === 0 && uploads.length === 0 ? (
+        ) : isEmpty ? (
           <SpaceEmptyState canUploadFiles={canUploadFiles} />
         ) : (
           <ul className="space-y-2.5" aria-label={t('space.contentLabel')}>
@@ -1073,7 +1074,7 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
       </main>
 
       {/* ── composer ── */}
-      <footer className="shrink-0 sticky bottom-0 z-40 bg-apple-canvas dark:bg-night-900 border-t border-apple-divider/50 dark:border-white/[0.06]">
+      <footer className={`shrink-0 ${isEmpty ? 'relative' : 'sticky bottom-0'} z-40 bg-apple-canvas dark:bg-night-900 border-t border-apple-divider/50 dark:border-white/[0.06]`}>
         <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
           {canUploadFiles && (
             <>
@@ -1108,8 +1109,8 @@ export function SpaceView({ spaceId, token }: { spaceId: string; token: string }
               }
             }}
             rows={1}
-            aria-label={t('space.addText')}
-            aria-describedby={!loadingFirst && items.length === 0 && uploads.length === 0 ? 'space-empty-hint' : undefined}
+            aria-label={t('space.composerPlaceholder')}
+            aria-describedby={isEmpty ? 'space-empty-hint' : undefined}
             placeholder={t('space.composerPlaceholder')}
             className="flex-1 min-w-0 min-h-[44px] resize-none max-h-32 overflow-x-hidden rounded-[24px] border border-apple-divider dark:border-white/[0.1] bg-white dark:bg-white/[0.05] px-4 py-2.5 text-[16px] leading-[24px] text-apple-ink dark:text-white placeholder:text-apple-ink-muted/60 dark:placeholder:text-white/30 outline-none focus:border-ember/40 focus:ring-2 focus:ring-ember/25 placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
             data-testid="space-composer"
