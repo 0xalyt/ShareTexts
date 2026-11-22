@@ -9,7 +9,8 @@
  * under it, never a colour or a motion alone.
  */
 import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, Copy, Download, FileText, Paperclip, Plus, RotateCcw, ScanLine, Undo2 } from 'lucide-react';
+import { ArrowUp, Copy, Download, FileText, Paperclip, RotateCcw, Undo2 } from 'lucide-react';
+import { AlloSymbol } from '../AlloSymbol';
 import { Sheet } from '../ui/Sheet';
 import { TactileButton } from '../TactileButton';
 import { SystemAlert } from '../SystemAlert';
@@ -18,7 +19,7 @@ import { useI18n } from '../../lib/i18n';
 import { fmtTime } from '../../lib/format';
 import { cn, formatBytes } from '../../lib/utils';
 import { hapticSuccess, hapticTap } from '../../lib/haptics';
-import { HOP } from '../../lib/brand';
+import './HopSheet.css';
 import { HOP_EVENT, parseHopLink, readHopCache, type HopDevice, type HopLink } from '../../lib/hop/flag';
 import {
   HOP_MAX_BYTES, HopError, approve, autoCopiedId, autoCopy, beginInvite, fileOf, findJoiner, joinLink, markAllSeen,
@@ -95,6 +96,7 @@ export function HopSheet({
   const [confirmUnlink, setConfirmUnlink] = useState(false);
   const listRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const joinRef = useRef<HopJoin | null>(null);
   const joinAttempt = useRef(0);
   const activeAt = useRef(Date.now());
@@ -259,6 +261,15 @@ export function HopSheet({
     if (el) el.scrollTop = el.scrollHeight;
   }, [lastId, onHome]);
 
+  // A pasted paragraph stays readable; the send and attachment controls stay
+  // on the last line rather than moving to the middle of the growing field.
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 128)}px`;
+  }, [draft, onHome]);
+
   const submit = useCallback(() => {
     const text = draft.trim();
     if (!text) return;
@@ -329,16 +340,13 @@ export function HopSheet({
   ) : null;
 
   const heading = (text: string) => (
-    <h2 id="hop-title" className="pr-10 text-[22px] font-semibold leading-tight tracking-[-0.01em] text-apple-ink dark:text-white">{text}</h2>
-  );
-  const eyebrow = (
-    <p className="mb-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-ember-ink dark:text-ember">{HOP}</p>
+    <h2 id="hop-title" className="hop-heading pr-10 text-[24px] font-medium leading-tight tracking-[-0.025em] text-apple-ink dark:text-white">{text}</h2>
   );
   const body = (text: string) => (
-    <p className="mt-2 text-[15px] leading-relaxed text-apple-ink-muted dark:text-white/60">{text}</p>
+    <p className="hop-body mt-3 text-[15px] leading-relaxed text-apple-ink-muted dark:text-white/60">{text}</p>
   );
   const fourEmoji = (list: string[]) => (
-    <div className="my-6 flex items-center justify-center gap-3" data-testid="hop-emoji" role="img" aria-label={list.join(' ')}>
+    <div className="hop-emoji my-8 flex items-center justify-center gap-3" data-testid="hop-emoji" role="img" aria-label={list.join(' ')}>
       {list.map((e, i) => (
         <span key={i} className="flex h-16 w-16 items-center justify-center rounded-[16px] bg-apple-parchment text-[34px] leading-none dark:bg-white/[0.06]">{e}</span>
       ))}
@@ -346,30 +354,31 @@ export function HopSheet({
   );
 
   return (
-    <Sheet open={open} onClose={onClose} labelledBy="hop-title" maxWidth={460} testId="hop-sheet" scroll="none">
-      <div className="flex min-h-0 flex-1 flex-col" data-hop-view={view}>
+    <Sheet open={open} onClose={onClose} labelledBy="hop-title" maxWidth={480} testId="hop-sheet" scroll="none">
+      <div className="hop-surface flex min-h-0 flex-1 flex-col" data-hop-view={view}>
         {view === 'intro' && (
           <div className="overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 sm:pb-6" data-sheet-scroll>
-            {eyebrow}
             {heading(t('hop.intro.title'))}
             {body(t('hop.intro.body'))}
             {alert}
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-8 flex flex-col gap-2">
               <TactileButton variant="primary" size="lg" className="w-full" onClick={showCode} loading={busy} data-testid="hop-show-code">{t('hop.intro.show')}</TactileButton>
-              <TactileButton variant="secondary" size="lg" className="w-full" icon={<ScanLine className="h-4 w-4" aria-hidden />} onClick={() => { setProblem(null); setView('scan'); }} data-testid="hop-scan">{t('hop.intro.scan')}</TactileButton>
+              <TactileButton variant="ghost" size="lg" className="w-full" onClick={() => { setProblem(null); setView('scan'); }} data-testid="hop-scan">{t('hop.intro.scan')}</TactileButton>
             </div>
-            <p className="mt-5 text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/50">{t('hop.intro.note')}</p>
+            <details className="hop-privacy mt-6 border-t border-apple-divider/70 pt-2 text-[13px] text-apple-ink-muted dark:border-white/10 dark:text-white/60">
+              <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3">{t('nav.privacy')}<AlloSymbol name="plus" size={16} /></summary>
+              <p className="pb-2 leading-relaxed">{t('hop.intro.note')}</p>
+            </details>
           </div>
         )}
 
         {view === 'invite' && invite && (
           <div className="overflow-y-auto overscroll-contain px-5 pb-5 text-center sm:px-6 sm:pb-6" data-sheet-scroll>
             <div className="text-start">
-              {eyebrow}
               {heading(t('hop.invite.title'))}
               {body(t('hop.invite.body'))}
             </div>
-            <div className={cn('mx-auto mt-5 w-fit rounded-[16px] bg-white p-3', expired && 'opacity-30')} data-testid="hop-qr" data-hop-link={invite.link}>
+            <div className={cn('mx-auto mt-8 w-fit rounded-[24px] border border-apple-divider/70 bg-white p-4', expired && 'opacity-30')} data-testid="hop-qr" data-hop-link={invite.link}>
               <QrArt value={invite.link} size={232} label={t('hop.invite.title')} />
             </div>
             <p className="mt-4 text-[14px] font-medium text-apple-ink dark:text-white" role="status">
@@ -383,7 +392,7 @@ export function HopSheet({
               {expired ? (
                 <TactileButton variant="primary" size="lg" className="w-full" onClick={showCode} loading={busy}>{t('hop.invite.again')}</TactileButton>
               ) : (
-                <TactileButton variant="secondary" size="lg" className="w-full" icon={linkCopied ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />} onClick={copyLink} data-testid="hop-copy-link">
+                <TactileButton variant="secondary" size="lg" className="w-full" onClick={copyLink} data-testid="hop-copy-link">
                   {linkCopied ? t('action.copied') : t('hop.invite.copy')}
                 </TactileButton>
               )}
@@ -393,7 +402,6 @@ export function HopSheet({
 
         {view === 'confirm' && joiner && (
           <div className="overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 sm:pb-6" data-sheet-scroll>
-            {eyebrow}
             {heading(t('hop.confirm.title'))}
             {body(t('hop.confirm.body'))}
             {fourEmoji(joiner.emoji)}
@@ -407,7 +415,6 @@ export function HopSheet({
 
         {view === 'joining' && (
           <div className="overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 sm:pb-6" data-sheet-scroll>
-            {eyebrow}
             {heading(join ? t('hop.join.title') : t('hop.join.starting'))}
             {join ? (
               <>
@@ -425,7 +432,6 @@ export function HopSheet({
 
         {view === 'scan' && (
           <div className="overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 sm:pb-6" data-sheet-scroll>
-            {eyebrow}
             {heading(t('hop.scan.title'))}
             {body(t('hop.scan.body'))}
             <div className="mt-5 overflow-hidden rounded-[16px] bg-apple-parchment dark:bg-white/[0.06]">
@@ -447,40 +453,52 @@ export function HopSheet({
         {view === 'home' && (
           <>
             <div className="shrink-0 px-5 sm:px-6">
-              {eyebrow}
               {heading(t('hop.title'))}
-              <div className="mt-3 flex flex-wrap items-center gap-2" data-testid="hop-devices">
+              <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/60" data-testid="hop-devices">
                 {devices.map((d) => (
-                  <span key={d.deviceId} className="inline-flex min-h-[32px] items-center gap-2 rounded-full bg-apple-parchment px-3 text-[13px] font-medium text-apple-ink dark:bg-white/[0.08] dark:text-white">
-                    <span className="h-1.5 w-1.5 rounded-full bg-status-success" aria-hidden />
+                  <li key={d.deviceId} className="min-w-0 break-words [overflow-wrap:anywhere]">
                     {d.label || t('hop.devices.unnamed')}
-                  </span>
+                  </li>
                 ))}
+              </ul>
+              <div className="-mx-2 mt-1 flex flex-wrap items-center justify-between gap-x-4">
                 <button
                   type="button"
                   onClick={showCode}
                   disabled={busy}
                   data-testid="hop-add"
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-ember-ink transition-colors hover:bg-black/[0.04] dark:text-ember dark:hover:bg-white/[0.06]"
+                  className="hop-action inline-flex min-h-[44px] items-center gap-2 rounded-[12px] px-2 text-[13px] font-medium text-ember-ink hover:bg-black/[0.04] dark:text-ember dark:hover:bg-white/[0.06]"
                 >
-                  <Plus className="h-3.5 w-3.5" aria-hidden />
+                  <AlloSymbol name="plus" size={16} />
                   {t('hop.devices.add')}
                 </button>
+                <button type="button" onClick={() => setConfirmUnlink((value) => !value)} aria-expanded={confirmUnlink} data-testid="hop-unlink" className="hop-action min-h-[44px] rounded-[12px] px-2 text-[13px] text-apple-ink-muted hover:bg-black/[0.04] dark:text-white/60 dark:hover:bg-white/[0.06]">
+                  {t('hop.unlink')}
+                </button>
               </div>
+              {confirmUnlink && (
+                <div className="mb-4 rounded-[16px] bg-apple-parchment p-4 dark:bg-white/[0.06]">
+                  <p className="text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/60">{t('hop.unlink.hint')}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <TactileButton variant="secondary" size="sm" onClick={doUnlink} data-testid="hop-unlink-confirm">{t('hop.unlink')}</TactileButton>
+                    <TactileButton variant="ghost" size="sm" onClick={() => setConfirmUnlink(false)}>{t('action.cancel')}</TactileButton>
+                  </div>
+                </div>
+              )}
               {justLinked && (
                 <p className="mt-2 text-[14px] font-medium text-status-success" role="status" data-testid="hop-linked">{t('hop.linked')}</p>
               )}
               {alert}
             </div>
 
-            <div ref={listRef} className="min-h-[180px] flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6" data-sheet-scroll data-testid="hop-timeline">
+            <div ref={listRef} className="hop-timeline min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-apple-divider/70 px-5 py-6 dark:border-white/10 sm:px-6" data-sheet-scroll data-testid="hop-timeline" role="region" aria-label={t('hop.title')}>
               {entries.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center py-6 text-center">
-                  <p className="text-[16px] font-semibold text-apple-ink dark:text-white">{t('hop.empty.title')}</p>
+                  <p className="text-[16px] font-medium text-apple-ink dark:text-white">{t('hop.empty.title')}</p>
                   <p className="mt-1.5 max-w-[30ch] text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/55">{t('hop.empty.body')}</p>
                 </div>
               ) : (
-                <ul className="flex flex-col gap-3">
+                <ul className="flex flex-col gap-5">
                   {entries.map((e) => {
                     const mine = e.dir === 'out';
                     const failed = e.state === 'failed' || e.state === 'paused' || e.state === 'expired';
@@ -488,7 +506,7 @@ export function HopSheet({
                     return (
                       <li key={`${e.dir}:${e.id}`} className={cn('flex flex-col', mine ? 'items-end' : 'items-start')} data-testid={mine ? 'hop-out' : 'hop-in'} data-state={e.state}>
                         <div className={cn(
-                          'max-w-[86%] rounded-[16px] px-3.5 py-2.5 text-[15px] leading-snug text-apple-ink dark:text-white',
+                          'hop-message min-w-0 max-w-[88%] rounded-[16px] px-4 py-3 text-[15px] leading-relaxed text-apple-ink dark:text-white',
                           mine ? 'bg-ember/12 dark:bg-ember/20' : 'border border-apple-divider/70 bg-white dark:border-white/10 dark:bg-white/[0.06]',
                         )}>
                           {isText ? (
@@ -514,7 +532,7 @@ export function HopSheet({
                           </span>
                           {!mine && isText && (
                             <button type="button" onClick={() => void copy(e)} data-testid="hop-copy" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-2 font-semibold text-ember-ink hover:bg-black/[0.04] dark:text-ember dark:hover:bg-white/[0.06]">
-                              {copiedId === e.id ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
+                              {copiedId === e.id ? <AlloSymbol name="check" size={14} /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
                               {copiedId === e.id ? t('action.copied') : t('action.copy')}
                             </button>
                           )}
@@ -548,33 +566,19 @@ export function HopSheet({
                   </div>
                 </div>
               )}
-              <div className="mt-6 text-center">
-                {confirmUnlink ? (
-                  <div className="rounded-[16px] bg-apple-parchment p-3.5 text-start dark:bg-white/[0.06]">
-                    <p className="text-[13px] leading-relaxed text-apple-ink-muted dark:text-white/60">{t('hop.unlink.hint')}</p>
-                    <div className="mt-2.5 flex gap-2">
-                      <TactileButton variant="secondary" size="sm" onClick={doUnlink} data-testid="hop-unlink-confirm">{t('hop.unlink')}</TactileButton>
-                      <TactileButton variant="ghost" size="sm" onClick={() => setConfirmUnlink(false)}>{t('action.cancel')}</TactileButton>
-                    </div>
-                  </div>
-                ) : (
-                  <button type="button" onClick={() => setConfirmUnlink(true)} data-testid="hop-unlink" className="min-h-[44px] rounded-full px-3 text-[13px] font-medium text-apple-ink-muted hover:bg-black/[0.04] dark:text-white/50 dark:hover:bg-white/[0.06]">
-                    {t('hop.unlink')}
-                  </button>
-                )}
-              </div>
             </div>
 
             <form
-              className="flex shrink-0 items-end gap-2 border-t border-apple-divider/70 px-4 pt-3 dark:border-white/[0.08] sm:px-5 sm:pb-4"
+              className="hop-composer flex shrink-0 items-end gap-2 border-t border-apple-divider/70 px-5 pt-4 dark:border-white/10 sm:px-6 sm:pb-6"
               onSubmit={(ev) => { ev.preventDefault(); submit(); }}
               data-sheet-no-drag
             >
               <input ref={fileRef} type="file" multiple className="sr-only" tabIndex={-1} aria-hidden onChange={(ev) => pickFiles(ev.target.files)} data-testid="hop-file" />
-              <button type="button" onClick={() => fileRef.current?.click()} aria-label={t('hop.composer.attach')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-apple-ink-muted hover:bg-black/[0.05] dark:text-white/60 dark:hover:bg-white/[0.08]">
+              <button type="button" onClick={() => fileRef.current?.click()} aria-label={t('hop.composer.attach')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] text-apple-ink-muted hover:bg-black/[0.05] dark:text-white/60 dark:hover:bg-white/[0.08]">
                 <Paperclip className="h-[18px] w-[18px]" aria-hidden />
               </button>
               <textarea
+                ref={inputRef}
                 value={draft}
                 onChange={(ev) => setDraft(ev.target.value)}
                 onKeyDown={(ev) => {
@@ -584,7 +588,7 @@ export function HopSheet({
                 placeholder={t('hop.composer.placeholder')}
                 aria-label={t('hop.composer.placeholder')}
                 data-testid="hop-input"
-                className="max-h-32 min-h-[44px] flex-1 resize-none rounded-[24px] border border-apple-divider bg-white px-4 py-2.5 text-[16px] leading-snug text-apple-ink placeholder:text-apple-ink-muted/70 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-white/40"
+                className="max-h-32 min-h-[44px] min-w-0 flex-1 resize-none rounded-[16px] border border-apple-divider bg-white px-3 py-2.5 text-[16px] leading-snug text-apple-ink placeholder:text-apple-ink-muted/70 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-white/40"
               />
               <button type="submit" disabled={!draft.trim()} aria-label={t('hop.send')} data-testid="hop-send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember text-white transition-[opacity,transform] active:scale-[0.96] disabled:opacity-40">
                 <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2.2} aria-hidden />

@@ -1,0 +1,65 @@
+/* Hop is a utility, not a second landing page. One heading, quiet device
+   names, then the things being sent. Keep the shared sheet's motion. */
+.hop-surface {
+  font-weight: 400;
+}
+
+.hop-surface[data-hop-view="home"] {
+  height: 600px;
+  max-height: calc(82dvh - 52px);
+}
+
+.hop-heading {
+  text-wrap: balance;
+}
+
+.hop-body {
+  max-width: 42ch;
+}
+
+.hop-surface .st-btn {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.hop-surface button {
+  font-weight: 500;
+}
+
+.hop-surface :is(button, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 3px;
+}
+
+.hop-privacy summary {
+  list-style: none;
+}
+
+.hop-privacy summary::-webkit-details-marker {
+  display: none;
+}
+
+.hop-privacy[open] summary > .allo-symbol {
+  transform: rotate(45deg);
+}
+
+.hop-message {
+  overflow-wrap: anywhere;
+}
+
+.hop-emoji > span {
+  min-width: 0;
+  flex: 0 1 64px;
+}
+
+/* A short/zoomed viewport must still leave room to read the timeline. The
+   outer sheet is already bounded by the visual viewport and safe areas. */
+@media (max-height: 600px) {
+  .hop-surface[data-hop-view="home"] {
+    max-height: calc(90dvh - 52px);
+  }
+
+  .hop-timeline {
+    padding-block: 16px;
+  }
+}
