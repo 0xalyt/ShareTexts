@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { CloudflareSocket } from './cloudflareSocket';
+import { DeferredSocket } from './deferredSocket';
 import { devLog } from './devlog';
 import { diag } from './diag';
 import en from './messages/en';
@@ -208,6 +208,9 @@ function resolveEndpoints(): { mode: 'cloudflare' | 'socketio'; url?: string } {
 }
 
 const { mode, url } = resolveEndpoints();
+// Start fetching before first paint; callers retain the synchronous socket API.
+const cloudflareTransport = mode === 'cloudflare' ? import('./cloudflareSocket') : null;
+void cloudflareTransport?.catch(() => {});
 devLog('Signaling transport:', mode, url || '(same origin)');
 diag('transport.choose', true, `${mode}${url ? ' ' + url : ' (same origin)'}`);
 
@@ -311,7 +314,10 @@ export function getSocket(): SignalingSocket {
     const endpoint = activeCfBase ?? url;
     instance =
       mode === 'cloudflare'
-        ? new CloudflareSocket(endpoint!, () => kickEndpointProbe(), redirectPromise ?? undefined)
+        ? new DeferredSocket(async () => {
+            const { CloudflareSocket } = await cloudflareTransport!;
+            return () => new CloudflareSocket(endpoint!, () => kickEndpointProbe(), redirectPromise ?? undefined);
+          })
         : io(url, {
             // WebSocket first (fastest), polling as automatic fallback. A
             // websocket-only transport dies permanently behind proxies that
