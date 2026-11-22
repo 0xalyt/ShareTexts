@@ -333,7 +333,7 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
         {/* The tick carries the state in colour; the word stays quiet ink.
             A 12px label in full signal-green beside 16px message text made
             the receipt shout louder than the thing it confirms. */}
-        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{label}</span>
+        <span className="font-semibold text-apple-ink-muted dark:text-white/65">{label}</span>
       </span>
     );
   }
@@ -350,12 +350,12 @@ function DeliveryTick({ state, onBlue }: { state: ItemState; onBlue: boolean }) 
         >
           <CheckCheck className="w-3.5 h-3.5" />
         </motion.span>
-        <span className="font-semibold text-apple-ink-muted dark:text-white/55">{label}</span>
+        <span className="font-semibold text-apple-ink-muted dark:text-white/65">{label}</span>
       </span>
     );
   }
   return (
-    <span data-testid="msg-state" data-state="sent" className="flex items-center gap-1 text-apple-ink-muted">
+    <span data-testid="msg-state" data-state="sent" className="flex items-center gap-1 text-apple-ink-muted dark:text-white/65">
       <motion.span
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -656,7 +656,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({ msg, isGroupStart = tr
               </>
             ) : (
               <>
-                <span className="min-w-0 flex-1 text-[12px] font-medium flex flex-wrap items-center gap-x-1 text-apple-ink-muted">
+                <span className="min-w-0 flex-1 text-[12px] font-medium flex flex-wrap items-center gap-x-1 text-apple-ink-muted dark:text-white/65">
                   {isMe ? (
                     // One state word, one bubble: the newest own message carries
                     // the receipt; older ones stay silent unless they failed.

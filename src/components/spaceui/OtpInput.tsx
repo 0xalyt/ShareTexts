@@ -324,6 +324,7 @@ export function OtpInput({
       data-slot="otp-input"
       data-status={status}
       data-testid="join-code-input"
+      dir="ltr"
       className={cn('relative w-full flex justify-center', className)}
       {...props}
     >
