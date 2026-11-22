@@ -384,6 +384,10 @@ function handlePush(req: express.Request, res: express.Response) {
 // ---------------------------------------------------------------------------
 const CLIENT_EVENTS: ReadonlySet<string> = new Set([
   'product.page_view',
+  'product.code_shown',
+  'product.connected',
+  'product.first_item_received',
+  'product.second_session',
   'product.first_interaction',
   'product.activation',
   'product.transfer_completed',
@@ -1826,6 +1830,9 @@ async function start() {
     app.get('*', (req, res) => {
       if (req.path === '/about') {
         return res.sendFile(path.join(distPath, 'seo', 'about.html'));
+      }
+      if (req.path === '/changelog') {
+        return res.sendFile(path.join(distPath, 'seo', 'changelog.html'));
       }
       // Prerendered route shells (scripts/seo-routes.mjs): crawlers and
       // no-JS visitors get real content with per-route metadata; the same

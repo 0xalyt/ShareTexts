@@ -46,6 +46,7 @@ const COLUMNS: { title: MsgKey; links: { label: MsgKey; href: string; external?:
       { label: 'nav.docs', href: '/docs' },
       { label: 'nav.guides', href: '/guides' },
       { label: 'nav.about', href: '/about' },
+      { label: 'nav.changelog', href: '/changelog' },
       { label: 'footer.devs', href: '/llms.txt' },
     ],
   },

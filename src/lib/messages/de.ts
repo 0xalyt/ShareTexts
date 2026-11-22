@@ -3,6 +3,9 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const de: Dict = {
+  "nav.changelog": "Neuigkeiten",
+  "shareTarget.failed": "Die Freigabe konnte nicht geöffnet werden. Versuche es mit höchstens 20 Dateien und insgesamt unter 100 MB erneut oder wähle die Dateien in ShareTexts aus.",
+  "chat.receivedFrom": "{item} Von {name}.",
   "chat.empty.title": "Bereit zum Teilen",
   "space.showQr": "QR-Code anzeigen",
   "space.hideQr": "QR-Code ausblenden",

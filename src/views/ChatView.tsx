@@ -59,6 +59,9 @@ import { RecipientStrip } from '../components/RecipientStrip';
 /** Text carried in from the landing intent field (SingleScreenApp parks it
  *  right before creating the room). Consumed once, so a later room in the
  *  same tab never inherits it. */
+import { noteConnectedRoom } from '../lib/completedItems';
+import { ShortcutHints } from '../components/ShortcutHints';
+
 function takeIntentText(): string | null {
   const w = window as Window & { __stPendingIntentText?: string };
   const v = w.__stPendingIntentText;
@@ -126,6 +129,16 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     setEditingName(false);
   };
   const [inputText, setInputText] = useState('');
+  useEffect(() => {
+    const pasteShortcut = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'v' || hasOpenLayer()) return;
+      const target = document.activeElement;
+      if (target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable)) return;
+      textareaRef.current?.focus({ preventScroll: true });
+    };
+    window.addEventListener('keydown', pasteShortcut);
+    return () => window.removeEventListener('keydown', pasteShortcut);
+  }, []);
   // Multiple staged attachments per send (up to 20) — each file becomes its
   // own transfer bubble on send, but they're picked together in one message.
   const [attachments, setAttachments] = useState<(Attachment & { file: File })[]>([]);
@@ -443,26 +456,28 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   // Screen-reader live region: connection state + inbound transfers are
   // announced in plain words ("Connected", "Photo received", "Couldn't send
   // the file.") without any visual change.
-  const lastMessage = session.messages[session.messages.length - 1];
+  const announcedStatuses = useRef(new Map(session.messages.map(message => [message.id, message.attachment?.status ?? 'text'])));
   useEffect(() => {
-    if (!lastMessage || lastMessage.sender === 'me') return;
-    const st = lastMessage.attachment?.status;
     const tr = tRef.current;
-    if (st === 'complete') {
-      // A real arrival — the transfer landed intact. One quiet tick.
-      hapticArrive();
-      const type = lastMessage.attachment?.type;
-      setAnnouncement(type === 'image' ? tr('chat.photoReceived') : type === 'video' ? tr('chat.videoReceived') : type === 'audio' ? tr('chat.audioReceived') : tr('chat.fileReceived', { name: lastMessage.attachment!.name }));
-    } else if (st === 'failed') {
-      setAnnouncement(tr('chat.couldNotSend'));
-    } else if (st === 'cancelled') {
-      setAnnouncement(tr('chat.transferCancelled'));
-    } else if (!lastMessage.attachment) {
-      // Named attribution in the SR announcement too — "Message from
-      // Windows PC" tells the listener which device spoke, not just that
-      // *something* arrived.
-      setAnnouncement(session.partnerName ? tr('chat.messageFrom', { name: session.partnerName }) : tr('chat.messageReceived'));
+    const arrivals: string[] = [];
+    let fileArrived = false;
+    for (const message of session.messages) {
+      if (message.sender === 'me') continue;
+      const status = message.attachment?.status ?? 'text';
+      if (announcedStatuses.current.get(message.id) === status) continue;
+      announcedStatuses.current.set(message.id, status);
+      const name = message.senderDeviceName || session.partnerName;
+      if (status === 'complete') {
+        fileArrived = true;
+        const file = message.attachment!;
+        const item = file.type === 'image' ? tr('chat.photoReceived') : file.type === 'video' ? tr('chat.videoReceived') : file.type === 'audio' ? tr('chat.audioReceived') : tr('chat.fileReceived', { name: file.name });
+        arrivals.push(name ? tr('chat.receivedFrom', { item, name }) : item);
+      } else if (status === 'failed') arrivals.push(tr('chat.couldNotSend'));
+      else if (status === 'cancelled') arrivals.push(tr('chat.transferCancelled'));
+      else if (status === 'text') arrivals.push(name ? tr('chat.messageFrom', { name }) : tr('chat.messageReceived'));
     }
+    if (fileArrived) hapticArrive();
+    if (arrivals.length) setAnnouncement(arrivals.join(' '));
   }, [session.messages]);
   // "Connected" toast — fire ONCE per room, the moment the channel first
   // opens (room entry), never again for the life of the room. The old
@@ -472,6 +487,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
   useEffect(() => {
     const tr = tRef.current;
     if (partnerLinkHealthy) {
+      if (session.roomId) noteConnectedRoom(session.roomId);
       setAnnouncement(tr('common.connected'));
       if (connectedToastRoomRef.current !== session.roomId) {
         connectedToastRoomRef.current = session.roomId;
@@ -1653,7 +1669,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 ~100ms to as much as 2000ms (measured, verify-quality). The
                 rim, specular and graded fill cost a single paint and read
                 the same at this size; the blur stays on static chrome. */}
-            <motion.div className="relative flex-1 min-w-0 rounded-[24px] st-lens st-lens-quiet overflow-visible focus-within:ring-2 focus-within:ring-ember/25 transition-shadow">
+            <motion.div className="relative flex-1 min-w-0 rounded-[24px] st-lens st-lens-quiet overflow-visible focus-within:ring-2 focus-within:ring-ember transition-shadow">
+            <ShortcutHints />
 
             {/* Multi-attachment preview strip — up to 20 files, each with a
                 circular remove button that's always visible and tappable. */}
@@ -1821,6 +1838,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
                 placeholder={(textareaRef.current?.clientWidth ?? 400) < 300 ? t('composer.placeholderShort') : t('composer.placeholder')}
                 aria-label={t('composer.aria')}
                 title={t('composer.title')}
+                aria-keyshortcuts="Enter Control+V Meta+V"
                 className="flex-1 min-w-0 min-h-[44px] max-h-[30vh] resize-none bg-transparent py-[9px] pl-2 pr-0.5 text-apple-ink dark:text-white placeholder:text-apple-ink-muted/70 dark:placeholder:text-white/35 focus:outline-none text-[16px] leading-[26px] st-verbatim placeholder-shown:whitespace-nowrap placeholder-shown:text-ellipsis placeholder-shown:overflow-hidden"
               />
               <button

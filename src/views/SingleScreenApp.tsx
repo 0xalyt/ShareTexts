@@ -40,6 +40,7 @@ import { ShuffleHeading } from '../components/ShuffleHeading';
 import { GlassCapsule } from '../components/ui/GlassCapsule';
 import { GlassCircleButton } from '../components/ui/GlassCircleButton';
 import { ListRow } from '../components/ui/ListRow';
+import { RecentDevicesRow } from '../components/RecentDevicesRow';
 import { ScreenStack } from '../components/ui/ScreenStack';
 import { OverlaySheet } from '../components/OverlaySheet';
 import { TactileButton } from '../components/TactileButton';
@@ -191,6 +192,13 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     return stored.isCreator ? 'sending' : 'connecting';
   });
   const [isCreating, setIsCreating] = useState(false);
+  useEffect(() => {
+    if (panelMode === 'sending' && session.secret) productEvent('product.code_shown');
+  }, [panelMode, session.secret]);
+  const [sharedArrival] = useState(() => {
+    const q = new URLSearchParams(window.location.search);
+    return { id: q.get('share_id'), error: q.has('share_error') };
+  });
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   // Settings — one overlay for theme / language / stay connected / reconnect.
   const [showSettings, setShowSettings] = useState(false);
@@ -862,6 +870,22 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     void handleCodeComplete(code);
   }, [handleReceive, handleCodeComplete]);
 
+  const sharedArrivalStarted = useRef(false);
+  useEffect(() => {
+    if (sharedArrivalStarted.current || (!sharedArrival.id && !sharedArrival.error)) return;
+    sharedArrivalStarted.current = true;
+    window.history.replaceState(null, '', window.location.pathname);
+    if (sharedArrival.error) { setCreateError({ text: t('shareTarget.failed'), icon: 'info' }); return; }
+    void import('../lib/shareTarget').then(m => m.takeSharedItems(sharedArrival.id!)).then(items => {
+      const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+      w.__stHomeDropFiles = items.files;
+      w.__stPendingIntentText = items.text;
+      // Staging, never auto-sending: the user still chooses the recipient
+      // and presses Send, exactly as with a file dropped on the landing.
+      void handleSend();
+    }).catch(() => setCreateError({ text: t('shareTarget.failed'), icon: 'info' }));
+  }, [sharedArrival, handleSend, t]);
+
   const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
@@ -1331,6 +1355,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   used), Temporary Space opens a chooser instead of putting two
                   buttons and a recents rail in the hero. */}
               <div className="landing-utilities order-8 flex w-full flex-col" data-testid="home-rows">
+                <RecentDevicesRow onOpen={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }} />
                 {/* My devices comes first: for anyone who has linked a device
                     it is the shortest path on the page. */}
                 <ListRow

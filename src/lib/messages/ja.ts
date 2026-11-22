@@ -3,6 +3,9 @@ import type { Dict } from './types';
 export const STATUS = 'draft' as const;
 
 const ja: Dict = {
+  "nav.changelog": "新着情報",
+  "shareTarget.failed": "共有された内容を開けませんでした。合計100 MB未満、20ファイル以内で再試行するか、ShareTextsでファイルを選んでください。",
+  "chat.receivedFrom": "{item} 送信元：{name}。",
   "chat.empty.title": "共有の準備ができました",
   "space.showQr": "QR コードを表示",
   "space.hideQr": "QR コードを隠す",

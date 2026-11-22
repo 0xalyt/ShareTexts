@@ -24,6 +24,7 @@ import { OfflineBanner } from './components/AnnouncementBar';
 import { SingleScreenApp } from './views/SingleScreenApp';
 const Docs = lazy(() => import('./views/Docs').then(m => ({ default: m.Docs })));
 const About = lazy(() => import('./views/About').then(m => ({ default: m.About })));
+const Changelog = lazy(() => import('./views/Changelog').then(m => ({ default: m.Changelog })));
 const Legal = lazy(() => import('./views/Legal').then(m => ({ default: m.Legal })));
 const SpaceView = lazy(() => import('./views/SpaceView').then(m => ({ default: m.SpaceView })));
 
@@ -130,7 +131,7 @@ function CapabilityGate({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [ok] = useState(() => {
     try {
-      if (['/docs', '/about', '/privacy', '/terms'].includes(window.location.pathname)) return true;
+      if (['/docs', '/about', '/privacy', '/terms', '/changelog'].includes(window.location.pathname)) return true;
       const RTC = (window as unknown as { RTCPeerConnection?: unknown; webkitRTCPeerConnection?: unknown }).RTCPeerConnection
         ?? (window as unknown as { webkitRTCPeerConnection?: unknown }).webkitRTCPeerConnection;
       if (typeof RTC === 'undefined') return false;
@@ -281,6 +282,10 @@ function AppContent() {
 
   if (typeof window !== 'undefined' && window.location.pathname === '/about') {
     return <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton /></SkeletonGate>}><About /></Suspense>;
+  }
+
+  if (typeof window !== 'undefined' && window.location.pathname === '/changelog') {
+    return <Suspense fallback={<SkeletonGate min="100dvh" delay={300}><RouteSkeleton /></SkeletonGate>}><Changelog /></Suspense>;
   }
 
   if (typeof window !== 'undefined' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/s/')) {

@@ -480,6 +480,8 @@ export class PeerManager {
    *  left (grace elapsed / clean leave) and no calm window should apply. */
   public onDisconnectImmediate: (() => void) | null = null;
   public onHello: ((name: string) => void) | null = null;
+  /** The actual peer's hello name, not a server roster placeholder. */
+  public remoteDisplayName: string | null = null;
   /** The peer's hello handshake (name + protocol capabilities) arrived.
    *  featureMask: which of OUR features the peer also supports — the
    *  intersection both sides must respect (capability negotiation). */
@@ -946,7 +948,10 @@ export class PeerManager {
         if (this.peerRelayFragments === null) void this.sendHello();
         this.peerRelayFragments = Array.isArray(inner.features) && inner.features.includes('relay-fragments-v1');
         for (const done of this.relayCapabilityWaiters) done();
-        if (typeof inner.name === 'string' && this.onHello) this.onHello(inner.name);
+        if (typeof inner.name === 'string') {
+          this.remoteDisplayName = inner.name;
+          this.onHello?.(inner.name);
+        }
         if (this.onPeerCapabilities) {
           // Capability negotiation: intersect our features with the peer's so
           // both sides agree on the usable protocol surface. A legacy peer

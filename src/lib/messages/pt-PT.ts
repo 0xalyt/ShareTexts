@@ -15,6 +15,9 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  "nav.changelog": "Novidades",
+  "shareTarget.failed": "Não foi possível abrir. Tente novamente com até 20 ficheiros e menos de 100 MB no total ou escolha os ficheiros no ShareTexts.",
+  "chat.receivedFrom": "{item} De {name}.",
   "receive.note": "O código muda a cada 90 segundos. Se deixar de funcionar, use o código atual do outro dispositivo.",
   "qr.scan.typeCode": "Introduzir código",
   "chat.empty.dest": "Enviar para {name}",

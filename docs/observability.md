@@ -1,3 +1,22 @@
+# Launch funnel
+
+The existing free, aggregate event collector also counts these milestones:
+
+| Event | When it counts | Deduplication |
+| --- | --- | --- |
+| `product.page_view` | The app loads | Once per page load |
+| `product.code_shown` | A real room code is displayed | Once per page load |
+| `product.connected` | A peer link is healthy, not just a room created | Once per page load |
+| `product.first_item_received` | Text arrives or a complete file is assembled | Once per page load |
+| `product.second_session` | A device connects to a different room after completing an item in an earlier room | Once per browser installation |
+
+These are aggregate counts, not tracked-person conversion rates. A receiver
+can arrive by QR or link without seeing a code, and a returning device can
+start at a later milestone. Do not divide these numbers and label the result
+a cohort conversion rate. No room IDs, codes, device names, filenames or
+content leave the browser in these events; only the fixed event name does.
+Clearing browser storage resets the local return-session marker.
+
 # ShareText — Privacy-First Observability
 
 Operational metrics without turning ShareText into a tracking product. The product's
@@ -27,7 +46,7 @@ Anonymous aggregate counters, event-category only. Examples:
 - clipboard history, contact lists, personal identities
 - permanent device fingerprints, user agents, browser family
 - IP history beyond the Node server's per-request rate-limit bucket
-- any client-side event, ever
+- personal event histories (client milestones are fixed, aggregate names only)
 
 No event payload exists — a metric event is literally `{ name: "rooms.created" }`.
 There is no way to correlate a counter with a user, device, or session.
@@ -56,6 +75,7 @@ There is no way to correlate a counter with a user, device, or session.
 
 If/when a public privacy policy is published, the truthful statements are:
 "ShareText does not use analytics cookies or tracking scripts", "ShareText keeps
-anonymous aggregate usage counters to operate the service", "transfer contents are
-encrypted and never stored", and "temporary rooms close automatically". This
-inventory is the source of truth for that copy.
+anonymous aggregate usage counters to operate the service", "live-room transfer
+contents are encrypted in transit", and "temporary rooms close automatically".
+Temporary Spaces retain content for up to seven days; Hop retains encrypted
+items for up to 30 days. This inventory is the source of truth for that copy.

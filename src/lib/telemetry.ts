@@ -24,6 +24,10 @@
 type ProductEvent =
   // activation funnel
   | 'product.page_view'
+  | 'product.code_shown'
+  | 'product.connected'
+  | 'product.first_item_received'
+  | 'product.second_session'
   | 'product.first_interaction'
   | 'product.activation'          // first completed transfer on this device (per install)
   | 'product.transfer_completed'  // every completed transfer (rate-limited by nature)
@@ -44,6 +48,10 @@ type ProductEvent =
 
 const ALLOWED: ReadonlySet<string> = new Set<string>([
   'product.page_view',
+  'product.code_shown',
+  'product.connected',
+  'product.first_item_received',
+  'product.second_session',
   'product.first_interaction',
   'product.activation',
   'product.transfer_completed',
@@ -61,7 +69,9 @@ const ALLOWED: ReadonlySet<string> = new Set<string>([
 ]);
 
 /** Local de-dup: some events must fire once per install (activation). */
-const ONCE_PER_INSTALL = new Set<string>(['product.activation', 'product.first_interaction']);
+const ONCE_PER_INSTALL = new Set<string>(['product.activation', 'product.first_interaction', 'product.second_session']);
+const ONCE_PER_LOAD = new Set<string>(['product.page_view', 'product.code_shown', 'product.connected', 'product.first_item_received']);
+const sentThisLoad = new Set<string>();
 const DEDUP_KEY = 'sharetext.telemetry.once.v1';
 
 function onceGuard(name: string): boolean {
@@ -90,8 +100,6 @@ function beaconBase(): string {
   return window.location.origin;
 }
 
-let pageViewSent = false;
-
 /** Fire one anonymous event. Never throws, never blocks, never retries. */
 export function productEvent(name: ProductEvent): void {
   // Vite dev serves the app with no collector behind it (the route exists on
@@ -101,9 +109,10 @@ export function productEvent(name: ProductEvent): void {
   if (import.meta.env.DEV) return;
   if (!ALLOWED.has(name)) return;
   if (!onceGuard(name)) return;
-  // page_view once per load (SPA has no route changes that matter here)
-  if (name === 'product.page_view' && pageViewSent) return;
-  if (name === 'product.page_view') pageViewSent = true;
+  if (ONCE_PER_LOAD.has(name)) {
+    if (sentThisLoad.has(name)) return;
+    sentThisLoad.add(name);
+  }
   try {
     const url = beaconBase() + '/api/event?name=' + encodeURIComponent(name);
     if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {

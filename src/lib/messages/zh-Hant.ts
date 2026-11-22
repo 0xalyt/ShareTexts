@@ -15,6 +15,9 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const zhHant: Partial<Record<MsgKey, string>> = {
+  "nav.changelog": "最新動態",
+  "shareTarget.failed": "無法開啟分享內容。請重試，最多20個檔案，總大小小於100 MB，或在ShareTexts中選擇檔案。",
+  "chat.receivedFrom": "{item} 來自{name}。",
   "receive.note": "代碼每 90 秒更換一次。如果目前的代碼失效，請使用另一台裝置上顯示的最新代碼。",
   "qr.scan.typeCode": "輸入代碼",
   "chat.empty.dest": "傳送到 {name}",
