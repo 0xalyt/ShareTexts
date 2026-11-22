@@ -207,6 +207,11 @@ class DiagramParser(HTMLParser):
                 self.references.append((tag, data.get("rel", ""), value))
             if key in CSS_REFERENCE_ATTRS:
                 self.css_attributes.append(value)
+        if tag in {"set", "animate"} and data.get("attributename", "").strip().casefold() in REFERENCE_ATTRS:
+            for key, value in normalized_attrs:
+                if key in {"to", "from", "values", "by"}:
+                    for reference in value.split(";"):
+                        self.references.append((tag, "", reference))
         if "data-motion-root" in data:
             self.roots.append(data)
             if self._motion_root_depth is None:
