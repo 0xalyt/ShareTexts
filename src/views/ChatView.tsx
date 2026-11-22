@@ -614,9 +614,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       return;
     }
     const accepted: (Attachment & { file: File })[] = [];
+    let notice: string | null = null;
     for (const file of list) {
       if (accepted.length >= roomLeft) {
-        setErrorMsg(t('attach.overflow', { max: MAX_ATTACHMENTS, left: list.length - accepted.length }));
+        notice = t('attach.overflow', { max: MAX_ATTACHMENTS, left: list.length - accepted.length });
         break;
       }
       let kind = type;
@@ -632,10 +633,10 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
       // below is a heads-up, not a rejection: quality is never compromised.
       if (kind === 'image' && file.size > 100 * 1024 * 1024) {
         kind = 'file';
-        setErrorMsg(t('attach.largeImage', { name: file.name }));
+        notice = t('attach.largeImage', { name: file.name });
       }
       if (file.size > 4 * 1024 * 1024 * 1024) {
-        setErrorMsg(t('attach.tooLarge', { name: file.name }));
+        notice = t('attach.tooLarge', { name: file.name });
         continue;
       }
       accepted.push({
@@ -648,8 +649,8 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
         status: 'draft'
       });
     }
+    setErrorMsg(notice);
     if (accepted.length > 0) {
-      setErrorMsg(null);
       setAttachments(prev => [...prev, ...accepted]);
       setShowAttachmentMenu(false);
     }
@@ -661,11 +662,16 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     const pickUp = () => {
       const w = window as Window & { __stHomeDropFiles?: File[] };
       const parked = w.__stHomeDropFiles;
-      delete w.__stHomeDropFiles;
       if (parked?.length) {
-        // The generic intake path identifies each file independently. A
-        // photo first must not turn a following video or PDF into an image.
-        addFiles(parked, 'file');
+        // Keep a phone-share batch whole until it fits beside the restored
+        // draft. Removing/sending draft attachments retries this pickup.
+        if (parked.length > MAX_ATTACHMENTS - attachments.length) {
+          setErrorMsg(t('shareTarget.waiting'));
+        } else {
+          delete w.__stHomeDropFiles;
+          // Classify every file independently, including mixed media.
+          addFiles(parked, 'file');
+        }
       }
       const text = takeIntentText();
       if (text) {
@@ -676,7 +682,7 @@ export function ChatView({ panelMode }: { panelMode?: 'embedded' | 'standalone' 
     pickUp();
     window.addEventListener('sharetext:composer-intent', pickUp);
     return () => window.removeEventListener('sharetext:composer-intent', pickUp);
-  }, [draftReady, addFiles]);
+  }, [draftReady, addFiles, attachments.length, t]);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file' | 'video' | 'audio') => {
     if (!e.target.files || e.target.files.length === 0) return;
     addFiles(e.target.files, type);

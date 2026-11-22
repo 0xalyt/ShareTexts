@@ -17,6 +17,7 @@ export const STATUS = 'draft' as const;
 const ptPT: Partial<Record<MsgKey, string>> = {
   "nav.changelog": "Novidades",
   "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
+  "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",
   "chat.receivedFrom": "{item} De {name}.",
   "home.title": "Envia o que quiseres para o teu outro dispositivo.",
   "home.moreWays": "Mais formas de partilhar",

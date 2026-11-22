@@ -5,6 +5,7 @@ export const STATUS = 'draft' as const;
 const fr: Dict = {
   "nav.changelog": "Nouveautés",
   "shareTarget.failed": "Couldn’t open that share. Choose up to 20 files that aren’t empty, under 100 MB in total.",
+  "shareTarget.waiting": "Your shared files are waiting. Remove attachments or send this draft to make room.",
   "chat.receivedFrom": "{item} De {name}.",
   "home.moreWays": "D’autres façons de partager",
   "home.proof.open.title": "Ouvrez sur les deux appareils",
