@@ -61,13 +61,13 @@ function DisconnectToast({ reason, onDone }: { reason: string, onDone: () => voi
         <DoorOpen className="w-4 h-4 text-apple-ink-muted dark:text-white/60" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[13px] font-semibold text-apple-ink dark:text-white leading-snug">{heading}</span>
-        <span className="block text-[12px] text-apple-ink-muted dark:text-white/55 leading-snug mt-0.5">{copy}</span>
+        <span className="block text-[13px] font-medium text-apple-ink dark:text-white leading-snug">{heading}</span>
+        <span className="block text-[12px] text-apple-ink-muted dark:text-white/65 leading-snug mt-0.5">{copy}</span>
       </span>
       <button
         onClick={onDone}
         aria-label={t('details.close')}
-        className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted/60 hover:text-apple-ink dark:text-white/40 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+        className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-apple-ink-muted hover:text-apple-ink dark:text-white/65 dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
       >
         <X className="w-3.5 h-3.5" />
       </button>
@@ -145,7 +145,7 @@ function CapabilityGate({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh flex flex-col items-center justify-center text-center px-6 bg-apple-canvas dark:bg-night-900">
       <ShareTextsLogo size={44} mono />
       <h1 className="st-h3 mt-5 text-apple-ink dark:text-white max-w-[420px]">{t('compat.title')}</h1>
-      <p className="mt-3 text-[16px] text-apple-ink-muted dark:text-white/55 leading-relaxed max-w-[440px]">{t('compat.body')}</p>
+      <p className="mt-3 text-[16px] text-apple-ink-muted dark:text-white/65 leading-relaxed max-w-[440px]">{t('compat.body')}</p>
     </div>
   );
 }
@@ -190,7 +190,7 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
           ShareTexts couldn't load properly. Your data is safe — nothing was lost.
         </p>
         <TactileButton onClick={onReset} variant="primary" size="lg">Return to ShareTexts</TactileButton>
-        <div className="mt-5 flex items-center gap-5 text-[13px] font-medium text-apple-ink-muted dark:text-white/45">
+        <div className="mt-5 flex items-center gap-5 text-[13px] font-medium text-apple-ink-muted dark:text-white/65">
           <a href="/" className="hover:text-apple-ink dark:hover:text-white transition-colors">Go home</a>
           <span aria-hidden className="w-1 h-1 rounded-full bg-apple-divider" />
           <a href="/about" className="hover:text-apple-ink dark:hover:text-white transition-colors">About</a>
@@ -198,7 +198,7 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
           <a href="/docs" className="hover:text-apple-ink dark:hover:text-white transition-colors">Open docs</a>
         </div>
       </main>
-      <footer className="shrink-0 pb-6 text-center text-[12px] font-medium text-apple-ink-muted/60 dark:text-white/30">
+      <footer className="shrink-0 pb-6 text-center text-[12px] font-medium text-apple-ink-muted dark:text-white/30">
         If this keeps happening, the error is on our side — it usually clears with a retry.
       </footer>
     </div>
@@ -311,7 +311,7 @@ function AppContent() {
             <TactileButton href="/docs" variant="secondary" size="lg">{t('nav.docs')}</TactileButton>
           </div>
         </main>
-        <footer className="shrink-0 pb-6 text-center text-[12px] font-medium text-apple-ink-muted/60 dark:text-white/30">
+        <footer className="shrink-0 pb-6 text-center text-[12px] font-medium text-apple-ink-muted dark:text-white/30">
           sharetexts.online
         </footer>
       </div>
@@ -332,7 +332,7 @@ function SkipLink() {
   if (['/docs', '/about', '/privacy', '/terms'].includes(window.location.pathname)) return null;
   return (
     // Keyboard users jump past the hero to main content
-    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-azure-600 focus:text-white focus:rounded-lg focus:text-[16px] focus:font-semibold">
+    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-azure-600 focus:text-white focus:rounded-lg focus:text-[16px] focus:font-medium">
       {t('app.skip')}
     </a>
   );

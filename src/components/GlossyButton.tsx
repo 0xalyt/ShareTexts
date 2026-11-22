@@ -17,7 +17,7 @@ import { hapticTap } from '../lib/haptics';
  *
  * The fill, ring, sheen strength and shadow stack are all custom properties,
  * and `html.dark` re-declares them: light deepens the middle stop so the
- * white label keeps 3:1 against it, night steps the fill down and swaps the
+ * ink label stays readable at the smaller control size, night swaps the
  * invisible black drop shadow for an ember halo.
  *
  * Pressed it scales to 0.97 on a crisp spring while the inner light dims,

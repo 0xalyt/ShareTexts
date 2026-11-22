@@ -8,14 +8,13 @@
  *
  *   · the panel tracks the pointer 1:1 while dragging (transform follows)
  *   · the scrim dims as it leaves, and never goes fully transparent
- *   · a slow release before the threshold settles BACK, on the published
- *     drawer curve cubic-bezier(0.32, 0.72, 0, 1) — not a spring we invented
+ *   · a slow release before the threshold springs back without closing
  *   · a fast flick past the threshold closes it
  *   · Escape closes it, and focus returns to the trigger
  *   · the page scroll lock is released afterwards (a page that cannot scroll
  *     after a sheet is the one bug nobody forgives)
- *   · under prefers-reduced-motion the drag does nothing and the close is an
- *     opacity fade, never a fling
+ *   · under prefers-reduced-motion dragging stays usable, but release settles
+ *     immediately and dismissal never flings
  *
  *   BASE_URL=http://localhost:3081 node scripts/verify-sheet-drag.mjs
  */
@@ -114,27 +113,30 @@ out('the panel follows the pointer while dragging', typeof midY === 'number' && 
 out('the scrim dims with the drag but never disappears', midScrim !== null && midScrim < 0.9 && midScrim > 0.05, `opacity=${midScrim}`);
 out('a short drag settles back instead of closing', await page.evaluate(() => !!document.querySelector('[data-testid="more-sheet"]')));
 
-/* ── 2. the settle curve is the published drawer curve ────────────────────── */
-await page.evaluate(() => {
-  const panel = document.querySelector('[data-testid="more-sheet"]');
-  panel.dataset.gateEasings = '';
-});
-await dragHandle(page, 30, { steps: 8, pauseBeforeUp: 220 });
-const settle = await page.evaluate(() => {
-  const panel = document.querySelector('[data-testid="more-sheet"]');
-  if (!panel) return null;
-  const cs = getComputedStyle(panel);
-  return { curve: cs.transitionTimingFunction, duration: cs.transitionDuration };
-});
-out('the settle runs on cubic-bezier(0.32, 0.72, 0, 1)',
-  !!settle && settle.curve.includes('cubic-bezier(0.32, 0.72, 0, 1)'),
-  settle ? `${settle.curve} / ${settle.duration}` : 'no transition on the panel');
-// The duration is distance ÷ release speed, not a constant: a gentle nudge
-// must not take as long as a long drag.
-const dur = settle ? parseFloat(settle.duration) : NaN;
-out('the settle duration is bounded by the release speed, 180–450ms',
-  dur >= 0.179 && dur <= 0.451, `${(dur * 1000).toFixed(0)}ms`);
-await page.waitForTimeout(600);
+/* ── 2. a spring settles and can be caught without a jump ────────────────── */
+await dragHandle(page, 45, { steps: 8, pauseBeforeUp: 220 });
+await page.waitForTimeout(25);
+const springY = await panelY(page);
+out('a released sheet starts from its painted position', typeof springY === 'number' && springY > 0 && springY < 46, `translateY=${springY}px`);
+const handle = page.locator('[data-testid="more-sheet"] [data-sheet-handle]');
+const catchBox = await handle.boundingBox();
+if (catchBox) {
+  await page.mouse.move(catchBox.x + catchBox.width / 2, catchBox.y + catchBox.height / 2);
+  const beforeCatch = await panelY(page);
+  await page.mouse.down();
+  const afterCatch = await panelY(page);
+  out('catching a moving sheet preserves its position', typeof beforeCatch === 'number' && typeof afterCatch === 'number' && Math.abs(afterCatch - beforeCatch) < 12, `${beforeCatch}px → ${afterCatch}px`);
+  await page.waitForTimeout(120);
+  const heldY = await panelY(page);
+  out('a caught sheet stays under the held pointer', typeof afterCatch === 'number' && typeof heldY === 'number' && Math.abs(heldY - afterCatch) < 1, `${afterCatch}px → ${heldY}px`);
+  // A small intentional nudge claims the drag and then releases the caught panel.
+  await page.mouse.move(catchBox.x + catchBox.width / 2, catchBox.y + catchBox.height / 2 + 12, { steps: 5 });
+  await page.waitForTimeout(180);
+  await page.mouse.up();
+} else out('a released sheet remains available to catch', false);
+await page.waitForTimeout(650);
+const restingY = await panelY(page);
+out('the sheet settles at rest without a layout transition', typeof restingY === 'number' && Math.abs(restingY) < 1, `translateY=${restingY}px`);
 
 /* ── 3. a flick closes ───────────────────────────────────────────────────── */
 if (!(await page.evaluate(() => !!document.querySelector('[data-testid="more-sheet"]')))) await openMore(page);
@@ -174,10 +176,9 @@ const calm = await calmCtx.newPage();
 await calm.goto(BASE, { waitUntil: 'domcontentloaded' });
 await calm.getByTestId('header-more').click();
 await calm.waitForTimeout(500);
-await dragHandle(calm, 120, { steps: 8 });
-await calm.waitForTimeout(300);
+await dragHandle(calm, 35, { steps: 8, pauseBeforeUp: 180 });
 const calmY = await panelY(calm);
-out('reduced motion ignores the drag (nothing moves)', calmY === 0, `translateY=${calmY}px`);
+out('reduced motion settles immediately after a short drag', calmY === 0, `translateY=${calmY}px`);
 await calm.keyboard.press('Escape');
 await calm.waitForTimeout(400);
 out('reduced motion closes without a fling',

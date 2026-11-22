@@ -41,12 +41,12 @@ export function PlatformStrip({ className }: { className?: string }) {
       <div className="mb-3.5 flex items-baseline gap-3">
         <h2
           id="platforms-title"
-          className="text-[12px] font-semibold uppercase tracking-[0.09em] text-apple-ink-muted/70 dark:text-white/40"
+          className="text-[13px] font-medium tracking-normal text-apple-ink-muted dark:text-white/65"
         >
           Works everywhere
         </h2>
         <span className="h-px flex-1 bg-apple-divider/70 dark:bg-white/[0.07]" aria-hidden />
-        <span className="text-[12px] font-medium text-apple-ink-muted/60 dark:text-white/30">
+        <span className="text-[12px] font-medium text-apple-ink-muted dark:text-white/65">
           nothing to install
         </span>
       </div>
@@ -61,8 +61,8 @@ export function PlatformStrip({ className }: { className?: string }) {
             key={p.name}
             className="flex shrink-0 items-center gap-2 rounded-full border border-apple-divider/70 bg-white/60 px-3.5 py-2 dark:border-white/[0.08] dark:bg-white/[0.04]"
           >
-            <Glyph kind={p.kind} className="h-3.5 w-3.5 text-apple-ink-muted dark:text-white/45" />
-            <span className="text-[13px] font-semibold tracking-[-0.01em] text-apple-ink/80 dark:text-white/70">
+            <Glyph kind={p.kind} className="h-3.5 w-3.5 text-apple-ink-muted dark:text-white/65" />
+            <span className="text-[13px] font-medium tracking-[-0.01em] text-apple-ink/80 dark:text-white/70">
               {p.name}
             </span>
           </li>

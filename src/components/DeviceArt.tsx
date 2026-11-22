@@ -125,7 +125,7 @@ export function DeviceArt({ kind, model, gpu, size = 56, mark = true, pulse = fa
       {/* GPU vendor badge — desktops only, only when the browser TOLD us. */}
       {kind === 'desktop' && gpu && size >= 48 && (
         <span
-          className={`absolute -bottom-1.5 -right-1.5 px-1.5 h-[15px] min-w-[15px] rounded-[8px] flex items-center justify-center text-[8.5px] font-extrabold tracking-wide ${VENDOR_STYLE[gpu] ?? VENDOR_STYLE.Apple}`}
+          className={`absolute -bottom-1.5 -right-1.5 px-1.5 h-[15px] min-w-[15px] rounded-[8px] flex items-center justify-center text-[8.5px] font-medium tracking-wide ${VENDOR_STYLE[gpu] ?? VENDOR_STYLE.Apple}`}
         >
           {gpu === 'Intel' ? 'i' : gpu.charAt(0)}
         </span>

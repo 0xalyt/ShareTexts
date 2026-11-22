@@ -180,7 +180,7 @@ export function SendScreen({
             )}
             data-testid="send-code-card"
           >
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-apple-ink-muted dark:text-white/70">
+            <p className="text-[13px] font-normal tracking-normal text-apple-ink-muted dark:text-white/70">
               {t('send.roomCode')}
             </p>
             <div
@@ -198,7 +198,7 @@ export function SendScreen({
                       <span
                         key={`${start}-${i}-${d}`}
                         aria-hidden
-                        className="font-bold st-code leading-none text-[44px] sm:text-[48px] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[30px]"
+                        className="font-medium st-code leading-none text-[44px] sm:text-[48px] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[30px]"
                       >
                         {d}
                       </span>
@@ -240,7 +240,7 @@ export function SendScreen({
           {expired ? (
             <button
               onClick={onNewCode}
-              className="press mt-3 w-full min-h-[44px] rounded-[12px] bg-[#f06413] text-white text-[16px] font-semibold [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:text-[13px]"
+              className="press mt-3 w-full min-h-[44px] rounded-[12px] bg-ember-ink text-white text-[15px] font-medium [@media(max-height:520px)]:mt-1.5 [@media(max-height:520px)]:text-[13px]"
               data-testid="new-code"
             >
               {t('send.newCode')}
@@ -249,7 +249,7 @@ export function SendScreen({
             <button
               onClick={handleCopy}
               disabled={!code}
-              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[16px] font-semibold text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:text-[13px]"
+              className="press mt-3 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[12px] border border-apple-divider dark:border-white/12 bg-white dark:bg-white/[0.06] text-[15px] font-medium text-apple-ink dark:text-white disabled:opacity-40 [@media(max-height:520px)]:mt-2 [@media(max-height:520px)]:text-[13px]"
               data-testid="copy-code"
             >
               {justCopied ? <AlloSymbol name="check" size={16} className="text-status-success" /> : <Copy className="w-4 h-4" aria-hidden />}
@@ -297,7 +297,7 @@ export function SendScreen({
   return (
     <div className="st-task w-full max-w-[480px] mx-auto flex flex-col h-[calc(100dvh-82px)]" data-testid="send-screen">
       <div className="st-pairing-content st-send-content min-h-0 flex-1 overflow-y-auto overscroll-contain room-scroll">
-      <h2 className="shrink-0 text-[34px] font-bold leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
+      <h2 className="shrink-0 text-[34px] font-medium leading-[1.14] tracking-[-0.02em] text-apple-ink dark:text-white [@media(max-height:520px)]:text-[22px] [@media(max-height:520px)]:leading-none">
         {t('send.title')}
       </h2>
       <p className="st-task-intro">{t('send.subtitle')}</p>
@@ -307,7 +307,7 @@ export function SendScreen({
       {isCreating && !secret ? (
         <div className="flex flex-col items-center py-12" aria-live="polite">
           <LogoTraceLoader size={56} strokeWidth={4.5} className="text-ember" aria-hidden />
-          <p className="mt-3 text-[16px] font-medium text-apple-ink-muted dark:text-white/70">{t('create.creating')}</p>
+          <p className="mt-3 text-[16px] font-normal text-apple-ink-muted dark:text-white/70">{t('create.creating')}</p>
         </div>
       ) : (
         <>
@@ -342,7 +342,7 @@ export function SendScreen({
                 <p className="text-[13px] leading-snug text-apple-ink dark:text-white/85">{shownError.text}</p>
                 <button
                   onClick={onRetry}
-                  className="press mt-2 min-h-[44px] min-w-[44px] text-[13px] font-semibold text-[#c2410c] dark:text-[#ffb340] underline underline-offset-2"
+                  className="press mt-2 min-h-[44px] min-w-[44px] text-[13px] font-medium text-[#c2410c] dark:text-[#ffb340] underline underline-offset-2"
                   data-testid="send-retry"
                 >
                   {t('common.tryAgain')}

@@ -193,10 +193,10 @@ export function InstallNudge() {
           </span>
 
           <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-semibold leading-snug text-apple-ink dark:text-white">
+            <span className="block text-[13px] font-medium leading-snug text-apple-ink dark:text-white">
               {t('install.title')}
             </span>
-            <span className="mt-0.5 block text-[12px] leading-snug text-apple-ink-muted dark:text-white/55">
+            <span className="mt-0.5 block text-[12px] leading-snug text-apple-ink-muted dark:text-white/65">
               {manual ? t('install.iosBody') : t('install.body')}
             </span>
 
@@ -205,7 +205,7 @@ export function InstallNudge() {
                   the instruction in the body IS the action. A fake button
                   would be worse than none. */}
               {manual ? (
-                <span className="inline-flex min-h-[44px] items-center gap-1.5 text-[12px] font-semibold text-ember dark:text-azure-400">
+                <span className="inline-flex min-h-[44px] items-center gap-1.5 text-[12px] font-medium text-ember dark:text-azure-400">
                   <Share2 className="h-3.5 w-3.5" aria-hidden />
                   Share › Add to Home Screen
                 </span>
@@ -218,7 +218,7 @@ export function InstallNudge() {
                     if (!shown) silenceInstall(true);
                     setVisible(false);
                   }}
-                  className="inline-flex min-h-[44px] min-w-[44px] items-center gap-1.5 rounded-full bg-ember px-3.5 text-[12px] font-semibold text-white transition-transform active:scale-[0.96]"
+                  className="inline-flex min-h-[44px] min-w-[44px] items-center gap-1.5 rounded-full bg-ember-ink px-3.5 text-[12px] font-medium text-white transition-transform active:scale-[0.97]"
                 >
                   <Download className="h-3.5 w-3.5" aria-hidden />
                   {t('install.cta')}
@@ -228,7 +228,7 @@ export function InstallNudge() {
                 type="button"
                 data-testid="install-snooze"
                 onClick={() => close(false)}
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/45 dark:hover:text-white"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-2 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/65 dark:hover:text-white"
               >
                 {t('install.later')}
               </button>
@@ -236,7 +236,7 @@ export function InstallNudge() {
                 type="button"
                 data-testid="install-never"
                 onClick={() => close(true)}
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 text-[12px] font-medium text-apple-ink-muted/70 transition-colors hover:text-apple-ink dark:text-white/30 dark:hover:text-white/70"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center px-1.5 text-[12px] font-medium text-apple-ink-muted transition-colors hover:text-apple-ink dark:text-white/65 dark:hover:text-white/70"
               >
                 {t('install.never')}
               </button>
@@ -247,7 +247,7 @@ export function InstallNudge() {
             type="button"
             aria-label={t('install.later')}
             onClick={() => close(false)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-apple-ink-muted transition-colors hover:bg-black/[0.05] hover:text-apple-ink dark:text-white/40 dark:hover:bg-white/[0.08] dark:hover:text-white"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-apple-ink-muted transition-colors hover:bg-black/[0.05] hover:text-apple-ink dark:text-white/65 dark:hover:bg-white/[0.08] dark:hover:text-white"
           >
             <X className="h-3.5 w-3.5" aria-hidden />
           </button>

@@ -19,7 +19,7 @@ import { useI18n } from '../lib/i18n';
 export function TypingDots({ className = '' }: { className?: string }) {
   const reduced = useMotionPreference();
   if (reduced) {
-    return <span className={`text-[12px] font-medium text-apple-ink-muted dark:text-white/50 ${className}`}>···</span>;
+    return <span className={`text-[12px] font-medium text-apple-ink-muted dark:text-white/65 ${className}`}>···</span>;
   }
   return (
     <span className={`inline-flex items-end gap-[3px] ${className}`} aria-hidden>

@@ -152,7 +152,7 @@ export function MessageActions({
             onClick={(e) => { if (e.detail === 0) { onReact(emoji); onClose(); } }}
             aria-label={t('msg.reactWith', { emoji })}
             data-testid={`tapback-${emoji}`}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-[19px] leading-none transition-transform active:scale-[0.96] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[19px] leading-none transition-transform active:scale-[0.97] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
           >
             {emoji}
           </button>
@@ -188,7 +188,7 @@ export function MessageActions({
           /* Honest about where it deletes: this device's copy only. The other
              device keeps what it already received — saying "delete" alone
              would imply a recall the protocol cannot do. */
-          <p className="px-3.5 pb-2 pt-0.5 text-[11px] leading-snug text-apple-ink-muted dark:text-white/45">
+          <p className="px-3.5 pb-2 pt-0.5 text-[11px] leading-snug text-apple-ink-muted dark:text-white/65">
             {t('msg.deleteLocalHint')}
           </p>
         )}

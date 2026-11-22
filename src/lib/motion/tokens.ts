@@ -11,9 +11,11 @@
  * ── Duration ladder ────────────────────────────────────────────────────
  * instant  60ms   press feedback that should read as immediate
  * micro   120ms   taps, toggles, copy confirmations, tooltips
- * short   180ms   backdrop fades, small state flips, hover transitions
+ * hover   150ms   pointer feedback
+ * short   200ms   backdrop fades and small state flips
  * medium  280ms   toasts, popovers, structural entrances
- * long    480ms   sheets settling, image fade-in — the longest UI beat
+ * sheet   400ms   structural surfaces (physical spring for gestures)
+ * long    480ms   image fade-in; a singular hero beat may use 600ms
  *
  * Frequent interactions use short values: no animation may make the app
  * feel slower than the operation it describes. Long-running loops are
@@ -35,8 +37,13 @@
  *  never visibly appears and never unmounts from AnimatePresence). */
 export const DUR = {
   instant: 60,
+  press: 120,
+  hover: 150,
+  state: 200,
+  sheet: 400,
+  hero: 600,
   micro: 120,
-  short: 180,
+  short: 200,
   medium: 280,
   long: 480,
 } as const;
@@ -59,17 +66,7 @@ export const EASE = {
 } as const;
 
 /**
- * How long a released sheet takes to settle: the distance still to travel at
- * the speed the finger left with, clamped to the range a hand reads as
- * "carried through" rather than "animated". A short flick settles in ~180ms,
- * a long lazy drag in ~450ms.
- */
-export function settleSeconds(distance: number, velocityPxPerMs: number): number {
-  const speed = Math.max(Math.abs(velocityPxPerMs) * 1000, 260); // px/s, floored
-  return Math.min(0.45, Math.max(0.18, Math.abs(distance) / speed));
-}
-
-/** iOS-like edge resistance: increasing pull gives diminishing travel.
+ * iOS-like edge resistance: increasing pull gives diminishing travel.
  * Approximation documented at preetsuthar.me/writing/the-maths-of-ios-scrolling.
  * Unlike multiplying by a constant, it can never escape the view's extent. */
 export function rubberBand(distance: number, dimension: number): number {
@@ -84,7 +81,7 @@ export function rubberBand(distance: number, dimension: number): number {
  */
 export const SPRING = {
   /** Sheets and structural surfaces: the existing OverlaySheet feel. */
-  sheet: { stiffness: 380, damping: 36 },
+  sheet: { stiffness: 400, damping: 31 },
   /** Command palette / popovers: duration-bounded spring, no drift. */
   panel: { type: 'spring', bounce: 0.12, duration: 0.38 } as const,
   /** Small direct-manipulation feedback (toggles, chips, thumbnails). */
