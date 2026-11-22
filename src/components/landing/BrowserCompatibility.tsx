@@ -2,8 +2,8 @@ import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
 import { Check, Copy, Pause, Play, QrCode } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
 
-// Mount the QR only on request. Other app screens can already have loaded
-// this shared chunk. This is the website address, not a room invitation.
+// Desktop shows a website QR without creating a room or a Worker request.
+// Phones load the same shared chunk only when requested.
 const WebsiteQr = lazy(() => import('../qr/QrArt').then(module => ({ default: module.QrArt })));
 
 const BROWSERS = [
@@ -71,8 +71,16 @@ export function WebsiteHandoff() {
   const qrId = useId();
   const qrTrigger = useRef<HTMLButtonElement>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [desktop, setDesktop] = useState(() => window.matchMedia('(min-width: 768px)').matches);
+  const qrVisible = desktop || qrOpen;
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const address = window.location.origin;
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 768px)');
+    const sync = () => setDesktop(media.matches);
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
   useEffect(() => {
     if (copyState !== 'copied') return;
     const timer = window.setTimeout(() => setCopyState('idle'), 2400);
@@ -89,7 +97,7 @@ export function WebsiteHandoff() {
   };
   return (
     <aside className="landing-browser-utility" aria-labelledby={titleId} onKeyDown={event => {
-      if (event.key === 'Escape' && qrOpen) {
+      if (event.key === 'Escape' && qrOpen && !desktop) {
         event.stopPropagation();
         setQrOpen(false);
         qrTrigger.current?.focus();
@@ -104,13 +112,13 @@ export function WebsiteHandoff() {
             {copyState === 'copied' ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
             <span>{t(copyState === 'copied' ? 'space.copied' : 'space.copyLink')}</span>
           </button>
-          <button ref={qrTrigger} type="button" className="landing-quiet-button" data-testid="landing-website-qr" aria-expanded={qrOpen} aria-controls={qrId} onClick={() => setQrOpen(value => !value)}>
+          <button ref={qrTrigger} type="button" className="landing-quiet-button landing-qr-trigger" data-testid="landing-website-qr" aria-expanded={qrVisible} aria-controls={qrId} onClick={() => setQrOpen(value => !value)}>
             <QrCode aria-hidden="true" /><span>{t(qrOpen ? 'home.browser.hideQr' : 'home.browser.qr')}</span>
           </button>
         </div>
         <p role="status" className="landing-browser-feedback">{copyState === 'copied' ? t('command.textCopied') : copyState === 'error' ? t('home.browser.copyFailed') : ''}</p>
-        <div id={qrId} hidden={!qrOpen} className="landing-browser-qr">
-          {qrOpen && <>
+        <div id={qrId} hidden={!qrVisible} className="landing-browser-qr">
+          {qrVisible && <>
             <Suspense fallback={<span className="landing-qr-loading">{t('common.loading')}</span>}>
               <WebsiteQr value={address} size={144} logo={false} label={t('home.browser.qrHint')} />
             </Suspense>

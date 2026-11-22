@@ -102,7 +102,6 @@ import {
   Compass, ShieldCheck, FileText,
 } from 'lucide-react';
 import { Wifi, WifiOff, ServerOff, Infinity as InfinityIcon, Image as ImageIcon, Languages, MonitorSmartphone } from 'lucide-react';
-import { HOP } from '../lib/brand';
 import { HOP_EVENT, parseHopLink, readHopCache, readSharedText, type HopLink } from '../lib/hop/flag';
 // Hop (linked devices) carries WebCrypto and IndexedDB code: it loads when a
 // person opens it or already has linked devices, never for a first visit.
@@ -863,6 +862,31 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     void handleCodeComplete(code);
   }, [handleReceive, handleCodeComplete]);
 
+  // Body-level paste is a shortcut, never a clipboard read on page load.
+  // Editors and open sheets keep their normal paste behavior.
+  useEffect(() => {
+    if (panelMode !== 'idle' || showSaved || showSettings || showMore || cmdOpen ||
+        hopSheet || nearbySheet || spaceSheet || showQROverlay || showQRScan) return;
+    const paste = (event: ClipboardEvent) => {
+      // Nested controls (for example the footer language sheet) own their
+      // open state, so also check the active modal boundary at event time.
+      if (event.defaultPrevented || creatingRef.current || document.querySelector('[role="dialog"][aria-modal="true"], dialog[open], [aria-haspopup="listbox"][aria-expanded="true"]') ||
+          (event.target instanceof Element && event.target.closest('input, textarea, [contenteditable], [role="textbox"]'))) return;
+      const files = Array.from(event.clipboardData?.files ?? []);
+      const text = event.clipboardData?.getData('text/plain') ?? '';
+      if (!files.length && !text.trim()) return;
+      event.preventDefault();
+      const pending = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+      // A clipboard image can also carry its filename as text: queue the
+      // image once, not an unwanted filename message beside it.
+      if (files.length) { pending.__stHomeDropFiles = files; delete pending.__stPendingIntentText; }
+      else { pending.__stPendingIntentText = text; delete pending.__stHomeDropFiles; }
+      void handleSend();
+    };
+    document.addEventListener('paste', paste);
+    return () => document.removeEventListener('paste', paste);
+  }, [panelMode, showSaved, showSettings, showMore, cmdOpen, hopSheet, nearbySheet, spaceSheet, showQROverlay, showQRScan, handleSend]);
+
   const handleDisconnect = useCallback(() => { createAbortRef.current++; joinAbortRef.current++; setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); clearAcceptBeat(); setIsJoining(false); }, [abandonSession, clearAcceptBeat]);
   const handleCancel = useCallback(() => {
     createAbortRef.current++;
@@ -874,6 +898,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     // happened (caught by verify-nav: Send → Back → Send). The abandoned
     // attempt still closes its own room when it resolves (thisAttempt check).
     creatingRef.current = false;
+    const pending = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+    delete pending.__stHomeDropFiles;
+    delete pending.__stPendingIntentText;
     clearAcceptBeat();
     setPanelMode('idle'); abandonSession(); setCreateError(null); setIsCreating(false); setJoinError(null); setIsJoining(false);
   }, [abandonSession, clearAcceptBeat]);
@@ -1074,6 +1101,16 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             three controls on the narrowest screen, which is the Hick limit.
             Everything else the capsule used to carry moves into More. */}
         <div className="flex items-center gap-2">
+          {panelMode === 'idle' ? (
+            <nav className="landing-nav hidden items-center sm:flex" aria-label={t('nav.more')}>
+              <a href="/docs" className="landing-nav-link">{t('nav.docs')}</a>
+              <button type="button" className="landing-nav-link" aria-label={savedNavLabel} onClick={() => setShowSaved(true)} data-testid="open-saved">
+                {t('nav.saved')}{savedCount > 0 && <bdi className="tnum">{fmtNumber(lang, savedCount)}</bdi>}
+              </button>
+              <LanguageMenu />
+              <ThemeToggle />
+            </nav>
+          ) : (
           <div className="hidden items-center gap-2.5 sm:flex">
             {/* Docs leaves the glyph capsule and becomes the one NAMED thing
                 in the header. Four unlabeled icons in a row is a guessing
@@ -1113,6 +1150,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             </GlassCapsule>
             {panelMode !== 'connected' && <ThemeToggle />}
           </div>
+          )}
           <div className="flex items-center gap-2 sm:hidden">
             {/* ONE instrument cluster on a phone: More and the theme control
                 share a capsule, split by a hairline. Two separate objects
@@ -1153,6 +1191,70 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
   const here = typeof window !== 'undefined' ? window.location.pathname : '';
   const inApp = React.useMemo(() => detectInApp(), []);
   const showInAppNotice = inApp.inApp && !inAppDismissed && (inApp.limited || inApp.ios || inApp.android);
+
+  const moreWaysNode = (
+    <section className="landing-more w-full" aria-labelledby="more-ways-title">
+      <h2 id="more-ways-title" className="st-h2">{t('home.moreWays')}</h2>
+      <div>
+              <div className="landing-shortcut w-full">
+                <IntentField
+                  onCreate={handleIntentCreate}
+                  onJoin={handleIntentJoin}
+                  busy={isCreating || isJoining}
+                />
+              </div>
+
+              {/* The two quiet doors (§18): lists, not cards. Nearby says what
+                  it is doing in the subtitle (same words the discovery row
+                  used), Temporary Space opens a chooser instead of putting two
+                  buttons and a recents rail in the hero. */}
+              <div className="landing-utilities flex w-full flex-col" data-testid="home-rows">
+                {/* My devices comes first: for anyone who has linked a device
+                    it is the shortest path on the page. */}
+                <ListRow
+                  title={t('hop.title')}
+                  subtitle={hop?.devices.length
+                    ? hop.devices.map(d => d.label || t('hop.devices.unnamed')).join(', ')
+                    : t('hop.row.hint')}
+                  trailing={hop?.unread ? (
+                    <span className="rounded-full bg-ember/12 px-2 py-0.5 text-[12px] font-semibold text-ember-ink dark:text-ember" data-testid="home-hop-new">
+                      {t('hop.row.new', { count: hop.unread })}
+                    </span>
+                  ) : undefined}
+                  leading={<MonitorSmartphone className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
+                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(false); openHop(); }}
+                  testId="home-hop"
+                />
+                <ListRow
+                  title={t('nearby.title')}
+                  subtitle={nearbyStatus || undefined}
+                  leading={(
+                    <span className="relative flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
+                      <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/35" />
+                      <span className="relative h-1.5 w-1.5 rounded-full bg-status-success" />
+                    </span>
+                  )}
+                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }}
+                  testId="home-nearby"
+                />
+                {/* Retention is a fact, not a sentence: it sits in the
+                    trailing slot, so the row reads in one glance. */}
+                <ListRow
+                  title={t('space.entryTitle')}
+                  trailing={(
+                    <span className="text-[13px] font-medium tabular-nums text-apple-ink-muted dark:text-white/45">
+                      {t('space.retention')}
+                    </span>
+                  )}
+                  leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
+                  onClick={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('choose'); }}
+                  testId="home-space"
+                />
+              </div>
+
+      </div>
+    </section>
+  );
 
   const idleHeroNode = (
             // Deterministic first paint: the hero renders visible immediately;
@@ -1242,13 +1344,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               <div className="landing-hero-film st-hide-landscape order-5 w-full">
                 <HeroLaunchFilm playback={filmPlayback} />
               </div>
-              <div className="landing-shortcut order-6 w-full">
-                <IntentField
-                  onCreate={handleIntentCreate}
-                  onJoin={handleIntentJoin}
-                  busy={isCreating || isJoining}
-                />
-              </div>
               {/* Stay Connected re-entry: the room this device promised to
                   keep alive is one tap away — history included. Only shown
                   when idle AND not currently seated elsewhere. */}
@@ -1327,55 +1422,6 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
               {/* The rating moved OFF the landing (slop inventory #12):
                   feedback now lives in Settings, reachable but never
                   mid-marketing-page. */}
-              {/* The two quiet doors (§18): lists, not cards. Nearby says what
-                  it is doing in the subtitle (same words the discovery row
-                  used), Temporary Space opens a chooser instead of putting two
-                  buttons and a recents rail in the hero. */}
-              <div className="landing-utilities order-8 flex w-full flex-col" data-testid="home-rows">
-                {/* My devices comes first: for anyone who has linked a device
-                    it is the shortest path on the page. */}
-                <ListRow
-                  title={t('hop.title')}
-                  subtitle={hop?.devices.length
-                    ? hop.devices.map(d => d.label || t('hop.devices.unnamed')).join(', ')
-                    : t('hop.row.hint')}
-                  trailing={hop?.unread ? (
-                    <span className="rounded-full bg-ember/12 px-2 py-0.5 text-[12px] font-semibold text-ember-ink dark:text-ember" data-testid="home-hop-new">
-                      {t('hop.row.new', { count: hop.unread })}
-                    </span>
-                  ) : (
-                    <span className="text-[13px] font-medium text-apple-ink-muted dark:text-white/45">{HOP}</span>
-                  )}
-                  leading={<MonitorSmartphone className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
-                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(false); openHop(); }}
-                  testId="home-hop"
-                />
-                <ListRow
-                  title={t('nearby.title')}
-                  subtitle={nearbyStatus || undefined}
-                  leading={(
-                    <span className="relative flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
-                      <span className="st-halo-ring absolute inset-0 rounded-full bg-status-success/35" />
-                      <span className="relative h-1.5 w-1.5 rounded-full bg-status-success" />
-                    </span>
-                  )}
-                  onClick={() => { setCmdOpen(false); setSpaceSheet(null); setNearbySheet(true); }}
-                  testId="home-nearby"
-                />
-                {/* Retention is a fact, not a sentence: it sits in the
-                    trailing slot, so the row reads in one glance. */}
-                <ListRow
-                  title={t('space.entryTitle')}
-                  trailing={(
-                    <span className="text-[13px] font-medium tabular-nums text-apple-ink-muted dark:text-white/45">
-                      {t('space.retention')}
-                    </span>
-                  )}
-                  leading={<Clock3 className="h-4 w-4" strokeWidth={1.6} aria-hidden />}
-                  onClick={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('choose'); }}
-                  testId="home-space"
-                />
-              </div>
               {createError && (
                 <SystemAlert
                   className="mt-4"
@@ -2125,8 +2171,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
             <div className="w-full min-w-0">{idleHeroNode}</div>
           </div>
           <LandingActivity />
+          <ThreeThings />
           <BrowserCompatibility />
-          <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
+          {moreWaysNode}
           <LandingFaq />
           {/* No repeat CTA down here. The hero already owns Send / Receive,
               and a second pair at the foot of the page made the same two
@@ -2240,8 +2287,9 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                   {panelMode === 'idle' && (
                     <div className="w-full">
                       <LandingActivity />
+                      <ThreeThings />
                       <BrowserCompatibility />
-                      <ThreeThings onOpenSpace={() => { setCmdOpen(false); setNearbySheet(false); setSpaceSheet('create'); }} />
+                      {moreWaysNode}
                       <LandingFaq />
                     </div>
                   )}

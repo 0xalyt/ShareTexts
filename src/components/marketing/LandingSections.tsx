@@ -1,8 +1,6 @@
-import { useId, useState } from 'react';
 import { AlloSymbol } from '../AlloSymbol';
 import { useI18n } from '../../lib/i18n';
 import { FaqSection, type QA } from './FaqSection';
-import { PairingDetail, TransferDetail, SpaceDetail } from '../landing/ProductDetails';
 import { WebsiteHandoff } from '../landing/BrowserCompatibility';
 export { BrowserCompatibility } from '../landing/BrowserCompatibility';
 
@@ -33,75 +31,27 @@ function SectionHead({ heading, id }: { heading: string; id?: string }) {
 
 /* ── Handoff guide — one idea at a time, with no automatic progression ───── */
 
-const STORIES = ['pair', 'send'] as const;
+const STEPS = ['open', 'pair', 'arrive'] as const;
 
-export function ThreeThings({ onOpenSpace }: { onOpenSpace: () => void }) {
+export function ThreeThings() {
   const { t, lang } = useI18n();
-  const guideId = useId();
-  const [step, setStep] = useState<{ key: typeof STORIES[number]; animate: boolean }>({ key: 'pair', animate: false });
-  const number = (value: number) => new Intl.NumberFormat(lang, { minimumIntegerDigits: 2 }).format(value);
   return (
     <section aria-labelledby="how-title" className="landing-story w-full py-16">
       <SectionHead id="how-title" heading={t('home.three.heading')} />
       <WebsiteHandoff />
-      <div className="landing-guide">
-        <div>
-          <ol className="landing-guide-steps" aria-label={t('home.how.eyebrow')}>
-            {STORIES.map((key, i) => (
-              <li key={key}>
-                <button
-                  type="button"
-                  className="landing-guide-step"
-                  data-testid={`landing-guide-${key}`}
-                  aria-pressed={step.key === key}
-                  aria-controls={`${guideId}-example`}
-                  aria-labelledby={`${guideId}-label ${guideId}-${key}-title`}
-                  aria-describedby={`${guideId}-${key}-body`}
-                  onClick={event => {
-                    if (key !== step.key) setStep({ key, animate: event.detail > 0 });
-                  }}
-                >
-                  <span className="landing-guide-index" aria-hidden="true">{number(i + 1)}</span>
-                  <span>
-                    <strong id={`${guideId}-${key}-title`}>{t(`home.three.${key}.lead`)}</strong>
-                    <span id={`${guideId}-${key}-body`} className="landing-guide-body">{t(`home.three.${key}.body`)}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </div>
-        <figure id={`${guideId}-example`} className="landing-guide-frame">
-          {/* Explanation, not ambient motion: only pointer selection fades
-              between illustrations. Persistent layers let rapid selections
-              retarget from their current values instead of restarting.
-              Keyboard selection and reduced motion are instantaneous. */}
-          <div className="landing-guide-example" data-animate={step.animate}>
-            <div className="landing-guide-layer" data-active={step.key === 'pair'}><PairingDetail /></div>
-            <div className="landing-guide-layer" data-active={step.key === 'send'}><TransferDetail /></div>
-          </div>
-          <figcaption>
-            <span id={`${guideId}-label`}>{t('demo.handoff.illustration')}</span>
-            <span aria-hidden="true">{number(step.key === 'pair' ? 1 : 2)} / {number(2)}</span>
-          </figcaption>
-        </figure>
-      </div>
-      {/* A server-backed shelf is an alternative to a live room, not step
-          three of a transfer. Give it its own space and a real way in. */}
-      <div className="landing-story-later">
-        <div className="landing-story-later-copy">
-          <span className="landing-space-label">{t('space.entryTitle')}</span>
-          <h3>{t('home.later.heading')}</h3>
-          <p>{t('home.three.keep.body')}</p>
-          <p className="landing-space-storage">{t('home.space.storage')}</p>
-          <button type="button" onClick={onOpenSpace} className="landing-text-action" data-testid="landing-open-space">
-            {t('space.createHeading')}<AlloSymbol name="right" />
-          </button>
-        </div>
-        <div className="landing-story-later-art">
-          <SpaceDetail />
-        </div>
-      </div>
+      <ol className="landing-proof" aria-label={t('home.how.eyebrow')}>
+        {STEPS.map((step, i) => (
+          <li key={step} data-testid={`landing-proof-${step}`}>
+            <div className="landing-proof-screen" aria-hidden="true" lang="en">
+              <img className="landing-proof-light" src={`/media/landing/${step}-light.webp`} width="390" height="480" loading="lazy" decoding="async" alt="" />
+              <img className="landing-proof-dark" src={`/media/landing/${step}-dark.webp`} width="390" height="480" loading="lazy" decoding="async" alt="" />
+            </div>
+            <h3><bdi>{new Intl.NumberFormat(lang).format(i + 1)}.</bdi> {t(`home.proof.${step}.title`)}</h3>
+            <p>{t(`home.proof.${step}.body`)}</p>
+          </li>
+        ))}
+      </ol>
+      <p className="landing-privacy-line">{t('home.privacyLine')} <a href="/privacy">{t('nav.privacy')}</a></p>
     </section>
   );
 }

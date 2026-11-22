@@ -15,6 +15,15 @@ import type { MsgKey } from './types';
 export const STATUS = 'draft' as const;
 
 const ptPT: Partial<Record<MsgKey, string>> = {
+  "home.title": "Envia o que quiseres para o teu outro dispositivo.",
+  "home.moreWays": "Mais formas de partilhar",
+  "home.proof.open.title": "Abre nos dois dispositivos",
+  "home.proof.open.body": "Abre o ShareTexts em cada dispositivo. Sem aplicação nem conta.",
+  "home.proof.pair.title": "Lê ou introduz o código",
+  "home.proof.pair.body": "Escolhe Enviar num dispositivo e Receber no outro. Usa o QR ou o código de seis dígitos.",
+  "home.proof.arrive.title": "Já chegou",
+  "home.proof.arrive.body": "Envia uma nota, fotografia ou ficheiro. Mantém ambos os dispositivos abertos até chegar.",
+  "home.privacyLine": "As salas em direto cifram os dados em trânsito. Os Espaços guardam textos e ligações no servidor até serem fechados ou expirarem.",
   "home.roomsMade": "salas criadas",
   "home.activity.title": "Atividade das salas",
   "home.three.heading": "Um código liga os seus dispositivos.",
@@ -22,7 +31,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   "home.faq.heading": "Antes de enviar",
   "home.faq.more": "Ler o guia",
   "home.faq.q2": "Os dois dispositivos têm de estar online?",
-  "home.faq.a2": "Para Enviar e Receber, mantenha o ShareTexts aberto nos dois dispositivos. Para deixar textos e ligações para mais tarde, use um Espaço temporário.",
+  "home.faq.a2": "Para Enviar e Receber, mantenha o ShareTexts aberto nos dois dispositivos. Para deixar textos e ligações para mais tarde, use um Espaço.",
   "home.faq.a7": "Texto, ligações e qualquer tipo de ficheiro, incluindo fotografias, vídeos, PDF e arquivos comprimidos. Os ficheiros mantêm a qualidade original.",
   "receive.note": "O código muda a cada 90 segundos. Se deixar de funcionar, use o código atual do outro dispositivo.",
   "qr.scan.typeCode": "Introduzir código",
@@ -46,8 +55,8 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   'reading.englishOnly': "Esta página está atualmente disponível apenas em inglês.",
   'footer.devices': 'Os seus dispositivos',
   'demo.s7': 'Feche a sala quando terminar.',
-  "home.faq.a6": "As salas em direto são encriptadas durante o envio. O ShareTexts fornece as chaves da sala. Os Espaços temporários guardam textos e ligações no servidor até serem fechados ou expirarem. Os itens guardados ficam no seu navegador. Consulte a política de privacidade.",
-  'home.faq.a1': 'Mova textos, ligações, fotografias e ficheiros entre os seus dispositivos. Use uma sala em direto para enviar no momento, ou um Espaço temporário para recolher textos e ligações mais tarde.',
+  "home.faq.a6": "As salas em direto são encriptadas durante o envio. O ShareTexts fornece as chaves da sala. Os Espaços guardam textos e ligações no servidor até serem fechados ou expirarem. Os itens guardados ficam no seu navegador. Consulte a política de privacidade.",
+  'home.faq.a1': 'Mova textos, ligações, fotografias e ficheiros entre os seus dispositivos. Use uma sala em direto para enviar no momento, ou um Espaço para recolher textos e ligações mais tarde.',
   'app.ended.sub': 'Não precisa de conta. Os itens guardados ficam neste navegador.',
   'film.download': "Descarregar o filme",
   'film.from': "De um ecrã",
@@ -59,7 +68,7 @@ const ptPT: Partial<Record<MsgKey, string>> = {
   'film.pause': "Pausar filme",
   'film.watch': "Ver o filme",
   // mouth: the home screen
-  'home.subheading': 'Chegou o AirDrop para todos',
+  "home.subheading": "Sem aplicação nem conta.",
   "home.subtitle": "Textos, ligações, fotografias, vídeos e ficheiros. Sem aplicação nem conta.",
   'home.how.1': 'Abra o ShareTexts nos dois dispositivos.',
 
