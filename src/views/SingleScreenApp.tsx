@@ -884,19 +884,14 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
     const intakeAttempt = createAbortRef.current;
     window.history.replaceState(null, '', window.location.pathname);
     if (sharedArrival.error) { setCreateError({ text: t('shareTarget.failed'), icon: 'info' }); return; }
-    void import('../lib/shareTarget').then(m => m.takeSharedItems(sharedArrival.id!)).then(items => {
-      // Reading Cache Storage may finish after the user has already backed
-      // out. Consumption still clears its bytes, but must not restart Send.
-      if (intakeAttempt !== createAbortRef.current) return;
-      const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
-      w.__stHomeDropFiles = items.files;
-      w.__stPendingIntentText = items.text;
+    void import('../lib/shareTarget').then(m => m.stageSharedItems(
+      sharedArrival.id!, () => intakeAttempt === createAbortRef.current,
+    )).then(staged => {
       // Staging, never auto-sending: the user still chooses the recipient
       // and presses Send, exactly as with a file dropped on the landing.
       // A restored room owns its history and received files. Reuse it rather
       // than silently replacing it just because the phone opened a share.
-      window.dispatchEvent(new Event('sharetext:composer-intent'));
-      if (!session.roomId && !loadStoredSession()?.roomId) void handleSend();
+      if (staged && !session.roomId && !loadStoredSession()?.roomId) void handleSend();
     }).catch(() => setCreateError({ text: t('shareTarget.failed'), icon: 'info' }));
   }, [sharedArrival, handleSend, session.roomId, t]);
 

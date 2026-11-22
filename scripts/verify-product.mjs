@@ -97,6 +97,13 @@ try {
   await assert.rejects(product.takeSharedItems(id), /expired/, 'completed reads release their file references');
   await assert.rejects(product.takeSharedItems('../bad-id'));
 
+  const canceled = await share(form);
+  const canceledId = new URL(canceled.headers.get('location')).searchParams.get('share_id');
+  assert.equal(await product.stageSharedItems(canceledId, () => false), false);
+  assert.equal(window.__stHomeDropFiles, undefined, 'a canceled cache read cannot restage files');
+  assert.equal(window.__stPendingIntentText, undefined, 'a canceled cache read cannot restage text');
+  assert.equal((await inbox.keys()).length, 0, 'canceling during a read still deletes the cached bytes');
+
   const expiredId = crypto.randomUUID();
   const base = `${origin}/__share/${expiredId}/`;
   await inbox.put(base + 'meta', new Response(JSON.stringify({ at: Date.now() - 601_000, text: 'old', files: [] })));

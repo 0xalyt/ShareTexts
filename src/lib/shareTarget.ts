@@ -5,6 +5,17 @@ const CACHE = 'sharetexts-share-inbox-v1';
 export interface SharedItems { text: string; files: File[] }
 const reads = new Map<string, Promise<SharedItems>>();
 
+/** Keep phone-only staging in this lazy module, off the landing's first load. */
+export async function stageSharedItems(id: string, isCurrent: () => boolean): Promise<boolean> {
+  const items = await takeSharedItems(id);
+  if (!isCurrent()) return false;
+  const w = window as Window & { __stHomeDropFiles?: File[]; __stPendingIntentText?: string };
+  w.__stHomeDropFiles = items.files;
+  w.__stPendingIntentText = items.text;
+  window.dispatchEvent(new Event('sharetext:composer-intent'));
+  return true;
+}
+
 export function takeSharedItems(id: string): Promise<SharedItems> {
   const existing = reads.get(id);
   if (existing) return existing;
