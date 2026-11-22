@@ -80,6 +80,24 @@
   }
 
   .hop-timeline {
-    padding-block: 16px;
+    min-height: 64px;
+    padding-block: 8px;
+  }
+
+  /* Expanded device controls must yield before the editing row does. */
+  .hop-device-header {
+    min-height: 0;
+    max-height: 45%;
+    flex-shrink: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .hop-composer {
+    padding-block: 8px;
+  }
+
+  .hop-composer textarea {
+    max-height: 78px;
   }
 }

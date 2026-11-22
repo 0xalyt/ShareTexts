@@ -233,6 +233,21 @@ try {
   ok(!(await B.getByTestId('home-hop').textContent()).includes('Link once'), 'the link is still there after a reload');
   await B.getByTestId('home-hop').click();
   ok(await until(async () => (await texts(B, 'hop-in')).includes(T1), 20_000), 'and so is what was received');
+  await B.setViewportSize({ width: 640, height: 380 });
+  const unsent = 'A draft to keep\nwith several lines\nwhile checking devices\nand the unlink controls.';
+  await B.getByTestId('hop-input').fill(unsent);
+  await B.getByTestId('hop-unlink').click();
+  for (const [selector, name] of [['.hop-composer > button', 'Add file'], ['[data-testid="hop-send"]', 'Send']]) {
+    const reachable = await B.locator(selector).evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const x = r.left + r.width / 2, y = r.top + r.height / 2;
+      return x > 0 && x < innerWidth && y > 0 && y < innerHeight && el.contains(document.elementFromPoint(x, y));
+    });
+    ok(reachable, `${name} stays reachable during short-screen unlink confirmation`);
+  }
+  await B.getByTestId('hop-unlink-cancel').click();
+  ok(await B.getByTestId('hop-input').inputValue() === unsent, 'canceling unlink preserves the multiline draft');
+  ok(await B.getByTestId('hop-unlink').evaluate((el) => el === document.activeElement), 'canceling returns keyboard focus to Unlink');
   await B.getByTestId('hop-unlink').click();
   await B.getByTestId('hop-unlink-confirm').click();
   ok(await until(async () => (await view(B)) === 'intro'), 'unlinking returns this device to the start');

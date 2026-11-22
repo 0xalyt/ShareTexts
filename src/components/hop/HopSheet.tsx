@@ -103,6 +103,7 @@ export function HopSheet({
   const listRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const unlinkRef = useRef<HTMLButtonElement | null>(null);
   const joinRef = useRef<HopJoin | null>(null);
   const joinAttempt = useRef(0);
   const activeAt = useRef(Date.now());
@@ -466,7 +467,7 @@ export function HopSheet({
 
         {view === 'home' && (
           <>
-            <div className="shrink-0 px-5 sm:px-6">
+            <div className="hop-device-header shrink-0 px-5 sm:px-6" data-sheet-no-drag>
               {heading(t('hop.title'))}
               <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/60" data-testid="hop-devices">
                 {devices.map((d) => (
@@ -486,7 +487,7 @@ export function HopSheet({
                   <AlloSymbol name="plus" size={16} />
                   {t('hop.devices.add')}
                 </button>
-                <button type="button" onClick={() => setConfirmUnlink((value) => !value)} aria-expanded={confirmUnlink} data-testid="hop-unlink" className="hop-action min-h-[44px] rounded-[12px] px-2 text-[13px] text-apple-ink-muted hover:bg-black/[0.04] dark:text-white/60 dark:hover:bg-white/[0.06]">
+                <button ref={unlinkRef} type="button" onClick={() => setConfirmUnlink((value) => !value)} aria-expanded={confirmUnlink} data-testid="hop-unlink" className="hop-action min-h-[44px] rounded-[12px] px-2 text-[13px] text-apple-ink-muted hover:bg-black/[0.04] dark:text-white/60 dark:hover:bg-white/[0.06]">
                   {t('hop.unlink')}
                 </button>
               </div>
@@ -495,7 +496,7 @@ export function HopSheet({
                   <p className="text-[14px] leading-relaxed text-apple-ink-muted dark:text-white/60">{t('hop.unlink.hint')}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <TactileButton variant="secondary" size="sm" onClick={doUnlink} data-testid="hop-unlink-confirm">{t('hop.unlink')}</TactileButton>
-                    <TactileButton variant="ghost" size="sm" onClick={() => setConfirmUnlink(false)}>{t('action.cancel')}</TactileButton>
+                    <button type="button" autoFocus data-testid="hop-unlink-cancel" className="st-btn st-btn--sm st-btn--tertiary" onClick={() => { setConfirmUnlink(false); unlinkRef.current?.focus(); }}><span className="flex items-center leading-none">{t('action.cancel')}</span></button>
                   </div>
                 </div>
               )}
