@@ -414,6 +414,9 @@ export class Lobby extends DurableObject<Env> {
       }
     }
     if (changed) await this.broadcastNow();
-    await this.ctx.storage.setAlarm(now + PRESENCE_SWEEP_MS);
+    // An empty lobby stops sweeping; the next connection re-arms it.
+    if (conns.size > 0 || this.ctx.getWebSockets().length > 0) {
+      await this.ctx.storage.setAlarm(now + PRESENCE_SWEEP_MS);
+    }
   }
 }
