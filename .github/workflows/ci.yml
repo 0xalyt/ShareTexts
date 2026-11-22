@@ -100,7 +100,9 @@ jobs:
           BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/e2e.mjs
 
       - name: Three-device encrypted relay files
-        run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-relay-files.mjs
+        run: |
+          node scripts/start-ci-worker.mjs --restart
+          BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/verify-relay-files.mjs
 
       - name: Screenshots (this engine)
         run: BROWSER=${{ matrix.browsers }} URL=http://localhost:3311 node scripts/capture-matrix.mjs
@@ -108,7 +110,14 @@ jobs:
 
       - name: Worker diagnostics on failure
         if: failure()
-        run: cat audit/worker.log
+        run: |
+          if [ -f audit/worker.log ]; then cat audit/worker.log; fi
+          for log in "$HOME"/.config/.wrangler/logs/*.log; do
+            if [ -f "$log" ]; then
+              echo "--- $log ---"
+              cat "$log"
+            fi
+          done
 
       - name: Upload evidence
         if: always()

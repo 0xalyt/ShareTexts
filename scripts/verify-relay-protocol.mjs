@@ -8,9 +8,9 @@ import { gotoPage } from './lib.mjs';
 
 const directory = mkdtempSync(path.join(tmpdir(), 'sharetexts-relay-'));
 try {
-  const stub = 'export const getSocket=()=>({on(){},off(){},emit:(...args)=>globalThis.__relayFrames?.push(args)}); export const diag=()=>{}; export const devLog=()=>{}; export const beginTransferRecord=()=>{}; export const finishTransferRecord=()=>{}; export const recordTransferProgress=()=>{}; export const setCurrentTransport=()=>{}; export const productEvent=()=>{}; export const setDataChannel=()=>{};';
+  const stub = 'export const getSocket=()=>({on(){},off(){},emit:(...args)=>globalThis.__relayFrames?.push(args)}); export const diag=(...args)=>globalThis.__peerDiags?.push(args); export const devLog=()=>{}; export const beginTransferRecord=()=>{}; export const finishTransferRecord=()=>{}; export const recordTransferProgress=()=>{}; export const setCurrentTransport=()=>{}; export const productEvent=()=>{}; export const setDataChannel=()=>{};';
   await build({
-    entryPoints: ['src/lib/webrtc.ts', 'src/lib/cloudflareSocket.ts', 'src/lib/crypto.ts', 'src/lib/binaryUtils.ts', 'src/lib/relayBinary.ts'],
+    entryPoints: ['src/lib/webrtc.ts', 'src/lib/cloudflareSocket.ts', 'src/lib/crypto.ts', 'src/lib/binaryUtils.ts', 'src/lib/relayBinary.ts', 'src/lib/connectionState.ts'],
     bundle: true, platform: 'node', format: 'esm', outdir: directory,
     define: { 'import.meta.env': '{}' }, logLevel: 'silent',
     plugins: [{ name: 'browser-services', setup(builder) {
@@ -194,6 +194,129 @@ try {
   console.log('PASS full encrypted 128-KiB chunk: fragmented relay arrives before metadata, decrypts intact, completes once');
   clearAllTransferState();
   console.log('PASS binary receive: concurrent/late duplicates complete once, early metadata race, empty frame, malformed/decryption retry');
+
+  const { connMachine } = await load('connectionState');
+  const originals = { setInterval, clearInterval, setTimeout, clearTimeout, now: Date.now, pc: globalThis.RTCPeerConnection };
+  let now = 100_000;
+  let timerId = 0;
+  const intervals = new Map();
+  const timeouts = new Map();
+  class FakeChannel {
+    readyState = 'connecting';
+    bufferedAmount = 0;
+    close() { this.readyState = 'closed'; this.onclose?.(); }
+    send() {}
+  }
+  class FakePeerConnection {
+    connectionState = 'connecting';
+    iceConnectionState = 'checking';
+    remoteDescription = null;
+    channels = [];
+    createDataChannel() { const channel = new FakeChannel(); this.channels.push(channel); return channel; }
+    async createOffer() { return { type: 'offer', sdp: 'test' }; }
+    async setLocalDescription(description) { this.localDescription = description; }
+    async getStats() { return new Map(); }
+    close() {
+      this.connectionState = 'closed';
+      this.channels.forEach(channel => channel.close());
+      this.onconnectionstatechange?.();
+    }
+  }
+  const settle = () => new Promise(resolve => setImmediate(resolve));
+  let lifecycle;
+  let disconnects;
+  const startLifecycle = async () => {
+    intervals.clear(); timeouts.clear(); now = 100_000;
+    globalThis.__peerDiags = [];
+    connMachine.reset(); connMachine.to('PAIRING'); connMachine.to('ICE_CHECKING');
+    lifecycle = new PeerManager('ice-lifecycle', 'secret', true, key);
+    disconnects = 0;
+    lifecycle.onDisconnect = () => { disconnects++; connMachine.to('RECONNECTING'); };
+    lifecycle.initiateConnection('peer');
+    await settle();
+  };
+  const tick = async elapsed => {
+    now = 100_000 + elapsed;
+    intervals.get(lifecycle.retryTimer)?.();
+    await settle();
+  };
+  const assertQuiet = () => {
+    assert.equal(disconnects, 0, 'intentional close must not disconnect');
+    assert.equal(lifecycle.lastFailureCode, null);
+    assert.equal(globalThis.__peerDiags.some(([stage]) => stage === 'conn.state.rejected'), false);
+  };
+  try {
+    globalThis.RTCPeerConnection = FakePeerConnection;
+    Date.now = () => now;
+    globalThis.setInterval = fn => { const id = ++timerId; intervals.set(id, fn); return id; };
+    globalThis.clearInterval = id => intervals.delete(id);
+    globalThis.setTimeout = (fn, delay) => { const id = ++timerId; timeouts.set(id, { fn, delay }); return id; };
+    globalThis.clearTimeout = id => timeouts.delete(id);
+    for (const state of ['connecting', 'connected']) {
+      await startLifecycle();
+      const pc = lifecycle.getPc();
+      const channel = lifecycle.getDataChannel();
+      const oldClose = channel.onclose;
+      const oldOpen = channel.onopen;
+      const oldControlClose = lifecycle.cc.onclose;
+      const oldPcState = pc.onconnectionstatechange;
+      pc.remoteDescription = { type: 'answer' };
+      pc.connectionState = state;
+      for (let elapsed = 2500; elapsed < 20000; elapsed += 2500) {
+        await tick(elapsed);
+        assert.equal(lifecycle.getPc(), pc, 'answered ICE must survive normal retry ticks');
+      }
+      if (state === 'connecting') pc.iceConnectionState = 'failed';
+      await tick(state === 'connecting' ? 18000 : 20000);
+      assert.notEqual(lifecycle.getPc(), pc, 'failed ICE or the ceiling permits retry');
+      assert.equal(pc.connectionState, 'closed');
+      lifecycle.ccOpen = true;
+      oldClose(); oldOpen(); oldControlClose(); oldPcState();
+      assert.equal(lifecycle.ccOpen, true, 'retired control channel cannot reset its replacement');
+      assert.equal(lifecycle.getDataChannel().readyState, 'connecting');
+      assertQuiet();
+      lifecycle.destroy(); assertQuiet();
+    }
+    await startLifecycle();
+    const unanswered = lifecycle.getPc();
+    await tick(2500);
+    assert.notEqual(lifecycle.getPc(), unanswered, 'an unanswered offer retains the quick retry');
+    await tick(5000); await tick(7500);
+    assert.equal(intervals.size, 0, 'retry budget stays bounded');
+    lifecycle.retryConnection();
+    await settle(); assertQuiet();
+    lifecycle.destroy(); assertQuiet();
+
+    await startLifecycle();
+    const slow = lifecycle.getPc();
+    slow.remoteDescription = { type: 'answer' };
+    lifecycle.onConnectionTypeChange = type => assert.equal(type, 'relay');
+    lifecycle.onOpen = () => connMachine.to('CONNECTED');
+    await tick(5000);
+    assert.equal(lifecycle.getPc(), slow);
+    timeouts.get(lifecycle.relayFallbackTimer).fn();
+    await settle();
+    assert.equal(lifecycle.isRelayFallback, true, 'five-second relay remains usable');
+    const channel = lifecycle.getDataChannel();
+    channel.readyState = 'open';
+    channel.onopen();
+    await settle();
+    assert.equal(lifecycle.isRelayFallback, false, 'a late direct channel replaces relay');
+    await tick(7500);
+    assert.equal(intervals.size, 0);
+    assertQuiet();
+    channel.onclose();
+    assert.equal(disconnects, 1, 'a real active-channel close still disconnects');
+    assert.equal(lifecycle.lastFailureCode, 'DATA_CHANNEL_FAILED');
+    lifecycle.destroy();
+  } finally {
+    lifecycle?.destroy();
+    Object.assign(globalThis, { setInterval: originals.setInterval, clearInterval: originals.clearInterval, setTimeout: originals.setTimeout, clearTimeout: originals.clearTimeout, RTCPeerConnection: originals.pc });
+    Date.now = originals.now;
+    delete globalThis.__peerDiags;
+    connMachine.reset();
+  }
+  console.log('PASS ICE lifecycle: answered checking/connected waits, failure/20s ceiling retries, bounded unanswered/manual retries, stale teardown stays quiet, relay and late direct upgrade, genuine disconnect');
 
   const timeout = Object.assign(new Error('navigation timeout'), { name: 'TimeoutError' });
   for (const scenario of ['success', 'recover', 'chromium', 'real-url', 'wrong-document', 'incomplete', 'non-timeout', 'retry-fails']) {
