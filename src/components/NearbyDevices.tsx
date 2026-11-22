@@ -625,7 +625,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
               /* 44px tall, not the pill's visual 28: this is the one control in
                  the strip that commits something, so it has to meet the repo's
                  tap-target floor rather than inherit the label's line height. */
-              className="press inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-ember px-3.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
+              className="press inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center rounded-full bg-ember px-3.5 text-[12.5px] font-semibold text-white shadow-[0_1px_2px_rgba(240,100,19,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/35 focus-visible:ring-offset-2 dark:bg-azure-400 dark:text-apple-ink"
             >
               {t('nearby.accept')}
             </button>
@@ -925,7 +925,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
                         type="button"
                         data-testid="nearby-fail-retry"
                         onClick={() => { void handleInvite(failedDevice); }}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] min-h-[44px]"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,transform,opacity] min-h-[44px] min-w-[44px]"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> {t('nearby.failRetry')}
                       </button>
@@ -956,7 +956,7 @@ export function NearbyDevices({ onStatus }: { onStatus?: (s: string | null) => v
             data-testid="nearby-why-toggle"
             aria-expanded={whyOpen}
             onClick={() => { setWhyOpen(o => !o); }}
-            className="flex items-center gap-1.5 px-1.5 -mx-1.5 my-1 min-h-[44px] text-[13px] font-semibold text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-1.5 -mx-1.5 my-1 min-h-[44px] min-w-[44px] text-[13px] font-semibold text-apple-ink-muted dark:text-white/50 hover:text-apple-ink dark:hover:text-white transition-colors"
           >
             {t('nearby.whyTitle')}
             <motion.span animate={{ rotate: whyOpen ? 180 : 0 }} transition={{ duration: quiet ? 0 : DUR.micro / 1000 }} className="inline-flex" aria-hidden>

@@ -4,6 +4,9 @@
  * BROWSERS=chromium,firefox,webkit tests the same contracts across engines.
  * The fixture exists only in this test server, never in the shipped app. */
 import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createServer, transformWithEsbuild } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -26,6 +29,8 @@ import { PairingGuide } from '/src/components/ui/PairingGuide';
 import { ConnectHandshake } from '/src/components/ConnectHandshake';
 import { TransferStamp } from '/src/components/TransferStamp';
 import { AttachmentPanel, AttachmentTrigger } from '/src/components/AttachmentPanel';
+import { SavedItemsOverlay } from '/src/components/SavedItemsOverlay';
+import { saveItem } from '/src/lib/savedStore';
 import { initMotionIntent } from '/src/lib/motionIntent';
 import '/src/index.css';
 import '/src/styles/apple-dna.css';
@@ -43,13 +48,22 @@ function Fixture() {
   const [menu, setMenu] = useState(false);
   const [selected, setSelected] = useState('');
   const [surface, setSurface] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(false);
   const trigger = useRef(null);
   const feed = useRef(null);
   const resolve = useRef(null);
-  window.contracts = { setNumber, setProgress, setComplete, setConnected, setSurface };
+  window.contracts = { setNumber, setProgress, setComplete, setConnected, setSurface,
+    async seedSavedImage() {
+      const blob = await (await fetch('/icon-192.png')).blob();
+      await saveItem({ originKey: 'motion-photo', kind: 'image', createdAt: Date.now(),
+        filename: 'motion-photo.png', mimeType: blob.type, size: blob.size, blob });
+    },
+  };
   return <MotionConfig reducedMotion="user"><I18nProvider>
     <main style={{ padding: 16, width: 320 }}>
       <button id="surface-open" onClick={() => setSurface(true)}>Open surface</button>
+      <button id="saved-open" onClick={() => setSavedOpen(true)}>Open library</button>
+      <SavedItemsOverlay open={savedOpen} onClose={() => setSavedOpen(false)} />
       <AnimatePresence>{surface && <MotionSurface id="surface" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 14 }} transition={{ type: 'spring', ...SPRING.snap, opacity: { duration: DUR.short / 1000 } }}><button id="surface-close" onClick={() => setSurface(false)}>Close surface</button></MotionSurface>}</AnimatePresence>
       <span id="ticker"><NumberTicker value={number} /></span>
       <MorphButton label="Copy" doneLabel="Copied" loadingLabel="Copying" data-testid="morph"
@@ -114,10 +128,16 @@ try {
   await server.listen();
   const url = `http://127.0.0.1:${server.httpServer.address().port}/__motion_contracts`;
   for (const engine of (process.env.BROWSERS || 'chromium').split(',')) {
-    const browser = await engines[engine].launch({ headless: true });
+    // A disposable normal profile exercises real Saved bytes. WebKit's
+    // ephemeral/private contexts reject IndexedDB Blob writes outright.
+    const profile = await mkdtemp(join(tmpdir(), 'sharetexts-motion-'));
+    const context = await engines[engine].launchPersistentContext(profile, {
+      headless: true, viewport: { width: 390, height: 844 },
+    });
     try {
       for (const reducedMotion of ['no-preference', 'reduce']) {
-        const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion });
+        const page = await context.newPage();
+        await page.emulateMedia({ reducedMotion });
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
         await page.goto(url);
@@ -275,10 +295,31 @@ try {
         assert.equal(await menu.evaluate(el => getComputedStyle(el).opacity), '1');
         await page.keyboard.press('Escape');
         await menu.waitFor({ state: 'detached' });
+        // A saved photo owns its own layer: one Escape must return to the
+        // library, not also dismiss it. Real IndexedDB bytes, no mocked view.
+        await page.evaluate(() => window.contracts.seedSavedImage());
+        await page.locator('#saved-open').focus();
+        await page.keyboard.press('Enter');
+        const library = page.getByTestId('saved-overlay');
+        const view = library.getByRole('button', { name: 'View', exact: true });
+        await view.focus();
+        await page.keyboard.press('Enter');
+        const photo = page.getByRole('dialog', { name: 'motion-photo.png', exact: true });
+        await photo.waitFor();
+        await page.waitForFunction(() => document.querySelector('[role="dialog"][aria-label="motion-photo.png"] img')?.naturalWidth > 0);
+        await page.keyboard.press('Escape');
+        await photo.waitFor({ state: 'detached' });
+        assert.equal(await library.isVisible(), true, 'Photo Escape dismissed its Saved library');
+        await until(() => view.evaluate(el => el === document.activeElement), Boolean, 'Photo Escape must restore View focus');
+        await page.keyboard.press('Escape');
+        await library.waitFor({ state: 'detached' });
         assert.deepEqual(errors, []);
-        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/immediate reopen/keyboard return`);
+        console.log(`PASS ${engine} ${reducedMotion}: primitives, live preference, directional/keyboard handoff, truthful stable completion, anchored menu/immediate reopen/keyboard return, layered Saved Escape/focus`);
         await page.close();
       }
-    } finally { await browser.close(); }
+    } finally {
+      await context.close();
+      await rm(profile, { recursive: true, force: true });
+    }
   }
 } finally { await server.close(); }

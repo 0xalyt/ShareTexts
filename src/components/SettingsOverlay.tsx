@@ -219,7 +219,7 @@ export function SettingsOverlay({
                     type="button"
                     onClick={() => setLanguageOpen(false)}
                     data-testid="settings-language-back"
-                    className="flex min-h-[44px] items-center gap-1 px-1 text-[16px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
+                    className="flex min-h-[44px] min-w-[44px] items-center gap-1 px-1 text-[16px] font-semibold text-[#9a3a08] dark:text-[#ffb340]"
                   >
                     <ChevronRight className="h-4 w-4 rotate-180" aria-hidden /> {t('settings.title')}
                   </button>

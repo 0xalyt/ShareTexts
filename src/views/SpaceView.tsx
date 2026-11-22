@@ -205,7 +205,7 @@ function ItemCard({
           <span className="flex-1" />
           {item.kind === 'text' && (
             <button
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+              className="inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
               onClick={() => { onCopy(item); setCopied(true); setTimeout(() => setCopied(false), 1600); }}
             >
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -214,7 +214,7 @@ function ItemCard({
           )}
           {item.kind === 'file' && (
             <button
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+              className="inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] font-medium hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
               onClick={() => onDownload(item)}
             >
               <Download className="w-3.5 h-3.5" />
@@ -223,7 +223,7 @@ function ItemCard({
           )}
           {canRemove && (
             <button
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08] transition-colors"
+              className="inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08] transition-colors"
               onClick={() => onRemove(item)}
               aria-label={t('space.remove')}
             >
@@ -293,7 +293,7 @@ function UploadRow({
             never shuffle sideways when an upload pauses. */}
         {(active || phase === 'paused') && (
           <button
-            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] text-[12px] font-medium transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            className="shrink-0 inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] text-[12px] font-medium transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             onClick={() => (phase === 'paused' ? onResume(up.key) : onPause(up.key))}
             data-testid={phase === 'paused' ? 'space-upload-resume' : 'space-upload-pause'}
           >
@@ -308,7 +308,7 @@ function UploadRow({
         )}
         {(active || phase === 'paused') && (
           <button
-            className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] text-[12px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08]"
+            className="shrink-0 inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] text-[12px] font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-500/[0.08]"
             onClick={() => onCancel(up.key)}
           >
             <XCircle className="w-3.5 h-3.5" />
@@ -318,14 +318,14 @@ function UploadRow({
         {failed && (
           <>
             <button
-              className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] text-[12px] font-semibold text-azure-600 dark:text-azure-400 hover:bg-azure-500/[0.08]"
+              className="shrink-0 inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-1 min-h-[44px] min-w-[44px] text-[12px] font-semibold text-azure-600 dark:text-azure-400 hover:bg-azure-500/[0.08]"
               onClick={() => onRetry(up.key)}
               data-testid="space-upload-retry"
             >
               {t('space.retry')}
             </button>
             <button
-              className="shrink-0 rounded-full p-1.5 min-h-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+              className="shrink-0 inline-flex items-center justify-center rounded-full p-1.5 min-h-[44px] min-w-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
               onClick={() => onDismiss(up.key)}
               aria-label={t('space.cancelUpload')}
             >
@@ -335,7 +335,7 @@ function UploadRow({
         )}
         {cancelled && (
           <button
-            className="shrink-0 rounded-full p-1.5 min-h-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            className="shrink-0 inline-flex items-center justify-center rounded-full p-1.5 min-h-[44px] min-w-[44px] text-apple-ink-muted/60 dark:text-white/40 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
             onClick={() => onDismiss(up.key)}
             aria-label={t('space.cancelUpload')}
           >
@@ -457,7 +457,7 @@ export function SpaceCreateSheet({ open, onClose }: { open: boolean; onClose(): 
           <button
             type="button"
             onClick={generateCode}
-            className="shrink-0 min-h-[44px] px-3.5 rounded-[12px] text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
+            className="shrink-0 min-h-[44px] min-w-[44px] px-3.5 rounded-[12px] text-[13px] font-semibold text-apple-ink dark:text-white/80 bg-white dark:bg-white/[0.05] border border-apple-divider dark:border-white/[0.1] hover:border-apple-ink/25 dark:hover:border-white/25 transition-colors"
             data-testid="space-code-generate"
           >
             {t('space.codeGenerate')}
@@ -740,7 +740,7 @@ function ShareSheet({ open, spaceId, token, code, onClose }: { open: boolean; sp
               onFocus={e => e.currentTarget.select()}
               className="flex-1 min-w-0 rounded-[12px] border border-apple-divider dark:border-white/[0.12] bg-white dark:bg-white/[0.04] px-3 py-2.5 text-[16px] text-apple-ink-muted dark:text-white/70 font-mono truncate"
             />
-            <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform">
+            <button onClick={() => void copy('link')} className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] min-w-[44px] px-4 rounded-full bg-apple-ink dark:bg-white text-white dark:text-night-900 text-[13px] font-semibold active:scale-[0.96] transition-transform">
               {copied === 'link' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               {copied === 'link' ? t('space.copied') : t('space.copyLink')}
             </button>

@@ -1167,7 +1167,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                       if (deadLink === 'unreachable' && m) void attemptLinkJoin(m[1].toLowerCase());
                       else handleReceive();
                     }}
-                    className="press ms-auto shrink-0 min-h-[44px] text-[13px] font-semibold text-ember-ink dark:text-azure-400 underline decoration-ember-ink/30 dark:decoration-azure-400/30 underline-offset-2 motion-reduce:transition-none"
+                    className="press ms-auto shrink-0 min-h-[44px] min-w-[44px] text-[13px] font-semibold text-ember-ink dark:text-azure-400 underline decoration-ember-ink/30 dark:decoration-azure-400/30 underline-offset-2 motion-reduce:transition-none"
                   >
                     {deadLink === 'unreachable' ? t('common.tryAgain') : t('link.tryCode')}
                   </button>
@@ -1466,7 +1466,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                     {!longStuckConnecting && session.isCreator && (
                       <button
                         onClick={handleStuckRetry}
-                        className="flex min-h-[44px] items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white min-h-[44px] active:scale-[0.96] transition-colors"
+                        className="flex min-h-[44px] min-w-[44px] items-center gap-1.5 px-4 py-2 bg-white dark:bg-white/[0.06] border border-apple-divider/60 dark:border-white/10 rounded-full text-[13px] font-semibold text-apple-ink dark:text-white min-h-[44px] min-w-[44px] active:scale-[0.96] transition-colors"
                       >
                         <RotateCcw className="w-3.5 h-3.5" /> {t('common.tryAgain')}
                       </button>
@@ -1476,7 +1476,7 @@ export function SingleScreenApp({ initialSpaceSheet, initialSpaceCode }: { initi
                 {/* Escape hatch: the creator returns to their pairing screen
                     (the room stays open); the joiner abandons and can enter a
                     fresh code. Never a trap. */}
-                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[44px] rounded-full active:scale-[0.96] transition-colors">
+                <button onClick={dismissConnecting} className="mt-6 flex items-center gap-1 text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 px-3 py-2 min-h-[44px] min-w-[44px] rounded-full active:scale-[0.96] transition-colors">
                   <AlloSymbol name="close" size={14} /> {t('cancel')}
                 </button>
               </div>

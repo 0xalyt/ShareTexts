@@ -26,6 +26,7 @@ import { useI18n } from '../lib/i18n';
 import { fmtDateTime } from '../lib/format';
 import type { I18nApi } from '../lib/i18n';
 import { useScrollFade } from '../lib/useScrollFade';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import { DUR } from '../lib/motion/tokens';
 import { Sheet } from './ui/Sheet';
 import { StatePanel, StateSkeletonRow } from './ui/StatePanel';
@@ -84,27 +85,28 @@ function triggerDownload(item: SavedItem): void {
 
 /* ----------------------------- image viewer ------------------------------ */
 
-function SavedImageViewer({ item, onClose }: { item: SavedItem; onClose: () => void }) {
+function SavedImageViewer({ item, onClose, focusRef }: {
+  item: SavedItem;
+  onClose: () => void;
+  focusRef: React.RefObject<HTMLDivElement | null>;
+}) {
   const { t } = useI18n();
   const url = useBlobUrl(item.blob);
-  const closeRef = React.useRef<HTMLButtonElement>(null);
 
   // Same contract as the chat's ImageViewer: while a photo owns the screen,
   // the app's Escape handler must not fire its own layer (disconnect confirm).
   useEffect(() => {
     const w = window as Window & { __stImageViewerOpen?: boolean };
     w.__stImageViewerOpen = true;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } };
-    window.addEventListener('keydown', onKey);
     return () => {
       w.__stImageViewerOpen = false;
-      window.removeEventListener('keydown', onKey);
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <MotionSurface
+      ref={focusRef}
+      tabIndex={-1}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -130,7 +132,6 @@ function SavedImageViewer({ item, onClose }: { item: SavedItem; onClose: () => v
       <div className="mt-3 flex items-center gap-3 max-w-full">
         <span className="text-[13px] text-white/70 truncate">{item.filename || ''}</span>
         <button
-          ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label={t('common.close')}
@@ -424,6 +425,9 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [viewing, setViewing] = useState<SavedItem | null>(null);
+  // Keep the trap in this mounted owner so closing the animated viewer
+  // releases Escape immediately and restores View even with zero-duration exit.
+  const viewerTrap = useFocusTrap(open && viewing !== null, () => setViewing(null));
 
   const items = snapshot.items;
 
@@ -552,7 +556,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
             <button
               type="button"
               onClick={() => setLimit((n) => n + 60)}
-              className="px-4 min-h-[44px] rounded-full bg-black/[0.045] dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white"
+              className="px-4 min-h-[44px] min-w-[44px] rounded-full bg-black/[0.045] dark:bg-white/[0.07] text-[13px] font-semibold text-apple-ink dark:text-white"
               data-testid="saved-show-more"
             >
               {t('saved.showMore')}
@@ -621,7 +625,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
               type="button"
               onClick={() => setConfirmClear(true)}
               disabled={clearing}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-full text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 min-h-[44px] min-w-[44px] rounded-full text-[13px] font-semibold text-status-danger hover:bg-status-danger/10 transition-colors disabled:opacity-60"
               data-testid="saved-clear"
             >
               <Trash2 className="w-3.5 h-3.5" aria-hidden />
@@ -644,7 +648,7 @@ export function SavedItemsOverlay({ open, onClose }: { open: boolean; onClose: (
 
       {/* Full-screen photo view, only while one is open. */}
       <AnimatePresence>
-        {open && viewing && <SavedImageViewer item={viewing} onClose={() => setViewing(null)} />}
+        {open && viewing && <SavedImageViewer item={viewing} focusRef={viewerTrap} onClose={() => setViewing(null)} />}
       </AnimatePresence>
     </>
   );

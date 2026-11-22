@@ -294,7 +294,7 @@ export function RecipientSummary({
       <button
         type="button"
         onClick={onOpen}
-        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 -my-2 min-h-[44px] text-xs font-medium text-neutral-700 transition-colors hover:bg-white dark:border-white/12 dark:bg-white/8 dark:text-neutral-200 dark:hover:bg-white/12"
+        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 -my-2 min-h-[44px] min-w-[44px] text-xs font-medium text-neutral-700 transition-colors hover:bg-white dark:border-white/12 dark:bg-white/8 dark:text-neutral-200 dark:hover:bg-white/12"
       >
         <Users className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
         {selected.length === 0
@@ -328,7 +328,7 @@ export function RecipientSummary({
         <button
           type="button"
           onClick={onOpen}
-          className="rounded-full bg-[--ember]/12 px-3 -my-2 min-h-[44px] text-xs font-medium text-[--ember] dark:bg-[--ember]/20"
+          className="rounded-full bg-[--ember]/12 px-3 -my-2 min-h-[44px] min-w-[44px] text-xs font-medium text-[--ember] dark:bg-[--ember]/20"
         >
           {t('composer.moreDevices', { count: String(rest) })}
         </button>

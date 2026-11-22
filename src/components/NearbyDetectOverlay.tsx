@@ -395,7 +395,7 @@ export function NearbyDetectOverlay({
                       data-testid="nearby-detect-more"
                       disabled={busy}
                       onClick={onFindMore}
-                      className="min-h-[44px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.96] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
+                      className="min-h-[44px] min-w-[44px] px-4 rounded-full text-[13px] font-semibold text-apple-ink-muted dark:text-white/55 hover:text-ember dark:hover:text-azure-400 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors active:scale-[0.96] flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:ring-offset-surface-dark"
                     >
                       <Search className="w-3.5 h-3.5" aria-hidden />
                       {t('nearby.overlay.more')}
