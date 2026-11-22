@@ -228,4 +228,4 @@
 }
 
 /* Shared primary treatment, including empty-state actions. */
-.st-task-sheet [data-testid='saved-empty-cta'] { background: var(--color-ember-ink); color: #fff; border-radius: 12px; }
+.st-task-sheet [data-testid='saved-empty-cta'] { min-width: 44px; padding-inline: 16px; background: var(--color-ember-ink); color: #fff; border-radius: 12px; }

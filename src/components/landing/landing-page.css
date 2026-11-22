@@ -141,7 +141,7 @@ html[st-theme-vt]:has(.landing-header) {
 .landing-mini-label svg { width: 16px; height: 16px; stroke-width: 1.5; }
 /* Latin room-code samples keep stable metrics when surrounding copy switches
    script. Locale-specific proportional fallbacks can overrun the small card. */
-.landing-example-code { margin-top: 20px; text-align: center; white-space: nowrap; font-family: var(--st-font-sans); font-size: 24px; font-weight: 500; letter-spacing: -.025em; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1, "zero" 1; }
+.landing-example-code { margin-top: 20px; text-align: center; white-space: nowrap; font-family: var(--st-font-sans); font-size: 22px; font-weight: 500; letter-spacing: -.025em; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1, "zero" 1; }
 .landing-example-code > span { margin-inline-start: .3em; }
 .landing-code-line { width: 32px; height: 2px; border-radius: 50%; margin: 12px auto 0; background: var(--color-apple-divider); }
 .landing-pair-link { color: var(--color-ember-ink); }
